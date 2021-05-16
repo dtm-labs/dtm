@@ -1,4 +1,4 @@
-module gitlab.ivydad.com/dongfu.ye/go1
+module github.com/yedf/dtm
 
 go 1.15
 
@@ -13,9 +13,12 @@ require (
 	// github.com/pkg/errors v0.9.1 // indirect
 	github.com/sirupsen/logrus v1.7.0
 	github.com/sleagon/ginfmt v1.1.1
+	github.com/smartystreets/assertions v0.0.0-20180927180507-b2de0cb4f26d
+	github.com/spf13/viper v1.7.1
 	github.com/stretchr/testify v1.7.0
 	// google.golang.org/grpc/cmd/protoc-gen-go-grpc v1.1.0 // indirect
 	google.golang.org/protobuf v1.26.0 // indirect
+	gopkg.in/go-playground/assert.v1 v1.2.1
 	gorm.io/driver/mysql v1.0.3
 	gorm.io/gorm v1.20.11
 	gorm.io/plugin/dbresolver v1.1.0
