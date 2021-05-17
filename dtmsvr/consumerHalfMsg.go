@@ -1,0 +1,5 @@
+package dtmsvr
+
+func ConsumeHalfMsg() {
+
+}
