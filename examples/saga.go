@@ -1,57 +1,69 @@
-package example
+package examples
 
-func TansIn() {
+import (
+	"fmt"
 
+	"github.com/gin-gonic/gin"
+	"github.com/sirupsen/logrus"
+	"github.com/yedf/dtm/common"
+	"github.com/yedf/dtm/dtm"
+)
+
+type TransReq struct {
+	amount         int
+	transInFailed  bool
+	transOutFailed bool
 }
 
-func main() {
+func TansIn(c *gin.Context) {
+	gid := c.Query("gid")
+	req := TransReq{}
+	if err := c.BindJSON(&req); err != nil {
+		return
+	}
+	logrus.Printf("%s TransIn: %v", gid, req)
+	if req.transInFailed {
+		logrus.Printf("%s TransIn %v failed", req)
+		c.Error(fmt.Errorf("TransIn failed for gid: %s", gid))
+	}
+	c.JSON(200, gin.H{"result": "SUCCESS"})
+}
 
+func TansInCompensate(c *gin.Context) {
+	gid := c.Query("gid")
+	req := TransReq{}
+	if err := c.BindJSON(&req); err != nil {
+		return
+	}
+	logrus.Printf("%s TransInCompensate: %v", gid, req)
+	c.JSON(200, gin.H{"result": "SUCCESS"})
+}
+
+func TransQuery(c *gin.Context) {
+	gid := c.Query("gid")
+	req := TransReq{}
+	if err := c.BindJSON(&req); err != nil {
+		return
+	}
+	logrus.Printf("%s TransQuery: %v", gid, req)
+	c.JSON(200, gin.H{"result": "SUCCESS"})
+}
+
+func trans(req *TransReq) {
+	gid := common.GenGid()
+	logrus.Printf("busi transaction begin: %s", gid)
+	saga := dtm.Saga{
+		Server: TcServer,
+		Gid:    gid,
+	}
+
+	saga.Add(Busi+"/TransIn", Busi+"/TransInCompensate", req)
+	saga.Prepare(Busi + "TransQuery")
+	logrus.Printf("busi trans commit")
+	saga.Commit()
 }
 
 /*
-import { ServiceContext } from "@ivy/api/globals"
-import { generateTid } from "@ivy/api/ivy"
-import { redis } from "@ivy/api/objects"
-import { Saga } from '../../saga-cli'
-
-async function getGlobalTid() {
-  return "global-" + await generateTid(redis)
-}
-
-export async function transIn(ctx: ServiceContext) {
-  let { gid, sid } = ctx.query
-  let { amount, transIn } = ctx.data
-  console.log(`gid: ${gid} sid: ${sid} transIn ${amount}`)
-  if (transIn === 'fail') {
-    throw { code: "DATA_ERROR", message: "tranIn error FAIL" }
-  }
-  return { messag: 'SUCCESS' }
-}
-
-export async function transInCompensate(ctx: ServiceContext) {
-  let { gid, sid } = ctx.query
-  let { amount } = ctx.data
-  console.log(`gid: ${gid} sid: ${sid} tranInCompensate ${amount}`)
-  return { message: 'SUCCESS' }
-}
-
-export async function transOut(ctx: ServiceContext) {
-  let { gid, sid } = ctx.query
-  let { amount, transIn, transOut } = ctx.data
-  console.log(`gid: ${gid} sid: ${sid} transOut ${amount}`)
-  if (transOut === 'fail') {
-    throw { code: "DATA_ERROR", message: "tranIn error FAIL" }
-  }
-  return { message: 'SUCCESS' }
-}
-
-export async function transOutCompensate(ctx: ServiceContext) {
-  let { gid, sid } = ctx.query
-  let { amount } = ctx.data
-  console.log(`gid: ${gid} sid: ${sid} tranOutCompensate ${amount}`)
-  return { message: 'SUCCESS' }
-}
-
 export async function transQuery(ctx: ServiceContext) {
   let { gid } = ctx.query
   return { message: 'SUCCESS' }

@@ -6,7 +6,7 @@ dtm依赖于rabbitmq和mysql，请搭建好rabbitmq和mysql，并修改dtm.yml
 
 ## 启动tc
 
-```go run tc```
+```go run dtm-svr/svr```
 
 ## 启动例子saga的tm+rm
 
