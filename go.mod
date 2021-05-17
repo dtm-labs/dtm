@@ -6,6 +6,7 @@ require (
 	github.com/bwmarrin/snowflake v0.3.0
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/gin-gonic/gin v1.6.3
+	github.com/go-admin-team/go-admin-core v1.3.4
 	github.com/go-playground/assert/v2 v2.0.1
 	github.com/go-redis/redis/v8 v8.8.2
 	github.com/go-resty/resty/v2 v2.6.0
@@ -23,7 +24,7 @@ require (
 	google.golang.org/protobuf v1.26.0 // indirect
 	gopkg.in/go-playground/assert.v1 v1.2.1
 	gorm.io/driver/mysql v1.0.3
-	gorm.io/gorm v1.20.11
+	gorm.io/gorm v1.20.12
 	gorm.io/plugin/dbresolver v1.1.0
 // gotest.tools v2.2.0+incompatible
 )

@@ -5,12 +5,13 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-func main() {
-	logrus.Printf("start tc")
+func Main() {
+	logrus.Printf("start dtmsvr")
 	gin.SetMode(gin.ReleaseMode)
 	app := gin.Default()
 	AddRoute(app)
-	go ConsumeHalfMsg()
-	go ConsumeMsg()
-	app.Run()
+	StartConsumePreparedMsg(1)
+	StartConsumeCommitedMsg(1)
+	logrus.Printf("dtmsvr listen at: 8080")
+	go app.Run()
 }

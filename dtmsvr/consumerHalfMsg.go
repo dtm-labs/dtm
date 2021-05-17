@@ -1,5 +1,0 @@
-package dtmsvr
-
-func ConsumeHalfMsg() {
-
-}

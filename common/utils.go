@@ -1,6 +1,8 @@
 package common
 
 import (
+	"encoding/json"
+
 	"github.com/bwmarrin/snowflake"
 )
 
@@ -29,4 +31,10 @@ func If(condition bool, trueObj interface{}, falseObj interface{}) interface{} {
 		return trueObj
 	}
 	return falseObj
+}
+
+func MustMarshal(v interface{}) []byte {
+	b, err := json.Marshal(v)
+	PanicIfError(err)
+	return b
 }

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"sync"
 
+	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
 	"github.com/streadway/amqp"
 	"github.com/yedf/dtm/common"
@@ -81,6 +82,8 @@ func (r *Rabbitmq) SendAndConfirm(key RabbitmqConst, data map[string]interface{}
 	body, err := json.Marshal(data)
 	common.PanicIfError(err)
 	channel := r.ChannelPool.Get().(*RabbitmqChannel)
+
+	logrus.Printf("publishing %s %v", key, data)
 	err = channel.Channel.Publish(
 		r.Config.Exchange,
 		common.If(key == RabbitmqConstPrepared, r.Config.KeyPrepared, r.Config.KeyCommited).(string),
@@ -103,6 +106,7 @@ func (r *Rabbitmq) SendAndConfirm(key RabbitmqConst, data map[string]interface{}
 }
 
 type RabbitmqQueue struct {
+	Name       string
 	Channel    *amqp.Channel
 	Conn       *amqp.Connection
 	Deliveries <-chan amqp.Delivery
@@ -113,33 +117,34 @@ func (q *RabbitmqQueue) Close() {
 	// q.Conn.Close()
 }
 
-func (q *RabbitmqQueue) WaitAndHandle(handler func(data map[string]interface{})) {
+func (q *RabbitmqQueue) WaitAndHandle(handler func(data gin.H)) {
 	for {
 		q.WaitAndHandleOne(handler)
 	}
 }
-func (q *RabbitmqQueue) WaitAndHandleOne(handler func(data map[string]interface{})) {
-	logrus.Printf("reading message")
+func (q *RabbitmqQueue) WaitAndHandleOne(handler func(data gin.H)) {
+	logrus.Printf("%s reading message", q.Name)
 	msg := <-q.Deliveries
 	data := map[string]interface{}{}
 	err := json.Unmarshal(msg.Body, &data)
-	logrus.Printf("handling one message: %v", data)
+	logrus.Printf("%s handling one message: %v", q.Name, data)
 	common.PanicIfError(err)
 	handler(data)
 	err = msg.Ack(false)
 	common.PanicIfError(err)
-	logrus.Printf("acked msg: %d", msg.DeliveryTag)
+	logrus.Printf("%s acked msg: %d", q.Name, msg.DeliveryTag)
 }
 
 func (r *Rabbitmq) QueueNew(queueType RabbitmqConst) *RabbitmqQueue {
 	channel := newChannel(&r.Config)
+	queueName := common.If(queueType == RabbitmqConstPrepared, r.Config.QueuePrepared, r.Config.QueueCommited).(string)
 	queue, err := channel.QueueDeclare(
-		common.If(queueType == RabbitmqConstPrepared, r.Config.QueuePrepared, r.Config.QueueCommited).(string), // name of the queue
-		true,  // durable
-		false, // delete when unused
-		false, // exclusive
-		false, // noWait
-		nil,   // arguments
+		queueName, // name of the queue
+		true,      // durable
+		false,     // delete when unused
+		false,     // exclusive
+		false,     // noWait
+		nil,       // arguments
 	)
 	common.PanicIfError(err)
 	logrus.Printf("declared Queue (%q %d messages, %d consumers), binding to Exchange",
@@ -163,6 +168,7 @@ func (r *Rabbitmq) QueueNew(queueType RabbitmqConst) *RabbitmqQueue {
 	)
 	common.PanicIfError(err)
 	return &RabbitmqQueue{
+		Name:       queueName,
 		Channel:    channel,
 		Deliveries: deliveries,
 	}

@@ -24,7 +24,7 @@ func TestRabbitmq1Msg(t *testing.T) {
 	})
 	assert.Equal(t, nil, err)
 	queue := rb.QueueNew(RabbitmqConstPrepared)
-	queue.WaitAndHandle(func(data map[string]interface{}) {
+	queue.WaitAndHandle(func(data gin.H) {
 		logrus.Printf("processed msg: %v in queue1", data)
 	})
 	assert.Equal(t, 0, 1)
