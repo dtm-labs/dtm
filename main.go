@@ -3,12 +3,25 @@ package main
 import (
 	"time"
 
+	"github.com/yedf/dtm/common"
 	"github.com/yedf/dtm/dtmsvr"
 	"github.com/yedf/dtm/examples"
 )
 
 func main() {
 	dtmsvr.LoadConfig()
+	db := dtmsvr.DbGet()
+	tx := db.Begin()
+	common.PanicIfError(tx.Error)
+	dbr := tx.Commit()
+	common.PanicIfError(dbr.Error)
+
+	tx = db.Begin()
+	common.PanicIfError(tx.Error)
+	dbr = tx.Commit()
+	common.PanicIfError(dbr.Error)
+	db.Exec("truncate test1.a_saga")
+	db.Exec("truncate test1.a_saga_step")
 	// logrus.SetFormatter(&logrus.JSONFormatter{})
 	// dtmsvr.LoadConfig()
 	// rb := dtmsvr.RabbitmqNew(&dtmsvr.ServerConfig.Rabbitmq)

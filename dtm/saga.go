@@ -10,11 +10,14 @@ import (
 
 var client *resty.Client = resty.New()
 
-type Saga struct {
-	Server     string     `json:"server"`
+type SagaData struct {
 	Gid        string     `json:"gid"`
 	Steps      []SagaStep `json:"steps"`
 	TransQuery string     `json:"trans_query"`
+}
+type Saga struct {
+	SagaData
+	Server string
 }
 type SagaStep struct {
 	Action     string `json:"action"`
@@ -22,6 +25,14 @@ type SagaStep struct {
 	PostData   gin.H  `json:"post_data"`
 }
 
+func SagaNew(server string, gid string) *Saga {
+	return &Saga{
+		SagaData: SagaData{
+			Gid: gid,
+		},
+		Server: server,
+	}
+}
 func (s *Saga) Add(action string, compensate string, postData gin.H) error {
 	logrus.Printf("saga %s Add %s %s %v", s.Gid, action, compensate, postData)
 	step := SagaStep{
@@ -34,12 +45,8 @@ func (s *Saga) Add(action string, compensate string, postData gin.H) error {
 	return nil
 }
 
-func (s *Saga) getBody() gin.H {
-	return gin.H{
-		"gid":         s.Gid,
-		"trans_query": s.TransQuery,
-		"steps":       s.Steps,
-	}
+func (s *Saga) getBody() *SagaData {
+	return &s.SagaData
 }
 
 func (s *Saga) Prepare(url string) error {

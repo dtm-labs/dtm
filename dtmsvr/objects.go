@@ -4,12 +4,15 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/go-resty/resty/v2"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
 	"github.com/yedf/dtm/common"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 )
+
+type M = map[string]interface{}
 
 var rabbit *Rabbitmq = nil
 
@@ -27,11 +30,15 @@ func DbGet() *gorm.DB {
 	LoadConfig()
 	if db == nil {
 		conf := viper.GetStringMapString("mysql")
-		dsn := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?charset=utf8mb4", conf["user"], conf["password"], conf["host"], conf["port"], conf["database"])
+		dsn := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?charset=utf8mb4&parseTime=true", conf["user"], conf["password"], conf["host"], conf["port"], conf["database"])
 		logrus.Printf("connecting %s", strings.Replace(dsn, conf["password"], "****", 1))
-		db1, err := gorm.Open(mysql.Open(dsn), &gorm.Config{})
+		db1, err := gorm.Open(mysql.Open(dsn), &gorm.Config{
+			SkipDefaultTransaction: true,
+		})
 		common.PanicIfError(err)
 		db = db1.Debug()
 	}
 	return db
 }
+
+var client *resty.Client = resty.New()

@@ -10,7 +10,7 @@ func Main() {
 	gin.SetMode(gin.ReleaseMode)
 	app := gin.Default()
 	AddRoute(app)
-	StartConsumePreparedMsg(1)
+	// StartConsumePreparedMsg(1)
 	StartConsumeCommitedMsg(1)
 	logrus.Printf("dtmsvr listen at: 8080")
 	go app.Run()

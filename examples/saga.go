@@ -5,7 +5,6 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
-	"github.com/yedf/dtm/common"
 	"github.com/yedf/dtm/dtm"
 )
 
@@ -50,12 +49,10 @@ func TransQuery(c *gin.Context) {
 }
 
 func trans(req *TransReq) {
-	gid := common.GenGid()
+	// gid := common.GenGid()
+	gid := "4eHhkCxVsQ1"
 	logrus.Printf("busi transaction begin: %s", gid)
-	saga := dtm.Saga{
-		Server: TcServer,
-		Gid:    gid,
-	}
+	saga := dtm.SagaNew(TcServer, gid)
 
 	saga.Add(Busi+"/TransIn", Busi+"/TransInCompensate", gin.H{
 		"amount":         req.amount,

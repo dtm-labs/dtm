@@ -38,3 +38,15 @@ func MustMarshal(v interface{}) []byte {
 	PanicIfError(err)
 	return b
 }
+
+func MustMarshalString(v interface{}) string {
+	return string(MustMarshal(v))
+}
+
+func Map2Obj(m map[string]interface{}, obj interface{}) error {
+	b, err := json.Marshal(m)
+	if err != nil {
+		return err
+	}
+	return json.Unmarshal(b, obj)
+}
