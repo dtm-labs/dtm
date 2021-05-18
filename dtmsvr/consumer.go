@@ -126,7 +126,6 @@ func ProcessCommitedSaga(gid string) (rerr error) {
 	if db1.Error != nil {
 		return db1.Error
 	}
-	current := 0 // 当前正在处理的步骤
 	tx := []*gorm.DB{db.Begin()}
 	defer func() { // 如果直接return出去，则rollback当前的事务
 		tx[0].Rollback()
@@ -144,13 +143,14 @@ func ProcessCommitedSaga(gid string) (rerr error) {
 		tx[0] = db.Begin()
 		common.PanicIfError(tx[0].Error)
 	}
+	current := 0 // 当前正在处理的步骤
 	for ; current < len(steps); current++ {
 		step := steps[current]
 		if step.Type == "compensate" && step.Status == "pending" || step.Type == "action" && step.Status == "finished" {
 			continue
 		}
 		if step.Type == "action" && step.Status == "pending" {
-			resp, err := client.R().SetBody(step.Data).SetQueryParam("gid", step.Gid).Post(step.Url)
+			resp, err := common.RestyClient.R().SetBody(step.Data).SetQueryParam("gid", step.Gid).Post(step.Url)
 			if err != nil {
 				return err
 			}
@@ -167,6 +167,10 @@ func ProcessCommitedSaga(gid string) (rerr error) {
 					"rollback_time": time.Now(),
 				})
 				checkAndCommit(dbr)
+				break
+			} else {
+				logrus.Errorf("unknown response: %s, will be retried", body)
+				break
 			}
 		}
 	}
@@ -178,12 +182,12 @@ func ProcessCommitedSaga(gid string) (rerr error) {
 		checkAndCommit(dbr)
 		return nil
 	}
-	for current = len(steps) - 1; current >= 0; current-- {
+	for current = current - 1; current >= 0; current-- {
 		step := steps[current]
 		if step.Type != "compensate" || step.Status != "pending" {
 			continue
 		}
-		resp, err := client.R().SetBody(step.Data).SetQueryParam("gid", step.Gid).Post(step.Url)
+		resp, err := common.RestyClient.R().SetBody(step.Data).SetQueryParam("gid", step.Gid).Post(step.Url)
 		if err != nil {
 			return err
 		}

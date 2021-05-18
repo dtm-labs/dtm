@@ -4,11 +4,9 @@ import (
 	"fmt"
 
 	"github.com/gin-gonic/gin"
-	"github.com/go-resty/resty/v2"
 	"github.com/sirupsen/logrus"
+	"github.com/yedf/dtm/common"
 )
-
-var client *resty.Client = resty.New()
 
 type SagaData struct {
 	Gid        string     `json:"gid"`
@@ -52,7 +50,7 @@ func (s *Saga) getBody() *SagaData {
 func (s *Saga) Prepare(url string) error {
 	s.TransQuery = url
 	logrus.Printf("preparing %s body: %v", s.Gid, s.getBody())
-	resp, err := client.R().SetBody(s.getBody()).Post(fmt.Sprintf("%s/prepare", s.Server))
+	resp, err := common.RestyClient.R().SetBody(s.getBody()).Post(fmt.Sprintf("%s/prepare", s.Server))
 	if err != nil {
 		return err
 	}
@@ -64,7 +62,7 @@ func (s *Saga) Prepare(url string) error {
 
 func (s *Saga) Commit() error {
 	logrus.Printf("committing %s body: %v", s.Gid, s.getBody())
-	resp, err := client.R().SetBody(s.getBody()).Post(fmt.Sprintf("%s/commit", s.Server))
+	resp, err := common.RestyClient.R().SetBody(s.getBody()).Post(fmt.Sprintf("%s/commit", s.Server))
 	if err != nil {
 		return err
 	}

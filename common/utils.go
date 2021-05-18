@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 
 	"github.com/bwmarrin/snowflake"
+	"github.com/go-resty/resty/v2"
+	"github.com/sirupsen/logrus"
 )
 
 var gNode *snowflake.Node = nil
@@ -49,4 +51,18 @@ func Map2Obj(m map[string]interface{}, obj interface{}) error {
 		return err
 	}
 	return json.Unmarshal(b, obj)
+}
+
+var RestyClient = resty.New()
+
+func init() {
+	RestyClient.OnBeforeRequest(func(c *resty.Client, r *resty.Request) error {
+		logrus.Printf("requesting: %s %s %v", r.Method, r.URL, r.Body)
+		return nil
+	})
+	RestyClient.OnAfterResponse(func(c *resty.Client, resp *resty.Response) error {
+		r := resp.Request
+		logrus.Printf("requested: %s %s %s", r.Method, r.URL, resp.String())
+		return nil
+	})
 }

@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/go-resty/resty/v2"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
 	"github.com/yedf/dtm/common"
@@ -40,5 +39,3 @@ func DbGet() *gorm.DB {
 	}
 	return db
 }
-
-var client *resty.Client = resty.New()
