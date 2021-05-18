@@ -11,7 +11,7 @@ func AddRoute(engine *gin.Engine) {
 }
 
 func Prepare(c *gin.Context) {
-	data := gin.H{}
+	data := M{}
 	err := c.BindJSON(&data)
 	if err != nil {
 		return
@@ -19,11 +19,11 @@ func Prepare(c *gin.Context) {
 	rabbit := RabbitmqGet()
 	err = rabbit.SendAndConfirm(RabbitmqConstPrepared, data)
 	common.PanicIfError(err)
-	c.JSON(200, gin.H{"message": "SUCCESS"})
+	c.JSON(200, M{"message": "SUCCESS"})
 }
 
 func Commit(c *gin.Context) {
-	data := gin.H{}
+	data := M{}
 	err := c.BindJSON(&data)
 	if err != nil {
 		return
@@ -31,5 +31,5 @@ func Commit(c *gin.Context) {
 	rabbit := RabbitmqGet()
 	err = rabbit.SendAndConfirm(RabbitmqConstCommited, data)
 	common.PanicIfError(err)
-	c.JSON(200, gin.H{"message": "SUCCESS"})
+	c.JSON(200, M{"message": "SUCCESS"})
 }

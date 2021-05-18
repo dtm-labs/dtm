@@ -3,7 +3,6 @@ package dtmsvr
 import (
 	"testing"
 
-	"github.com/gin-gonic/gin"
 	"github.com/magiconair/properties/assert"
 	"github.com/sirupsen/logrus"
 	"github.com/yedf/dtm/common"
@@ -19,12 +18,12 @@ func TestRabbitConfig(t *testing.T) {
 
 func TestRabbitmq1Msg(t *testing.T) {
 	rb := RabbitmqNew(&ServerConfig.Rabbitmq)
-	err := rb.SendAndConfirm(RabbitmqConstPrepared, gin.H{
+	err := rb.SendAndConfirm(RabbitmqConstPrepared, M{
 		"gid": common.GenGid(),
 	})
 	assert.Equal(t, nil, err)
 	queue := rb.QueueNew(RabbitmqConstPrepared)
-	queue.WaitAndHandle(func(data gin.H) {
+	queue.WaitAndHandle(func(data M) {
 		logrus.Printf("processed msg: %v in queue1", data)
 	})
 	assert.Equal(t, 0, 1)

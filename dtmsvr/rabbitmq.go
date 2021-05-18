@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"sync"
 
-	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
 	"github.com/streadway/amqp"
 	"github.com/yedf/dtm/common"
@@ -107,6 +106,7 @@ func (r *Rabbitmq) SendAndConfirm(key RabbitmqConst, data map[string]interface{}
 
 type RabbitmqQueue struct {
 	Name       string
+	Queue      *amqp.Queue
 	Channel    *amqp.Channel
 	Conn       *amqp.Connection
 	Deliveries <-chan amqp.Delivery
@@ -117,12 +117,12 @@ func (q *RabbitmqQueue) Close() {
 	// q.Conn.Close()
 }
 
-func (q *RabbitmqQueue) WaitAndHandle(handler func(data gin.H)) {
+func (q *RabbitmqQueue) WaitAndHandle(handler func(data M)) {
 	for {
 		q.WaitAndHandleOne(handler)
 	}
 }
-func (q *RabbitmqQueue) WaitAndHandleOne(handler func(data gin.H)) {
+func (q *RabbitmqQueue) WaitAndHandleOne(handler func(data M)) {
 	logrus.Printf("%s reading message", q.Name)
 	msg := <-q.Deliveries
 	data := map[string]interface{}{}
@@ -168,6 +168,7 @@ func (r *Rabbitmq) QueueNew(queueType RabbitmqConst) *RabbitmqQueue {
 	)
 	common.PanicIfError(err)
 	return &RabbitmqQueue{
+		Queue:      &queue,
 		Name:       queueName,
 		Channel:    channel,
 		Deliveries: deliveries,

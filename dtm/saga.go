@@ -3,42 +3,42 @@ package dtm
 import (
 	"fmt"
 
-	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
 	"github.com/yedf/dtm/common"
 )
+
+type Saga struct {
+	SagaData
+	Server string
+}
 
 type SagaData struct {
 	Gid        string     `json:"gid"`
 	Steps      []SagaStep `json:"steps"`
 	TransQuery string     `json:"trans_query"`
 }
-type Saga struct {
-	SagaData
-	Server string
-}
 type SagaStep struct {
 	Action     string `json:"action"`
 	Compensate string `json:"compensate"`
-	PostData   gin.H  `json:"post_data"`
+	PostData   string `json:"post_data"`
 }
 
-func SagaNew(server string, gid string) *Saga {
+func SagaNew(server string, gid string, transQuery string) *Saga {
 	return &Saga{
 		SagaData: SagaData{
-			Gid: gid,
+			Gid:        gid,
+			TransQuery: transQuery,
 		},
 		Server: server,
 	}
 }
-func (s *Saga) Add(action string, compensate string, postData gin.H) error {
+func (s *Saga) Add(action string, compensate string, postData interface{}) error {
 	logrus.Printf("saga %s Add %s %s %v", s.Gid, action, compensate, postData)
 	step := SagaStep{
 		Action:     action,
 		Compensate: compensate,
-		PostData:   postData,
+		PostData:   common.MustMarshalString(postData),
 	}
-	step.PostData = postData
 	s.Steps = append(s.Steps, step)
 	return nil
 }
@@ -47,8 +47,7 @@ func (s *Saga) getBody() *SagaData {
 	return &s.SagaData
 }
 
-func (s *Saga) Prepare(url string) error {
-	s.TransQuery = url
+func (s *Saga) Prepare() error {
 	logrus.Printf("preparing %s body: %v", s.Gid, s.getBody())
 	resp, err := common.RestyClient.R().SetBody(s.getBody()).Post(fmt.Sprintf("%s/prepare", s.Server))
 	if err != nil {

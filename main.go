@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"time"
 
 	"github.com/yedf/dtm/common"
@@ -8,8 +9,17 @@ import (
 	"github.com/yedf/dtm/examples"
 )
 
+type M = map[string]interface{}
+
 func main() {
 	dtmsvr.LoadConfig()
+
+	s := common.MustMarshalString(M{
+		"a": 1,
+		"b": "str",
+	})
+	var obj interface{}
+	json.Unmarshal([]byte(s), &obj)
 	db := dtmsvr.DbGet()
 	tx := db.Begin()
 	common.PanicIfError(tx.Error)
@@ -25,7 +35,7 @@ func main() {
 	// logrus.SetFormatter(&logrus.JSONFormatter{})
 	// dtmsvr.LoadConfig()
 	// rb := dtmsvr.RabbitmqNew(&dtmsvr.ServerConfig.Rabbitmq)
-	// err := rb.SendAndConfirm(dtmsvr.RabbitmqConstPrepared, gin.H{
+	// err := rb.SendAndConfirm(dtmsvr.RabbitmqConstPrepared, M{
 	// 	"gid": common.GenGid(),
 	// })
 	// common.PanicIfError(err)

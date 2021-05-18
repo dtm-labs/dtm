@@ -5,7 +5,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
 	"github.com/yedf/dtm/common"
 	"gorm.io/gorm"
@@ -47,7 +46,7 @@ func (*SagaStepModel) TableName() string {
 	return "test1.a_saga_step"
 }
 
-func handlePreparedMsg(data gin.H) {
+func HandlePreparedMsg(data M) {
 	db := DbGet()
 	logrus.Printf("creating saga model in prepare")
 	data["steps"] = common.MustMarshalString(data["steps"])
@@ -60,7 +59,7 @@ func handlePreparedMsg(data gin.H) {
 	}).Create(&m)
 }
 
-func handleCommitedMsg(data gin.H) {
+func HandleCommitedMsg(data M) {
 	db := DbGet()
 	logrus.Printf("creating saga model in commited")
 	steps := data["steps"].([]interface{})
@@ -83,7 +82,7 @@ func handleCommitedMsg(data gin.H) {
 			nsteps = append(nsteps, SagaStepModel{
 				Gid:    m.Gid,
 				Step:   len(nsteps) + 1,
-				Data:   common.MustMarshalString(step["post_data"]),
+				Data:   step["post_data"].(string),
 				Url:    step["compensate"].(string),
 				Type:   "compensate",
 				Status: "pending",
@@ -91,7 +90,7 @@ func handleCommitedMsg(data gin.H) {
 			nsteps = append(nsteps, SagaStepModel{
 				Gid:    m.Gid,
 				Step:   len(nsteps) + 1,
-				Data:   common.MustMarshalString(step["post_data"]),
+				Data:   step["post_data"].(string),
 				Url:    step["action"].(string),
 				Type:   "action",
 				Status: "pending",
@@ -169,8 +168,7 @@ func ProcessCommitedSaga(gid string) (rerr error) {
 				checkAndCommit(dbr)
 				break
 			} else {
-				logrus.Errorf("unknown response: %s, will be retried", body)
-				break
+				return fmt.Errorf("unknown response: %s, will be retried", body)
 			}
 		}
 	}
@@ -219,7 +217,7 @@ func StartConsumePreparedMsg(consumers int) {
 	for i := 0; i < consumers; i++ {
 		go func() {
 			que := r.QueueNew(RabbitmqConstPrepared)
-			que.WaitAndHandle(handlePreparedMsg)
+			que.WaitAndHandle(HandlePreparedMsg)
 		}()
 	}
 }
@@ -230,7 +228,7 @@ func StartConsumeCommitedMsg(consumers int) {
 	for i := 0; i < consumers; i++ {
 		go func() {
 			que := r.QueueNew(RabbitmqConstCommited)
-			que.WaitAndHandle(handleCommitedMsg)
+			que.WaitAndHandle(HandleCommitedMsg)
 		}()
 	}
 }
