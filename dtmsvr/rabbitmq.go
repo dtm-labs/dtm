@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"sync"
+	"time"
 
 	"github.com/sirupsen/logrus"
 	"github.com/streadway/amqp"
@@ -38,6 +39,8 @@ const (
 	RabbitmqConstPrepared RabbitmqConst = "dtm_prepared"
 	RabbitmqConstCommited RabbitmqConst = "dtm_commited"
 )
+
+var IgnoreMsgBefore = time.Now().Add(-3 * time.Second) // 忽略3秒前的消息
 
 func RabbitmqNew(conf *RabbitmqConfig) *Rabbitmq {
 	return &Rabbitmq{
@@ -92,6 +95,7 @@ func (r *Rabbitmq) SendAndConfirm(key RabbitmqConst, data map[string]interface{}
 			ContentType:  "application/json",
 			DeliveryMode: amqp.Persistent,
 			Body:         body,
+			Timestamp:    time.Now(),
 		},
 	)
 	common.PanicIfError(err)
@@ -125,6 +129,11 @@ func (q *RabbitmqQueue) WaitAndHandle(handler func(data M)) {
 func (q *RabbitmqQueue) WaitAndHandleOne(handler func(data M)) {
 	logrus.Printf("%s reading message", q.Name)
 	msg := <-q.Deliveries
+	for msg.Timestamp.Before(IgnoreMsgBefore) {
+		logrus.Printf("%s discarding a message %v before %v", q.Name, msg.Timestamp, IgnoreMsgBefore)
+		msg.Ack(false)
+		msg = <-q.Deliveries
+	}
 	data := map[string]interface{}{}
 	err := json.Unmarshal(msg.Body, &data)
 	logrus.Printf("%s handling one message: %v", q.Name, data)

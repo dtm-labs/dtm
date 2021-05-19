@@ -2,14 +2,21 @@ package examples
 
 import (
 	"fmt"
-	"strings"
 
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
+	"github.com/yedf/dtm/common"
 	"github.com/yedf/dtm/dtm"
 )
 
 type M = map[string]interface{}
+
+var TransInResult = ""
+var TransOutResult = ""
+var TransInCompensateResult = ""
+var TransOutCompensateResult = ""
+var TransQueryResult = ""
+
 type TransReq struct {
 	Amount         int  `json:"amount"`
 	TransInFailed  bool `json:"transInFailed"`
@@ -22,13 +29,14 @@ func TransIn(c *gin.Context) {
 	if err := c.BindJSON(&req); err != nil {
 		return
 	}
-	logrus.Printf("%s TransIn: %v", gid, req)
 	if req.TransInFailed {
 		logrus.Printf("%s TransIn %v failed", req)
 		c.Error(fmt.Errorf("TransIn failed for gid: %s", gid))
 		return
 	}
-	c.JSON(200, M{"result": "SUCCESS"})
+	res := common.OrString(TransInResult, "SUCCESS")
+	logrus.Printf("%s TransIn: %v result: %s", gid, req, res)
+	c.JSON(200, M{"result": res})
 }
 
 func TransInCompensate(c *gin.Context) {
@@ -37,8 +45,9 @@ func TransInCompensate(c *gin.Context) {
 	if err := c.BindJSON(&req); err != nil {
 		return
 	}
-	logrus.Printf("%s TransInCompensate: %v", gid, req)
-	c.JSON(200, M{"result": "SUCCESS"})
+	res := common.OrString(TransInCompensateResult, "SUCCESS")
+	logrus.Printf("%s TransInCompensate: %v result: %s", gid, req, res)
+	c.JSON(200, M{"result": res})
 }
 
 func TransOut(c *gin.Context) {
@@ -47,13 +56,14 @@ func TransOut(c *gin.Context) {
 	if err := c.BindJSON(&req); err != nil {
 		return
 	}
-	logrus.Printf("%s TransOut: %v", gid, req)
 	if req.TransOutFailed {
 		logrus.Printf("%s TransOut %v failed", gid, req)
 		c.JSON(500, M{"result": "FAIL"})
 		return
 	}
-	c.JSON(200, M{"result": "SUCCESS"})
+	res := common.OrString(TransOutResult, "SUCCESS")
+	logrus.Printf("%s TransOut: %v result: %s", gid, req, res)
+	c.JSON(200, M{"result": res})
 }
 
 func TransOutCompensate(c *gin.Context) {
@@ -62,20 +72,16 @@ func TransOutCompensate(c *gin.Context) {
 	if err := c.BindJSON(&req); err != nil {
 		return
 	}
-	logrus.Printf("%s TransOutCompensate: %v", gid, req)
-	c.JSON(200, M{"result": "SUCCESS"})
+	res := common.OrString(TransOutCompensateResult, "SUCCESS")
+	logrus.Printf("%s TransOutCompensate: %v result: %s", gid, req, res)
+	c.JSON(200, M{"result": res})
 }
 
 func TransQuery(c *gin.Context) {
 	gid := c.Query("gid")
 	logrus.Printf("%s TransQuery", gid)
-	if strings.Contains(gid, "cancel") {
-		c.JSON(200, M{"result": "FAIL"})
-	} else if strings.Contains(gid, "pending") {
-		c.JSON(200, M{"result": "PENDING"})
-	} else {
-		c.JSON(200, M{"result": "SUCCESS"})
-	}
+	res := common.OrString(TransQueryResult, "SUCCESS")
+	c.JSON(200, M{"result": res})
 }
 
 func trans(req *TransReq) {

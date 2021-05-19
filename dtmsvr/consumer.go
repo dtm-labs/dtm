@@ -19,10 +19,10 @@ type ModelBase struct {
 }
 type SagaModel struct {
 	ModelBase
-	Gid          string
-	Steps        string
+	Gid          string `json:"gid"`
+	Steps        string `json:"steps"`
 	TransQuery   string `json:"trans_query"`
-	Status       string
+	Status       string `json:"status"`
 	FinishTime   time.Time
 	RollbackTime time.Time
 }
@@ -52,25 +52,41 @@ func HandlePreparedMsg(data M) {
 	logrus.Printf("creating saga model in prepare")
 	data["steps"] = common.MustMarshalString(data["steps"])
 	m := SagaModel{}
-	err := common.Map2Obj(data, &m)
-	common.PanicIfError(err)
+	common.MustRemarshal(data, &m)
 	m.Status = "prepared"
-	db.Clauses(clause.OnConflict{
+	writeTransLog(m.Gid, "save prepared", m.Status, -1, m.Steps)
+	db1 := db.Clauses(clause.OnConflict{
 		DoNothing: true,
 	}).Create(&m)
+	common.PanicIfError(db1.Error)
 }
 
-func handleCommitedSagaModel(m *SagaModel) {
+func HandleCommitedMsg(data M) {
+	logrus.Printf("creating saga model in commited")
+	data["steps"] = common.MustMarshalString(data["steps"])
+	m := SagaModel{}
+	common.MustRemarshal(data, &m)
+	saveCommitedSagaModel(&m)
+	err := ProcessCommitedSaga(m.Gid)
+	if err != nil {
+		logrus.Printf("---------------handle commited msmg error: %s", err.Error())
+	}
+}
+
+func saveCommitedSagaModel(m *SagaModel) {
 	db := DbGet()
-	m.Status = "processing"
+	m.Status = "commited"
 	stepInserted := false
 	err := db.Transaction(func(db *gorm.DB) error {
-		db.Clauses(clause.OnConflict{
+		writeTransLog(m.Gid, "save commited", m.Status, -1, m.Steps)
+		dbr := db.Clauses(clause.OnConflict{
 			DoNothing: true,
 		}).Create(&m)
-		if db.Error == nil && db.RowsAffected == 0 {
-			db.Model(&m).Where("status=?", "prepared").Update("status", "processing")
+		if dbr.Error == nil && dbr.RowsAffected == 0 {
+			writeTransLog(m.Gid, "change status", m.Status, -1, "")
+			dbr = db.Model(&m).Where("status=?", "prepared").Update("status", "commited")
 		}
+		common.PanicIfError(dbr.Error)
 		nsteps := []SagaStepModel{}
 		steps := []M{}
 		err := json.Unmarshal([]byte(m.Steps), &steps)
@@ -93,6 +109,7 @@ func handleCommitedSagaModel(m *SagaModel) {
 				Status: "pending",
 			})
 		}
+		writeTransLog(m.Gid, "save steps", m.Status, -1, common.MustMarshalString(nsteps))
 		r := db.Clauses(clause.OnConflict{
 			DoNothing: true,
 		}).Create(&nsteps)
@@ -109,18 +126,6 @@ func handleCommitedSagaModel(m *SagaModel) {
 	if !stepInserted {
 		return
 	}
-	err = ProcessCommitedSaga(m.Gid)
-	if err != nil {
-		logrus.Printf("---------------handle commited msmg error: %s", err.Error())
-	}
-}
-func HandleCommitedMsg(data M) {
-	logrus.Printf("creating saga model in commited")
-	data["steps"] = common.MustMarshalString(data["steps"])
-	m := SagaModel{}
-	err := common.Map2Obj(data, &m)
-	common.PanicIfError(err)
-	handleCommitedSagaModel(&m)
 }
 
 func ProcessCommitedSaga(gid string) (rerr error) {
@@ -130,22 +135,11 @@ func ProcessCommitedSaga(gid string) (rerr error) {
 	if db1.Error != nil {
 		return db1.Error
 	}
-	tx := []*gorm.DB{db.Begin()}
-	defer func() { // 如果直接return出去，则rollback当前的事务
-		tx[0].Rollback()
-		if err := recover(); err != nil {
-			rerr = err.(error)
-		}
-	}()
-	checkAndCommit := func(db1 *gorm.DB) {
+	checkAffected := func(db1 *gorm.DB) {
 		common.PanicIfError(db1.Error)
 		if db1.RowsAffected == 0 {
 			panic(fmt.Errorf("duplicate updating"))
 		}
-		dbr := tx[0].Commit()
-		common.PanicIfError(dbr.Error)
-		tx[0] = db.Begin()
-		common.PanicIfError(tx[0].Error)
 	}
 	current := 0 // 当前正在处理的步骤
 	for ; current < len(steps); current++ {
@@ -160,17 +154,19 @@ func ProcessCommitedSaga(gid string) (rerr error) {
 			}
 			body := resp.String()
 			if strings.Contains(body, "SUCCESS") {
-				dbr := tx[0].Model(&step).Where("status=?", "pending").Updates(M{
+				writeTransLog(gid, "step finished", "finished", step.Step, "")
+				dbr := db.Model(&step).Where("status=?", "pending").Updates(M{
 					"status":      "finished",
 					"finish_time": time.Now(),
 				})
-				checkAndCommit(dbr)
+				checkAffected(dbr)
 			} else if strings.Contains(body, "FAIL") {
-				dbr := tx[0].Model(&step).Where("status=?", "pending").Updates(M{
+				writeTransLog(gid, "step rollbacked", "rollbacked", step.Step, "")
+				dbr := db.Model(&step).Where("status=?", "pending").Updates(M{
 					"status":        "rollbacked",
 					"rollback_time": time.Now(),
 				})
-				checkAndCommit(dbr)
+				checkAffected(dbr)
 				break
 			} else {
 				return fmt.Errorf("unknown response: %s, will be retried", body)
@@ -178,11 +174,12 @@ func ProcessCommitedSaga(gid string) (rerr error) {
 		}
 	}
 	if current == len(steps) { // saga 事务完成
-		dbr := tx[0].Model(&SagaModel{}).Where("gid=? and status=?", gid, "processing").Updates(M{
+		writeTransLog(gid, "saga finished", "finished", -1, "")
+		dbr := db.Model(&SagaModel{}).Where("gid=? and status=?", gid, "commited").Updates(M{
 			"status":      "finished",
 			"finish_time": time.Now(),
 		})
-		checkAndCommit(dbr)
+		checkAffected(dbr)
 		return nil
 	}
 	for current = current - 1; current >= 0; current-- {
@@ -196,11 +193,12 @@ func ProcessCommitedSaga(gid string) (rerr error) {
 		}
 		body := resp.String()
 		if strings.Contains(body, "SUCCESS") {
-			dbr := tx[0].Model(&step).Where("status=?", step.Status).Updates(M{
+			writeTransLog(gid, "step rollbacked", "rollbacked", step.Step, "")
+			dbr := db.Model(&step).Where("status=?", step.Status).Updates(M{
 				"status":        "rollbacked",
 				"rollback_time": time.Now(),
 			})
-			checkAndCommit(dbr)
+			checkAffected(dbr)
 		} else {
 			return fmt.Errorf("expect compensate return SUCCESS")
 		}
@@ -208,11 +206,12 @@ func ProcessCommitedSaga(gid string) (rerr error) {
 	if current != -1 {
 		return fmt.Errorf("saga current not -1")
 	}
-	dbr := tx[0].Model(&SagaModel{}).Where("status=?", "processing").Updates(M{
+	writeTransLog(gid, "saga rollbacked", "rollbacked", -1, "")
+	dbr := db.Model(&SagaModel{}).Where("status=? and gid=?", "commited", gid).Updates(M{
 		"status":        "rollbacked",
 		"rollback_time": time.Now(),
 	})
-	checkAndCommit(dbr)
+	checkAffected(dbr)
 	return nil
 }
 

@@ -39,3 +39,18 @@ func DbGet() *gorm.DB {
 	}
 	return db
 }
+
+func writeTransLog(gid string, action string, status string, step int, detail string) {
+	db := DbGet()
+	if detail == "" {
+		detail = "{}"
+	}
+	dbr := db.Table("test1.a_dtrans_log").Create(M{
+		"gid":    gid,
+		"action": action,
+		"status": status,
+		"step":   step,
+		"detail": detail,
+	})
+	common.PanicIfError(dbr.Error)
+}

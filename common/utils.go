@@ -12,6 +12,15 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
+func OrString(ss ...string) string {
+	for _, s := range ss {
+		if s != "" {
+			return s
+		}
+	}
+	return ""
+}
+
 var gNode *snowflake.Node = nil
 
 func GenGid() string {
@@ -49,12 +58,16 @@ func MustMarshalString(v interface{}) string {
 	return string(MustMarshal(v))
 }
 
-func Map2Obj(m map[string]interface{}, obj interface{}) error {
-	b, err := json.Marshal(m)
-	if err != nil {
-		return err
-	}
-	return json.Unmarshal(b, obj)
+func MustUnmarshalString(s string, obj interface{}) {
+	err := json.Unmarshal([]byte(s), obj)
+	PanicIfError(err)
+}
+
+func MustRemarshal(from interface{}, to interface{}) {
+	b, err := json.Marshal(from)
+	PanicIfError(err)
+	err = json.Unmarshal(b, to)
+	PanicIfError(err)
 }
 
 var RestyClient = resty.New()
