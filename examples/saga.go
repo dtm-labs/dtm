@@ -2,6 +2,7 @@ package examples
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
@@ -67,12 +68,14 @@ func TransOutCompensate(c *gin.Context) {
 
 func TransQuery(c *gin.Context) {
 	gid := c.Query("gid")
-	req := TransReq{}
-	if err := c.BindJSON(&req); err != nil {
-		return
+	logrus.Printf("%s TransQuery", gid)
+	if strings.Contains(gid, "cancel") {
+		c.JSON(200, M{"result": "FAIL"})
+	} else if strings.Contains(gid, "pending") {
+		c.JSON(200, M{"result": "PENDING"})
+	} else {
+		c.JSON(200, M{"result": "SUCCESS"})
 	}
-	logrus.Printf("%s TransQuery: %v", gid, req)
-	c.JSON(200, M{"result": "SUCCESS"})
 }
 
 func trans(req *TransReq) {

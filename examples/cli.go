@@ -21,7 +21,7 @@ func StartSvr() {
 	app.POST(BusiApi+"/TransInCompensate", TransInCompensate)
 	app.POST(BusiApi+"/TransOut", TransOut)
 	app.POST(BusiApi+"/TransOutCompensate", TransOutCompensate)
-	app.POST(BusiApi+"/TransQuery", TransQuery)
+	app.GET(BusiApi+"/TransQuery", TransQuery)
 	logrus.Printf("examples istening at %d", BusiPort)
 	app.Run(":8081")
 }

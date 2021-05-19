@@ -1,6 +1,7 @@
 package dtmsvr
 
 import (
+	"encoding/json"
 	"fmt"
 	"strings"
 	"time"
@@ -20,7 +21,7 @@ type SagaModel struct {
 	ModelBase
 	Gid          string
 	Steps        string
-	TransQuery   string
+	TransQuery   string `json:"trans_query"`
 	Status       string
 	FinishTime   time.Time
 	RollbackTime time.Time
@@ -59,17 +60,11 @@ func HandlePreparedMsg(data M) {
 	}).Create(&m)
 }
 
-func HandleCommitedMsg(data M) {
+func handleCommitedSagaModel(m *SagaModel) {
 	db := DbGet()
-	logrus.Printf("creating saga model in commited")
-	steps := data["steps"].([]interface{})
-	data["steps"] = common.MustMarshalString(data["steps"])
-	m := SagaModel{}
-	err := common.Map2Obj(data, &m)
-	common.PanicIfError(err)
 	m.Status = "processing"
 	stepInserted := false
-	err = db.Transaction(func(db *gorm.DB) error {
+	err := db.Transaction(func(db *gorm.DB) error {
 		db.Clauses(clause.OnConflict{
 			DoNothing: true,
 		}).Create(&m)
@@ -77,8 +72,10 @@ func HandleCommitedMsg(data M) {
 			db.Model(&m).Where("status=?", "prepared").Update("status", "processing")
 		}
 		nsteps := []SagaStepModel{}
-		for _, step1 := range steps {
-			step := step1.(map[string]interface{})
+		steps := []M{}
+		err := json.Unmarshal([]byte(m.Steps), &steps)
+		common.PanicIfError(err)
+		for _, step := range steps {
 			nsteps = append(nsteps, SagaStepModel{
 				Gid:    m.Gid,
 				Step:   len(nsteps) + 1,
@@ -116,6 +113,14 @@ func HandleCommitedMsg(data M) {
 	if err != nil {
 		logrus.Printf("---------------handle commited msmg error: %s", err.Error())
 	}
+}
+func HandleCommitedMsg(data M) {
+	logrus.Printf("creating saga model in commited")
+	data["steps"] = common.MustMarshalString(data["steps"])
+	m := SagaModel{}
+	err := common.Map2Obj(data, &m)
+	common.PanicIfError(err)
+	handleCommitedSagaModel(&m)
 }
 
 func ProcessCommitedSaga(gid string) (rerr error) {
