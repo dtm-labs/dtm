@@ -1,10 +1,18 @@
 package examples
 
 import (
+	"time"
+
 	"github.com/sirupsen/logrus"
 	"github.com/yedf/dtm/common"
 	"github.com/yedf/dtm/dtm"
 )
+
+func Main() {
+	go StartSvr()
+	FireRequest()
+	time.Sleep(1000 * time.Second)
+}
 
 func FireRequest() {
 	gid := common.GenGid()
@@ -26,11 +34,6 @@ func FireRequest() {
 func StartSvr() {
 	logrus.Printf("examples starting")
 	app := common.GetGinApp()
-	app.POST(BusiApi+"/TransIn", TransIn)
-	app.POST(BusiApi+"/TransInCompensate", TransInCompensate)
-	app.POST(BusiApi+"/TransOut", TransOut)
-	app.POST(BusiApi+"/TransOutCompensate", TransOutCompensate)
-	app.GET(BusiApi+"/TransQuery", TransQuery)
-	logrus.Printf("examples istening at %d", BusiPort)
+	AddRoute(app)
 	app.Run(":8081")
 }

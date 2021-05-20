@@ -11,6 +11,8 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
+type M = map[string]interface{}
+
 func OrString(ss ...string) string {
 	for _, s := range ss {
 		if s != "" {
@@ -93,4 +95,23 @@ func GetGinApp() *gin.Engine {
 
 	})
 	return app
+}
+
+func WrapHandler(fn func(*gin.Context) (interface{}, error)) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		r, err := fn(c)
+		var b = []byte{}
+		if err == nil {
+			b, err = json.Marshal(r)
+		}
+		if err != nil {
+			logrus.Printf("status: 500, code: 500 message: %s", err.Error())
+			c.JSON(500, M{"code": 500, "message": err.Error()})
+		} else {
+			logrus.Printf("status: 200, content: %s", string(b))
+			c.Status(200)
+			c.Writer.Header().Add("Content-Type", "application/json")
+			c.Writer.Write(b)
+		}
+	}
 }
