@@ -27,9 +27,6 @@ var myinit int = func() int {
 }()
 
 // 测试使用的全局对象
-var rabbit = dtmsvr.RabbitmqNew(&dtmsvr.ServerConfig.Rabbitmq)
-var queprepared = rabbit.QueueNew(dtmsvr.RabbitmqConstPrepared)
-var quecommited = rabbit.QueueNew(dtmsvr.RabbitmqConstCommited)
 var db = dtmsvr.DbGet()
 
 func getSagaModel(gid string) *dtmsvr.SagaModel {
@@ -53,20 +50,18 @@ func getSagaStepStatus(gid string) []string {
 func noramlSaga(t *testing.T) {
 	saga := genSaga("gid-noramlSaga", false, false)
 	saga.Prepare()
-	queprepared.WaitAndHandleOne(dtmsvr.HandlePreparedMsg)
 	assert.Equal(t, "prepared", getSagaModel(saga.Gid).Status)
 	saga.Commit()
-	quecommited.WaitAndHandleOne(dtmsvr.HandleCommitedMsg)
-	assert.Equal(t, "finished", getSagaModel(saga.Gid).Status)
+	assert.Equal(t, "commited", getSagaModel(saga.Gid).Status)
+	dtmsvr.WaitCommitedSaga(saga.Gid)
 	assert.Equal(t, []string{"pending", "finished", "pending", "finished"}, getSagaStepStatus(saga.Gid))
 }
 
 func rollbackSaga2(t *testing.T) {
 	saga := genSaga("gid-rollbackSaga2", false, true)
 	saga.Commit()
-	quecommited.WaitAndHandleOne(dtmsvr.HandleCommitedMsg)
+	dtmsvr.WaitCommitedSaga(saga.Gid)
 	saga.Prepare()
-	queprepared.WaitAndHandleOne(dtmsvr.HandlePreparedMsg)
 	assert.Equal(t, "rollbacked", getSagaModel(saga.Gid).Status)
 	assert.Equal(t, []string{"rollbacked", "finished", "rollbacked", "rollbacked"}, getSagaStepStatus(saga.Gid))
 }
@@ -74,7 +69,6 @@ func rollbackSaga2(t *testing.T) {
 func prepareCancel(t *testing.T) {
 	saga := genSaga("gid1-prepareCancel", false, true)
 	saga.Prepare()
-	queprepared.WaitAndHandleOne(dtmsvr.HandlePreparedMsg)
 	examples.TransQueryResult = "FAIL"
 	dtmsvr.CronPreparedOnce(-10 * time.Second)
 	examples.TransQueryResult = ""
@@ -84,31 +78,31 @@ func prepareCancel(t *testing.T) {
 func preparePending(t *testing.T) {
 	saga := genSaga("gid1-preparePending", false, false)
 	saga.Prepare()
-	queprepared.WaitAndHandleOne(dtmsvr.HandlePreparedMsg)
 	examples.TransQueryResult = "PENDING"
 	dtmsvr.CronPreparedOnce(-10 * time.Second)
 	examples.TransQueryResult = ""
 	assert.Equal(t, "prepared", getSagaModel(saga.Gid).Status)
 	dtmsvr.CronPreparedOnce(-10 * time.Second)
-	quecommited.WaitAndHandleOne(dtmsvr.HandleCommitedMsg)
+	dtmsvr.WaitCommitedSaga(saga.Gid)
 	assert.Equal(t, "finished", getSagaModel(saga.Gid).Status)
 }
 
 func commitedPending(t *testing.T) {
 	saga := genSaga("gid-commitedPending", false, false)
 	saga.Prepare()
-	queprepared.WaitAndHandleOne(dtmsvr.HandlePreparedMsg)
 	saga.Commit()
 	examples.TransOutResult = "PENDING"
-	quecommited.WaitAndHandleOne(dtmsvr.HandleCommitedMsg)
+	dtmsvr.WaitCommitedSaga(saga.Gid)
 	assert.Equal(t, []string{"pending", "finished", "pending", "pending"}, getSagaStepStatus(saga.Gid))
 	examples.TransOutResult = ""
 	dtmsvr.CronCommitedOnce(-10 * time.Second)
+	dtmsvr.WaitCommitedSaga(saga.Gid)
 	assert.Equal(t, []string{"pending", "finished", "pending", "finished"}, getSagaStepStatus(saga.Gid))
 	assert.Equal(t, "finished", getSagaModel(saga.Gid).Status)
 }
 
 func TestDtmSvr(t *testing.T) {
+	dtmsvr.SagaProcessedTestChan = make(chan string, 1)
 	// 清理数据
 	common.PanicIfError(db.Exec("truncate test1.a_saga").Error)
 	common.PanicIfError(db.Exec("truncate test1.a_saga_step").Error)

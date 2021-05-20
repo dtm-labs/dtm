@@ -14,8 +14,7 @@ import (
 )
 
 type Config struct {
-	Server   string         `json:"server"`
-	Rabbitmq RabbitmqConfig `json:"rabbitmq"`
+	Server string `json:"server"`
 }
 
 var ServerConfig Config = Config{}

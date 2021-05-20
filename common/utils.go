@@ -58,9 +58,12 @@ func MustMarshalString(v interface{}) string {
 	return string(MustMarshal(v))
 }
 
-func MustUnmarshalString(s string, obj interface{}) {
-	err := json.Unmarshal([]byte(s), obj)
+func MustUnmarshal(b []byte, obj interface{}) {
+	err := json.Unmarshal(b, obj)
 	PanicIfError(err)
+}
+func MustUnmarshalString(s string, obj interface{}) {
+	MustUnmarshal([]byte(s), obj)
 }
 
 func MustRemarshal(from interface{}, to interface{}) {

@@ -29,14 +29,8 @@ func CronPreparedOnce(expire time.Duration) {
 			dbr = db.Model(&sm).Where("status = ?", "prepared").Update("status", "canceled")
 			common.PanicIfError(dbr.Error)
 		} else if strings.Contains(body, "SUCCESS") {
-			m := M{}
-			steps := []M{}
-			common.MustRemarshal(sm, &m)
-			common.PanicIfError(err)
-			common.MustUnmarshalString(m["steps"].(string), &steps)
-			m["steps"] = steps
-			err = rabbit.SendAndConfirm(RabbitmqConstCommited, m)
-			common.PanicIfError(err)
+			saveCommitedSagaModel(&sm)
+			go ProcessCommitedSaga(sm.Gid)
 		}
 	}
 }
@@ -60,7 +54,7 @@ func CronCommitedOnce(expire time.Duration) {
 		writeTransLog(sm.Gid, "saga touch commited", "", -1, "")
 		dbr = db.Model(&sm).Update("id", sm.ID)
 		common.PanicIfError(dbr.Error)
-		ProcessCommitedSaga(sm.Gid)
+		go ProcessCommitedSaga(sm.Gid)
 	}
 }
 

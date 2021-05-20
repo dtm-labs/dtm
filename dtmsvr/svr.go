@@ -6,8 +6,6 @@ import (
 )
 
 func Main() {
-	StartConsumePreparedMsg(1)
-	StartConsumeCommitedMsg(1)
 	logrus.Printf("dtmsvr listen at: 8080")
 	go StartSvr()
 }

@@ -13,16 +13,6 @@ import (
 
 type M = map[string]interface{}
 
-var rabbit *Rabbitmq = nil
-
-func RabbitmqGet() *Rabbitmq {
-	LoadConfig()
-	if rabbit == nil {
-		rabbit = RabbitmqNew(&ServerConfig.Rabbitmq)
-	}
-	return rabbit
-}
-
 var db *gorm.DB = nil
 
 func DbGet() *gorm.DB {
