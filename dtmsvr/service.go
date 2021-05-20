@@ -9,6 +9,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
 	"github.com/yedf/dtm/common"
+	"github.com/yedf/dtm/dtm"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 )
@@ -144,7 +145,7 @@ func innerProcessCommitedSaga(gid string) (rerr error) {
 			continue
 		}
 		if step.Type == "action" && step.Status == "pending" {
-			resp, err := common.RestyClient.R().SetBody(step.Data).SetQueryParam("gid", step.Gid).Post(step.Url)
+			resp, err := dtm.RestyClient.R().SetBody(step.Data).SetQueryParam("gid", step.Gid).Post(step.Url)
 			if err != nil {
 				return err
 			}
@@ -183,7 +184,7 @@ func innerProcessCommitedSaga(gid string) (rerr error) {
 		if step.Type != "compensate" || step.Status != "pending" {
 			continue
 		}
-		resp, err := common.RestyClient.R().SetBody(step.Data).SetQueryParam("gid", step.Gid).Post(step.Url)
+		resp, err := dtm.RestyClient.R().SetBody(step.Data).SetQueryParam("gid", step.Gid).Post(step.Url)
 		if err != nil {
 			return err
 		}

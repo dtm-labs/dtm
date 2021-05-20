@@ -8,7 +8,6 @@ import (
 
 	"github.com/bwmarrin/snowflake"
 	"github.com/gin-gonic/gin"
-	"github.com/go-resty/resty/v2"
 	"github.com/sirupsen/logrus"
 )
 
@@ -21,11 +20,11 @@ func OrString(ss ...string) string {
 	return ""
 }
 
-var gNode *snowflake.Node = nil
-
 func GenGid() string {
 	return gNode.Generate().Base58()
 }
+
+var gNode *snowflake.Node = nil
 
 func init() {
 	node, err := snowflake.NewNode(1)
@@ -71,20 +70,6 @@ func MustRemarshal(from interface{}, to interface{}) {
 	PanicIfError(err)
 	err = json.Unmarshal(b, to)
 	PanicIfError(err)
-}
-
-var RestyClient = resty.New()
-
-func init() {
-	RestyClient.OnBeforeRequest(func(c *resty.Client, r *resty.Request) error {
-		logrus.Printf("requesting: %s %s %v", r.Method, r.URL, r.Body)
-		return nil
-	})
-	RestyClient.OnAfterResponse(func(c *resty.Client, resp *resty.Response) error {
-		r := resp.Request
-		logrus.Printf("requested: %s %s %s", r.Method, r.URL, resp.String())
-		return nil
-	})
 }
 
 func GetGinApp() *gin.Engine {

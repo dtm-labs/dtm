@@ -13,10 +13,6 @@ import (
 	"github.com/yedf/dtm/examples"
 )
 
-func init() {
-	dtmsvr.LoadConfig()
-}
-
 func TestViper(t *testing.T) {
 	assert.Equal(t, "test_val", viper.GetString("test"))
 }
@@ -128,7 +124,7 @@ func TestDtmSvr(t *testing.T) {
 
 func genSaga(gid string, inFailed bool, outFailed bool) *dtm.Saga {
 	logrus.Printf("beginning a saga test ---------------- %s", gid)
-	saga := dtm.SagaNew(examples.TcServer, gid, examples.Busi+"/TransQuery")
+	saga := dtm.SagaNew(examples.DtmServer, gid, examples.Busi+"/TransQuery")
 	req := examples.TransReq{
 		Amount:         30,
 		TransInFailed:  inFailed,

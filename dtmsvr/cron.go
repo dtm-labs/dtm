@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/yedf/dtm/common"
+	"github.com/yedf/dtm/dtm"
 )
 
 func CronPreparedOnce(expire time.Duration) {
@@ -21,7 +22,7 @@ func CronPreparedOnce(expire time.Duration) {
 		writeTransLog(sm.Gid, "saga touch prepared", "", -1, "")
 		dbr = db.Model(&sm).Update("id", sm.ID)
 		common.PanicIfError(dbr.Error)
-		resp, err := common.RestyClient.R().SetQueryParam("gid", sm.Gid).Get(sm.TransQuery)
+		resp, err := dtm.RestyClient.R().SetQueryParam("gid", sm.Gid).Get(sm.TransQuery)
 		common.PanicIfError(err)
 		body := resp.String()
 		if strings.Contains(body, "FAIL") {

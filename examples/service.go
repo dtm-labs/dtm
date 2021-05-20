@@ -6,7 +6,6 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
 	"github.com/yedf/dtm/common"
-	"github.com/yedf/dtm/dtm"
 )
 
 type M = map[string]interface{}
@@ -82,25 +81,4 @@ func TransQuery(c *gin.Context) {
 	logrus.Printf("%s TransQuery", gid)
 	res := common.OrString(TransQueryResult, "SUCCESS")
 	c.JSON(200, M{"result": res})
-}
-
-func trans(req *TransReq) {
-	// gid := common.GenGid()
-	gid := "4eHhkCxVsQ1"
-	logrus.Printf("busi transaction begin: %s", gid)
-	saga := dtm.SagaNew(TcServer, gid, Busi+"/TransQuery")
-
-	saga.Add(Busi+"/TransIn", Busi+"/TransInCompensate", M{
-		"amount":         req.Amount,
-		"transInFailed":  req.TransInFailed,
-		"transOutFailed": req.TransOutFailed,
-	})
-	saga.Add(Busi+"/TransOut", Busi+"/TransOutCompensate", M{
-		"amount":         req.Amount,
-		"transInFailed":  req.TransInFailed,
-		"transOutFailed": req.TransOutFailed,
-	})
-	saga.Prepare()
-	logrus.Printf("busi trans commit")
-	saga.Commit()
 }
