@@ -111,7 +111,8 @@ func WrapHandler(fn func(*gin.Context) (interface{}, error)) gin.HandlerFunc {
 			logrus.Printf("status: 200, content: %s", string(b))
 			c.Status(200)
 			c.Writer.Header().Add("Content-Type", "application/json")
-			c.Writer.Write(b)
+			_, err = c.Writer.Write(b)
+			PanicIfError(err)
 		}
 	}
 }
