@@ -3,6 +3,7 @@ package dtm
 import (
 	"encoding/json"
 	"fmt"
+	"time"
 
 	"github.com/go-resty/resty/v2"
 	"github.com/sirupsen/logrus"
@@ -76,6 +77,9 @@ func (s *Saga) Commit() error {
 var RestyClient = resty.New()
 
 func init() {
+	RestyClient.SetTimeout(3 * time.Second)
+	RestyClient.SetRetryCount(2)
+	RestyClient.SetRetryWaitTime(1 * time.Second)
 	RestyClient.OnBeforeRequest(func(c *resty.Client, r *resty.Request) error {
 		logrus.Printf("requesting: %s %s %v", r.Method, r.URL, r.Body)
 		return nil

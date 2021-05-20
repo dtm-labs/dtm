@@ -38,3 +38,5 @@ type SagaStepModel struct {
 func (*SagaStepModel) TableName() string {
 	return "test1.a_saga_step"
 }
+
+type M = map[string]interface{}

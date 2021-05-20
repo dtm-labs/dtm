@@ -11,24 +11,17 @@ import (
 
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
+	"github.com/yedf/dtm/common"
 )
-
-type Config struct {
-	Server string `json:"server"`
-}
-
-var ServerConfig Config = Config{}
 
 // formatter 自定义formatter
 type formatter struct{}
 
 // Format 进行格式化
 func (f *formatter) Format(entry *logrus.Entry) ([]byte, error) {
-	var b *bytes.Buffer
+	var b *bytes.Buffer = &bytes.Buffer{}
 	if entry.Buffer != nil {
 		b = entry.Buffer
-	} else {
-		b = &bytes.Buffer{}
 	}
 	n := time.Now()
 	ts := fmt.Sprintf("%d-%02d-%02d %02d:%02d:%02d.%03d", n.Year(), n.Month(), n.Day(), n.Hour(), n.Minute(), n.Second(), n.Nanosecond()/1000000)
@@ -44,18 +37,16 @@ func (f *formatter) Format(entry *logrus.Entry) ([]byte, error) {
 	return b.Bytes(), nil
 }
 
+var configLoaded = false
+
 func LoadConfig() {
-	if ServerConfig.Server != "" {
+	if configLoaded {
 		return
 	}
+	configLoaded = true
 	logrus.SetFormatter(&formatter{})
 	_, file, _, _ := runtime.Caller(0)
 	viper.SetConfigFile(filepath.Dir(file) + "/dtmsvr.yml")
-	if err := viper.ReadInConfig(); err != nil {
-		panic(err)
-	}
-	if err := viper.Unmarshal(&ServerConfig); err != nil {
-		panic(err)
-	}
-	logrus.Printf("config is: %v", ServerConfig)
+	err := viper.ReadInConfig()
+	common.PanicIfError(err)
 }

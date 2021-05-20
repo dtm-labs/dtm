@@ -15,5 +15,5 @@ func StartSvr() {
 	app := common.GetGinApp()
 	AddRoute(app)
 	logrus.Printf("dtmsvr listen at: 8080")
-	app.Run()
+	app.Run(":8080")
 }

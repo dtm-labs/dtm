@@ -12,6 +12,6 @@ type M = map[string]interface{}
 func main() {
 	dtmsvr.LoadConfig()
 	go dtmsvr.StartSvr()
-	go examples.Main()
+	go examples.StartSvr()
 	time.Sleep(1000 * 1000 * 1000 * 1000)
 }

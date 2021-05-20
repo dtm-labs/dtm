@@ -26,9 +26,11 @@ func FireRequest() {
 
 	saga.Add(Busi+"/TransIn", Busi+"/TransInCompensate", req)
 	saga.Add(Busi+"/TransOut", Busi+"/TransOutCompensate", req)
-	saga.Prepare()
+	err := saga.Prepare()
+	common.PanicIfError(err)
 	logrus.Printf("busi trans commit")
-	saga.Commit()
+	err = saga.Commit()
+	common.PanicIfError(err)
 }
 
 func StartSvr() {
