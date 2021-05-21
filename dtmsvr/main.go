@@ -6,7 +6,6 @@ import (
 )
 
 func Main() {
-	logrus.Printf("dtmsvr listen at: 8080")
 	go StartSvr()
 }
 

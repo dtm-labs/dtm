@@ -19,7 +19,8 @@ func TestViper(t *testing.T) {
 func TestCover(t *testing.T) {
 	db := DbGet()
 	db.NoMust()
-
+	CronPreparedOnce(0)
+	CronCommitedOnce(0)
 	defer handlePanic()
 	checkAffected(db.DB)
 }
