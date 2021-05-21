@@ -4,6 +4,8 @@ import (
 	"time"
 )
 
+type M = map[string]interface{}
+
 type ModelBase struct {
 	ID         uint
 	CreateTime time.Time `gorm:"autoCreateTime"`
@@ -20,7 +22,7 @@ type SagaModel struct {
 }
 
 func (*SagaModel) TableName() string {
-	return "test1.a_saga"
+	return "saga"
 }
 
 type SagaStepModel struct {
@@ -36,7 +38,5 @@ type SagaStepModel struct {
 }
 
 func (*SagaStepModel) TableName() string {
-	return "test1.a_saga_step"
+	return "saga_step"
 }
-
-type M = map[string]interface{}

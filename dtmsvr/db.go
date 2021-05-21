@@ -49,7 +49,7 @@ func writeTransLog(gid string, action string, status string, step int, detail st
 	if detail == "" {
 		detail = "{}"
 	}
-	db.Must().Table("test1.a_dtrans_log").Create(M{
+	db.Must().Table("trans_log").Create(M{
 		"gid":    gid,
 		"action": action,
 		"status": status,

@@ -32,9 +32,9 @@ var myinit int = func() int {
 func TestDtmSvr(t *testing.T) {
 	SagaProcessedTestChan = make(chan string, 1)
 	// 清理数据
-	common.PanicIfError(db.Exec("truncate test1.a_saga").Error)
-	common.PanicIfError(db.Exec("truncate test1.a_saga_step").Error)
-	common.PanicIfError(db.Exec("truncate test1.a_dtrans_log").Error)
+	common.PanicIfError(db.Exec("truncate saga").Error)
+	common.PanicIfError(db.Exec("truncate saga_step").Error)
+	common.PanicIfError(db.Exec("truncate trans_log").Error)
 
 	// 启动组件
 	go StartSvr()
