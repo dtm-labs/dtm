@@ -6,8 +6,8 @@ import (
 	"time"
 
 	"github.com/sirupsen/logrus"
+	"github.com/yedf/dtm"
 	"github.com/yedf/dtm/common"
-	"github.com/yedf/dtm/dtm"
 )
 
 func CronPreparedOnce(expire time.Duration) {
@@ -25,8 +25,11 @@ func CronPreparedOnce(expire time.Duration) {
 		common.PanicIfError(err)
 		body := resp.String()
 		if strings.Contains(body, "FAIL") {
-			writeTransLog(sm.Gid, "saga canceled", "canceled", -1, "")
-			db.Must().Model(&sm).Where("status = ?", "prepared").Update("status", "canceled")
+			preparedExpire := time.Now().Add(time.Duration(-Config.PreparedExpire) * time.Second)
+			logrus.Printf("create time: %s prepared expire: %s ", sm.CreateTime.Local(), preparedExpire.Local())
+			status := common.If(sm.CreateTime.Before(preparedExpire), "canceled", "prepared").(string)
+			writeTransLog(sm.Gid, "saga canceled", status, -1, "")
+			db.Must().Model(&sm).Where("status = ?", "prepared").Update("status", status)
 		} else if strings.Contains(body, "SUCCESS") {
 			saveCommitedSagaModel(&sm)
 			ProcessCommitedSaga(sm.Gid)

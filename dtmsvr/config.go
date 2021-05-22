@@ -37,6 +37,14 @@ func (f *formatter) Format(entry *logrus.Entry) ([]byte, error) {
 	return b.Bytes(), nil
 }
 
+type dtmsvrConfig struct {
+	PreparedExpire int64 `json:"prepare_expire"` // 单位秒，当prepared的状态超过该时间，才能够转变成canceled，避免cancel了之后，才进入prepared
+}
+
+var Config = &dtmsvrConfig{
+	PreparedExpire: 60,
+}
+
 var configLoaded = false
 
 func LoadConfig() {
@@ -48,5 +56,7 @@ func LoadConfig() {
 	_, file, _, _ := runtime.Caller(0)
 	viper.SetConfigFile(filepath.Dir(file) + "/dtmsvr.yml")
 	err := viper.ReadInConfig()
+	common.PanicIfError(err)
+	err = viper.Unmarshal(&Config)
 	common.PanicIfError(err)
 }

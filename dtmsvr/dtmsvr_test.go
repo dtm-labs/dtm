@@ -7,28 +7,20 @@ import (
 	"github.com/go-playground/assert/v2"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
+	"github.com/yedf/dtm"
 	"github.com/yedf/dtm/common"
-	"github.com/yedf/dtm/dtm"
 	"github.com/yedf/dtm/examples"
 )
-
-func TestViper(t *testing.T) {
-	assert.Equal(t, true, viper.Get("mysql") != nil)
-}
-
-func TestCover(t *testing.T) {
-	db := DbGet()
-	db.NoMust()
-	CronPreparedOnce(0)
-	CronCommitedOnce(0)
-	defer handlePanic()
-	checkAffected(db.DB)
-}
 
 var myinit int = func() int {
 	LoadConfig()
 	return 0
 }()
+
+func TestViper(t *testing.T) {
+	assert.Equal(t, true, viper.Get("mysql") != nil)
+	assert.Equal(t, int64(90), Config.PreparedExpire)
+}
 
 func TestDtmSvr(t *testing.T) {
 	SagaProcessedTestChan = make(chan string, 1)
@@ -47,12 +39,15 @@ func TestDtmSvr(t *testing.T) {
 	commitedPending(t)
 	noramlSaga(t)
 	rollbackSaga2(t)
-	// assert.Equal(t, 1, 0)
-	// 开始测试
+}
 
-	// 发送Prepare请求后，验证数据库
-	// ConsumeHalfMsg 验证数据库
-	// ConsumeMsg 验证数据库
+func TestCover(t *testing.T) {
+	db := DbGet()
+	db.NoMust()
+	CronPreparedOnce(0)
+	CronCommitedOnce(0)
+	defer handlePanic()
+	checkAffected(db.DB)
 }
 
 // 测试使用的全局对象
@@ -99,8 +94,10 @@ func prepareCancel(t *testing.T) {
 	saga := genSaga("gid1-prepareCancel", false, true)
 	saga.Prepare()
 	examples.TransQueryResult = "FAIL"
+	Config.PreparedExpire = 0
 	CronPreparedOnce(-10 * time.Second)
 	examples.TransQueryResult = ""
+	Config.PreparedExpire = 60
 	assert.Equal(t, "canceled", getSagaModel(saga.Gid).Status)
 }
 

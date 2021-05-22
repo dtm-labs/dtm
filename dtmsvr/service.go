@@ -6,8 +6,8 @@ import (
 	"time"
 
 	"github.com/sirupsen/logrus"
+	"github.com/yedf/dtm"
 	"github.com/yedf/dtm/common"
-	"github.com/yedf/dtm/dtm"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 )
