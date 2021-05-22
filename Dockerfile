@@ -1,4 +1,4 @@
-FROM daocloud.io/golang:1.15
+FROM daocloud.io/atsctoo/golang:1.15
 WORKDIR /app/dtm
 COPY . .
 RUN go build app/main.go
