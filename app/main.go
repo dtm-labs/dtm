@@ -20,5 +20,7 @@ func main() {
 	} else if cmd == "dtmsvr" {
 		go dtmsvr.StartSvr()
 	}
-	time.Sleep(1000 * 1000 * 1000 * 1000)
+	for {
+		time.Sleep(1000 * time.Second)
+	}
 }
