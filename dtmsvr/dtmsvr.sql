@@ -1,5 +1,7 @@
 CREATE DATABASE `dtm` /*!40100 DEFAULT CHARACTER SET utf8mb4 */;
 
+use dtm;
+
 drop table IF EXISTS saga;
 CREATE TABLE `saga` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
