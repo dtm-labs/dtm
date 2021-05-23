@@ -94,6 +94,7 @@ func GetGinApp() *gin.Engine {
 		logrus.Printf("used %d ms %s %s query: %s body: %s", time.Since(began).Milliseconds(), c.Request.Method, c.FullPath(), c.Request.URL.RawQuery, body)
 
 	})
+	app.Any("/api/ping", func(c *gin.Context) { c.JSON(200, M{"msg": "pong"}) })
 	return app
 }
 
