@@ -6,7 +6,7 @@ services:
       - '80:4005'
     volumes:
       - .:/app/dtm
-    command: ['sh', '-c', 'go build app/main.go && go test ./dtmsvr']
+    command: ['sh', '-c', 'go build app/main.go && go test -v ./dtmsvr']
   mysql:
     image: 'daocloud.io/mysql:5.7'
     environment:
