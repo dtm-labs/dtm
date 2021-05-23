@@ -8,8 +8,8 @@ type M = map[string]interface{}
 
 type ModelBase struct {
 	ID         uint
-	CreateTime time.Time `gorm:"autoCreateTime"`
-	UpdateTime time.Time `gorm:"autoUpdateTime"`
+	CreateTime *time.Time `gorm:"autoCreateTime"`
+	UpdateTime *time.Time `gorm:"autoUpdateTime"`
 }
 type SagaModel struct {
 	ModelBase
@@ -17,8 +17,8 @@ type SagaModel struct {
 	Steps        string `json:"steps"`
 	TransQuery   string `json:"trans_query"`
 	Status       string `json:"status"`
-	FinishTime   time.Time
-	RollbackTime time.Time
+	FinishTime   *time.Time
+	RollbackTime *time.Time
 }
 
 func (*SagaModel) TableName() string {
@@ -33,8 +33,8 @@ type SagaStepModel struct {
 	Url          string
 	Type         string
 	Status       string
-	FinishTime   string
-	RollbackTime string
+	FinishTime   *time.Time
+	RollbackTime *time.Time
 }
 
 func (*SagaStepModel) TableName() string {
