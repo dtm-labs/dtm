@@ -1,0 +1,12 @@
+version: '3.9'
+services:
+  web:
+    build: .
+    ports:
+      - '80:4005'
+    volumes:
+      - .:/app/dtm
+  mysql:
+    image: 'daocloud.io/mysql:5.7'
+    ports:
+      - '3306:3306'
