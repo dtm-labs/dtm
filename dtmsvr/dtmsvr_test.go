@@ -31,7 +31,7 @@ func TestDtmSvr(t *testing.T) {
 
 	// 启动组件
 	go StartSvr()
-	go examples.StartSvr()
+	go examples.SagaStartSvr()
 	time.Sleep(time.Duration(100 * 1000 * 1000))
 
 	preparePending(t)
@@ -94,7 +94,7 @@ func prepareCancel(t *testing.T) {
 	saga := genSaga("gid1-prepareCancel", false, true)
 	saga.Prepare()
 	examples.TransQueryResult = "FAIL"
-	Config.PreparedExpire = 0
+	Config.PreparedExpire = -10
 	CronPreparedOnce(-10 * time.Second)
 	examples.TransQueryResult = ""
 	Config.PreparedExpire = 60
@@ -116,11 +116,11 @@ func preparePending(t *testing.T) {
 func commitedPending(t *testing.T) {
 	saga := genSaga("gid-commitedPending", false, false)
 	saga.Prepare()
-	saga.Commit()
 	examples.TransOutResult = "PENDING"
+	saga.Commit()
 	WaitCommitedSaga(saga.Gid)
-	assert.Equal(t, []string{"pending", "finished", "pending", "pending"}, getSagaStepStatus(saga.Gid))
 	examples.TransOutResult = ""
+	assert.Equal(t, []string{"pending", "finished", "pending", "pending"}, getSagaStepStatus(saga.Gid))
 	CronCommitedOnce(-10 * time.Second)
 	WaitCommitedSaga(saga.Gid)
 	assert.Equal(t, []string{"pending", "finished", "pending", "finished"}, getSagaStepStatus(saga.Gid))
@@ -129,13 +129,13 @@ func commitedPending(t *testing.T) {
 
 func genSaga(gid string, inFailed bool, outFailed bool) *dtm.Saga {
 	logrus.Printf("beginning a saga test ---------------- %s", gid)
-	saga := dtm.SagaNew(examples.DtmServer, gid, examples.Busi+"/TransQuery")
+	saga := dtm.SagaNew(examples.DtmServer, gid, examples.SagaBusi+"/TransQuery")
 	req := examples.TransReq{
 		Amount:         30,
-		TransInFailed:  inFailed,
-		TransOutFailed: outFailed,
+		TransInResult:  common.If(inFailed, "FAIL", "SUCCESS").(string),
+		TransOutResult: common.If(outFailed, "FAIL", "SUCCESS").(string),
 	}
-	saga.Add(examples.Busi+"/TransIn", examples.Busi+"/TransInCompensate", &req)
-	saga.Add(examples.Busi+"/TransOut", examples.Busi+"/TransOutCompensate", &req)
+	saga.Add(examples.SagaBusi+"/TransIn", examples.SagaBusi+"/TransInCompensate", &req)
+	saga.Add(examples.SagaBusi+"/TransOut", examples.SagaBusi+"/TransOutCompensate", &req)
 	return saga
 }

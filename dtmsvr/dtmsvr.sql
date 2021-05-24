@@ -1,6 +1,6 @@
-CREATE DATABASE `dtm` /*!40100 DEFAULT CHARACTER SET utf8mb4 */;
+-- CREATE DATABASE `dtm` /*!40100 DEFAULT CHARACTER SET utf8mb4 */;
 
-use dtm;
+-- use dtm;
 
 drop table IF EXISTS saga;
 CREATE TABLE `saga` (
@@ -51,3 +51,16 @@ CREATE TABLE `trans_log` (
   KEY `gid` (`gid`),
   KEY `create_time` (`create_time`)
 ) ENGINE=InnoDB AUTO_INCREMENT=48 DEFAULT CHARSET=utf8mb4;
+
+drop table if EXISTS user_account;
+CREATE TABLE `user_account` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `user_id` int(11) DEFAULT NULL,
+  `balance` decimal(10,2) NOT NULL DEFAULT '0.00',
+  `create_time` datetime DEFAULT CURRENT_TIMESTAMP,
+  `update_time` datetime DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `user_id` (`user_id`),
+  KEY `create_time` (`create_time`),
+  KEY `update_time` (`update_time`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;

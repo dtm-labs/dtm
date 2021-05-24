@@ -16,7 +16,7 @@ func main() {
 	dtmsvr.LoadConfig()
 	if cmd == "" { // 所有服务都启动
 		go dtmsvr.StartSvr()
-		go examples.StartSvr()
+		go examples.SagaStartSvr()
 	} else if cmd == "dtmsvr" {
 		go dtmsvr.StartSvr()
 	}
