@@ -37,6 +37,7 @@ func TestDtmSvr(t *testing.T) {
 	common.PanicIfError(dbGet().Exec("truncate trans_log").Error)
 	examples.ResetXaData()
 
+	xaRollback(t)
 	xaNormal(t)
 	sagaPreparePending(t)
 	sagaPrepareCancel(t)
@@ -93,7 +94,7 @@ func xaNormal(t *testing.T) {
 		return nil
 	})
 	common.PanicIfError(err)
-	WaitTransCommitted(gid)
+	WaitTransProcessed(gid)
 	assert.Equal(t, []string{"finished", "finished"}, getBranchesStatus(gid))
 }
 
@@ -114,9 +115,11 @@ func xaRollback(t *testing.T) {
 		common.CheckRestySuccess(resp, err)
 		return nil
 	})
-	common.PanicIfError(err)
-	WaitTransCommitted(gid)
-	assert.Equal(t, []string{"rollbacked", "rollbacked"}, getBranchesStatus(gid))
+	if err != nil {
+		logrus.Errorf("global transaction failed, so rollback")
+	}
+	WaitTransProcessed(gid)
+	assert.Equal(t, []string{"rollbacked"}, getBranchesStatus(gid))
 }
 
 func sagaNormal(t *testing.T) {
@@ -125,14 +128,14 @@ func sagaNormal(t *testing.T) {
 	assert.Equal(t, "prepared", getSagaModel(saga.Gid).Status)
 	saga.Commit()
 	assert.Equal(t, "committed", getSagaModel(saga.Gid).Status)
-	WaitTransCommitted(saga.Gid)
+	WaitTransProcessed(saga.Gid)
 	assert.Equal(t, []string{"prepared", "finished", "prepared", "finished"}, getBranchesStatus(saga.Gid))
 }
 
 func sagaRollback(t *testing.T) {
 	saga := genSaga("gid-rollbackSaga2", false, true)
 	saga.Commit()
-	WaitTransCommitted(saga.Gid)
+	WaitTransProcessed(saga.Gid)
 	saga.Prepare()
 	assert.Equal(t, "rollbacked", getSagaModel(saga.Gid).Status)
 	assert.Equal(t, []string{"rollbacked", "finished", "rollbacked", "rollbacked"}, getBranchesStatus(saga.Gid))
@@ -157,7 +160,7 @@ func sagaPreparePending(t *testing.T) {
 	examples.TransQueryResult = ""
 	assert.Equal(t, "prepared", getSagaModel(saga.Gid).Status)
 	CronPreparedOnce(-10 * time.Second)
-	WaitTransCommitted(saga.Gid)
+	WaitTransProcessed(saga.Gid)
 	assert.Equal(t, "finished", getSagaModel(saga.Gid).Status)
 }
 
@@ -166,11 +169,11 @@ func sagaCommittedPending(t *testing.T) {
 	saga.Prepare()
 	examples.TransInResult = "PENDING"
 	saga.Commit()
-	WaitTransCommitted(saga.Gid)
+	WaitTransProcessed(saga.Gid)
 	examples.TransInResult = ""
 	assert.Equal(t, []string{"prepared", "finished", "prepared", "prepared"}, getBranchesStatus(saga.Gid))
 	CronCommittedOnce(-10 * time.Second)
-	WaitTransCommitted(saga.Gid)
+	WaitTransProcessed(saga.Gid)
 	assert.Equal(t, []string{"prepared", "finished", "prepared", "finished"}, getBranchesStatus(saga.Gid))
 	assert.Equal(t, "finished", getSagaModel(saga.Gid).Status)
 }

@@ -63,8 +63,12 @@ func XaAddRoute(app *gin.Engine) {
 
 func XaTransIn(c *gin.Context) (interface{}, error) {
 	err := XaClient.XaLocalTransaction(c.Query("gid"), func(db *common.MyDb) (rerr error) {
+		req := transReqFromContext(c)
+		if req.TransInResult != "SUCCESS" {
+			return fmt.Errorf("tranIn failed")
+		}
 		dbr := db.Model(&UserAccount{}).Where("user_id = ?", c.Query("user_id")).
-			Update("balance", gorm.Expr("balance - ?", transReqFromContext(c).Amount))
+			Update("balance", gorm.Expr("balance - ?", req.Amount))
 		return dbr.Error
 	})
 	common.PanicIfError(err)
@@ -73,8 +77,12 @@ func XaTransIn(c *gin.Context) (interface{}, error) {
 
 func XaTransOut(c *gin.Context) (interface{}, error) {
 	err := XaClient.XaLocalTransaction(c.Query("gid"), func(db *common.MyDb) (rerr error) {
+		req := transReqFromContext(c)
+		if req.TransOutResult != "SUCCESS" {
+			return fmt.Errorf("tranOut failed")
+		}
 		dbr := db.Model(&UserAccount{}).Where("user_id = ?", c.Query("user_id")).
-			Update("balance", gorm.Expr("balance + ?", transReqFromContext(c).Amount))
+			Update("balance", gorm.Expr("balance + ?", req.Amount))
 		return dbr.Error
 	})
 	common.PanicIfError(err)

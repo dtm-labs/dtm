@@ -58,7 +58,7 @@ func saveCommitted(m *TransGlobalModel) {
 
 var TransProcessedTestChan chan string = nil // 用于测试时，通知处理结束
 
-func WaitTransCommitted(gid string) {
+func WaitTransProcessed(gid string) {
 	id := <-TransProcessedTestChan
 	for id != gid {
 		logrus.Errorf("-------id %s not match gid %s", id, gid)
@@ -66,19 +66,19 @@ func WaitTransCommitted(gid string) {
 	}
 }
 
-func ProcessCommitted(trans *TransGlobalModel) {
-	err := innerProcessCommitted(trans)
+func ProcessTrans(trans *TransGlobalModel) {
+	err := innerProcessTrans(trans)
 	if err != nil {
-		logrus.Errorf("process committed error: %s", err.Error())
+		logrus.Errorf("process trans ignore error: %s", err.Error())
 	}
 	if TransProcessedTestChan != nil {
 		TransProcessedTestChan <- trans.Gid
 	}
 }
-func innerProcessCommitted(trans *TransGlobalModel) (rerr error) {
+func innerProcessTrans(trans *TransGlobalModel) (rerr error) {
 	branches := []TransBranchModel{}
 	db := dbGet()
-	db.Must().Order("id asc").Find(&branches)
+	db.Must().Where("gid=?", trans.Gid).Order("id asc").Find(&branches)
 	if trans.TransType == "saga" {
 		return innerProcessCommittedSaga(trans, db, branches)
 	} else if trans.TransType == "xa" {
@@ -89,34 +89,70 @@ func innerProcessCommitted(trans *TransGlobalModel) (rerr error) {
 
 func innerProcessCommittedXa(trans *TransGlobalModel, db *common.MyDb, branches []TransBranchModel) error {
 	gid := trans.Gid
-	for _, branch := range branches {
-		if branch.Status == "finished" {
-			continue
+	if trans.Status == "finished" {
+		return nil
+	}
+	if trans.Status == "committed" {
+		for _, branch := range branches {
+			if branch.Status == "finished" {
+				continue
+			}
+			db.Must().Model(&TransGlobalModel{}).Where("gid=?", gid).Update("gid", gid) // 更新update_time，避免被定时任务再次
+			resp, err := common.RestyClient.R().SetBody(M{
+				"branch": branch.Branch,
+				"action": "commit",
+				"gid":    branch.Gid,
+			}).Post(branch.Url)
+			if err != nil {
+				return err
+			}
+			body := resp.String()
+			if !strings.Contains(body, "SUCCESS") {
+				return fmt.Errorf("bad response: %s", body)
+			}
+			writeTransLog(gid, "step finished", "finished", branch.Branch, "")
+			db.Must().Model(&branch).Where("status=?", "prepared").Updates(M{
+				"status":      "finished",
+				"finish_time": time.Now(),
+			})
 		}
-		db.Must().Model(&TransGlobalModel{}).Where("gid=?", gid).Update("gid", gid) // 更新update_time，避免被定时任务再次
-		resp, err := common.RestyClient.R().SetBody(M{
-			"branch": branch.Branch,
-			"action": "commit",
-			"gid":    branch.Gid,
-		}).Post(branch.Url)
-		if err != nil {
-			return err
-		}
-		body := resp.String()
-		if !strings.Contains(body, "SUCCESS") {
-			return fmt.Errorf("bad response: %s", body)
-		}
-		writeTransLog(gid, "step finished", "finished", branch.Branch, "")
-		db.Must().Model(&branch).Where("status=?", "prepared").Updates(M{
+		writeTransLog(gid, "xa finished", "finished", "", "")
+		db.Must().Model(&TransGlobalModel{}).Where("gid=? and status=?", gid, "committed").Updates(M{
 			"status":      "finished",
 			"finish_time": time.Now(),
 		})
+	} else if trans.Status == "prepared" { // 未commit直接处理的情况为回滚场景
+		for _, branch := range branches {
+			if branch.Status == "rollbacked" {
+				continue
+			}
+			db.Must().Model(&TransGlobalModel{}).Where("gid=?", gid).Update("gid", gid) // 更新update_time，避免被定时任务再次
+			resp, err := common.RestyClient.R().SetBody(M{
+				"branch": branch.Branch,
+				"action": "rollback",
+				"gid":    branch.Gid,
+			}).Post(branch.Url)
+			if err != nil {
+				return err
+			}
+			body := resp.String()
+			if !strings.Contains(body, "SUCCESS") {
+				return fmt.Errorf("bad response: %s", body)
+			}
+			writeTransLog(gid, "step rollbacked", "rollbacked", branch.Branch, "")
+			db.Must().Model(&branch).Where("status=?", "prepared").Updates(M{
+				"status":      "rollbacked",
+				"finish_time": time.Now(),
+			})
+		}
+		writeTransLog(gid, "xa rollbacked", "rollbacked", "", "")
+		db.Must().Model(&TransGlobalModel{}).Where("gid=? and status=?", gid, "prepared").Updates(M{
+			"status":      "rollbacked",
+			"finish_time": time.Now(),
+		})
+	} else {
+		return fmt.Errorf("bad trans status: %s", trans.Status)
 	}
-	writeTransLog(gid, "xa finished", "finished", "", "")
-	db.Must().Model(&TransGlobalModel{}).Where("gid=? and status=?", gid, "committed").Updates(M{
-		"status":      "finished",
-		"finish_time": time.Now(),
-	})
 	return nil
 }
 

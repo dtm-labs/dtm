@@ -31,7 +31,7 @@ func CronPreparedOnce(expire time.Duration) {
 			db.Must().Model(&sm).Where("status = ?", "prepared").Update("status", status)
 		} else if strings.Contains(body, "SUCCESS") {
 			saveCommitted(&sm)
-			ProcessCommitted(&sm)
+			ProcessTrans(&sm)
 		}
 	}
 }
@@ -54,7 +54,7 @@ func CronCommittedOnce(expire time.Duration) {
 	for _, sm := range ss {
 		writeTransLog(sm.Gid, "saga touch committed", "", "", "")
 		db.Must().Model(&sm).Update("id", sm.ID)
-		ProcessCommitted(&sm)
+		ProcessTrans(&sm)
 	}
 }
 
