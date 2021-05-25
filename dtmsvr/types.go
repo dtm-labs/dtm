@@ -2,41 +2,40 @@ package dtmsvr
 
 import (
 	"time"
+
+	"github.com/yedf/dtm/common"
 )
 
 type M = map[string]interface{}
 
-type ModelBase struct {
-	ID         uint
-	CreateTime *time.Time `gorm:"autoCreateTime"`
-	UpdateTime *time.Time `gorm:"autoUpdateTime"`
-}
-type SagaModel struct {
-	ModelBase
-	Gid          string `json:"gid"`
-	Steps        string `json:"steps"`
-	TransQuery   string `json:"trans_query"`
-	Status       string `json:"status"`
-	FinishTime   *time.Time
-	RollbackTime *time.Time
+type TransGlobalModel struct {
+	common.ModelBase
+	Gid           string `json:"gid"`
+	TransType     string `json:"trans_type"`
+	Data          string `json:"data"`
+	Status        string `json:"status"`
+	QueryPrepared string `json:"query_prepared"`
+	CommitTime    *time.Time
+	FinishTime    *time.Time
+	RollbackTime  *time.Time
 }
 
-func (*SagaModel) TableName() string {
-	return "saga"
+func (*TransGlobalModel) TableName() string {
+	return "trans_global"
 }
 
-type SagaStepModel struct {
-	ModelBase
+type TransBranchModel struct {
+	common.ModelBase
 	Gid          string
-	Data         string
-	Step         int
 	Url          string
-	Type         string
+	Data         string
+	Branch       string
+	BranchType   string
 	Status       string
 	FinishTime   *time.Time
 	RollbackTime *time.Time
 }
 
-func (*SagaStepModel) TableName() string {
-	return "saga_step"
+func (*TransBranchModel) TableName() string {
+	return "trans_branch"
 }

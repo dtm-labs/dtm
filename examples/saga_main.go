@@ -39,8 +39,8 @@ func sagaFireRequest() {
 	}
 	saga := dtm.SagaNew(DtmServer, gid, SagaBusi+"/TransQuery")
 
-	saga.Add(SagaBusi+"/TransIn", SagaBusi+"/TransInCompensate", req)
 	saga.Add(SagaBusi+"/TransOut", SagaBusi+"/TransOutCompensate", req)
+	saga.Add(SagaBusi+"/TransIn", SagaBusi+"/TransInCompensate", req)
 	err := saga.Prepare()
 	common.PanicIfError(err)
 	logrus.Printf("busi trans commit")
@@ -66,12 +66,6 @@ var TransOutResult = ""
 var TransInCompensateResult = ""
 var TransOutCompensateResult = ""
 var TransQueryResult = ""
-
-type TransReq struct {
-	Amount         int    `json:"amount"`
-	TransInResult  string `json:"transInResult"`
-	TransOutResult string `json:"transOutResult"`
-}
 
 func transReqFromContext(c *gin.Context) *TransReq {
 	req := TransReq{}

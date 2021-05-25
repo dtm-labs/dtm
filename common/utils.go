@@ -3,12 +3,19 @@ package common
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
+	"path"
+	"path/filepath"
+	"runtime"
+	"strings"
 	"time"
 
 	"github.com/bwmarrin/snowflake"
 	"github.com/gin-gonic/gin"
+	"github.com/go-resty/resty/v2"
 	"github.com/sirupsen/logrus"
+	"github.com/spf13/viper"
 )
 
 type M = map[string]interface{}
@@ -20,6 +27,16 @@ func OrString(ss ...string) string {
 		}
 	}
 	return ""
+}
+
+func Panic2Error(perr *error) {
+	if x := recover(); x != nil {
+		if e, ok := x.(error); ok {
+			*perr = e
+		} else {
+			panic(x)
+		}
+	}
 }
 
 func GenGid() string {
@@ -116,4 +133,70 @@ func WrapHandler(fn func(*gin.Context) (interface{}, error)) gin.HandlerFunc {
 			PanicIfError(err)
 		}
 	}
+}
+
+// 辅助工具与代码
+var RestyClient = resty.New()
+
+func init() {
+	// RestyClient.SetTimeout(3 * time.Second)
+	// RestyClient.SetRetryCount(2)
+	// RestyClient.SetRetryWaitTime(1 * time.Second)
+	RestyClient.OnBeforeRequest(func(c *resty.Client, r *resty.Request) error {
+		logrus.Printf("requesting: %s %s %v", r.Method, r.URL, r.Body)
+		return nil
+	})
+	RestyClient.OnAfterResponse(func(c *resty.Client, resp *resty.Response) error {
+		r := resp.Request
+		logrus.Printf("requested: %s %s %s", r.Method, r.URL, resp.String())
+		return nil
+	})
+}
+
+func CheckRestySuccess(resp *resty.Response, err error) {
+	PanicIfError(err)
+	if !strings.Contains(resp.String(), "SUCCESS") {
+		panic(fmt.Errorf("resty response not success: %s", resp.String()))
+	}
+}
+
+// formatter 自定义formatter
+type formatter struct{}
+
+// Format 进行格式化
+func (f *formatter) Format(entry *logrus.Entry) ([]byte, error) {
+	var b *bytes.Buffer = &bytes.Buffer{}
+	if entry.Buffer != nil {
+		b = entry.Buffer
+	}
+	n := time.Now()
+	ts := fmt.Sprintf("%d-%02d-%02d %02d:%02d:%02d.%03d", n.Year(), n.Month(), n.Day(), n.Hour(), n.Minute(), n.Second(), n.Nanosecond()/1000000)
+	var file string
+	var line int
+	for i := 1; ; i++ {
+		_, file, line, _ = runtime.Caller(i)
+		if strings.Contains(file, "dtm") {
+			break
+		}
+	}
+	b.WriteString(fmt.Sprintf("%s %s:%d %s\n", ts, path.Base(file), line, entry.Message))
+	return b.Bytes(), nil
+}
+
+var configLoaded = map[string]bool{}
+
+// 加载调用者文件相同目录下的配置文件
+func InitApp(config interface{}) {
+	logrus.SetFormatter(&formatter{})
+	_, file, _, _ := runtime.Caller(1)
+	fileName := filepath.Dir(file) + "/conf.yml"
+	if configLoaded[fileName] {
+		return
+	}
+	configLoaded[fileName] = true
+	viper.SetConfigFile(fileName)
+	err := viper.ReadInConfig()
+	PanicIfError(err)
+	err = viper.Unmarshal(config)
+	PanicIfError(err)
 }

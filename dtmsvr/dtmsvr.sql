@@ -27,7 +27,7 @@ CREATE TABLE `saga_step` (
   `step` int(11) NOT NULL COMMENT '处于saga中的第几步',
   `url` varchar(128) NOT NULL COMMENT '动作关联的url',
   `type` varchar(45) NOT NULL COMMENT 'saga的所有步骤',
-  `status` varchar(45) NOT NULL COMMENT '步骤的状态 pending | finished | rollbacked',
+  `status` varchar(45) NOT NULL COMMENT '步骤的状态 prepared | finished | rollbacked',
   `finish_time` datetime DEFAULT NULL,
   `rollback_time` datetime DEFAULT NULL,
   `create_time` datetime DEFAULT NULL,
@@ -52,15 +52,3 @@ CREATE TABLE `trans_log` (
   KEY `create_time` (`create_time`)
 ) ENGINE=InnoDB AUTO_INCREMENT=48 DEFAULT CHARSET=utf8mb4;
 
-drop table if EXISTS user_account;
-CREATE TABLE `user_account` (
-  `id` int(11) NOT NULL AUTO_INCREMENT,
-  `user_id` int(11) DEFAULT NULL,
-  `balance` decimal(10,2) NOT NULL DEFAULT '0.00',
-  `create_time` datetime DEFAULT CURRENT_TIMESTAMP,
-  `update_time` datetime DEFAULT CURRENT_TIMESTAMP,
-  PRIMARY KEY (`id`),
-  UNIQUE KEY `user_id` (`user_id`),
-  KEY `create_time` (`create_time`),
-  KEY `update_time` (`update_time`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;

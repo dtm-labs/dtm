@@ -6,33 +6,32 @@ import (
 	"time"
 
 	"github.com/sirupsen/logrus"
-	"github.com/yedf/dtm"
 	"github.com/yedf/dtm/common"
 )
 
 func CronPreparedOnce(expire time.Duration) {
-	db := DbGet()
-	ss := []SagaModel{}
-	db.Must().Model(&SagaModel{}).Where("update_time < date_sub(now(), interval ? second)", int(expire/time.Second)).Where("status = ?", "prepared").Find(&ss)
-	writeTransLog("", "saga fetch prepared", fmt.Sprint(len(ss)), -1, "")
+	db := dbGet()
+	ss := []TransGlobalModel{}
+	db.Must().Model(&TransGlobalModel{}).Where("update_time < date_sub(now(), interval ? second)", int(expire/time.Second)).Where("status = ?", "prepared").Find(&ss)
+	writeTransLog("", "saga fetch prepared", fmt.Sprint(len(ss)), "", "")
 	if len(ss) == 0 {
 		return
 	}
 	for _, sm := range ss {
-		writeTransLog(sm.Gid, "saga touch prepared", "", -1, "")
+		writeTransLog(sm.Gid, "saga touch prepared", "", "", "")
 		db.Must().Model(&sm).Update("id", sm.ID)
-		resp, err := dtm.RestyClient.R().SetQueryParam("gid", sm.Gid).Get(sm.TransQuery)
+		resp, err := common.RestyClient.R().SetQueryParam("gid", sm.Gid).Get(sm.QueryPrepared)
 		common.PanicIfError(err)
 		body := resp.String()
 		if strings.Contains(body, "FAIL") {
-			preparedExpire := time.Now().Add(time.Duration(-Config.PreparedExpire) * time.Second)
+			preparedExpire := time.Now().Add(time.Duration(-config.PreparedExpire) * time.Second)
 			logrus.Printf("create time: %s prepared expire: %s ", sm.CreateTime.Local(), preparedExpire.Local())
 			status := common.If(sm.CreateTime.Before(preparedExpire), "canceled", "prepared").(string)
-			writeTransLog(sm.Gid, "saga canceled", status, -1, "")
+			writeTransLog(sm.Gid, "saga canceled", status, "", "")
 			db.Must().Model(&sm).Where("status = ?", "prepared").Update("status", status)
 		} else if strings.Contains(body, "SUCCESS") {
-			saveCommitedSagaModel(&sm)
-			ProcessCommitedSaga(sm.Gid)
+			saveCommitted(&sm)
+			ProcessCommitted(&sm)
 		}
 	}
 }
@@ -44,25 +43,25 @@ func CronPrepared() {
 	}
 }
 
-func CronCommitedOnce(expire time.Duration) {
-	db := DbGet()
-	ss := []SagaModel{}
-	db.Must().Model(&SagaModel{}).Where("update_time < date_sub(now(), interval ? second)", int(expire/time.Second)).Where("status = ?", "commited").Find(&ss)
-	writeTransLog("", "saga fetch commited", fmt.Sprint(len(ss)), -1, "")
+func CronCommittedOnce(expire time.Duration) {
+	db := dbGet()
+	ss := []TransGlobalModel{}
+	db.Must().Model(&TransGlobalModel{}).Where("update_time < date_sub(now(), interval ? second)", int(expire/time.Second)).Where("status = ?", "committed").Find(&ss)
+	writeTransLog("", "saga fetch committed", fmt.Sprint(len(ss)), "", "")
 	if len(ss) == 0 {
 		return
 	}
 	for _, sm := range ss {
-		writeTransLog(sm.Gid, "saga touch commited", "", -1, "")
+		writeTransLog(sm.Gid, "saga touch committed", "", "", "")
 		db.Must().Model(&sm).Update("id", sm.ID)
-		ProcessCommitedSaga(sm.Gid)
+		ProcessCommitted(&sm)
 	}
 }
 
-func CronCommited() {
+func CronCommitted() {
 	for {
 		defer handlePanic()
-		CronCommitedOnce(10 * time.Second)
+		CronCommittedOnce(10 * time.Second)
 	}
 }
 

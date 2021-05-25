@@ -1,3 +1,4 @@
-dtmsvr/dtmsvr.yml
+*/**/*.yml
 *.out
+*/**/main
 main
