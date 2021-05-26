@@ -6,7 +6,6 @@ import (
 	"strings"
 
 	"github.com/gin-gonic/gin"
-	"github.com/sirupsen/logrus"
 	"github.com/yedf/dtm/common"
 )
 
@@ -41,7 +40,6 @@ func XaClientNew(server string, mysqlConf map[string]string, app *gin.Engine, ca
 		common.MustUnmarshal(b, &req)
 		tx, my := common.DbAlone(xa.Conf)
 		defer func() {
-			logrus.Printf("closing conn %v", xa.Conf)
 			my.Close()
 		}()
 		if req.Action == "commit" {
@@ -59,13 +57,7 @@ func (xa *XaClient) XaLocalTransaction(gid string, transFunc XaLocalFunc) (rerr 
 	defer common.Panic2Error(&rerr)
 	branch := common.GenGid()
 	tx, my := common.DbAlone(xa.Conf)
-	defer func() {
-		logrus.Printf("closing conn %v", xa.Conf)
-		my.Close()
-	}()
-	// tx1 := db.Session(&gorm.Session{SkipDefaultTransaction: true})
-	// common.PanicIfError(tx1.Error)
-	// tx := common.MyDb{DB: tx1}
+	defer func() { my.Close() }()
 	tx.Must().Exec(fmt.Sprintf("XA start '%s'", branch))
 	err := transFunc(tx)
 	common.PanicIfError(err)

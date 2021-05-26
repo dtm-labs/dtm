@@ -3,7 +3,7 @@ package common
 import (
 	"database/sql"
 	"fmt"
-	"strings"
+	"regexp"
 	"time"
 
 	"github.com/sirupsen/logrus"
@@ -81,10 +81,15 @@ func GetDsn(conf map[string]string) string {
 	return fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?charset=utf8mb4&parseTime=true&loc=Local", conf["user"], conf["password"], conf["host"], conf["port"], conf["database"])
 }
 
+func ReplaceDsnPassword(dsn string) string {
+	reg := regexp.MustCompile(`:(.*)@`)
+	return reg.ReplaceAllString(dsn, "****")
+}
+
 func DbGet(conf map[string]string) *MyDb {
 	dsn := GetDsn(conf)
 	if dbs[dsn] == nil {
-		logrus.Printf("connecting %s", strings.Replace(dsn, conf["password"], "****", 1))
+		logrus.Printf("connecting %s", ReplaceDsnPassword(dsn))
 		db1, err := gorm.Open(mysql.Open(dsn), &gorm.Config{
 			SkipDefaultTransaction: true,
 		})
@@ -95,14 +100,25 @@ func DbGet(conf map[string]string) *MyDb {
 	return dbs[dsn]
 }
 
-func DbAlone(conf map[string]string) (*MyDb, *sql.DB) {
-	logrus.Printf("opening alone mysql: %s", GetDsn(conf))
-	mdb, err := sql.Open("mysql", GetDsn(conf))
+type MyConn struct {
+	Conn *sql.DB
+	Dsn  string
+}
+
+func (conn *MyConn) Close() {
+	logrus.Printf("closing alone mysql: %s", ReplaceDsnPassword(conn.Dsn))
+	conn.Conn.Close()
+}
+
+func DbAlone(conf map[string]string) (*MyDb, *MyConn) {
+	dsn := GetDsn(conf)
+	logrus.Printf("opening alone mysql: %s", ReplaceDsnPassword(dsn))
+	mdb, err := sql.Open("mysql", dsn)
 	PanicIfError(err)
 	gormDB, err := gorm.Open(mysql.New(mysql.Config{
 		Conn: mdb,
 	}), &gorm.Config{})
 	PanicIfError(err)
 	gormDB.Use(&tracePlugin{})
-	return &MyDb{DB: gormDB}, mdb
+	return &MyDb{DB: gormDB}, &MyConn{Conn: mdb, Dsn: dsn}
 }
