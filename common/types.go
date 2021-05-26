@@ -82,8 +82,8 @@ func GetDsn(conf map[string]string) string {
 }
 
 func ReplaceDsnPassword(dsn string) string {
-	reg := regexp.MustCompile(`:(.*)@`)
-	return reg.ReplaceAllString(dsn, "****")
+	reg := regexp.MustCompile(`:.*@`)
+	return reg.ReplaceAllString(dsn, ":****@")
 }
 
 func DbGet(conf map[string]string) *MyDb {
