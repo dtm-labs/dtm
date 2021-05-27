@@ -31,6 +31,17 @@ func (t *TransGlobalModel) touch(db *common.MyDb) *gorm.DB {
 	return db.Model(&TransGlobalModel{}).Where("gid=?", t.Gid).Update("gid", t.Gid) // 更新update_time，避免被定时任务再次
 }
 
+func (t *TransGlobalModel) saveStatus(db *common.MyDb, status string) *gorm.DB {
+	writeTransLog(t.Gid, "step change", status, "", "")
+	dbr := db.Must().Model(t).Where("status=?", t.Status).Updates(M{
+		"status":      status,
+		"finish_time": time.Now(),
+	})
+	checkAffected(dbr)
+	t.Status = status
+	return dbr
+}
+
 type TransBranchModel struct {
 	common.ModelBase
 	Gid          string

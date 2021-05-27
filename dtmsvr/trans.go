@@ -48,7 +48,6 @@ func (t *TransSaga) GetDataBranches() []TransBranchModel {
 }
 
 func (t *TransSaga) ProcessOnce(db *common.MyDb, branches []TransBranchModel) error {
-	gid := t.Gid
 	current := 0 // 当前正在处理的步骤
 	for ; current < len(branches); current++ {
 		step := branches[current]
@@ -62,21 +61,11 @@ func (t *TransSaga) ProcessOnce(db *common.MyDb, branches []TransBranchModel) er
 			}
 			body := resp.String()
 
-			db.Must().Model(&TransGlobalModel{}).Where("gid=?", gid).Update("gid", gid) // 更新update_time，避免被定时任务再次
+			t.touch(db.Must())
 			if strings.Contains(body, "SUCCESS") {
-				writeTransLog(gid, "step finished", "finished", step.Branch, "")
-				dbr := db.Must().Model(&step).Where("status=?", "prepared").Updates(M{
-					"status":      "finished",
-					"finish_time": time.Now(),
-				})
-				checkAffected(dbr)
+				step.saveStatus(db.Must(), "finished")
 			} else if strings.Contains(body, "FAIL") {
-				writeTransLog(gid, "step rollbacked", "rollbacked", step.Branch, "")
-				dbr := db.Must().Model(&step).Where("status=?", "prepared").Updates(M{
-					"status":        "rollbacked",
-					"rollback_time": time.Now(),
-				})
-				checkAffected(dbr)
+				step.saveStatus(db.Must(), "rollbacked")
 				break
 			} else {
 				return fmt.Errorf("unknown response: %s, will be retried", body)
@@ -84,12 +73,7 @@ func (t *TransSaga) ProcessOnce(db *common.MyDb, branches []TransBranchModel) er
 		}
 	}
 	if current == len(branches) { // saga 事务完成
-		writeTransLog(gid, "saga finished", "finished", "", "")
-		dbr := db.Must().Model(&TransGlobalModel{}).Where("gid=? and status=?", gid, "committed").Updates(M{
-			"status":      "finished",
-			"finish_time": time.Now(),
-		})
-		checkAffected(dbr)
+		t.saveStatus(db.Must(), "finished")
 		return nil
 	}
 	for current = current - 1; current >= 0; current-- {
@@ -103,12 +87,7 @@ func (t *TransSaga) ProcessOnce(db *common.MyDb, branches []TransBranchModel) er
 		}
 		body := resp.String()
 		if strings.Contains(body, "SUCCESS") {
-			writeTransLog(gid, "step rollbacked", "rollbacked", step.Branch, "")
-			dbr := db.Must().Model(&step).Where("status=?", step.Status).Updates(M{
-				"status":        "rollbacked",
-				"rollback_time": time.Now(),
-			})
-			checkAffected(dbr)
+			step.saveStatus(db.Must(), "rollbacked")
 		} else {
 			return fmt.Errorf("expect compensate return SUCCESS")
 		}
@@ -116,12 +95,7 @@ func (t *TransSaga) ProcessOnce(db *common.MyDb, branches []TransBranchModel) er
 	if current != -1 {
 		return fmt.Errorf("saga current not -1")
 	}
-	writeTransLog(gid, "saga rollbacked", "rollbacked", "", "")
-	dbr := db.Must().Model(&TransGlobalModel{}).Where("status=? and gid=?", "committed", gid).Updates(M{
-		"status":        "rollbacked",
-		"rollback_time": time.Now(),
-	})
-	checkAffected(dbr)
+	t.saveStatus(db.Must(), "rollbacked")
 	return nil
 }
 
