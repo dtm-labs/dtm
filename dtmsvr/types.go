@@ -4,8 +4,11 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/gin-gonic/gin"
+	"github.com/sirupsen/logrus"
 	"github.com/yedf/dtm/common"
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 )
 
 type M = map[string]interface{}
@@ -61,7 +64,7 @@ func (*TransBranch) TableName() string {
 	return "trans_branch"
 }
 
-func (t *TransBranch) saveStatus(db *common.MyDb, status string) *gorm.DB {
+func (t *TransBranch) changeStatus(db *common.MyDb, status string) *gorm.DB {
 	writeTransLog(t.Gid, "step change", status, t.Branch, "")
 	dbr := db.Must().Model(t).Where("status=?", t.Status).Updates(M{
 		"status":      status,
@@ -87,4 +90,61 @@ func (trans *TransGlobal) getProcessor() TransProcessor {
 		return &TransXaProcessor{TransGlobal: trans}
 	}
 	return nil
+}
+
+func (trans *TransGlobal) Process(db *common.MyDb) {
+	branches := []TransBranch{}
+	db.Must().Where("gid=?", trans.Gid).Order("id asc").Find(&branches)
+	trans.getProcessor().ProcessOnce(db, branches)
+	if TransProcessedTestChan != nil {
+		TransProcessedTestChan <- trans.Gid
+	}
+}
+
+func (t *TransGlobal) SaveNew(db *common.MyDb) {
+	err := db.Transaction(func(db1 *gorm.DB) error {
+		db := &common.MyDb{DB: db1}
+
+		writeTransLog(t.Gid, "create trans", t.Status, "", t.Data)
+		dbr := db.Must().Clauses(clause.OnConflict{
+			DoNothing: true,
+		}).Create(t)
+		if dbr.RowsAffected == 0 && t.Status == "committed" { // 如果数据库已经存放了prepared的事务，则修改状态
+			dbr = db.Must().Model(&TransGlobal{}).Where("gid=? and status=?", t.Gid, "prepared").Update("status", t.Status)
+		}
+		if dbr.RowsAffected == 0 { // 未保存任何数据，直接返回
+			return nil
+		}
+		// 保存所有的分支
+		nsteps := t.getProcessor().GenBranches()
+		if len(nsteps) > 0 {
+			writeTransLog(t.Gid, "save steps", t.Status, "", common.MustMarshalString(nsteps))
+			db.Must().Clauses(clause.OnConflict{
+				DoNothing: true,
+			}).Create(&nsteps)
+		}
+		return nil
+	})
+	e2p(err)
+}
+
+func TransFromContext(c *gin.Context) *TransGlobal {
+	data := M{}
+	b, err := c.GetRawData()
+	e2p(err)
+	common.MustUnmarshal(b, &data)
+	logrus.Printf("creating trans in prepare")
+	if data["steps"] != nil {
+		data["data"] = common.MustMarshalString(data["steps"])
+	}
+	m := TransGlobal{}
+	common.MustRemarshal(data, &m)
+	return &m
+}
+
+func TransFromDb(db *common.MyDb, gid string) *TransGlobal {
+	m := TransGlobal{}
+	dbr := db.Must().Model(&m).Where("gid=?", gid).First(&m)
+	e2p(dbr.Error)
+	return &m
 }

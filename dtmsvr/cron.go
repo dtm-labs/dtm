@@ -32,8 +32,9 @@ func CronPreparedOnce(expire time.Duration) {
 			writeTransLog(sm.Gid, "saga canceled", status, "", "")
 			db.Must().Model(&sm).Where("status = ?", "prepared").Update("status", status)
 		} else if strings.Contains(body, "SUCCESS") {
-			saveCommitted(&sm)
-			ProcessTrans(&sm)
+			sm.Status = "committed"
+			sm.SaveNew(db)
+			sm.Process(db)
 		}
 	}
 }
@@ -77,7 +78,7 @@ func lockOneTrans(expire time.Duration, status string) *TransGlobal {
 	owner := common.GenGid()
 	db := dbGet()
 	dbr := db.Must().Model(&trans).
-		Where("update_time < date_sub(now(), interval ? second) and satus=?", int(expire/time.Second), status).
+		Where("update_time < date_sub(now(), interval ? second) and status=?", int(expire/time.Second), status).
 		Limit(1).Update("owner", owner)
 	if dbr.RowsAffected == 0 {
 		return nil

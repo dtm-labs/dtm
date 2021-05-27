@@ -1,8 +1,9 @@
 package dtmsvr
 
 import (
+	"fmt"
+
 	"github.com/gin-gonic/gin"
-	"github.com/sirupsen/logrus"
 	"github.com/yedf/dtm/common"
 	"gorm.io/gorm/clause"
 )
@@ -15,29 +16,30 @@ func AddRoute(engine *gin.Engine) {
 }
 
 func Prepare(c *gin.Context) (interface{}, error) {
-	db := dbGet()
-	m := getTransFromContext(c)
+	m := TransFromContext(c)
 	m.Status = "prepared"
-	writeTransLog(m.Gid, "save prepared", m.Status, "", m.Data)
-	db.Must().Clauses(clause.OnConflict{
-		DoNothing: true,
-	}).Create(&m)
+	m.SaveNew(dbGet())
 	return M{"message": "SUCCESS"}, nil
 }
 
 func Commit(c *gin.Context) (interface{}, error) {
-	m := getTransFromContext(c)
-	saveCommitted(m)
-	go ProcessTrans(m)
+	db := dbGet()
+	m := TransFromContext(c)
+	m.Status = "committed"
+	m.SaveNew(db)
+	go m.Process(db)
 	return M{"message": "SUCCESS"}, nil
 }
 
 func Rollback(c *gin.Context) (interface{}, error) {
-	m := getTransFromContext(c)
-	trans := TransGlobal{}
-	dbGet().Must().Model(&m).First(&trans)
+	db := dbGet()
+	m := TransFromContext(c)
+	m = TransFromDb(db, m.Gid)
+	if m.TransType != "xa" || m.Status != "prepared" {
+		return nil, fmt.Errorf("unkown trans data. type: %s status: %s for gid: %s", m.TransType, m.Status, m.Gid)
+	}
 	// 当前xa trans的状态为prepared，直接处理，则是回滚
-	go ProcessTrans(&trans)
+	go m.Process(db)
 	return M{"message": "SUCCESS"}, nil
 }
 
@@ -50,18 +52,4 @@ func Branch(c *gin.Context) (interface{}, error) {
 		DoNothing: true,
 	}).Create(&branch)
 	return M{"message": "SUCCESS"}, nil
-}
-
-func getTransFromContext(c *gin.Context) *TransGlobal {
-	data := M{}
-	b, err := c.GetRawData()
-	e2p(err)
-	common.MustUnmarshal(b, &data)
-	logrus.Printf("creating trans model in prepare")
-	if data["trans_type"].(string) == "saga" {
-		data["data"] = common.MustMarshalString(data["steps"])
-	}
-	m := TransGlobal{}
-	common.MustRemarshal(data, &m)
-	return &m
 }

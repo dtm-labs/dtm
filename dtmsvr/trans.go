@@ -52,9 +52,9 @@ func (t *TransSagaProcessor) ProcessOnce(db *common.MyDb, branches []TransBranch
 
 			t.touch(db.Must())
 			if strings.Contains(body, "SUCCESS") {
-				step.saveStatus(db.Must(), "finished")
+				step.changeStatus(db.Must(), "finished")
 			} else if strings.Contains(body, "FAIL") {
-				step.saveStatus(db.Must(), "rollbacked")
+				step.changeStatus(db.Must(), "rollbacked")
 				break
 			} else {
 				return fmt.Errorf("unknown response: %s, will be retried", body)
@@ -76,7 +76,7 @@ func (t *TransSagaProcessor) ProcessOnce(db *common.MyDb, branches []TransBranch
 		}
 		body := resp.String()
 		if strings.Contains(body, "SUCCESS") {
-			step.saveStatus(db.Must(), "rollbacked")
+			step.changeStatus(db.Must(), "rollbacked")
 		} else {
 			return fmt.Errorf("expect compensate return SUCCESS")
 		}
