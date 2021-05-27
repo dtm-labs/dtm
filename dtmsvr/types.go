@@ -37,12 +37,17 @@ func (t *TransGlobal) touch(db *common.MyDb) *gorm.DB {
 	return db.Model(&TransGlobal{}).Where("gid=?", t.Gid).Update("gid", t.Gid) // 更新update_time，避免被定时任务再次
 }
 
-func (t *TransGlobal) saveStatus(db *common.MyDb, status string) *gorm.DB {
-	writeTransLog(t.Gid, "step change", status, "", "")
-	dbr := db.Must().Model(t).Where("status=?", t.Status).Updates(M{
-		"status":      status,
-		"finish_time": time.Now(),
-	})
+func (t *TransGlobal) changeStatus(db *common.MyDb, status string) *gorm.DB {
+	writeTransLog(t.Gid, "change status", status, "", "")
+	updates := M{
+		"status": status,
+	}
+	if status == "finished" {
+		updates["finish_time"] = time.Now()
+	} else if status == "rollbacked" {
+		updates["rollback_time"] = time.Now()
+	}
+	dbr := db.Must().Model(t).Where("status=?", t.Status).Updates(updates)
 	checkAffected(dbr)
 	t.Status = status
 	return dbr
