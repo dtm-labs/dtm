@@ -34,7 +34,7 @@ func Commit(c *gin.Context) (interface{}, error) {
 
 func Rollback(c *gin.Context) (interface{}, error) {
 	m := getTransFromContext(c)
-	trans := TransGlobalModel{}
+	trans := TransGlobal{}
 	dbGet().Must().Model(&m).First(&trans)
 	// 当前xa trans的状态为prepared，直接处理，则是回滚
 	go ProcessTrans(&trans)
@@ -42,7 +42,7 @@ func Rollback(c *gin.Context) (interface{}, error) {
 }
 
 func Branch(c *gin.Context) (interface{}, error) {
-	branch := TransBranchModel{}
+	branch := TransBranch{}
 	err := c.BindJSON(&branch)
 	e2p(err)
 	db := dbGet()
@@ -52,7 +52,7 @@ func Branch(c *gin.Context) (interface{}, error) {
 	return M{"message": "SUCCESS"}, nil
 }
 
-func getTransFromContext(c *gin.Context) *TransGlobalModel {
+func getTransFromContext(c *gin.Context) *TransGlobal {
 	data := M{}
 	b, err := c.GetRawData()
 	e2p(err)
@@ -61,7 +61,7 @@ func getTransFromContext(c *gin.Context) *TransGlobalModel {
 	if data["trans_type"].(string) == "saga" {
 		data["data"] = common.MustMarshalString(data["steps"])
 	}
-	m := TransGlobalModel{}
+	m := TransGlobal{}
 	common.MustRemarshal(data, &m)
 	return &m
 }

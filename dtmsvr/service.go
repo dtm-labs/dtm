@@ -7,7 +7,7 @@ import (
 	"gorm.io/gorm/clause"
 )
 
-func saveCommitted(m *TransGlobalModel) {
+func saveCommitted(m *TransGlobal) {
 	db := dbGet()
 	m.Status = "committed"
 	err := db.Transaction(func(db1 *gorm.DB) error {
@@ -20,7 +20,7 @@ func saveCommitted(m *TransGlobalModel) {
 			writeTransLog(m.Gid, "change status", m.Status, "", "")
 			db.Must().Model(m).Where("status=?", "prepared").Update("status", "committed")
 		}
-		nsteps := GetTrans(m).GetDataBranches()
+		nsteps := m.getProcessor().GenBranches()
 		if len(nsteps) > 0 {
 			writeTransLog(m.Gid, "save steps", m.Status, "", common.MustMarshalString(nsteps))
 			db.Must().Clauses(clause.OnConflict{
@@ -42,18 +42,12 @@ func WaitTransProcessed(gid string) {
 	}
 }
 
-func ProcessTrans(trans *TransGlobalModel) {
-	err := innerProcessTrans(trans)
-	if err != nil {
-		logrus.Errorf("process trans ignore error: %s", err.Error())
-	}
+func ProcessTrans(trans *TransGlobal) {
+	branches := []TransBranch{}
+	db := dbGet()
+	db.Must().Where("gid=?", trans.Gid).Order("id asc").Find(&branches)
+	trans.getProcessor().ProcessOnce(db, branches)
 	if TransProcessedTestChan != nil {
 		TransProcessedTestChan <- trans.Gid
 	}
-}
-func innerProcessTrans(trans *TransGlobalModel) (rerr error) {
-	branches := []TransBranchModel{}
-	db := dbGet()
-	db.Must().Where("gid=?", trans.Gid).Order("id asc").Find(&branches)
-	return GetTrans(trans).ProcessOnce(db, branches)
 }

@@ -50,7 +50,7 @@ func TestCover(t *testing.T) {
 	db := dbGet()
 	db.NoMust()
 	CronPreparedOnce(0)
-	CronCommittedOnce(0)
+	CronTransOnce(0, "committed")
 	defer handlePanic()
 	checkAffected(db.DB)
 }
@@ -58,16 +58,16 @@ func TestCover(t *testing.T) {
 // 测试使用的全局对象
 var initdb = dbGet()
 
-func getSagaModel(gid string) *TransGlobalModel {
-	sm := TransGlobalModel{}
+func getSagaModel(gid string) *TransGlobal {
+	sm := TransGlobal{}
 	dbr := dbGet().Model(&sm).Where("gid=?", gid).First(&sm)
 	e2p(dbr.Error)
 	return &sm
 }
 
 func getBranchesStatus(gid string) []string {
-	steps := []TransBranchModel{}
-	dbr := dbGet().Model(&TransBranchModel{}).Where("gid=?", gid).Find(&steps)
+	steps := []TransBranch{}
+	dbr := dbGet().Model(&TransBranch{}).Where("gid=?", gid).Find(&steps)
 	e2p(dbr.Error)
 	status := []string{}
 	for _, step := range steps {
@@ -172,7 +172,7 @@ func sagaCommittedPending(t *testing.T) {
 	WaitTransProcessed(saga.Gid)
 	examples.TransInResult = ""
 	assert.Equal(t, []string{"prepared", "finished", "prepared", "prepared"}, getBranchesStatus(saga.Gid))
-	CronCommittedOnce(-10 * time.Second)
+	CronTransOnce(-10*time.Second, "committed")
 	WaitTransProcessed(saga.Gid)
 	assert.Equal(t, []string{"prepared", "finished", "prepared", "finished"}, getBranchesStatus(saga.Gid))
 	assert.Equal(t, "finished", getSagaModel(saga.Gid).Status)
