@@ -2,6 +2,8 @@ package examples
 
 import "github.com/yedf/dtm/common"
 
+var e2p = common.E2P
+
 type UserAccount struct {
 	common.ModelBase
 	UserId  int

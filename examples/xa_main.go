@@ -38,7 +38,7 @@ func XaStartSvr() {
 func XaFireRequest() {
 	gid := common.GenGid()
 	err := XaClient.XaGlobalTransaction(gid, func() (rerr error) {
-		defer common.Panic2Error(&rerr)
+		defer common.P2E(&rerr)
 		req := GenTransReq(30, false, false)
 		resp, err := common.RestyClient.R().SetBody(req).SetQueryParams(map[string]string{
 			"gid":     gid,
@@ -52,7 +52,7 @@ func XaFireRequest() {
 		common.CheckRestySuccess(resp, err)
 		return nil
 	})
-	common.PanicIfError(err)
+	e2p(err)
 }
 
 // api
@@ -71,7 +71,7 @@ func XaTransIn(c *gin.Context) (interface{}, error) {
 			Update("balance", gorm.Expr("balance - ?", req.Amount))
 		return dbr.Error
 	})
-	common.PanicIfError(err)
+	e2p(err)
 	return M{"result": "SUCCESS"}, nil
 }
 
@@ -85,7 +85,7 @@ func XaTransOut(c *gin.Context) (interface{}, error) {
 			Update("balance", gorm.Expr("balance + ?", req.Amount))
 		return dbr.Error
 	})
-	common.PanicIfError(err)
+	e2p(err)
 	return M{"result": "SUCCESS"}, nil
 }
 

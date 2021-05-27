@@ -44,7 +44,7 @@ func Rollback(c *gin.Context) (interface{}, error) {
 func Branch(c *gin.Context) (interface{}, error) {
 	branch := TransBranchModel{}
 	err := c.BindJSON(&branch)
-	common.PanicIfError(err)
+	e2p(err)
 	db := dbGet()
 	db.Must().Clauses(clause.OnConflict{
 		DoNothing: true,
@@ -55,7 +55,7 @@ func Branch(c *gin.Context) (interface{}, error) {
 func getTransFromContext(c *gin.Context) *TransGlobalModel {
 	data := M{}
 	b, err := c.GetRawData()
-	common.PanicIfError(err)
+	e2p(err)
 	common.MustUnmarshal(b, &data)
 	logrus.Printf("creating trans model in prepare")
 	if data["trans_type"].(string) == "saga" {

@@ -29,7 +29,7 @@ func saveCommitted(m *TransGlobalModel) {
 		}
 		return nil
 	})
-	common.PanicIfError(err)
+	e2p(err)
 }
 
 var TransProcessedTestChan chan string = nil // 用于测试时，通知处理结束

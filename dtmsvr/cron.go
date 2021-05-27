@@ -21,7 +21,7 @@ func CronPreparedOnce(expire time.Duration) {
 		writeTransLog(sm.Gid, "saga touch prepared", "", "", "")
 		db.Must().Model(&sm).Update("id", sm.ID)
 		resp, err := common.RestyClient.R().SetQueryParam("gid", sm.Gid).Get(sm.QueryPrepared)
-		common.PanicIfError(err)
+		e2p(err)
 		body := resp.String()
 		if strings.Contains(body, "FAIL") {
 			preparedExpire := time.Now().Add(time.Duration(-config.PreparedExpire) * time.Second)

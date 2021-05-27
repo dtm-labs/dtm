@@ -93,7 +93,7 @@ func DbGet(conf map[string]string) *MyDb {
 		db1, err := gorm.Open(mysql.Open(dsn), &gorm.Config{
 			SkipDefaultTransaction: true,
 		})
-		PanicIfError(err)
+		E2P(err)
 		db1.Use(&tracePlugin{})
 		dbs[dsn] = &MyDb{DB: db1}
 	}
@@ -114,11 +114,11 @@ func DbAlone(conf map[string]string) (*MyDb, *MyConn) {
 	dsn := GetDsn(conf)
 	logrus.Printf("opening alone mysql: %s", ReplaceDsnPassword(dsn))
 	mdb, err := sql.Open("mysql", dsn)
-	PanicIfError(err)
+	E2P(err)
 	gormDB, err := gorm.Open(mysql.New(mysql.Config{
 		Conn: mdb,
 	}), &gorm.Config{})
-	PanicIfError(err)
+	E2P(err)
 	gormDB.Use(&tracePlugin{})
 	return &MyDb{DB: gormDB}, &MyConn{Conn: mdb, Dsn: dsn}
 }

@@ -42,10 +42,10 @@ func sagaFireRequest() {
 	saga.Add(SagaBusi+"/TransOut", SagaBusi+"/TransOutCompensate", req)
 	saga.Add(SagaBusi+"/TransIn", SagaBusi+"/TransInCompensate", req)
 	err := saga.Prepare()
-	common.PanicIfError(err)
+	e2p(err)
 	logrus.Printf("busi trans commit")
 	err = saga.Commit()
-	common.PanicIfError(err)
+	e2p(err)
 }
 
 // api
@@ -70,7 +70,7 @@ var TransQueryResult = ""
 func transReqFromContext(c *gin.Context) *TransReq {
 	req := TransReq{}
 	err := c.BindJSON(&req)
-	common.PanicIfError(err)
+	e2p(err)
 	return &req
 }
 

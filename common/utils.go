@@ -29,7 +29,7 @@ func OrString(ss ...string) string {
 	return ""
 }
 
-func Panic2Error(perr *error) {
+func P2E(perr *error) {
 	if x := recover(); x != nil {
 		if e, ok := x.(error); ok {
 			*perr = e
@@ -53,7 +53,7 @@ func init() {
 	gNode = node
 }
 
-func PanicIfError(err error) {
+func E2P(err error) {
 	if err != nil {
 		panic(err)
 	}
@@ -68,7 +68,7 @@ func If(condition bool, trueObj interface{}, falseObj interface{}) interface{} {
 
 func MustMarshal(v interface{}) []byte {
 	b, err := json.Marshal(v)
-	PanicIfError(err)
+	E2P(err)
 	return b
 }
 
@@ -78,7 +78,7 @@ func MustMarshalString(v interface{}) string {
 
 func MustUnmarshal(b []byte, obj interface{}) {
 	err := json.Unmarshal(b, obj)
-	PanicIfError(err)
+	E2P(err)
 }
 func MustUnmarshalString(s string, obj interface{}) {
 	MustUnmarshal([]byte(s), obj)
@@ -86,9 +86,9 @@ func MustUnmarshalString(s string, obj interface{}) {
 
 func MustRemarshal(from interface{}, to interface{}) {
 	b, err := json.Marshal(from)
-	PanicIfError(err)
+	E2P(err)
 	err = json.Unmarshal(b, to)
-	PanicIfError(err)
+	E2P(err)
 }
 
 func GetGinApp() *gin.Engine {
@@ -130,7 +130,7 @@ func WrapHandler(fn func(*gin.Context) (interface{}, error)) gin.HandlerFunc {
 			c.Status(200)
 			c.Writer.Header().Add("Content-Type", "application/json")
 			_, err = c.Writer.Write(b)
-			PanicIfError(err)
+			E2P(err)
 		}
 	}
 }
@@ -154,7 +154,7 @@ func init() {
 }
 
 func CheckRestySuccess(resp *resty.Response, err error) {
-	PanicIfError(err)
+	E2P(err)
 	if !strings.Contains(resp.String(), "SUCCESS") {
 		panic(fmt.Errorf("resty response not success: %s", resp.String()))
 	}
@@ -196,7 +196,7 @@ func InitApp(config interface{}) {
 	configLoaded[fileName] = true
 	viper.SetConfigFile(fileName)
 	err := viper.ReadInConfig()
-	PanicIfError(err)
+	E2P(err)
 	err = viper.Unmarshal(config)
-	PanicIfError(err)
+	E2P(err)
 }

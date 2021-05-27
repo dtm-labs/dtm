@@ -32,9 +32,9 @@ func TestDtmSvr(t *testing.T) {
 	time.Sleep(time.Duration(100 * 1000 * 1000))
 
 	// 清理数据
-	common.PanicIfError(dbGet().Exec("truncate trans_global").Error)
-	common.PanicIfError(dbGet().Exec("truncate trans_branch").Error)
-	common.PanicIfError(dbGet().Exec("truncate trans_log").Error)
+	e2p(dbGet().Exec("truncate trans_global").Error)
+	e2p(dbGet().Exec("truncate trans_branch").Error)
+	e2p(dbGet().Exec("truncate trans_log").Error)
 	examples.ResetXaData()
 
 	xaRollback(t)
@@ -61,14 +61,14 @@ var initdb = dbGet()
 func getSagaModel(gid string) *TransGlobalModel {
 	sm := TransGlobalModel{}
 	dbr := dbGet().Model(&sm).Where("gid=?", gid).First(&sm)
-	common.PanicIfError(dbr.Error)
+	e2p(dbr.Error)
 	return &sm
 }
 
 func getBranchesStatus(gid string) []string {
 	steps := []TransBranchModel{}
 	dbr := dbGet().Model(&TransBranchModel{}).Where("gid=?", gid).Find(&steps)
-	common.PanicIfError(dbr.Error)
+	e2p(dbr.Error)
 	status := []string{}
 	for _, step := range steps {
 		status = append(status, step.Status)
@@ -93,7 +93,7 @@ func xaNormal(t *testing.T) {
 		common.CheckRestySuccess(resp, err)
 		return nil
 	})
-	common.PanicIfError(err)
+	e2p(err)
 	WaitTransProcessed(gid)
 	assert.Equal(t, []string{"finished", "finished"}, getBranchesStatus(gid))
 }

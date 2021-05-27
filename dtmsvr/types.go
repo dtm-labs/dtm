@@ -10,6 +10,9 @@ import (
 
 type M = map[string]interface{}
 
+var p2e = common.P2E
+var e2p = common.E2P
+
 type TransGlobalModel struct {
 	common.ModelBase
 	Gid           string `json:"gid"`

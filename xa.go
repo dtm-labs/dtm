@@ -10,6 +10,9 @@ import (
 )
 
 type M = map[string]interface{}
+
+var e2p = common.E2P
+
 type XaGlobalFunc func() error
 
 type XaLocalFunc func(db *common.MyDb) error
@@ -27,7 +30,7 @@ func XaClientNew(server string, mysqlConf map[string]string, app *gin.Engine, ca
 		CallbackUrl: callbackUrl,
 	}
 	u, err := url.Parse(callbackUrl)
-	common.PanicIfError(err)
+	e2p(err)
 	app.POST(u.Path, common.WrapHandler(func(c *gin.Context) (interface{}, error) {
 		type CallbackReq struct {
 			Gid    string `json:"gid"`
@@ -36,7 +39,7 @@ func XaClientNew(server string, mysqlConf map[string]string, app *gin.Engine, ca
 		}
 		req := CallbackReq{}
 		b, err := c.GetRawData()
-		common.PanicIfError(err)
+		e2p(err)
 		common.MustUnmarshal(b, &req)
 		tx, my := common.DbAlone(xa.Conf)
 		defer func() {
@@ -54,19 +57,19 @@ func XaClientNew(server string, mysqlConf map[string]string, app *gin.Engine, ca
 	return xa
 }
 func (xa *XaClient) XaLocalTransaction(gid string, transFunc XaLocalFunc) (rerr error) {
-	defer common.Panic2Error(&rerr)
+	defer common.P2E(&rerr)
 	branch := common.GenGid()
 	tx, my := common.DbAlone(xa.Conf)
 	defer func() { my.Close() }()
 	tx.Must().Exec(fmt.Sprintf("XA start '%s'", branch))
 	err := transFunc(tx)
-	common.PanicIfError(err)
+	e2p(err)
 	resp, err := common.RestyClient.R().
 		SetBody(&M{"gid": gid, "branch": branch, "trans_type": "xa", "status": "prepared", "url": xa.CallbackUrl}).
 		Post(xa.Server + "/branch")
-	common.PanicIfError(err)
+	e2p(err)
 	if !strings.Contains(resp.String(), "SUCCESS") {
-		common.PanicIfError(fmt.Errorf("unknown server response: %s", resp.String()))
+		e2p(fmt.Errorf("unknown server response: %s", resp.String()))
 	}
 	tx.Must().Exec(fmt.Sprintf("XA end '%s'", branch))
 	tx.Must().Exec(fmt.Sprintf("XA prepare '%s'", branch))
@@ -86,14 +89,14 @@ func (xa *XaClient) XaGlobalTransaction(gid string, transFunc XaGlobalFunc) (rer
 		}
 	}()
 	resp, err := common.RestyClient.R().SetBody(data).Post(xa.Server + "/prepare")
-	common.PanicIfError(err)
+	e2p(err)
 	if !strings.Contains(resp.String(), "SUCCESS") {
 		panic(fmt.Errorf("unexpected result: %s", resp.String()))
 	}
 	err = transFunc()
-	common.PanicIfError(err)
+	e2p(err)
 	resp, err = common.RestyClient.R().SetBody(data).Post(xa.Server + "/commit")
-	common.PanicIfError(err)
+	e2p(err)
 	if !strings.Contains(resp.String(), "SUCCESS") {
 		panic(fmt.Errorf("unexpected result: %s", resp.String()))
 	}
