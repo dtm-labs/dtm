@@ -39,6 +39,12 @@ func P2E(perr *error) {
 	}
 }
 
+func PanicIf(cond bool, err error) {
+	if cond {
+		panic(err)
+	}
+}
+
 func GenGid() string {
 	return gNode.Generate().Base58()
 }

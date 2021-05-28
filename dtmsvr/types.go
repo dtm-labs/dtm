@@ -98,12 +98,15 @@ func (trans *TransGlobal) getProcessor() TransProcessor {
 }
 
 func (trans *TransGlobal) Process(db *common.MyDb) {
+	defer handlePanic()
+	defer func() {
+		if TransProcessedTestChan != nil {
+			TransProcessedTestChan <- trans.Gid
+		}
+	}()
 	branches := []TransBranch{}
 	db.Must().Where("gid=?", trans.Gid).Order("id asc").Find(&branches)
 	trans.getProcessor().ProcessOnce(db, branches)
-	if TransProcessedTestChan != nil {
-		TransProcessedTestChan <- trans.Gid
-	}
 }
 
 func (t *TransGlobal) SaveNew(db *common.MyDb) {

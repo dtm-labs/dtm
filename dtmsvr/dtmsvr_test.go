@@ -37,11 +37,11 @@ func TestDtmSvr(t *testing.T) {
 	e2p(dbGet().Exec("truncate trans_log").Error)
 	examples.ResetXaData()
 
+	sagaCommittedPending(t)
+	sagaPreparePending(t)
 	xaRollback(t)
 	xaNormal(t)
-	sagaPreparePending(t)
 	sagaPrepareCancel(t)
-	sagaCommittedPending(t)
 	sagaNormal(t)
 	sagaRollback(t)
 }
@@ -49,7 +49,7 @@ func TestDtmSvr(t *testing.T) {
 func TestCover(t *testing.T) {
 	db := dbGet()
 	db.NoMust()
-	CronPreparedOnce(0)
+	CronTransOnce(0, "prepared")
 	CronTransOnce(0, "committed")
 	defer handlePanic()
 	checkAffected(db.DB)
@@ -146,7 +146,7 @@ func sagaPrepareCancel(t *testing.T) {
 	saga.Prepare()
 	examples.TransQueryResult = "FAIL"
 	config.PreparedExpire = -10
-	CronPreparedOnce(-10 * time.Second)
+	CronTransOnce(-10*time.Second, "prepared")
 	examples.TransQueryResult = ""
 	config.PreparedExpire = 60
 	assert.Equal(t, "canceled", getSagaModel(saga.Gid).Status)
@@ -156,11 +156,10 @@ func sagaPreparePending(t *testing.T) {
 	saga := genSaga("gid1-preparePending", false, false)
 	saga.Prepare()
 	examples.TransQueryResult = "PENDING"
-	CronPreparedOnce(-10 * time.Second)
+	CronTransOnce(-10*time.Second, "prepared")
 	examples.TransQueryResult = ""
 	assert.Equal(t, "prepared", getSagaModel(saga.Gid).Status)
-	CronPreparedOnce(-10 * time.Second)
-	WaitTransProcessed(saga.Gid)
+	CronTransOnce(-10*time.Second, "prepared")
 	assert.Equal(t, "finished", getSagaModel(saga.Gid).Status)
 }
 
@@ -173,7 +172,6 @@ func sagaCommittedPending(t *testing.T) {
 	examples.TransInResult = ""
 	assert.Equal(t, []string{"prepared", "finished", "prepared", "prepared"}, getBranchesStatus(saga.Gid))
 	CronTransOnce(-10*time.Second, "committed")
-	WaitTransProcessed(saga.Gid)
 	assert.Equal(t, []string{"prepared", "finished", "prepared", "finished"}, getBranchesStatus(saga.Gid))
 	assert.Equal(t, "finished", getSagaModel(saga.Gid).Status)
 }
