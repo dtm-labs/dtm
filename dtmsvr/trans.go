@@ -65,7 +65,7 @@ func (t *TransSagaProcessor) ProcessOnce(db *common.MyDb, branches []TransBranch
 	current := 0 // 当前正在处理的步骤
 	for ; current < len(branches); current++ {
 		step := branches[current]
-		if step.BranchType == "compensate" && step.Status == "prepared" || step.BranchType == "action" && step.Status == "finished" {
+		if step.BranchType == "compensate" && step.Status == "prepared" || step.BranchType == "action" && step.Status == "succeed" {
 			continue
 		}
 		if step.BranchType == "action" && step.Status == "prepared" {
@@ -75,9 +75,9 @@ func (t *TransSagaProcessor) ProcessOnce(db *common.MyDb, branches []TransBranch
 
 			t.touch(db.Must())
 			if strings.Contains(body, "SUCCESS") {
-				step.changeStatus(db.Must(), "finished")
+				step.changeStatus(db.Must(), "succeed")
 			} else if strings.Contains(body, "FAIL") {
-				step.changeStatus(db.Must(), "rollbacked")
+				step.changeStatus(db.Must(), "failed")
 				break
 			} else {
 				panic(fmt.Errorf("unknown response: %s, will be retried", body))
@@ -85,7 +85,7 @@ func (t *TransSagaProcessor) ProcessOnce(db *common.MyDb, branches []TransBranch
 		}
 	}
 	if current == len(branches) { // saga 事务完成
-		t.changeStatus(db.Must(), "finished")
+		t.changeStatus(db.Must(), "succeed")
 		return
 	}
 	for current = current - 1; current >= 0; current-- {
@@ -97,7 +97,7 @@ func (t *TransSagaProcessor) ProcessOnce(db *common.MyDb, branches []TransBranch
 		e2p(err)
 		body := resp.String()
 		if strings.Contains(body, "SUCCESS") {
-			step.changeStatus(db.Must(), "rollbacked")
+			step.changeStatus(db.Must(), "failed")
 		} else {
 			panic(fmt.Errorf("expect compensate return SUCCESS"))
 		}
@@ -105,7 +105,7 @@ func (t *TransSagaProcessor) ProcessOnce(db *common.MyDb, branches []TransBranch
 	if current != -1 {
 		panic(fmt.Errorf("saga current not -1"))
 	}
-	t.changeStatus(db.Must(), "rollbacked")
+	t.changeStatus(db.Must(), "failed")
 }
 
 type TransTccProcessor struct {
@@ -117,7 +117,7 @@ func (t *TransTccProcessor) GenBranches() []TransBranch {
 	steps := []M{}
 	common.MustUnmarshalString(t.Data, &steps)
 	for _, step := range steps {
-		for _, branchType := range []string{"rollback", "commit", "prepare"} {
+		for _, branchType := range []string{"cancel", "confirm", "try"} {
 			nsteps = append(nsteps, TransBranch{
 				Gid:        t.Gid,
 				Branch:     fmt.Sprintf("%d", len(nsteps)+1),
@@ -131,36 +131,48 @@ func (t *TransTccProcessor) GenBranches() []TransBranch {
 	return nsteps
 }
 
-func (t *TransTccProcessor) ExecBranch(db *common.MyDb, branche *TransBranch) string {
-	return ""
+func (t *TransTccProcessor) ExecBranch(db *common.MyDb, branch *TransBranch) string {
+	resp, err := common.RestyClient.R().SetBody(branch.Data).SetQueryParam("gid", branch.Gid).Post(branch.Url)
+	e2p(err)
+	body := resp.String()
+	t.touch(db)
+	if strings.Contains(body, "SUCCESS") {
+		status := common.If(branch.BranchType == "cancel", "failed", "succeed").(string)
+		branch.changeStatus(db, status)
+		return "SUCCESS"
+	}
+	if branch.BranchType == "try" && strings.Contains(body, "FAIL") {
+		branch.changeStatus(db, "failed")
+		return "FAIL"
+	}
+	panic(fmt.Errorf("unknown response: %s, will be retried", body))
 }
 
 func (t *TransTccProcessor) ProcessOnce(db *common.MyDb, branches []TransBranch) {
 	current := 0 // 当前正在处理的步骤
+	// 先处理一轮正常try状态
 	for ; current < len(branches); current++ {
-		step := branches[current]
-		if step.BranchType == "prepare" && step.Status == "finished" || step.BranchType != "commit" && step.Status == "prepared" {
+		step := &branches[current]
+		if step.BranchType != "try" || step.Status == "succeed" {
 			continue
 		}
-		if step.BranchType == "prepare" && step.Status == "prepared" {
-			resp, err := common.RestyClient.R().SetBody(step.Data).SetQueryParam("gid", step.Gid).Post(step.Url)
-			e2p(err)
-			body := resp.String()
-			t.touch(db)
-			if strings.Contains(body, "SUCCESS") {
-				step.changeStatus(db, "finished")
-			} else if strings.Contains(body, "FAIL") {
-				step.changeStatus(db, "rollbacked")
+		if step.BranchType == "try" && step.Status == "prepared" {
+			result := t.ExecBranch(db, step)
+			if result == "FAIL" {
 				break
-			} else {
-				panic(fmt.Errorf("unknown response: %s, will be retried", body))
 			}
 		}
 	}
-	//////////////////////////////////////////////////
-	if current == len(branches) { // tcc 事务完成
-		t.changeStatus(db, "finished")
+	// 如果try全部成功，则处理confirm分支，否则处理cancel分支
+	currentType := common.If(current == len(branches), "confirm", "cancel")
+	for current--; current >= 0; current-- {
+		branch := &branches[current]
+		if branch.BranchType != currentType || branch.Status != "prepared" {
+			continue
+		}
+		t.ExecBranch(db, branch)
 	}
+	t.changeStatus(db, common.If(currentType == "confirm", "succeed", "failed").(string))
 }
 
 type TransXaProcessor struct {
@@ -181,32 +193,32 @@ func (t *TransXaProcessor) ExecBranch(db *common.MyDb, branch *TransBranch) stri
 	if !strings.Contains(body, "SUCCESS") {
 		panic(fmt.Errorf("bad response: %s", body))
 	}
-	branch.changeStatus(db, common.If(t.Status == "prepared", "rollbacked", "finished").(string))
+	branch.changeStatus(db, common.If(t.Status == "prepared", "failed", "succeed").(string))
 	return "SUCCESS"
 }
 
 func (t *TransXaProcessor) ProcessOnce(db *common.MyDb, branches []TransBranch) {
-	if t.Status == "finished" {
+	if t.Status == "succeed" {
 		return
 	}
 	if t.Status == "committed" {
 		for _, branch := range branches {
-			if branch.Status == "finished" {
+			if branch.Status == "succeed" {
 				continue
 			}
 			_ = t.ExecBranch(db, &branch)
 			t.touch(db) // 更新update_time，避免被定时任务再次
 		}
-		t.changeStatus(db, "finished")
+		t.changeStatus(db, "succeed")
 	} else if t.Status == "prepared" { // 未commit直接处理的情况为回滚场景
 		for _, branch := range branches {
-			if branch.Status == "rollbacked" {
+			if branch.Status == "failed" {
 				continue
 			}
 			_ = t.ExecBranch(db, &branch)
 			t.touch(db)
 		}
-		t.changeStatus(db, "rollbacked")
+		t.changeStatus(db, "failed")
 	} else {
 		e2p(fmt.Errorf("bad trans status: %s", t.Status))
 	}

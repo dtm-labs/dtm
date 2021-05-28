@@ -20,39 +20,39 @@ type TccData struct {
 	QueryPrepared string    `json:"query_prepared"`
 }
 type TccStep struct {
-	Prepare  string `json:"prepare"`
-	Commit   string `json:"commit"`
-	Rollback string `json:"rollback"`
-	Data     string `json:"data"`
+	Try     string `json:"try"`
+	Confirm string `json:"confirm"`
+	Cancel  string `json:"cancel"`
+	Data    string `json:"data"`
 }
 
-func TccNew(server string, gid string, queryPrepared string) *Saga {
-	return &Saga{
-		SagaData: SagaData{
-			Gid:           gid,
-			TransType:     "tcc",
-			QueryPrepared: queryPrepared,
+func TccNew(server string, gid string) *Tcc {
+	return &Tcc{
+		TccData: TccData{
+			Gid:       gid,
+			TransType: "tcc",
 		},
 		Server: server,
 	}
 }
-func (s *Tcc) Add(prepare string, commit string, rollback string, data interface{}) error {
-	logrus.Printf("tcc %s Add %s %s %s %v", s.Gid, prepare, commit, rollback, data)
+func (s *Tcc) Add(try string, confirm string, cancel string, data interface{}) error {
+	logrus.Printf("tcc %s Add %s %s %s %v", s.Gid, try, confirm, cancel, data)
 	d, err := json.Marshal(data)
 	if err != nil {
 		return err
 	}
 	step := TccStep{
-		Prepare:  prepare,
-		Commit:   commit,
-		Rollback: rollback,
-		Data:     string(d),
+		Try:     try,
+		Confirm: confirm,
+		Cancel:  cancel,
+		Data:    string(d),
 	}
 	s.Steps = append(s.Steps, step)
 	return nil
 }
 
-func (s *Tcc) Prepare() error {
+func (s *Tcc) Prepare(queryPrepared string) error {
+	s.QueryPrepared = queryPrepared
 	logrus.Printf("preparing %s body: %v", s.Gid, &s.TccData)
 	resp, err := common.RestyClient.R().SetBody(&s.TccData).Post(fmt.Sprintf("%s/prepare", s.Server))
 	if err != nil {

@@ -42,9 +42,9 @@ func (t *TransGlobal) changeStatus(db *common.MyDb, status string) *gorm.DB {
 	updates := M{
 		"status": status,
 	}
-	if status == "finished" {
+	if status == "succeed" {
 		updates["finish_time"] = time.Now()
-	} else if status == "rollbacked" {
+	} else if status == "failed" {
 		updates["rollback_time"] = time.Now()
 	}
 	dbr := db.Must().Model(t).Where("status=?", t.Status).Updates(updates)

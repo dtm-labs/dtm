@@ -25,12 +25,11 @@ type SagaStep struct {
 	Data       string `json:"data"`
 }
 
-func SagaNew(server string, gid string, queryPrepared string) *Saga {
+func SagaNew(server string, gid string) *Saga {
 	return &Saga{
 		SagaData: SagaData{
-			Gid:           gid,
-			TransType:     "saga",
-			QueryPrepared: queryPrepared,
+			Gid:       gid,
+			TransType: "saga",
 		},
 		Server: server,
 	}
@@ -50,7 +49,8 @@ func (s *Saga) Add(action string, compensate string, postData interface{}) error
 	return nil
 }
 
-func (s *Saga) Prepare() error {
+func (s *Saga) Prepare(queryPrepared string) error {
+	s.QueryPrepared = queryPrepared
 	logrus.Printf("preparing %s body: %v", s.Gid, &s.SagaData)
 	resp, err := common.RestyClient.R().SetBody(&s.SagaData).Post(fmt.Sprintf("%s/prepare", s.Server))
 	if err != nil {
