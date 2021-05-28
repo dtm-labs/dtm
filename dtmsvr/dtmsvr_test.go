@@ -29,6 +29,7 @@ func TestDtmSvr(t *testing.T) {
 	go StartSvr()
 	go examples.SagaStartSvr()
 	go examples.XaStartSvr()
+	go examples.TccStartSvr()
 	time.Sleep(time.Duration(100 * 1000 * 1000))
 
 	// 清理数据
@@ -36,7 +37,8 @@ func TestDtmSvr(t *testing.T) {
 	e2p(dbGet().Exec("truncate trans_branch").Error)
 	e2p(dbGet().Exec("truncate trans_log").Error)
 	examples.ResetXaData()
-	// tccNormal(t)
+	tccNormal(t)
+	tccRollback(t)
 	sagaCommittedPending(t)
 	sagaPreparePending(t)
 	xaRollback(t)
@@ -58,7 +60,7 @@ func TestCover(t *testing.T) {
 // 测试使用的全局对象
 var initdb = dbGet()
 
-func getSagaModel(gid string) *TransGlobal {
+func getTransStatus(gid string) *TransGlobal {
 	sm := TransGlobal{}
 	dbr := dbGet().Model(&sm).Where("gid=?", gid).First(&sm)
 	e2p(dbr.Error)
@@ -67,7 +69,7 @@ func getSagaModel(gid string) *TransGlobal {
 
 func getBranchesStatus(gid string) []string {
 	steps := []TransBranch{}
-	dbr := dbGet().Model(&TransBranch{}).Where("gid=?", gid).Find(&steps)
+	dbr := dbGet().Model(&TransBranch{}).Where("gid=?", gid).Order("id").Find(&steps)
 	e2p(dbr.Error)
 	status := []string{}
 	for _, step := range steps {
@@ -95,7 +97,7 @@ func xaNormal(t *testing.T) {
 	})
 	e2p(err)
 	WaitTransProcessed(gid)
-	assert.Equal(t, []string{"succeed", "succeed"}, getBranchesStatus(gid))
+	assert.Equal(t, []string{"prepared", "succeed", "prepared", "succeed"}, getBranchesStatus(gid))
 }
 
 func xaRollback(t *testing.T) {
@@ -119,25 +121,31 @@ func xaRollback(t *testing.T) {
 		logrus.Errorf("global transaction failed, so rollback")
 	}
 	WaitTransProcessed(gid)
-	assert.Equal(t, []string{"failed"}, getBranchesStatus(gid))
+	assert.Equal(t, []string{"succeed", "prepared"}, getBranchesStatus(gid))
+	assert.Equal(t, "failed", getTransStatus(gid).Status)
 }
 
 func tccNormal(t *testing.T) {
-	tcc := genTcc("gid-normal-tcc", false, false)
+	tcc := genTcc("gid-tcc-normal", false, false)
 	tcc.Prepare(tcc.QueryPrepared)
-	assert.Equal(t, "prepared", getSagaModel(tcc.Gid).Status)
+	assert.Equal(t, "prepared", getTransStatus(tcc.Gid).Status)
 	tcc.Commit()
-	assert.Equal(t, "committed", getSagaModel(tcc.Gid).Status)
+	assert.Equal(t, "committed", getTransStatus(tcc.Gid).Status)
 	WaitTransProcessed(tcc.Gid)
 	assert.Equal(t, []string{"prepared", "succeed", "succeed", "prepared", "succeed", "succeed"}, getBranchesStatus(tcc.Gid))
-
+}
+func tccRollback(t *testing.T) {
+	tcc := genTcc("gid-tcc-rollback", false, true)
+	tcc.Commit()
+	WaitTransProcessed(tcc.Gid)
+	assert.Equal(t, []string{"succeed", "prepared", "succeed", "succeed", "prepared", "failed"}, getBranchesStatus(tcc.Gid))
 }
 func sagaNormal(t *testing.T) {
 	saga := genSaga("gid-noramlSaga", false, false)
 	saga.Prepare(saga.QueryPrepared)
-	assert.Equal(t, "prepared", getSagaModel(saga.Gid).Status)
+	assert.Equal(t, "prepared", getTransStatus(saga.Gid).Status)
 	saga.Commit()
-	assert.Equal(t, "committed", getSagaModel(saga.Gid).Status)
+	assert.Equal(t, "committed", getTransStatus(saga.Gid).Status)
 	WaitTransProcessed(saga.Gid)
 	assert.Equal(t, []string{"prepared", "succeed", "prepared", "succeed"}, getBranchesStatus(saga.Gid))
 }
@@ -147,7 +155,7 @@ func sagaRollback(t *testing.T) {
 	saga.Commit()
 	WaitTransProcessed(saga.Gid)
 	saga.Prepare(saga.QueryPrepared)
-	assert.Equal(t, "failed", getSagaModel(saga.Gid).Status)
+	assert.Equal(t, "failed", getTransStatus(saga.Gid).Status)
 	assert.Equal(t, []string{"failed", "succeed", "failed", "failed"}, getBranchesStatus(saga.Gid))
 }
 
@@ -159,7 +167,7 @@ func sagaPrepareCancel(t *testing.T) {
 	CronTransOnce(-10*time.Second, "prepared")
 	examples.SagaTransQueryResult = ""
 	config.PreparedExpire = 60
-	assert.Equal(t, "canceled", getSagaModel(saga.Gid).Status)
+	assert.Equal(t, "canceled", getTransStatus(saga.Gid).Status)
 }
 
 func sagaPreparePending(t *testing.T) {
@@ -168,9 +176,9 @@ func sagaPreparePending(t *testing.T) {
 	examples.SagaTransQueryResult = "PENDING"
 	CronTransOnce(-10*time.Second, "prepared")
 	examples.SagaTransQueryResult = ""
-	assert.Equal(t, "prepared", getSagaModel(saga.Gid).Status)
+	assert.Equal(t, "prepared", getTransStatus(saga.Gid).Status)
 	CronTransOnce(-10*time.Second, "prepared")
-	assert.Equal(t, "succeed", getSagaModel(saga.Gid).Status)
+	assert.Equal(t, "succeed", getTransStatus(saga.Gid).Status)
 }
 
 func sagaCommittedPending(t *testing.T) {
@@ -183,7 +191,7 @@ func sagaCommittedPending(t *testing.T) {
 	assert.Equal(t, []string{"prepared", "succeed", "prepared", "prepared"}, getBranchesStatus(saga.Gid))
 	CronTransOnce(-10*time.Second, "committed")
 	assert.Equal(t, []string{"prepared", "succeed", "prepared", "succeed"}, getBranchesStatus(saga.Gid))
-	assert.Equal(t, "succeed", getSagaModel(saga.Gid).Status)
+	assert.Equal(t, "succeed", getTransStatus(saga.Gid).Status)
 }
 
 func genSaga(gid string, outFailed bool, inFailed bool) *dtm.Saga {

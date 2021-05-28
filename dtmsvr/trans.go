@@ -137,8 +137,7 @@ func (t *TransTccProcessor) ExecBranch(db *common.MyDb, branch *TransBranch) str
 	body := resp.String()
 	t.touch(db)
 	if strings.Contains(body, "SUCCESS") {
-		status := common.If(branch.BranchType == "cancel", "failed", "succeed").(string)
-		branch.changeStatus(db, status)
+		branch.changeStatus(db, "succeed")
 		return "SUCCESS"
 	}
 	if branch.BranchType == "try" && strings.Contains(body, "FAIL") {
@@ -193,7 +192,7 @@ func (t *TransXaProcessor) ExecBranch(db *common.MyDb, branch *TransBranch) stri
 	if !strings.Contains(body, "SUCCESS") {
 		panic(fmt.Errorf("bad response: %s", body))
 	}
-	branch.changeStatus(db, common.If(t.Status == "prepared", "failed", "succeed").(string))
+	branch.changeStatus(db, "succeed")
 	return "SUCCESS"
 }
 
@@ -201,25 +200,12 @@ func (t *TransXaProcessor) ProcessOnce(db *common.MyDb, branches []TransBranch) 
 	if t.Status == "succeed" {
 		return
 	}
-	if t.Status == "committed" {
-		for _, branch := range branches {
-			if branch.Status == "succeed" {
-				continue
-			}
-			_ = t.ExecBranch(db, &branch)
-			t.touch(db) // 更新update_time，避免被定时任务再次
-		}
-		t.changeStatus(db, "succeed")
-	} else if t.Status == "prepared" { // 未commit直接处理的情况为回滚场景
-		for _, branch := range branches {
-			if branch.Status == "failed" {
-				continue
-			}
+	currentType := common.If(t.Status == "committed", "commit", "rollback").(string)
+	for _, branch := range branches {
+		if branch.BranchType == currentType && branch.Status != "succeed" {
 			_ = t.ExecBranch(db, &branch)
 			t.touch(db)
 		}
-		t.changeStatus(db, "failed")
-	} else {
-		e2p(fmt.Errorf("bad trans status: %s", t.Status))
 	}
+	t.changeStatus(db, common.If(t.Status == "committed", "succeed", "failed").(string))
 }
