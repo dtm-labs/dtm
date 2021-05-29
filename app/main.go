@@ -14,7 +14,9 @@ func main() {
 	if len(os.Args) == 1 { // 所有服务都启动
 		go dtmsvr.StartSvr()
 		go examples.SagaStartSvr()
-	} else if len(os.Args) > 1 && os.Args[1] == "dtmsvr" {
+		go examples.TccStartSvr()
+		go examples.XaStartSvr()
+	} else if os.Args[1] == "dtmsvr" {
 		go dtmsvr.StartSvr()
 	}
 	for {

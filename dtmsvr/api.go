@@ -5,7 +5,6 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/yedf/dtm/common"
-	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 )
 
@@ -49,15 +48,12 @@ func Branch(c *gin.Context) (interface{}, error) {
 	err := c.BindJSON(&branch)
 	e2p(err)
 	branches := []TransBranch{branch, branch}
-	err = dbGet().Transaction(func(tx *gorm.DB) error {
-		db := &common.MyDb{DB: tx}
-		branches[0].BranchType = "rollback"
-		branches[1].BranchType = "commit"
-		db.Must().Clauses(clause.OnConflict{
-			DoNothing: true,
-		}).Create(branches)
-		return nil
-	})
+	db := dbGet()
+	branches[0].BranchType = "rollback"
+	branches[1].BranchType = "commit"
+	db.Must().Clauses(clause.OnConflict{
+		DoNothing: true,
+	}).Create(branches)
 	e2p(err)
 	return M{"message": "SUCCESS"}, nil
 }

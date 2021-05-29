@@ -20,15 +20,6 @@ import (
 
 type M = map[string]interface{}
 
-func OrString(ss ...string) string {
-	for _, s := range ss {
-		if s != "" {
-			return s
-		}
-	}
-	return ""
-}
-
 func P2E(perr *error) {
 	if x := recover(); x != nil {
 		if e, ok := x.(error); ok {
@@ -37,6 +28,18 @@ func P2E(perr *error) {
 			panic(x)
 		}
 	}
+}
+
+func E2P(err error) {
+	if err != nil {
+		panic(err)
+	}
+}
+
+func CatchP(f func()) (rerr error) {
+	defer P2E(&rerr)
+	f()
+	return nil
 }
 
 func PanicIf(cond bool, err error) {
@@ -53,16 +56,17 @@ var gNode *snowflake.Node = nil
 
 func init() {
 	node, err := snowflake.NewNode(1)
-	if err != nil {
-		panic(err)
-	}
+	E2P(err)
 	gNode = node
 }
 
-func E2P(err error) {
-	if err != nil {
-		panic(err)
+func OrString(ss ...string) string {
+	for _, s := range ss {
+		if s != "" {
+			return s
+		}
 	}
+	return ""
 }
 
 func If(condition bool, trueObj interface{}, falseObj interface{}) interface{} {
@@ -102,11 +106,10 @@ func GetGinApp() *gin.Engine {
 	app := gin.Default()
 	app.Use(func(c *gin.Context) {
 		body := ""
-		if c.Request.Method == "POST" {
+		if c.Request.Body != nil {
 			rb, err := c.GetRawData()
-			if err != nil {
-				logrus.Printf("GetRawData error: %s", err.Error())
-			} else {
+			E2P(err)
+			if len(rb) > 0 {
 				body = string(rb)
 				c.Request.Body = ioutil.NopCloser(bytes.NewBuffer(rb))
 			}
@@ -196,13 +199,12 @@ func InitApp(config interface{}) {
 	logrus.SetFormatter(&formatter{})
 	_, file, _, _ := runtime.Caller(1)
 	fileName := filepath.Dir(file) + "/conf.yml"
-	if configLoaded[fileName] {
-		return
+	if !configLoaded[fileName] {
+		configLoaded[fileName] = true
+		viper.SetConfigFile(fileName)
+		err := viper.ReadInConfig()
+		E2P(err)
 	}
-	configLoaded[fileName] = true
-	viper.SetConfigFile(fileName)
-	err := viper.ReadInConfig()
-	E2P(err)
-	err = viper.Unmarshal(config)
+	err := viper.Unmarshal(config)
 	E2P(err)
 }

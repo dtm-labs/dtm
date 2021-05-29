@@ -5,207 +5,177 @@ import (
 	"strings"
 	"time"
 
+	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
 	"github.com/yedf/dtm/common"
+	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 )
+
+type TransGlobal struct {
+	common.ModelBase
+	Gid           string `json:"gid"`
+	TransType     string `json:"trans_type"`
+	Data          string `json:"data"`
+	Status        string `json:"status"`
+	QueryPrepared string `json:"query_prepared"`
+	CommitTime    *time.Time
+	FinishTime    *time.Time
+	RollbackTime  *time.Time
+}
+
+func (*TransGlobal) TableName() string {
+	return "trans_global"
+}
 
 type TransProcessor interface {
 	GenBranches() []TransBranch
 	ProcessOnce(db *common.MyDb, branches []TransBranch)
-	ExecBranch(db *common.MyDb, branch *TransBranch) string
+	ExecBranch(db *common.MyDb, branch *TransBranch)
 }
 
-type TransSagaProcessor struct {
-	*TransGlobal
+func (t *TransGlobal) touch(db *common.MyDb) *gorm.DB {
+	writeTransLog(t.Gid, "touch trans", "", "", "")
+	return db.Model(&TransGlobal{}).Where("gid=?", t.Gid).Update("gid", t.Gid) // 更新update_time，避免被定时任务再次
 }
 
-func (t *TransSagaProcessor) GenBranches() []TransBranch {
-	nsteps := []TransBranch{}
-	steps := []M{}
-	common.MustUnmarshalString(t.Data, &steps)
-	for _, step := range steps {
-		for _, branchType := range []string{"compensate", "action"} {
-			nsteps = append(nsteps, TransBranch{
-				Gid:        t.Gid,
-				Branch:     fmt.Sprintf("%d", len(nsteps)+1),
-				Data:       step["data"].(string),
-				Url:        step[branchType].(string),
-				BranchType: branchType,
-				Status:     "prepared",
-			})
-		}
+func (t *TransGlobal) changeStatus(db *common.MyDb, status string) *gorm.DB {
+	writeTransLog(t.Gid, "change status", status, "", "")
+	updates := M{
+		"status": status,
 	}
-	return nsteps
+	if status == "succeed" {
+		updates["finish_time"] = time.Now()
+	} else if status == "failed" {
+		updates["rollback_time"] = time.Now()
+	}
+	dbr := db.Must().Model(t).Where("status=?", t.Status).Updates(updates)
+	checkAffected(dbr)
+	t.Status = status
+	return dbr
 }
 
-func (t *TransSagaProcessor) ExecBranch(db *common.MyDb, branche *TransBranch) string {
-	return ""
+type TransBranch struct {
+	common.ModelBase
+	Gid          string
+	Url          string
+	Data         string
+	Branch       string
+	BranchType   string
+	Status       string
+	FinishTime   *time.Time
+	RollbackTime *time.Time
 }
 
-func (t *TransSagaProcessor) ProcessOnce(db *common.MyDb, branches []TransBranch) {
-	if t.Status == "prepared" {
-		resp, err := common.RestyClient.R().SetQueryParam("gid", t.Gid).Get(t.QueryPrepared)
-		e2p(err)
-		body := resp.String()
-		if strings.Contains(body, "FAIL") {
-			preparedExpire := time.Now().Add(time.Duration(-config.PreparedExpire) * time.Second)
-			logrus.Printf("create time: %s prepared expire: %s ", t.CreateTime.Local(), preparedExpire.Local())
-			status := common.If(t.CreateTime.Before(preparedExpire), "canceled", "prepared").(string)
-			if status != t.Status {
-				t.changeStatus(db, status)
-			}
-			return
-		} else if strings.Contains(body, "SUCCESS") {
-			t.Status = "committed"
-			t.SaveNew(db)
-		} else {
-			panic(fmt.Errorf("unknown result, will be retried: %s", body))
-		}
-	}
-	current := 0 // 当前正在处理的步骤
-	for ; current < len(branches); current++ {
-		step := branches[current]
-		if step.BranchType == "compensate" && step.Status == "prepared" || step.BranchType == "action" && step.Status == "succeed" {
-			continue
-		}
-		if step.BranchType == "action" && step.Status == "prepared" {
-			resp, err := common.RestyClient.R().SetBody(step.Data).SetQueryParam("gid", step.Gid).Post(step.Url)
-			e2p(err)
-			body := resp.String()
+func (*TransBranch) TableName() string {
+	return "trans_branch"
+}
 
-			t.touch(db.Must())
-			if strings.Contains(body, "SUCCESS") {
-				step.changeStatus(db.Must(), "succeed")
-			} else if strings.Contains(body, "FAIL") {
-				step.changeStatus(db.Must(), "failed")
-				break
-			} else {
-				panic(fmt.Errorf("unknown response: %s, will be retried", body))
-			}
-		}
+func (t *TransBranch) changeStatus(db *common.MyDb, status string) *gorm.DB {
+	writeTransLog(t.Gid, "branch change", status, t.Branch, "")
+	dbr := db.Must().Model(t).Where("status=?", t.Status).Updates(M{
+		"status":      status,
+		"finish_time": time.Now(),
+	})
+	checkAffected(dbr)
+	t.Status = status
+	return dbr
+}
+
+func checkAffected(db1 *gorm.DB) {
+	if db1.RowsAffected == 0 {
+		panic(fmt.Errorf("duplicate updating"))
 	}
-	if current == len(branches) { // saga 事务完成
-		t.changeStatus(db.Must(), "succeed")
+}
+
+func (trans *TransGlobal) getProcessor() TransProcessor {
+	if trans.TransType == "saga" {
+		return &TransSagaProcessor{TransGlobal: trans}
+	} else if trans.TransType == "tcc" {
+		return &TransTccProcessor{TransGlobal: trans}
+	} else if trans.TransType == "xa" {
+		return &TransXaProcessor{TransGlobal: trans}
+	}
+	return nil
+}
+
+func (t *TransGlobal) MayQueryPrepared(db *common.MyDb) {
+	if t.Status != "prepared" {
 		return
 	}
-	for current = current - 1; current >= 0; current-- {
-		step := branches[current]
-		if step.BranchType != "compensate" || step.Status != "prepared" {
-			continue
-		}
-		resp, err := common.RestyClient.R().SetBody(step.Data).SetQueryParam("gid", step.Gid).Post(step.Url)
-		e2p(err)
-		body := resp.String()
-		if strings.Contains(body, "SUCCESS") {
-			step.changeStatus(db.Must(), "failed")
+	resp, err := common.RestyClient.R().SetQueryParam("gid", t.Gid).Get(t.QueryPrepared)
+	e2p(err)
+	body := resp.String()
+	if strings.Contains(body, "FAIL") {
+		preparedExpire := time.Now().Add(time.Duration(-config.PreparedExpire) * time.Second)
+		logrus.Printf("create time: %s prepared expire: %s ", t.CreateTime.Local(), preparedExpire.Local())
+		status := common.If(t.CreateTime.Before(preparedExpire), "canceled", "prepared").(string)
+		if status != t.Status {
+			t.changeStatus(db, status)
 		} else {
-			panic(fmt.Errorf("expect compensate return SUCCESS"))
-		}
-	}
-	if current != -1 {
-		panic(fmt.Errorf("saga current not -1"))
-	}
-	t.changeStatus(db.Must(), "failed")
-}
-
-type TransTccProcessor struct {
-	*TransGlobal
-}
-
-func (t *TransTccProcessor) GenBranches() []TransBranch {
-	nsteps := []TransBranch{}
-	steps := []M{}
-	common.MustUnmarshalString(t.Data, &steps)
-	for _, step := range steps {
-		for _, branchType := range []string{"cancel", "confirm", "try"} {
-			nsteps = append(nsteps, TransBranch{
-				Gid:        t.Gid,
-				Branch:     fmt.Sprintf("%d", len(nsteps)+1),
-				Data:       step["data"].(string),
-				Url:        step[branchType].(string),
-				BranchType: branchType,
-				Status:     "prepared",
-			})
-		}
-	}
-	return nsteps
-}
-
-func (t *TransTccProcessor) ExecBranch(db *common.MyDb, branch *TransBranch) string {
-	resp, err := common.RestyClient.R().SetBody(branch.Data).SetQueryParam("gid", branch.Gid).Post(branch.Url)
-	e2p(err)
-	body := resp.String()
-	t.touch(db)
-	if strings.Contains(body, "SUCCESS") {
-		branch.changeStatus(db, "succeed")
-		return "SUCCESS"
-	}
-	if branch.BranchType == "try" && strings.Contains(body, "FAIL") {
-		branch.changeStatus(db, "failed")
-		return "FAIL"
-	}
-	panic(fmt.Errorf("unknown response: %s, will be retried", body))
-}
-
-func (t *TransTccProcessor) ProcessOnce(db *common.MyDb, branches []TransBranch) {
-	current := 0 // 当前正在处理的步骤
-	// 先处理一轮正常try状态
-	for ; current < len(branches); current++ {
-		step := &branches[current]
-		if step.BranchType != "try" || step.Status == "succeed" {
-			continue
-		}
-		if step.BranchType == "try" && step.Status == "prepared" {
-			result := t.ExecBranch(db, step)
-			if result == "FAIL" {
-				break
-			}
-		}
-	}
-	// 如果try全部成功，则处理confirm分支，否则处理cancel分支
-	currentType := common.If(current == len(branches), "confirm", "cancel")
-	for current--; current >= 0; current-- {
-		branch := &branches[current]
-		if branch.BranchType != currentType || branch.Status != "prepared" {
-			continue
-		}
-		t.ExecBranch(db, branch)
-	}
-	t.changeStatus(db, common.If(currentType == "confirm", "succeed", "failed").(string))
-}
-
-type TransXaProcessor struct {
-	*TransGlobal
-}
-
-func (t *TransXaProcessor) GenBranches() []TransBranch {
-	return []TransBranch{}
-}
-func (t *TransXaProcessor) ExecBranch(db *common.MyDb, branch *TransBranch) string {
-	resp, err := common.RestyClient.R().SetBody(M{
-		"branch": branch.Branch,
-		"action": common.If(t.Status == "prepared", "rollback", "commit"),
-		"gid":    branch.Gid,
-	}).Post(branch.Url)
-	e2p(err)
-	body := resp.String()
-	if !strings.Contains(body, "SUCCESS") {
-		panic(fmt.Errorf("bad response: %s", body))
-	}
-	branch.changeStatus(db, "succeed")
-	return "SUCCESS"
-}
-
-func (t *TransXaProcessor) ProcessOnce(db *common.MyDb, branches []TransBranch) {
-	if t.Status == "succeed" {
-		return
-	}
-	currentType := common.If(t.Status == "committed", "commit", "rollback").(string)
-	for _, branch := range branches {
-		if branch.BranchType == currentType && branch.Status != "succeed" {
-			_ = t.ExecBranch(db, &branch)
 			t.touch(db)
 		}
+	} else if strings.Contains(body, "SUCCESS") {
+		t.changeStatus(db, "committed")
 	}
-	t.changeStatus(db, common.If(t.Status == "committed", "succeed", "failed").(string))
+}
+
+func (trans *TransGlobal) Process(db *common.MyDb) {
+	defer handlePanic()
+	defer func() {
+		if TransProcessedTestChan != nil {
+			TransProcessedTestChan <- trans.Gid
+		}
+	}()
+	branches := []TransBranch{}
+	db.Must().Where("gid=?", trans.Gid).Order("id asc").Find(&branches)
+	trans.getProcessor().ProcessOnce(db, branches)
+}
+
+func (t *TransGlobal) SaveNew(db *common.MyDb) {
+	err := db.Transaction(func(db1 *gorm.DB) error {
+		db := &common.MyDb{DB: db1}
+
+		writeTransLog(t.Gid, "create trans", t.Status, "", t.Data)
+		dbr := db.Must().Clauses(clause.OnConflict{
+			DoNothing: true,
+		}).Create(t)
+		if dbr.RowsAffected == 0 && t.Status == "committed" { // 如果数据库已经存放了prepared的事务，则修改状态
+			dbr = db.Must().Model(&TransGlobal{}).Where("gid=? and status=?", t.Gid, "prepared").Update("status", t.Status)
+		}
+		if dbr.RowsAffected == 0 { // 未保存任何数据，直接返回
+			return nil
+		}
+		// 保存所有的分支
+		branches := t.getProcessor().GenBranches()
+		if len(branches) > 0 {
+			writeTransLog(t.Gid, "save branches", t.Status, "", common.MustMarshalString(branches))
+			db.Must().Clauses(clause.OnConflict{
+				DoNothing: true,
+			}).Create(&branches)
+		}
+		return nil
+	})
+	e2p(err)
+}
+
+func TransFromContext(c *gin.Context) *TransGlobal {
+	data := M{}
+	b, err := c.GetRawData()
+	e2p(err)
+	common.MustUnmarshal(b, &data)
+	logrus.Printf("creating trans in prepare")
+	if data["steps"] != nil {
+		data["data"] = common.MustMarshalString(data["steps"])
+	}
+	m := TransGlobal{}
+	common.MustRemarshal(data, &m)
+	return &m
+}
+
+func TransFromDb(db *common.MyDb, gid string) *TransGlobal {
+	m := TransGlobal{}
+	dbr := db.Must().Model(&m).Where("gid=?", gid).First(&m)
+	e2p(dbr.Error)
+	return &m
 }
