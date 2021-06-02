@@ -1,7 +1,6 @@
 package dtm
 
 import (
-	"encoding/json"
 	"fmt"
 
 	"github.com/sirupsen/logrus"
@@ -34,18 +33,26 @@ func SagaNew(server string, gid string) *Saga {
 		Server: server,
 	}
 }
-func (s *Saga) Add(action string, compensate string, postData interface{}) error {
+func (s *Saga) Add(action string, compensate string, postData interface{}) *Saga {
 	logrus.Printf("saga %s Add %s %s %v", s.Gid, action, compensate, postData)
-	d, err := json.Marshal(postData)
-	if err != nil {
-		return err
-	}
 	step := SagaStep{
 		Action:     action,
 		Compensate: compensate,
-		Data:       string(d),
+		Data:       common.MustMarshalString(postData),
 	}
 	s.Steps = append(s.Steps, step)
+	return s
+}
+
+func (s *Saga) Commit() error {
+	logrus.Printf("committing %s body: %v", s.Gid, &s.SagaData)
+	resp, err := common.RestyClient.R().SetBody(&s.SagaData).Post(fmt.Sprintf("%s/commit", s.Server))
+	if err != nil {
+		return err
+	}
+	if resp.StatusCode() != 200 {
+		return fmt.Errorf("commit failed: %v", resp.Body())
+	}
 	return nil
 }
 
@@ -58,18 +65,6 @@ func (s *Saga) Prepare(queryPrepared string) error {
 	}
 	if resp.StatusCode() != 200 {
 		return fmt.Errorf("prepare failed: %v", resp.Body())
-	}
-	return nil
-}
-
-func (s *Saga) Commit() error {
-	logrus.Printf("committing %s body: %v", s.Gid, &s.SagaData)
-	resp, err := common.RestyClient.R().SetBody(&s.SagaData).Post(fmt.Sprintf("%s/commit", s.Server))
-	if err != nil {
-		return err
-	}
-	if resp.StatusCode() != 200 {
-		return fmt.Errorf("commit failed: %v", resp.Body())
 	}
 	return nil
 }

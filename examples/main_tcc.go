@@ -37,10 +37,9 @@ func tccFireRequest() {
 		TransInResult:  "SUCCESS",
 		TransOutResult: "SUCCESS",
 	}
-	tcc := dtm.TccNew(DtmServer, gid)
-
-	tcc.Add(TccBusi+"/TransOutTry", TccBusi+"/TransOutConfirm", TccBusi+"/TransOutCancel", req)
-	tcc.Add(TccBusi+"/TransInTry", TccBusi+"/TransInConfirm", TccBusi+"/TransOutCancel", req)
+	tcc := dtm.TccNew(DtmServer, gid).
+		Add(TccBusi+"/TransOutTry", TccBusi+"/TransOutConfirm", TccBusi+"/TransOutCancel", req).
+		Add(TccBusi+"/TransInTry", TccBusi+"/TransInConfirm", TccBusi+"/TransOutCancel", req)
 	err := tcc.Prepare(TccBusi + "/TransQuery")
 	e2p(err)
 	logrus.Printf("busi trans commit")

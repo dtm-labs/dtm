@@ -1,7 +1,6 @@
 package dtm
 
 import (
-	"encoding/json"
 	"fmt"
 
 	"github.com/sirupsen/logrus"
@@ -35,19 +34,27 @@ func TccNew(server string, gid string) *Tcc {
 		Server: server,
 	}
 }
-func (s *Tcc) Add(try string, confirm string, cancel string, data interface{}) error {
+func (s *Tcc) Add(try string, confirm string, cancel string, data interface{}) *Tcc {
 	logrus.Printf("tcc %s Add %s %s %s %v", s.Gid, try, confirm, cancel, data)
-	d, err := json.Marshal(data)
-	if err != nil {
-		return err
-	}
 	step := TccStep{
 		Try:     try,
 		Confirm: confirm,
 		Cancel:  cancel,
-		Data:    string(d),
+		Data:    common.MustMarshalString(data),
 	}
 	s.Steps = append(s.Steps, step)
+	return s
+}
+
+func (s *Tcc) Commit() error {
+	logrus.Printf("committing %s body: %v", s.Gid, &s.TccData)
+	resp, err := common.RestyClient.R().SetBody(&s.TccData).Post(fmt.Sprintf("%s/commit", s.Server))
+	if err != nil {
+		return err
+	}
+	if resp.StatusCode() != 200 {
+		return fmt.Errorf("commit failed: %v", resp.Body())
+	}
 	return nil
 }
 
@@ -60,18 +67,6 @@ func (s *Tcc) Prepare(queryPrepared string) error {
 	}
 	if resp.StatusCode() != 200 {
 		return fmt.Errorf("prepare failed: %v", resp.Body())
-	}
-	return nil
-}
-
-func (s *Tcc) Commit() error {
-	logrus.Printf("committing %s body: %v", s.Gid, &s.TccData)
-	resp, err := common.RestyClient.R().SetBody(&s.TccData).Post(fmt.Sprintf("%s/commit", s.Server))
-	if err != nil {
-		return err
-	}
-	if resp.StatusCode() != 200 {
-		return fmt.Errorf("commit failed: %v", resp.Body())
 	}
 	return nil
 }

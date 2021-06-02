@@ -152,7 +152,7 @@ func init() {
 	// RestyClient.SetRetryCount(2)
 	// RestyClient.SetRetryWaitTime(1 * time.Second)
 	RestyClient.OnBeforeRequest(func(c *resty.Client, r *resty.Request) error {
-		logrus.Printf("requesting: %s %s %v", r.Method, r.URL, r.Body)
+		logrus.Printf("requesting: %s %s %v %v", r.Method, r.URL, r.Body, r.QueryParam)
 		return nil
 	})
 	RestyClient.OnAfterResponse(func(c *resty.Client, resp *resty.Response) error {

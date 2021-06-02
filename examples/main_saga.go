@@ -37,10 +37,9 @@ func sagaFireRequest() {
 		TransInResult:  "SUCCESS",
 		TransOutResult: "SUCCESS",
 	}
-	saga := dtm.SagaNew(DtmServer, gid)
-
-	saga.Add(SagaBusi+"/TransOut", SagaBusi+"/TransOutCompensate", req)
-	saga.Add(SagaBusi+"/TransIn", SagaBusi+"/TransInCompensate", req)
+	saga := dtm.SagaNew(DtmServer, gid).
+		Add(SagaBusi+"/TransOut", SagaBusi+"/TransOutCompensate", req).
+		Add(SagaBusi+"/TransIn", SagaBusi+"/TransInCompensate", req)
 	err := saga.Prepare(SagaBusi + "/TransQuery")
 	e2p(err)
 	logrus.Printf("busi trans commit")

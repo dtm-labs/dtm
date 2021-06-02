@@ -1,10 +1,12 @@
 package dtmsvr
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/gin-gonic/gin"
 	"github.com/yedf/dtm/common"
+	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 )
 
@@ -13,6 +15,7 @@ func AddRoute(engine *gin.Engine) {
 	engine.POST("/api/dtmsvr/commit", common.WrapHandler(Commit))
 	engine.POST("/api/dtmsvr/branch", common.WrapHandler(Branch))
 	engine.POST("/api/dtmsvr/rollback", common.WrapHandler(Rollback))
+	engine.GET("/api/dtmsvr/query", common.WrapHandler(Query))
 }
 
 func Prepare(c *gin.Context) (interface{}, error) {
@@ -56,4 +59,20 @@ func Branch(c *gin.Context) (interface{}, error) {
 	}).Create(branches)
 	e2p(err)
 	return M{"message": "SUCCESS"}, nil
+}
+
+func Query(c *gin.Context) (interface{}, error) {
+	gid := c.Query("gid")
+	if gid == "" {
+		return nil, errors.New("no gid specified")
+	}
+	trans := TransGlobal{}
+	db := dbGet()
+	dbr := db.Must().Where("gid", gid).First(&trans)
+	if dbr.Error == gorm.ErrRecordNotFound {
+		return M{"transaction": nil, "branches": [0]int{}}, nil
+	}
+	branches := []TransBranch{}
+	db.Must().Where("gid", gid).Find(&branches)
+	return M{"transaction": trans, "branches": branches}, nil
 }

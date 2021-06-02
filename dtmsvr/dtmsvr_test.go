@@ -38,6 +38,11 @@ func TestDtmSvr(t *testing.T) {
 	e2p(dbGet().Exec("truncate trans_log").Error)
 	examples.ResetXaData()
 
+	sagaNormal(t)
+
+	// 需要放到前面的用例之后，才有真实的数据
+	transQuery(t)
+
 	tccNormal(t)
 	tccRollback(t)
 	tccRollbackPending(t)
@@ -46,8 +51,8 @@ func TestDtmSvr(t *testing.T) {
 	sagaCommittedPending(t)
 	sagaPreparePending(t)
 	sagaPrepareCancel(t)
-	sagaNormal(t)
 	sagaRollback(t)
+
 }
 
 func TestCover(t *testing.T) {
@@ -224,4 +229,25 @@ func genTcc(gid string, outFailed bool, inFailed bool) *dtm.Tcc {
 	tcc.Add(examples.TccBusi+"/TransOutTry", examples.TccBusi+"/TransOutConfirm", examples.TccBusi+"/TransOutCancel", &req)
 	tcc.Add(examples.TccBusi+"/TransInTry", examples.TccBusi+"/TransInConfirm", examples.TccBusi+"/TransInCancel", &req)
 	return tcc
+}
+
+func transQuery(t *testing.T) {
+	resp, err := common.RestyClient.R().SetQueryParam("gid", "gid-noramlSaga").Get(examples.DtmServer + "/query")
+	e2p(err)
+	m := M{}
+	assert.Equal(t, resp.StatusCode(), 200)
+	common.MustUnmarshalString(resp.String(), &m)
+	assert.NotEqual(t, nil, m["transaction"])
+	assert.Equal(t, 4, len(m["branches"].([]interface{})))
+
+	resp, err = common.RestyClient.R().SetQueryParam("gid", "").Get(examples.DtmServer + "/query")
+	e2p(err)
+	assert.Equal(t, resp.StatusCode(), 500)
+
+	resp, err = common.RestyClient.R().SetQueryParam("gid", "1").Get(examples.DtmServer + "/query")
+	e2p(err)
+	assert.Equal(t, resp.StatusCode(), 200)
+	common.MustUnmarshalString(resp.String(), &m)
+	assert.Equal(t, nil, m["transaction"])
+	assert.Equal(t, 0, len(m["branches"].([]interface{})))
 }

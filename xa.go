@@ -56,6 +56,7 @@ func XaClientNew(server string, mysqlConf map[string]string, app *gin.Engine, ca
 	}))
 	return xa
 }
+
 func (xa *XaClient) XaLocalTransaction(gid string, transFunc XaLocalFunc) (rerr error) {
 	defer common.P2E(&rerr)
 	branch := common.GenGid()
