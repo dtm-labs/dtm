@@ -1,4 +1,5 @@
 */**/*.yml
+*.yml
 *.out
 */**/main
 main

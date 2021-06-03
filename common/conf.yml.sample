@@ -1,6 +1,0 @@
-Mysql:
-  host: 'mysql'
-  user: 'root'
-  password: 'my-secret-pw'
-  database: 'dtm'
-  port: '3306'

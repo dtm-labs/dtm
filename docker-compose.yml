@@ -8,7 +8,7 @@ services:
       - .:/app/dtm
     # command: ['sh', '-c', 'go build app/main.go && go test -v ./dtmsvr']
   mysql:
-    image: 'daocloud.io/mysql:5.7'
+    image: 'mysql:5.7'
     environment:
       MYSQL_ROOT_PASSWORD: my-secret-pw
     ports:

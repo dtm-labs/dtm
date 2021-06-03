@@ -13,7 +13,8 @@ type testConfig struct {
 var config = testConfig{}
 
 var myinit int = func() int {
-	InitApp(GetCurrentPath(), &config)
+	InitApp(GetProjectPath(), &config)
+	config.Mysql["database"] = "dtm"
 	return 0
 }()
 

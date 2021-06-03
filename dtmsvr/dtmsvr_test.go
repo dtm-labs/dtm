@@ -13,7 +13,8 @@ import (
 )
 
 var myinit int = func() int {
-	common.InitApp(common.GetCurrentPath(), &config)
+	common.InitApp(common.GetProjectDir(), &config)
+	config.Mysql["database"] = "dtm"
 	return 0
 }()
 

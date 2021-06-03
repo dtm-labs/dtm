@@ -30,6 +30,7 @@ func RunSqlScript(mysql map[string]string, script string) {
 }
 
 func PopulateMysql() {
-	common.InitApp(common.GetCurrentPath(), &Config)
-	RunSqlScript(Config.Mysql, common.GetCurrentPath()+"/examples.sql")
+	common.InitApp(common.GetProjectDir(), &Config)
+	Config.Mysql["database"] = "dtm_busi"
+	RunSqlScript(Config.Mysql, common.GetCurrentDir()+"/examples.sql")
 }

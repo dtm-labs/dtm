@@ -214,7 +214,15 @@ func Getwd() string {
 	return wd
 }
 
-func GetCurrentPath() string {
+func GetCurrentDir() string {
 	_, file, _, _ := runtime.Caller(1)
 	return filepath.Dir(file)
+}
+
+func GetProjectDir() string {
+	_, file, _, _ := runtime.Caller(1)
+	for ; !strings.HasSuffix(file, "/dtm"); file = filepath.Dir(file) {
+
+	}
+	return file
 }
