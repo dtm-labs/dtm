@@ -18,7 +18,7 @@ var SagaBusi = fmt.Sprintf("http://localhost:%d%s", SagaBusiPort, SagaBusiApi)
 
 func SagaMain() {
 	go SagaStartSvr()
-	sagaFireRequest()
+	SagaFireRequest()
 	time.Sleep(1000 * time.Second)
 }
 
@@ -29,7 +29,7 @@ func SagaStartSvr() {
 	app.Run(fmt.Sprintf(":%d", SagaBusiPort))
 }
 
-func sagaFireRequest() {
+func SagaFireRequest() {
 	gid := common.GenGid()
 	logrus.Printf("busi transaction begin: %s", gid)
 	req := &TransReq{

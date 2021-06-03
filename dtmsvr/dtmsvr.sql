@@ -1,9 +1,9 @@
--- CREATE DATABASE `dtm` /*!40100 DEFAULT CHARACTER SET utf8mb4 */;
+CREATE DATABASE IF NOT EXISTS `dtm` /*!40100 DEFAULT CHARACTER SET utf8mb4 */;
 
--- use dtm;
+use dtm;
 
 drop table IF EXISTS saga;
-CREATE TABLE `saga` (
+CREATE TABLE IF NOT EXISTS `saga` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `gid` varchar(45) NOT NULL COMMENT '事务全局id',
   `steps` json NOT NULL COMMENT 'saga的所有步骤',
@@ -20,7 +20,7 @@ CREATE TABLE `saga` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 drop table IF EXISTS saga_step;
-CREATE TABLE `saga_step` (
+CREATE TABLE IF NOT EXISTS `saga_step` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `gid` varchar(45) NOT NULL COMMENT '事务全局id',
   `data` json DEFAULT NULL COMMENT '请求所携带的数据',
@@ -39,7 +39,7 @@ CREATE TABLE `saga_step` (
 ) ENGINE=InnoDB AUTO_INCREMENT=17 DEFAULT CHARSET=utf8mb4;
 
 drop table IF EXISTS trans_log;
-CREATE TABLE `trans_log` (
+CREATE TABLE IF NOT EXISTS `trans_log` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `gid` varchar(45) NOT NULL COMMENT '事务全局id',
   `step` int(11) DEFAULT NULL COMMENT 'saga的步骤',

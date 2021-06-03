@@ -1,3 +1,4 @@
+CREATE DATABASE `dtm_busi` /*!40100 DEFAULT CHARACTER SET utf8mb4 */;
 use dtm_busi;
 drop table if exists user_account;
 create table user_account(

@@ -13,7 +13,7 @@ import (
 )
 
 var myinit int = func() int {
-	common.InitApp(&config)
+	common.InitApp(common.GetCurrentPath(), &config)
 	return 0
 }()
 
@@ -24,7 +24,7 @@ func TestViper(t *testing.T) {
 
 func TestDtmSvr(t *testing.T) {
 	TransProcessedTestChan = make(chan string, 1)
-
+	PopulateMysql()
 	// 启动组件
 	go StartSvr()
 	go examples.SagaStartSvr()

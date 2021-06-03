@@ -13,7 +13,7 @@ type testConfig struct {
 var config = testConfig{}
 
 var myinit int = func() int {
-	InitApp(&config)
+	InitApp(GetCurrentPath(), &config)
 	return 0
 }()
 

@@ -39,7 +39,8 @@ func XaMain() {
 }
 
 func XaStartSvr() {
-	common.InitApp(&Config)
+	common.InitApp(common.GetCurrentPath(), &Config)
+	dbGet()
 	logrus.Printf("xa examples starting")
 	app := common.GetGinApp()
 	XaClient = dtm.XaClientNew(DtmServer, Config.Mysql, app, XaBusi+"/xa")

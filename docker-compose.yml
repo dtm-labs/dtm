@@ -1,6 +1,6 @@
 version: '3.3'
 services:
-  web:
+  api:
     build: .
     ports:
       - '80:4005'

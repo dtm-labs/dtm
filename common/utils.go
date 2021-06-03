@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	"os"
 	"path"
 	"path/filepath"
 	"runtime"
@@ -195,16 +196,25 @@ func (f *formatter) Format(entry *logrus.Entry) ([]byte, error) {
 var configLoaded = map[string]bool{}
 
 // 加载调用者文件相同目录下的配置文件
-func InitApp(config interface{}) {
+func InitApp(dir string, config interface{}) {
 	logrus.SetFormatter(&formatter{})
-	_, file, _, _ := runtime.Caller(1)
-	fileName := filepath.Dir(file) + "/conf.yml"
-	if !configLoaded[fileName] {
-		configLoaded[fileName] = true
-		viper.SetConfigFile(fileName)
+	if !configLoaded[dir] {
+		configLoaded[dir] = true
+		viper.SetConfigFile(dir + "/conf.yml")
 		err := viper.ReadInConfig()
 		E2P(err)
 	}
 	err := viper.Unmarshal(config)
 	E2P(err)
+}
+
+func Getwd() string {
+	wd, err := os.Getwd()
+	E2P(err)
+	return wd
+}
+
+func GetCurrentPath() string {
+	_, file, _, _ := runtime.Caller(1)
+	return filepath.Dir(file)
 }
