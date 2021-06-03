@@ -21,7 +21,7 @@ func RunSqlScript(mysql map[string]string, script string) {
 	sqls := strings.Split(string(content), ";")
 	for _, sql := range sqls {
 		s := strings.TrimSpace(sql)
-		if strings.Contains(strings.ToLower(s), "drop") || s == "" {
+		if strings.Contains(strings.ToLower(s), "drop1") || s == "" {
 			continue
 		}
 		logrus.Printf("executing: '%s'", s)

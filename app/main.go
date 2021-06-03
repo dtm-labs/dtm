@@ -13,9 +13,10 @@ type M = map[string]interface{}
 
 func main() {
 	if len(os.Args) == 1 { // 默认情况下，展示saga例子
-		examples.PopulateMysql()
+		dtmsvr.PopulateMysql()
 		go dtmsvr.StartSvr()
 		go examples.SagaStartSvr()
+		time.Sleep(100 * time.Millisecond)
 		examples.SagaFireRequest()
 	} else if os.Args[1] == "dtmsvr" {
 		go dtmsvr.StartSvr()
