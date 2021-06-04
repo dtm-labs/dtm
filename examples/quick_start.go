@@ -31,16 +31,10 @@ func startStartSvr() {
 
 func startFireRequest() {
 	gid := common.GenGid()
-	logrus.Printf("busi transaction begin: %s", gid)
-	req := &TransReq{
-		Amount:         30,
-		TransInResult:  "SUCCESS",
-		TransOutResult: "SUCCESS",
-	}
+	req := &gin.H{"amount": 30}
 	saga := dtm.SagaNew(DtmServer, gid).
 		Add(startBusi+"/TransOut", startBusi+"/TransOutCompensate", req).
 		Add(startBusi+"/TransIn", startBusi+"/TransInCompensate", req)
-	logrus.Printf("busi trans commit")
 	err := saga.Commit()
 	e2p(err)
 }
@@ -54,10 +48,7 @@ func startAddRoute(app *gin.Engine) {
 }
 
 func startTransIn(c *gin.Context) (interface{}, error) {
-	gid := c.Query("gid")
-	req := transReqFromContext(c)
-	logrus.Printf("%s TransIn: %v result: %s", gid, req, req.TransInResult)
-	return M{"result": req.TransInResult}, nil
+	return M{"result": "SUCCESS"}, nil
 }
 
 func startTransInCompensate(c *gin.Context) (interface{}, error) {
@@ -65,10 +56,7 @@ func startTransInCompensate(c *gin.Context) (interface{}, error) {
 }
 
 func startTransOut(c *gin.Context) (interface{}, error) {
-	gid := c.Query("gid")
-	req := transReqFromContext(c)
-	logrus.Printf("%s TransOut: %v result: %s", gid, req, req.TransOutResult)
-	return M{"result": req.TransOutResult}, nil
+	return M{"result": "SUCCESS"}, nil
 }
 
 func startTransOutCompensate(c *gin.Context) (interface{}, error) {

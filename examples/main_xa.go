@@ -34,7 +34,7 @@ func dbGet() *common.MyDb {
 func XaMain() {
 	go XaStartSvr()
 	time.Sleep(100 * time.Millisecond)
-	xaFireRequest()
+	XaFireRequest()
 	time.Sleep(1000 * time.Second)
 }
 
@@ -48,7 +48,7 @@ func XaStartSvr() {
 	app.Run(fmt.Sprintf(":%d", XaBusiPort))
 }
 
-func xaFireRequest() {
+func XaFireRequest() {
 	gid := common.GenGid()
 	err := XaClient.XaGlobalTransaction(gid, func() (rerr error) {
 		defer common.P2E(&rerr)

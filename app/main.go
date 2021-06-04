@@ -18,15 +18,19 @@ func main() {
 		go examples.SagaStartSvr()
 		time.Sleep(100 * time.Millisecond)
 		examples.SagaFireRequest()
-	} else if os.Args[1] == "dtmsvr" {
+	} else if os.Args[1] == "dtmsvr" { // 只启动dtmsvr
 		go dtmsvr.StartSvr()
-	} else if os.Args[1] == "all" {
+	} else if os.Args[1] == "all" { // 运行所有示例
 		dtmsvr.PopulateMysql()
 		examples.PopulateMysql()
 		go dtmsvr.StartSvr()
 		go examples.SagaStartSvr()
 		go examples.TccStartSvr()
 		go examples.XaStartSvr()
+		time.Sleep(100 * time.Millisecond)
+		examples.SagaFireRequest()
+		examples.TccFireRequest()
+		examples.XaFireRequest()
 	} else {
 		logrus.Fatalf("unknown arg: %s", os.Args[1])
 	}

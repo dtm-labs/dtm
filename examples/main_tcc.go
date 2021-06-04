@@ -18,7 +18,7 @@ var TccBusi = fmt.Sprintf("http://localhost:%d%s", TccBusiPort, TccBusiApi)
 
 func TccMain() {
 	go TccStartSvr()
-	tccFireRequest()
+	TccFireRequest()
 	time.Sleep(1000 * time.Second)
 }
 
@@ -29,7 +29,7 @@ func TccStartSvr() {
 	app.Run(fmt.Sprintf(":%d", TccBusiPort))
 }
 
-func tccFireRequest() {
+func TccFireRequest() {
 	gid := common.GenGid()
 	logrus.Printf("busi transaction begin: %s", gid)
 	req := &TransReq{
