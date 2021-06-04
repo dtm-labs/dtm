@@ -33,5 +33,6 @@ err := saga.Commit()
 参考examples/quick_start.go
 
 ### 交流群
-请加 yedf2008 好友或者扫码加好友，验证回复 dtm 按照指引进群
-![微信二维码](http://service.ivydad.com/cover/dubbingd9af238e-a2a7-e9fa-1267-cc757c83e834.jpeg)
+请加 yedf2008 好友或者扫码加好友，验证回复 dtm 按照指引进群  
+
+![yedf2008](http://service.ivydad.com/cover/dubbingd9af238e-a2a7-e9fa-1267-cc757c83e834.jpeg)
