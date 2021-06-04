@@ -30,7 +30,7 @@ saga := dtm.SagaNew(DtmServer, gid).
 err := saga.Commit()
 ```
 ### 完整示例
-参考examples/quick_start.go
+参考[examples/quick_start.go](./examples/quick_start.go)
 
 ### 交流群
 请加 yedf2008 好友或者扫码加好友，验证回复 dtm 按照指引进群  
