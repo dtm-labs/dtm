@@ -10,3 +10,5 @@ var config = &dtmsvrConfig{
 	PreparedExpire:  60,
 	JobCronInterval: 20,
 }
+
+var dbName = "dtm"

@@ -103,7 +103,3 @@ func (xa *XaClient) XaGlobalTransaction(gid string, transFunc XaGlobalFunc) (rer
 	}
 	return nil
 }
-
-func getDb(conf map[string]string) *common.MyDb {
-	return common.DbGet(conf)
-}

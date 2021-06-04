@@ -2,6 +2,14 @@
   跨语言--语言无关，基于http协议
   支持xa、tcc、saga
 ## 快速开始
+  dtm依赖于mysql
+    使用已有的mysql：
+      参考conf.yml.sample将mysql信息填写到conf.yml
+    或者通过docker安装mysql
+      docker-compose up -f docker-compose.mysql.yml
+  启动并运行saga示例
+    go run app/main.go
+
   场景描述：
     假设您实现了一个转账功能，分为两个微服务：转入、转出
       转出：服务地址为 http://example.com/api/busi_saga/transOut?gid=xxx POST 参数为 {"uid": 2, "amount":30}

@@ -14,7 +14,7 @@ import (
 
 var myinit int = func() int {
 	common.InitApp(common.GetProjectDir(), &config)
-	config.Mysql["database"] = "dtm"
+	config.Mysql["database"] = dbName
 	return 0
 }()
 
@@ -26,12 +26,13 @@ func TestViper(t *testing.T) {
 func TestDtmSvr(t *testing.T) {
 	TransProcessedTestChan = make(chan string, 1)
 	PopulateMysql()
+	examples.PopulateMysql()
 	// 启动组件
 	go StartSvr()
 	go examples.SagaStartSvr()
 	go examples.XaStartSvr()
 	go examples.TccStartSvr()
-	time.Sleep(time.Duration(100 * 1000 * 1000))
+	time.Sleep(time.Duration(200 * 1000 * 1000))
 
 	// 清理数据
 	e2p(dbGet().Exec("truncate trans_global").Error)

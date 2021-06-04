@@ -96,6 +96,6 @@ func TestResty(t *testing.T) {
 }
 
 func TestCaller(t *testing.T) {
-	p := GetProjectPath()
+	p := GetProjectDir()
 	assert.Equal(t, true, strings.HasSuffix(filepath.Dir(p), "common"))
 }

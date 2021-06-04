@@ -17,7 +17,7 @@ func Main() {
 func StartSvr() {
 	logrus.Printf("start dtmsvr")
 	common.InitApp(common.GetProjectDir(), &config)
-	config.Mysql["database"] = "dtm"
+	config.Mysql["database"] = dbName
 	app := common.GetGinApp()
 	AddRoute(app)
 	logrus.Printf("dtmsvr listen at: %d", dtmsvrPort)
@@ -26,6 +26,6 @@ func StartSvr() {
 
 func PopulateMysql() {
 	common.InitApp(common.GetProjectDir(), &config)
-	config.Mysql["database"] = "dtm"
+	config.Mysql["database"] = dbName
 	examples.RunSqlScript(config.Mysql, common.GetCurrentDir()+"/dtmsvr.sql")
 }

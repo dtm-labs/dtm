@@ -202,6 +202,10 @@ func InitApp(dir string, config interface{}) {
 		configLoaded[dir] = true
 		viper.SetConfigFile(dir + "/conf.yml")
 		err := viper.ReadInConfig()
+		if err != nil {
+			viper.SetConfigFile(dir + "/conf.sample.yml")
+			err = viper.ReadInConfig()
+		}
 		E2P(err)
 	}
 	err := viper.Unmarshal(config)

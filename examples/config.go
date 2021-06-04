@@ -5,3 +5,5 @@ type exampleConfig struct {
 }
 
 var Config = exampleConfig{}
+
+var dbName = "dtm_busi"

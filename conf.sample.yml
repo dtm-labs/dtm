@@ -1,8 +1,7 @@
 Mysql:
-  host: 'mysql'
+  host: 'localhost'
   user: 'root'
   password: 'my-secret-pw'
-  database: 'dtm'
   port: '3306'
 
 PreparedExpire: 90 # 单位秒，处于prepared中的任务，过了这个时间，查询结果还是PENDING的话，则会被cancel
