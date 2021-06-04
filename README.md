@@ -1,13 +1,17 @@
 ## 轻量级分布式事务管理服务
   * 跨语言
     - 语言无关，基于http协议
-  * 多种协议支持
+  * 多种分布式协议支持
     - 支持xa、tcc、saga
 ## 运行示例
 ### dtm依赖于mysql
+
 使用已有的mysql：  
+
 `cp conf.sample.yml conf.yml # 修改conf.yml`  
+
 或者通过docker安装mysql  
+
 `docker-compose up -f compose.mysql.yml`
 ### 启动并运行saga示例
 `go run app/main.go`
