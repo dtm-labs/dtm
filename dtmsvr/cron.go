@@ -61,6 +61,6 @@ func handlePanic() {
 
 func sleepCronTime() {
 	delta := math.Min(3, float64(config.JobCronInterval))
-	interval := time.Duration(rand.Float64() * delta * float64(time.Second))
+	interval := time.Duration((float64(config.JobCronInterval) - rand.Float64()*delta) * float64(time.Second))
 	time.Sleep(interval)
 }

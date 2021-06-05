@@ -14,7 +14,7 @@ type M = map[string]interface{}
 func main() {
 	if len(os.Args) == 1 { // 默认情况下，展示saga例子
 		dtmsvr.PopulateMysql()
-		go dtmsvr.StartSvr()
+		go dtmsvr.Main()
 		go examples.SagaStartSvr()
 		time.Sleep(100 * time.Millisecond)
 		examples.SagaFireRequest()
@@ -23,7 +23,7 @@ func main() {
 	} else if os.Args[1] == "all" { // 运行所有示例
 		dtmsvr.PopulateMysql()
 		examples.PopulateMysql()
-		go dtmsvr.StartSvr()
+		go dtmsvr.Main()
 		go examples.SagaStartSvr()
 		go examples.TccStartSvr()
 		go examples.XaStartSvr()
