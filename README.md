@@ -8,6 +8,8 @@ DTM 是一款跨语言的分布式事务管理方案，在各类微服务架构�
 ## 高可用
 基于数据库实现，易集群化，已水平扩展
 # 快速开始
+## 安装
+`go get github.com/yedf/dtm`
 ## dtm依赖于mysql
 
 使用已有的mysql：  
@@ -22,15 +24,16 @@ DTM 是一款跨语言的分布式事务管理方案，在各类微服务架构�
 
 # 开始使用
 
-## 安装
-`go get github.com/yedf/dtm`
 ## 使用
 ``` go
-gid := common.GenGid()
-req := &gin.H{"amount": 30}
+gid := common.GenGid() // 生成事务id
+req := &gin.H{"amount": 30} // 微服务的负荷
+// 生成dtm的saga对象
 saga := dtm.SagaNew(DtmServer, gid).
+  // 添加两个子事务
   Add(startBusi+"/TransOut", startBusi+"/TransOutCompensate", req).
   Add(startBusi+"/TransIn", startBusi+"/TransInCompensate", req)
+  // 提交saga事务
 err := saga.Commit()
 ```
 ## 完整示例
