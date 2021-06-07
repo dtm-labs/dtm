@@ -18,7 +18,7 @@ DTM 是一款跨语言的分布式事务管理方案，在各类微服务架构�
 
 或者通过docker安装mysql  
 
-`docker-compose up -f compose.mysql.yml`
+`docker-compose -f compose.mysql.yml up`
 ### 启动并运行saga示例
 `go run app/main.go`
 
