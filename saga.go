@@ -57,7 +57,7 @@ func (s *Saga) Commit() error {
 }
 
 func (s *Saga) Prepare(queryPrepared string) error {
-	s.QueryPrepared = queryPrepared
+	s.QueryPrepared = common.OrString(queryPrepared, s.QueryPrepared)
 	logrus.Printf("preparing %s body: %v", s.Gid, &s.SagaData)
 	resp, err := common.RestyClient.R().SetBody(&s.SagaData).Post(fmt.Sprintf("%s/prepare", s.Server))
 	if err != nil {

@@ -88,15 +88,16 @@ func checkAffected(db1 *gorm.DB) {
 	}
 }
 
+type processorCreator func(*TransGlobal) TransProcessor
+
+var processorFac = map[string]processorCreator{}
+
+func registorProcessorCreator(transType string, creator processorCreator) {
+	processorFac[transType] = creator
+}
+
 func (trans *TransGlobal) getProcessor() TransProcessor {
-	if trans.TransType == "saga" {
-		return &TransSagaProcessor{TransGlobal: trans}
-	} else if trans.TransType == "tcc" {
-		return &TransTccProcessor{TransGlobal: trans}
-	} else if trans.TransType == "xa" {
-		return &TransXaProcessor{TransGlobal: trans}
-	}
-	return nil
+	return processorFac[trans.TransType](trans)
 }
 
 func (t *TransGlobal) MayQueryPrepared(db *common.MyDb) {

@@ -32,6 +32,7 @@ func TestDtmSvr(t *testing.T) {
 	go examples.SagaStartSvr()
 	go examples.XaStartSvr()
 	go examples.TccStartSvr()
+	go examples.MsgStartSvr()
 	time.Sleep(time.Duration(200 * 1000 * 1000))
 
 	// 清理数据
@@ -40,11 +41,9 @@ func TestDtmSvr(t *testing.T) {
 	e2p(dbGet().Exec("truncate trans_log").Error)
 	examples.ResetXaData()
 
+	msgPending(t)
+	msgNormal(t)
 	sagaNormal(t)
-
-	// 需要放到前面的用例之后，才有真实的数据
-	transQuery(t)
-
 	tccNormal(t)
 	tccRollback(t)
 	tccRollbackPending(t)
@@ -65,9 +64,6 @@ func TestCover(t *testing.T) {
 	defer handlePanic()
 	checkAffected(db.DB)
 }
-
-// 测试使用的全局对象
-var initdb = dbGet()
 
 func getTransStatus(gid string) string {
 	sm := TransGlobal{}
@@ -159,6 +155,33 @@ func tccRollbackPending(t *testing.T) {
 	CronTransOnce(-10*time.Second, "committed")
 	assert.Equal(t, []string{"succeed", "prepared", "succeed", "succeed", "prepared", "failed"}, getBranchesStatus(tcc.Gid))
 }
+
+func msgNormal(t *testing.T) {
+	msg := genMsg("gid-normal-msg")
+	msg.Commit()
+	assert.Equal(t, "committed", getTransStatus(msg.Gid))
+	WaitTransProcessed(msg.Gid)
+	assert.Equal(t, []string{"succeed", "succeed"}, getBranchesStatus(msg.Gid))
+	assert.Equal(t, "succeed", getTransStatus(msg.Gid))
+}
+
+func msgPending(t *testing.T) {
+	msg := genMsg("gid-normal-pending")
+	msg.Prepare("")
+	assert.Equal(t, "prepared", getTransStatus(msg.Gid))
+	examples.MsgTransQueryResult = "PENDING"
+	CronTransOnce(-10*time.Second, "prepared")
+	assert.Equal(t, "prepared", getTransStatus(msg.Gid))
+	examples.MsgTransQueryResult = ""
+	examples.MsgTransInResult = "PENDING"
+	CronTransOnce(-10*time.Second, "prepared")
+	assert.Equal(t, "committed", getTransStatus(msg.Gid))
+	examples.MsgTransInResult = ""
+	CronTransOnce(-10*time.Second, "committed")
+	assert.Equal(t, []string{"succeed", "succeed"}, getBranchesStatus(msg.Gid))
+	assert.Equal(t, "succeed", getTransStatus(msg.Gid))
+}
+
 func sagaNormal(t *testing.T) {
 	saga := genSaga("gid-noramlSaga", false, false)
 	saga.Prepare(saga.QueryPrepared)
@@ -167,6 +190,7 @@ func sagaNormal(t *testing.T) {
 	assert.Equal(t, "committed", getTransStatus(saga.Gid))
 	WaitTransProcessed(saga.Gid)
 	assert.Equal(t, []string{"prepared", "succeed", "prepared", "succeed"}, getBranchesStatus(saga.Gid))
+	transQuery(t, saga.Gid)
 }
 
 func sagaRollback(t *testing.T) {
@@ -213,6 +237,16 @@ func sagaCommittedPending(t *testing.T) {
 	assert.Equal(t, "succeed", getTransStatus(saga.Gid))
 }
 
+func genMsg(gid string) *dtm.Msg {
+	logrus.Printf("beginning a msg test ---------------- %s", gid)
+	msg := dtm.MsgNew(examples.DtmServer, gid)
+	msg.QueryPrepared = examples.MsgBusi + "/TransQuery"
+	req := examples.GenTransReq(30, false, false)
+	msg.Add(examples.MsgBusi+"/TransOut", &req)
+	msg.Add(examples.MsgBusi+"/TransIn", &req)
+	return msg
+}
+
 func genSaga(gid string, outFailed bool, inFailed bool) *dtm.Saga {
 	logrus.Printf("beginning a saga test ---------------- %s", gid)
 	saga := dtm.SagaNew(examples.DtmServer, gid)
@@ -224,7 +258,7 @@ func genSaga(gid string, outFailed bool, inFailed bool) *dtm.Saga {
 }
 
 func genTcc(gid string, outFailed bool, inFailed bool) *dtm.Tcc {
-	logrus.Printf("beginning a saga test ---------------- %s", gid)
+	logrus.Printf("beginning a tcc test ---------------- %s", gid)
 	tcc := dtm.TccNew(examples.DtmServer, gid)
 	tcc.QueryPrepared = examples.TccBusi + "/TransQuery"
 	req := examples.GenTransReq(30, outFailed, inFailed)
@@ -233,8 +267,8 @@ func genTcc(gid string, outFailed bool, inFailed bool) *dtm.Tcc {
 	return tcc
 }
 
-func transQuery(t *testing.T) {
-	resp, err := common.RestyClient.R().SetQueryParam("gid", "gid-noramlSaga").Get(examples.DtmServer + "/query")
+func transQuery(t *testing.T, gid string) {
+	resp, err := common.RestyClient.R().SetQueryParam("gid", gid).Get(examples.DtmServer + "/query")
 	e2p(err)
 	m := M{}
 	assert.Equal(t, resp.StatusCode(), 200)

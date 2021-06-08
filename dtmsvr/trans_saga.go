@@ -11,6 +11,10 @@ type TransSagaProcessor struct {
 	*TransGlobal
 }
 
+func init() {
+	registorProcessorCreator("saga", func(trans *TransGlobal) TransProcessor { return &TransSagaProcessor{TransGlobal: trans} })
+}
+
 func (t *TransSagaProcessor) GenBranches() []TransBranch {
 	branches := []TransBranch{}
 	steps := []M{}

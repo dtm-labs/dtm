@@ -11,6 +11,10 @@ type TransTccProcessor struct {
 	*TransGlobal
 }
 
+func init() {
+	registorProcessorCreator("tcc", func(trans *TransGlobal) TransProcessor { return &TransTccProcessor{TransGlobal: trans} })
+}
+
 func (t *TransTccProcessor) GenBranches() []TransBranch {
 	branches := []TransBranch{}
 	steps := []M{}

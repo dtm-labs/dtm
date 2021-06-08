@@ -11,6 +11,10 @@ type TransXaProcessor struct {
 	*TransGlobal
 }
 
+func init() {
+	registorProcessorCreator("xa", func(trans *TransGlobal) TransProcessor { return &TransXaProcessor{TransGlobal: trans} })
+}
+
 func (t *TransXaProcessor) GenBranches() []TransBranch {
 	return []TransBranch{}
 }
