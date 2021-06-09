@@ -81,7 +81,7 @@ func xaTransIn(c *gin.Context) (interface{}, error) {
 			return fmt.Errorf("tranIn failed")
 		}
 		dbr := db.Model(&UserAccount{}).Where("user_id = ?", c.Query("user_id")).
-			Update("balance", gorm.Expr("balance - ?", req.Amount))
+			Update("balance", gorm.Expr("balance + ?", req.Amount))
 		return dbr.Error
 	})
 	e2p(err)
@@ -95,7 +95,7 @@ func xaTransOut(c *gin.Context) (interface{}, error) {
 			return fmt.Errorf("tranOut failed")
 		}
 		dbr := db.Model(&UserAccount{}).Where("user_id = ?", c.Query("user_id")).
-			Update("balance", gorm.Expr("balance + ?", req.Amount))
+			Update("balance", gorm.Expr("balance - ?", req.Amount))
 		return dbr.Error
 	})
 	e2p(err)
