@@ -18,7 +18,7 @@ func init() {
 func (t *TransXaProcessor) GenBranches() []TransBranch {
 	return []TransBranch{}
 }
-func (t *TransXaProcessor) ExecBranch(db *common.MyDb, branch *TransBranch) {
+func (t *TransXaProcessor) ExecBranch(db *common.DB, branch *TransBranch) {
 	resp, err := common.RestyClient.R().SetBody(M{
 		"branch": branch.Branch,
 		"action": common.If(t.Status == "prepared", "rollback", "commit"),
@@ -34,7 +34,7 @@ func (t *TransXaProcessor) ExecBranch(db *common.MyDb, branch *TransBranch) {
 	}
 }
 
-func (t *TransXaProcessor) ProcessOnce(db *common.MyDb, branches []TransBranch) {
+func (t *TransXaProcessor) ProcessOnce(db *common.DB, branches []TransBranch) {
 	if t.Status == "succeed" {
 		return
 	}

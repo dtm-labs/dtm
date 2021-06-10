@@ -27,7 +27,7 @@ type UserAccount struct {
 
 func (u *UserAccount) TableName() string { return "user_account" }
 
-func dbGet() *common.MyDb {
+func dbGet() *common.DB {
 	return common.DbGet(Config.Mysql)
 }
 
@@ -75,7 +75,7 @@ func XaAddRoute(app *gin.Engine) {
 }
 
 func xaTransIn(c *gin.Context) (interface{}, error) {
-	err := XaClient.XaLocalTransaction(c.Query("gid"), func(db *common.MyDb) (rerr error) {
+	err := XaClient.XaLocalTransaction(c.Query("gid"), func(db *common.DB) (rerr error) {
 		req := transReqFromContext(c)
 		if req.TransInResult != "SUCCESS" {
 			return fmt.Errorf("tranIn failed")
@@ -89,7 +89,7 @@ func xaTransIn(c *gin.Context) (interface{}, error) {
 }
 
 func xaTransOut(c *gin.Context) (interface{}, error) {
-	err := XaClient.XaLocalTransaction(c.Query("gid"), func(db *common.MyDb) (rerr error) {
+	err := XaClient.XaLocalTransaction(c.Query("gid"), func(db *common.DB) (rerr error) {
 		req := transReqFromContext(c)
 		if req.TransOutResult != "SUCCESS" {
 			return fmt.Errorf("tranOut failed")

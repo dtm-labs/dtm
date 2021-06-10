@@ -34,7 +34,7 @@ func (t *TransTccProcessor) GenBranches() []TransBranch {
 	return branches
 }
 
-func (t *TransTccProcessor) ExecBranch(db *common.MyDb, branch *TransBranch) {
+func (t *TransTccProcessor) ExecBranch(db *common.DB, branch *TransBranch) {
 	resp, err := common.RestyClient.R().SetBody(branch.Data).SetQueryParam("gid", branch.Gid).Post(branch.Url)
 	e2p(err)
 	body := resp.String()
@@ -48,7 +48,7 @@ func (t *TransTccProcessor) ExecBranch(db *common.MyDb, branch *TransBranch) {
 	}
 }
 
-func (t *TransTccProcessor) ProcessOnce(db *common.MyDb, branches []TransBranch) {
+func (t *TransTccProcessor) ProcessOnce(db *common.DB, branches []TransBranch) {
 	t.MayQueryPrepared(db)
 	if t.Status != "committed" {
 		return

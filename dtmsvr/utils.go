@@ -10,7 +10,7 @@ type M = map[string]interface{}
 var p2e = common.P2E
 var e2p = common.E2P
 
-func dbGet() *common.MyDb {
+func dbGet() *common.DB {
 	return common.DbGet(config.Mysql)
 }
 func writeTransLog(gid string, action string, status string, branch string, detail string) {

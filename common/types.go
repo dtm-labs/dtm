@@ -17,20 +17,20 @@ type ModelBase struct {
 	UpdateTime *time.Time `gorm:"autoUpdateTime"`
 }
 
-var dbs = map[string]*MyDb{}
+var dbs = map[string]*DB{}
 
-type MyDb struct {
+type DB struct {
 	*gorm.DB
 }
 
-func (m *MyDb) Must() *MyDb {
+func (m *DB) Must() *DB {
 	db := m.InstanceSet("ivy.must", true)
-	return &MyDb{DB: db}
+	return &DB{DB: db}
 }
 
-func (m *MyDb) NoMust() *MyDb {
+func (m *DB) NoMust() *DB {
 	db := m.InstanceSet("ivy.must", false)
-	return &MyDb{DB: db}
+	return &DB{DB: db}
 }
 
 type tracePlugin struct{}
@@ -86,7 +86,7 @@ func ReplaceDsnPassword(dsn string) string {
 	return reg.ReplaceAllString(dsn, ":****@")
 }
 
-func DbGet(conf map[string]string) *MyDb {
+func DbGet(conf map[string]string) *DB {
 	dsn := GetDsn(conf)
 	if dbs[dsn] == nil {
 		logrus.Printf("connecting %s", ReplaceDsnPassword(dsn))
@@ -95,7 +95,7 @@ func DbGet(conf map[string]string) *MyDb {
 		})
 		E2P(err)
 		db1.Use(&tracePlugin{})
-		dbs[dsn] = &MyDb{DB: db1}
+		dbs[dsn] = &DB{DB: db1}
 	}
 	return dbs[dsn]
 }
@@ -110,7 +110,7 @@ func (conn *MyConn) Close() {
 	conn.Conn.Close()
 }
 
-func DbAlone(conf map[string]string) (*MyDb, *MyConn) {
+func DbAlone(conf map[string]string) (*DB, *MyConn) {
 	dsn := GetDsn(conf)
 	logrus.Printf("opening alone mysql: %s", ReplaceDsnPassword(dsn))
 	mdb, err := sql.Open("mysql", dsn)
@@ -120,5 +120,5 @@ func DbAlone(conf map[string]string) (*MyDb, *MyConn) {
 	}), &gorm.Config{})
 	E2P(err)
 	gormDB.Use(&tracePlugin{})
-	return &MyDb{DB: gormDB}, &MyConn{Conn: mdb, Dsn: dsn}
+	return &DB{DB: gormDB}, &MyConn{Conn: mdb, Dsn: dsn}
 }

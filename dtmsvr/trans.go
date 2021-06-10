@@ -30,16 +30,16 @@ func (*TransGlobal) TableName() string {
 
 type TransProcessor interface {
 	GenBranches() []TransBranch
-	ProcessOnce(db *common.MyDb, branches []TransBranch)
-	ExecBranch(db *common.MyDb, branch *TransBranch)
+	ProcessOnce(db *common.DB, branches []TransBranch)
+	ExecBranch(db *common.DB, branch *TransBranch)
 }
 
-func (t *TransGlobal) touch(db *common.MyDb) *gorm.DB {
+func (t *TransGlobal) touch(db *common.DB) *gorm.DB {
 	writeTransLog(t.Gid, "touch trans", "", "", "")
 	return db.Model(&TransGlobal{}).Where("gid=?", t.Gid).Update("gid", t.Gid) // 更新update_time，避免被定时任务再次
 }
 
-func (t *TransGlobal) changeStatus(db *common.MyDb, status string) *gorm.DB {
+func (t *TransGlobal) changeStatus(db *common.DB, status string) *gorm.DB {
 	writeTransLog(t.Gid, "change status", status, "", "")
 	updates := M{
 		"status": status,
@@ -71,7 +71,7 @@ func (*TransBranch) TableName() string {
 	return "trans_branch"
 }
 
-func (t *TransBranch) changeStatus(db *common.MyDb, status string) *gorm.DB {
+func (t *TransBranch) changeStatus(db *common.DB, status string) *gorm.DB {
 	writeTransLog(t.Gid, "branch change", status, t.Branch, "")
 	dbr := db.Must().Model(t).Where("status=?", t.Status).Updates(M{
 		"status":      status,
@@ -100,7 +100,7 @@ func (trans *TransGlobal) getProcessor() TransProcessor {
 	return processorFac[trans.TransType](trans)
 }
 
-func (t *TransGlobal) MayQueryPrepared(db *common.MyDb) {
+func (t *TransGlobal) MayQueryPrepared(db *common.DB) {
 	if t.Status != "prepared" {
 		return
 	}
@@ -121,7 +121,7 @@ func (t *TransGlobal) MayQueryPrepared(db *common.MyDb) {
 	}
 }
 
-func (trans *TransGlobal) Process(db *common.MyDb) {
+func (trans *TransGlobal) Process(db *common.DB) {
 	defer handlePanic()
 	defer func() {
 		if TransProcessedTestChan != nil {
@@ -133,9 +133,9 @@ func (trans *TransGlobal) Process(db *common.MyDb) {
 	trans.getProcessor().ProcessOnce(db, branches)
 }
 
-func (t *TransGlobal) SaveNew(db *common.MyDb) {
+func (t *TransGlobal) SaveNew(db *common.DB) {
 	err := db.Transaction(func(db1 *gorm.DB) error {
-		db := &common.MyDb{DB: db1}
+		db := &common.DB{DB: db1}
 
 		writeTransLog(t.Gid, "create trans", t.Status, "", t.Data)
 		dbr := db.Must().Clauses(clause.OnConflict{
@@ -174,7 +174,7 @@ func TransFromContext(c *gin.Context) *TransGlobal {
 	return &m
 }
 
-func TransFromDb(db *common.MyDb, gid string) *TransGlobal {
+func TransFromDb(db *common.DB, gid string) *TransGlobal {
 	m := TransGlobal{}
 	dbr := db.Must().Model(&m).Where("gid=?", gid).First(&m)
 	e2p(dbr.Error)

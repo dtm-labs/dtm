@@ -15,7 +15,7 @@ var e2p = common.E2P
 
 type XaGlobalFunc func() error
 
-type XaLocalFunc func(db *common.MyDb) error
+type XaLocalFunc func(db *common.DB) error
 
 type XaClient struct {
 	Server      string
