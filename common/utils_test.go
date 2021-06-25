@@ -5,7 +5,6 @@ import (
 	"io"
 	"net/http"
 	"net/http/httptest"
-	"path/filepath"
 	"strings"
 	"testing"
 
@@ -93,9 +92,4 @@ func TestResty(t *testing.T) {
 		CheckRestySuccess(resp, err)
 	})
 	assert.NotEqual(t, nil, err2)
-}
-
-func TestCaller(t *testing.T) {
-	p := GetProjectDir()
-	assert.Equal(t, true, strings.HasSuffix(filepath.Dir(p), "common"))
 }

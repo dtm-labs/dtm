@@ -2,13 +2,17 @@ package common
 
 import (
 	"bytes"
+	"encoding/hex"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io/ioutil"
+	"net"
 	"os"
 	"path"
 	"path/filepath"
 	"runtime"
+	"strconv"
 	"strings"
 	"time"
 
@@ -49,8 +53,41 @@ func PanicIf(cond bool, err error) {
 	}
 }
 
-func GenGid() string {
+func getOneHexIp() string {
+	addrs, err := net.InterfaceAddrs()
+	if err != nil {
+		fmt.Printf("cannot get ip, default to another call")
+		return gNode.Generate().Base58()
+	}
+	for _, address := range addrs {
+		if ipnet, ok := address.(*net.IPNet); ok && !ipnet.IP.IsLoopback() {
+			if ipnet.IP.To4() != nil {
+				ip := ipnet.IP.To4().String()
+				ns := strings.Split(ip, ".")
+				r := []byte{}
+				for _, n := range ns {
+					r = append(r, byte(MustAtoi(n)))
+				}
+				return hex.EncodeToString(r)
+			}
+
+		}
+	}
+	fmt.Printf("none ipv4, default to another call")
 	return gNode.Generate().Base58()
+}
+
+// MustAtoi 走must逻辑
+func MustAtoi(s string) int {
+	r, err := strconv.Atoi(s)
+	if err != nil {
+		E2P(errors.New("convert to int error: " + s))
+	}
+	return r
+}
+
+func GenGid() string {
+	return getOneHexIp() + "-" + gNode.Generate().Base58()
 }
 
 var gNode *snowflake.Node = nil
@@ -226,7 +263,6 @@ func GetCurrentDir() string {
 func GetProjectDir() string {
 	_, file, _, _ := runtime.Caller(1)
 	for ; !strings.HasSuffix(file, "/dtm"); file = filepath.Dir(file) {
-
 	}
 	return file
 }
