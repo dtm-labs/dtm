@@ -30,6 +30,8 @@ DTM 是一款跨语言的分布式事务管理方案，在各类微服务架构�
 
 ### 使用
 ``` go
+const DtmServer = "http://localhost:8080/api/dtmsvr"
+const startBusi = "http://localhost:8081/api/busi_saga"
 gid := common.GenGid() // 生成事务id
 req := &gin.H{"amount": 30} // 微服务的负荷
 // 生成dtm的saga对象
