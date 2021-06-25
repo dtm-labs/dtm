@@ -90,7 +90,10 @@ UPDATE `user_account` SET `balance`=balance + 30,`update_time`='2021-06-09 11:50
 XA end '4fPqCPijxyC'
 XA prepare '4fPqCPijxyC'
 
+# 服务1输出
 xa commit '4fPqCNTYeSG'
+
+#服务2输出
 xa commit '4fPqCPijxyC'
 ```
 
