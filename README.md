@@ -3,6 +3,7 @@ DTM 是一款跨语言的分布式事务管理方案，在各类微服务架构�
 # 特色
 ### 跨语言
 语言无关，任何语言实现了http方式的服务，都可以接入DTM，用来管理分布式事务。支持go、python、php、nodejs、ruby
+### [分布式事务简介](./intra-xa.md)
 ### 多种分布式事务协议支持
   * TCC: Try-Confirm-Cancel
   * SAGA:
