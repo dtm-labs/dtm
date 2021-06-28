@@ -73,7 +73,7 @@ vi conf.yml
 运行示例
 
 ```
-go run app/main xa
+go run app/main.go xa
 ```
 
 从日志里，能够找到以下输出
@@ -86,7 +86,7 @@ XA prepare '4fPqCNTYeSG'
 
 # 服务2输出
 XA start '4fPqCPijxyC'
-UPDATE `user_account` SET `balance`=balance + 30,`update_time`='2021-06-09 11:50:42.493' WHERE user_id = '2'
+UPDATE `user_account` SET `balance`=balance - 30,`update_time`='2021-06-09 11:50:42.493' WHERE user_id = '2'
 XA end '4fPqCPijxyC'
 XA prepare '4fPqCPijxyC'
 
