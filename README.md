@@ -16,13 +16,10 @@ DTM 是一款跨语言的分布式事务管理方案，在各类微服务架构�
 `go get github.com/yedf/dtm`
 ### dtm依赖于mysql
 
-使用已有的mysql：  
+配置mysql：  
 
 `cp conf.sample.yml conf.yml # 修改conf.yml`  
 
-或者通过docker安装mysql  
-
-`docker-compose -f compose.mysql.yml up`
 ### 启动并运行saga示例
 `go run app/main.go`
 
