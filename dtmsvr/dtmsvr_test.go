@@ -152,7 +152,7 @@ func tccRollbackPending(t *testing.T) {
 	WaitTransProcessed(tcc.Gid)
 	assert.Equal(t, "committed", getTransStatus(tcc.Gid))
 	examples.TccTransInCancelResult = ""
-	CronTransOnce(-10*time.Second, "committed")
+	CronTransOnce(60*time.Second, "committed")
 	assert.Equal(t, []string{"succeed", "prepared", "succeed", "succeed", "prepared", "failed"}, getBranchesStatus(tcc.Gid))
 }
 
@@ -170,14 +170,14 @@ func msgPending(t *testing.T) {
 	msg.Prepare("")
 	assert.Equal(t, "prepared", getTransStatus(msg.Gid))
 	examples.MsgTransQueryResult = "PENDING"
-	CronTransOnce(-10*time.Second, "prepared")
+	CronTransOnce(60*time.Second, "prepared")
 	assert.Equal(t, "prepared", getTransStatus(msg.Gid))
 	examples.MsgTransQueryResult = ""
 	examples.MsgTransInResult = "PENDING"
-	CronTransOnce(-10*time.Second, "prepared")
+	CronTransOnce(60*time.Second, "prepared")
 	assert.Equal(t, "committed", getTransStatus(msg.Gid))
 	examples.MsgTransInResult = ""
-	CronTransOnce(-10*time.Second, "committed")
+	CronTransOnce(60*time.Second, "committed")
 	assert.Equal(t, []string{"succeed", "succeed"}, getBranchesStatus(msg.Gid))
 	assert.Equal(t, "succeed", getTransStatus(msg.Gid))
 }
@@ -207,7 +207,7 @@ func sagaPrepareCancel(t *testing.T) {
 	saga.Prepare(saga.QueryPrepared)
 	examples.SagaTransQueryResult = "FAIL"
 	config.PreparedExpire = -10
-	CronTransOnce(-10*time.Second, "prepared")
+	CronTransOnce(60*time.Second, "prepared")
 	examples.SagaTransQueryResult = ""
 	config.PreparedExpire = 60
 	assert.Equal(t, "canceled", getTransStatus(saga.Gid))
@@ -217,10 +217,10 @@ func sagaPreparePending(t *testing.T) {
 	saga := genSaga("gid1-preparePending", false, false)
 	saga.Prepare(saga.QueryPrepared)
 	examples.SagaTransQueryResult = "PENDING"
-	CronTransOnce(-10*time.Second, "prepared")
+	CronTransOnce(60*time.Second, "prepared")
 	examples.SagaTransQueryResult = ""
 	assert.Equal(t, "prepared", getTransStatus(saga.Gid))
-	CronTransOnce(-10*time.Second, "prepared")
+	CronTransOnce(60*time.Second, "prepared")
 	assert.Equal(t, "succeed", getTransStatus(saga.Gid))
 }
 
@@ -232,7 +232,7 @@ func sagaCommittedPending(t *testing.T) {
 	WaitTransProcessed(saga.Gid)
 	examples.SagaTransInResult = ""
 	assert.Equal(t, []string{"prepared", "succeed", "prepared", "prepared"}, getBranchesStatus(saga.Gid))
-	CronTransOnce(-10*time.Second, "committed")
+	CronTransOnce(60*time.Second, "committed")
 	assert.Equal(t, []string{"prepared", "succeed", "prepared", "succeed"}, getBranchesStatus(saga.Gid))
 	assert.Equal(t, "succeed", getTransStatus(saga.Gid))
 }

@@ -38,10 +38,11 @@ func (t *TransSagaProcessor) ExecBranch(db *common.DB, branch *TransBranch) {
 	resp, err := common.RestyClient.R().SetBody(branch.Data).SetQueryParam("gid", branch.Gid).Post(branch.Url)
 	e2p(err)
 	body := resp.String()
-	t.touch(db)
 	if strings.Contains(body, "SUCCESS") {
+		t.touch(db, config.TransCronInterval)
 		branch.changeStatus(db, "succeed")
 	} else if branch.BranchType == "action" && strings.Contains(body, "FAIL") {
+		t.touch(db, config.TransCronInterval)
 		branch.changeStatus(db, "failed")
 	} else {
 		panic(fmt.Errorf("unknown response: %s, will be retried", body))

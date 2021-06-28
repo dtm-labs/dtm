@@ -36,9 +36,9 @@ func (t *TransMsgProcessor) ExecBranch(db *common.DB, branch *TransBranch) {
 	resp, err := common.RestyClient.R().SetBody(branch.Data).SetQueryParam("gid", branch.Gid).Post(branch.Url)
 	e2p(err)
 	body := resp.String()
-	t.touch(db)
 	if strings.Contains(body, "SUCCESS") {
 		branch.changeStatus(db, "succeed")
+		t.touch(db, config.TransCronInterval)
 	} else {
 		panic(fmt.Errorf("unknown response: %s, will be retried", body))
 	}

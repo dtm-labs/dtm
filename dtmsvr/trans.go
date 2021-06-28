@@ -14,14 +14,16 @@ import (
 
 type TransGlobal struct {
 	common.ModelBase
-	Gid           string `json:"gid"`
-	TransType     string `json:"trans_type"`
-	Data          string `json:"data"`
-	Status        string `json:"status"`
-	QueryPrepared string `json:"query_prepared"`
-	CommitTime    *time.Time
-	FinishTime    *time.Time
-	RollbackTime  *time.Time
+	Gid              string `json:"gid"`
+	TransType        string `json:"trans_type"`
+	Data             string `json:"data"`
+	Status           string `json:"status"`
+	QueryPrepared    string `json:"query_prepared"`
+	CommitTime       *time.Time
+	FinishTime       *time.Time
+	RollbackTime     *time.Time
+	NextCronInterval int64
+	NextCronTime     *time.Time
 }
 
 func (*TransGlobal) TableName() string {
@@ -34,24 +36,28 @@ type TransProcessor interface {
 	ExecBranch(db *common.DB, branch *TransBranch)
 }
 
-func (t *TransGlobal) touch(db *common.DB) *gorm.DB {
+func (t *TransGlobal) touch(db *common.DB, interval int64) *gorm.DB {
 	writeTransLog(t.Gid, "touch trans", "", "", "")
-	return db.Model(&TransGlobal{}).Where("gid=?", t.Gid).Update("gid", t.Gid) // 更新update_time，避免被定时任务再次
+	updates := t.setNextCron(interval)
+	return db.Model(&TransGlobal{}).Where("gid=?", t.Gid).Select(updates).Updates(t)
 }
 
 func (t *TransGlobal) changeStatus(db *common.DB, status string) *gorm.DB {
 	writeTransLog(t.Gid, "change status", status, "", "")
-	updates := M{
-		"status": status,
-	}
-	if status == "succeed" {
-		updates["finish_time"] = time.Now()
-	} else if status == "failed" {
-		updates["rollback_time"] = time.Now()
-	}
-	dbr := db.Must().Model(t).Where("status=?", t.Status).Updates(updates)
-	checkAffected(dbr)
+	old := t.Status
 	t.Status = status
+	updates := t.setNextCron(config.TransCronInterval)
+	updates = append(updates, "status")
+	now := time.Now()
+	if status == "succeed" {
+		t.FinishTime = &now
+		updates = append(updates, "finish_time")
+	} else if status == "failed" {
+		t.RollbackTime = &now
+		updates = append(updates, "rollback_time")
+	}
+	dbr := db.Must().Model(t).Where("status=?", old).Select(updates).Updates(t)
+	checkAffected(dbr)
 	return dbr
 }
 
@@ -114,7 +120,7 @@ func (t *TransGlobal) MayQueryPrepared(db *common.DB) {
 		if status != t.Status {
 			t.changeStatus(db, status)
 		} else {
-			t.touch(db)
+			t.touch(db, t.NextCronInterval*2)
 		}
 	} else if strings.Contains(body, "SUCCESS") {
 		t.changeStatus(db, "committed")
@@ -133,16 +139,23 @@ func (trans *TransGlobal) Process(db *common.DB) {
 	trans.getProcessor().ProcessOnce(db, branches)
 }
 
+func (t *TransGlobal) setNextCron(expireIn int64) []string {
+	t.NextCronInterval = expireIn
+	next := time.Now().Add(time.Duration(config.TransCronInterval) * time.Second)
+	t.NextCronTime = &next
+	return []string{"next_cron_interval", "next_cron_time"}
+}
+
 func (t *TransGlobal) SaveNew(db *common.DB) {
 	err := db.Transaction(func(db1 *gorm.DB) error {
 		db := &common.DB{DB: db1}
-
+		updates := t.setNextCron(config.TransCronInterval)
 		writeTransLog(t.Gid, "create trans", t.Status, "", t.Data)
 		dbr := db.Must().Clauses(clause.OnConflict{
 			DoNothing: true,
 		}).Create(t)
 		if dbr.RowsAffected == 0 && t.Status == "committed" { // 如果数据库已经存放了prepared的事务，则修改状态
-			dbr = db.Must().Model(&TransGlobal{}).Where("gid=? and status=?", t.Gid, "prepared").Update("status", t.Status)
+			dbr = db.Must().Model(t).Where("gid=? and status=?", t.Gid, "prepared").Select(append(updates, "status")).Updates(t)
 		}
 		if dbr.RowsAffected == 0 { // 未保存任何数据，直接返回
 			return nil

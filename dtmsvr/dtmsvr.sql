@@ -15,12 +15,15 @@ CREATE TABLE if not EXISTS `trans_global` (
   `commit_time` datetime DEFAULT NULL,
   `finish_time` datetime DEFAULT NULL,
   `rollback_time` datetime DEFAULT NULL,
+  `next_cron_interval` int(11) default null comment '下次定时处理的间隔',
+  `next_cron_time` datetime default null comment '下次定时处理的时间',
   `owner` varchar(128) not null default '' comment '正在处理全局事务的锁定者',
   PRIMARY KEY (`id`),
   UNIQUE KEY `gid` (`gid`),
   key `owner`(`owner`),
   KEY `create_time` (`create_time`),
-  KEY `update_time` (`update_time`)
+  KEY `update_time` (`update_time`),
+  key `next_cron_time` (`next_cron_time`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 drop table IF EXISTS trans_branch;
