@@ -61,7 +61,7 @@ func XaFireRequest() {
 		resp, err = common.RestyClient.R().SetBody(req).SetQueryParams(map[string]string{
 			"gid":     gid,
 			"user_id": "2",
-		}).Post(XaBusi + "/TransOut")
+		}).Post(XaBusi + "/TransIn")
 		common.CheckRestySuccess(resp, err)
 		return nil
 	})
