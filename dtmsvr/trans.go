@@ -154,19 +154,16 @@ func (t *TransGlobal) SaveNew(db *common.DB) {
 		dbr := db.Must().Clauses(clause.OnConflict{
 			DoNothing: true,
 		}).Create(t)
-		if dbr.RowsAffected == 0 && t.Status == "committed" { // 如果数据库已经存放了prepared的事务，则修改状态
+		if dbr.RowsAffected > 0 { // 如果这个是新事务，保存所有的分支
+			branches := t.getProcessor().GenBranches()
+			if len(branches) > 0 {
+				writeTransLog(t.Gid, "save branches", t.Status, "", common.MustMarshalString(branches))
+				db.Must().Clauses(clause.OnConflict{
+					DoNothing: true,
+				}).Create(&branches)
+			}
+		} else if dbr.RowsAffected == 0 && t.Status == "committed" { // 如果数据库已经存放了prepared的事务，则修改状态
 			dbr = db.Must().Model(t).Where("gid=? and status=?", t.Gid, "prepared").Select(append(updates, "status")).Updates(t)
-		}
-		if dbr.RowsAffected == 0 { // 未保存任何数据，直接返回
-			return nil
-		}
-		// 保存所有的分支
-		branches := t.getProcessor().GenBranches()
-		if len(branches) > 0 {
-			writeTransLog(t.Gid, "save branches", t.Status, "", common.MustMarshalString(branches))
-			db.Must().Clauses(clause.OnConflict{
-				DoNothing: true,
-			}).Create(&branches)
 		}
 		return nil
 	})

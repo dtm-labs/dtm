@@ -22,7 +22,7 @@ func (t *TransMsgProcessor) GenBranches() []TransBranch {
 	for _, step := range steps {
 		branches = append(branches, TransBranch{
 			Gid:        t.Gid,
-			Branch:     fmt.Sprintf("%d", len(branches)+1),
+			Branch:     common.GenGid(),
 			Data:       step["data"].(string),
 			Url:        step["action"].(string),
 			BranchType: "action",
