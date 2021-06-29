@@ -55,7 +55,7 @@ err := saga.Commit()
 ### 交流群
 请加 yedf2008 好友或者扫码加好友，验证回复 dtm 按照指引进群  
 
-![yedf2008](http://service.ivydad.com/cover/dubbingd9af238e-a2a7-e9fa-1267-cc757c83e834.jpeg)
+![yedf2008](http://service.ivydad.com/cover/dubbingb6b5e2c0-2d2a-cd59-f7c5-c6b90aceb6f1.jpeg)
 
 ### 谁在使用
 <div style='vertical-align: middle'>
