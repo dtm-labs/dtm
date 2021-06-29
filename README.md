@@ -1,8 +1,16 @@
 # 轻量级分布式事务管理服务
 DTM 是一款跨语言的分布式事务管理方案，在各类微服务架构中，提供高性能和简单易用的分布式事务服务。
-# 特色
-### 跨语言
-语言无关，任何语言实现了http方式的服务，都可以接入DTM，用来管理分布式事务。支持go、python、php、nodejs、ruby
+## 特色
+
+* 跨语言
+  + 可以使用http方式接入服务。适合go、python、php、nodejs、ruby各类语言使用
+* 稳定可靠
+  + 经过生产环境考验，单元测试覆盖率90%以上
+* 高性能
+  + golang编写，代码质量高
+* 易部署
+  + 仅依赖mysql，部署简单
+
 ### [分布式事务简介](./intro-xa.md)
 ### 多种分布式事务协议支持
   * TCC: Try-Confirm-Cancel
@@ -46,3 +54,8 @@ err := saga.Commit()
 请加 yedf2008 好友或者扫码加好友，验证回复 dtm 按照指引进群  
 
 ![yedf2008](http://service.ivydad.com/cover/dubbingd9af238e-a2a7-e9fa-1267-cc757c83e834.jpeg)
+
+### 谁在使用
+<div style='vertical-align: middle'>
+    <img alt='Alibaba Group' height='40'  src='https://www.ivydad.com/_nuxt/img/header-logo.2645ad5.png'  /img>
+</div>
