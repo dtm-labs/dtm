@@ -2,7 +2,6 @@ package dtmsvr
 
 import (
 	"fmt"
-	"strings"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -104,27 +103,6 @@ func registorProcessorCreator(transType string, creator processorCreator) {
 
 func (trans *TransGlobal) getProcessor() TransProcessor {
 	return processorFac[trans.TransType](trans)
-}
-
-func (t *TransGlobal) MayQueryPrepared(db *common.DB) {
-	if t.Status != "prepared" {
-		return
-	}
-	resp, err := common.RestyClient.R().SetQueryParam("gid", t.Gid).Get(t.QueryPrepared)
-	e2p(err)
-	body := resp.String()
-	if strings.Contains(body, "FAIL") {
-		preparedExpire := time.Now().Add(time.Duration(-config.PreparedExpire) * time.Second)
-		logrus.Printf("create time: %s prepared expire: %s ", t.CreateTime.Local(), preparedExpire.Local())
-		status := common.If(t.CreateTime.Before(preparedExpire), "canceled", "prepared").(string)
-		if status != t.Status {
-			t.changeStatus(db, status)
-		} else {
-			t.touch(db, t.NextCronInterval*2)
-		}
-	} else if strings.Contains(body, "SUCCESS") {
-		t.changeStatus(db, "committed")
-	}
 }
 
 func (trans *TransGlobal) Process(db *common.DB) {

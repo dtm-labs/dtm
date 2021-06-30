@@ -51,7 +51,6 @@ func (t *TransSagaProcessor) ExecBranch(db *common.DB, branch *TransBranch) {
 }
 
 func (t *TransSagaProcessor) ProcessOnce(db *common.DB, branches []TransBranch) {
-	t.MayQueryPrepared(db)
 	if t.Status != "committed" {
 		return
 	}

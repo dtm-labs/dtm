@@ -50,8 +50,6 @@ func TestDtmSvr(t *testing.T) {
 	xaNormal(t)
 	xaRollback(t)
 	sagaCommittedPending(t)
-	sagaPreparePending(t)
-	sagaPrepareCancel(t)
 	sagaRollback(t)
 
 }
@@ -132,8 +130,6 @@ func xaRollback(t *testing.T) {
 
 func tccNormal(t *testing.T) {
 	tcc := genTcc("gid-tcc-normal", false, false)
-	tcc.Prepare(tcc.QueryPrepared)
-	assert.Equal(t, "prepared", getTransStatus(tcc.Gid))
 	tcc.Commit()
 	assert.Equal(t, "committed", getTransStatus(tcc.Gid))
 	WaitTransProcessed(tcc.Gid)
@@ -184,8 +180,6 @@ func msgPending(t *testing.T) {
 
 func sagaNormal(t *testing.T) {
 	saga := genSaga("gid-noramlSaga", false, false)
-	saga.Prepare(saga.QueryPrepared)
-	assert.Equal(t, "prepared", getTransStatus(saga.Gid))
 	saga.Commit()
 	assert.Equal(t, "committed", getTransStatus(saga.Gid))
 	WaitTransProcessed(saga.Gid)
@@ -197,36 +191,12 @@ func sagaRollback(t *testing.T) {
 	saga := genSaga("gid-rollbackSaga2", false, true)
 	saga.Commit()
 	WaitTransProcessed(saga.Gid)
-	saga.Prepare(saga.QueryPrepared)
 	assert.Equal(t, "failed", getTransStatus(saga.Gid))
 	assert.Equal(t, []string{"succeed", "succeed", "succeed", "failed"}, getBranchesStatus(saga.Gid))
 }
 
-func sagaPrepareCancel(t *testing.T) {
-	saga := genSaga("gid1-prepareCancel", false, true)
-	saga.Prepare(saga.QueryPrepared)
-	examples.SagaTransQueryResult = "FAIL"
-	config.PreparedExpire = -10
-	CronTransOnce(60*time.Second, "prepared")
-	examples.SagaTransQueryResult = ""
-	config.PreparedExpire = 60
-	assert.Equal(t, "canceled", getTransStatus(saga.Gid))
-}
-
-func sagaPreparePending(t *testing.T) {
-	saga := genSaga("gid1-preparePending", false, false)
-	saga.Prepare(saga.QueryPrepared)
-	examples.SagaTransQueryResult = "PENDING"
-	CronTransOnce(60*time.Second, "prepared")
-	examples.SagaTransQueryResult = ""
-	assert.Equal(t, "prepared", getTransStatus(saga.Gid))
-	CronTransOnce(60*time.Second, "prepared")
-	assert.Equal(t, "succeed", getTransStatus(saga.Gid))
-}
-
 func sagaCommittedPending(t *testing.T) {
 	saga := genSaga("gid-committedPending", false, false)
-	saga.Prepare(saga.QueryPrepared)
 	examples.SagaTransInResult = "PENDING"
 	saga.Commit()
 	WaitTransProcessed(saga.Gid)
@@ -250,7 +220,6 @@ func genMsg(gid string) *dtm.Msg {
 func genSaga(gid string, outFailed bool, inFailed bool) *dtm.Saga {
 	logrus.Printf("beginning a saga test ---------------- %s", gid)
 	saga := dtm.SagaNew(examples.DtmServer, gid)
-	saga.QueryPrepared = examples.SagaBusi + "/TransQuery"
 	req := examples.GenTransReq(30, outFailed, inFailed)
 	saga.Add(examples.SagaBusi+"/TransOut", examples.SagaBusi+"/TransOutCompensate", &req)
 	saga.Add(examples.SagaBusi+"/TransIn", examples.SagaBusi+"/TransInCompensate", &req)
@@ -260,7 +229,6 @@ func genSaga(gid string, outFailed bool, inFailed bool) *dtm.Saga {
 func genTcc(gid string, outFailed bool, inFailed bool) *dtm.Tcc {
 	logrus.Printf("beginning a tcc test ---------------- %s", gid)
 	tcc := dtm.TccNew(examples.DtmServer, gid)
-	tcc.QueryPrepared = examples.TccBusi + "/TransQuery"
 	req := examples.GenTransReq(30, outFailed, inFailed)
 	tcc.Add(examples.TccBusi+"/TransOutTry", examples.TccBusi+"/TransOutConfirm", examples.TccBusi+"/TransOutCancel", &req)
 	tcc.Add(examples.TccBusi+"/TransInTry", examples.TccBusi+"/TransInConfirm", examples.TccBusi+"/TransInCancel", &req)

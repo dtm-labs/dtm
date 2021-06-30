@@ -11,7 +11,6 @@ import (
 )
 
 // 事务参与者的服务地址
-const startBusiPort = 8084
 const startBusiApi = "/api/busi_start"
 
 var startBusi = fmt.Sprintf("http://localhost:%d%s", startBusiPort, startBusiApi)

@@ -11,7 +11,6 @@ import (
 )
 
 // 事务参与者的服务地址
-const SagaBusiPort = 8081
 const SagaBusiApi = "/api/busi_saga"
 
 var SagaBusi = fmt.Sprintf("http://localhost:%d%s", SagaBusiPort, SagaBusiApi)
@@ -40,10 +39,8 @@ func SagaFireRequest() {
 	saga := dtm.SagaNew(DtmServer, gid).
 		Add(SagaBusi+"/TransOut", SagaBusi+"/TransOutCompensate", req).
 		Add(SagaBusi+"/TransIn", SagaBusi+"/TransInCompensate", req)
-	err := saga.Prepare(SagaBusi + "/TransQuery")
-	e2p(err)
 	logrus.Printf("busi trans commit")
-	err = saga.Commit()
+	err := saga.Commit()
 	e2p(err)
 }
 
@@ -54,7 +51,6 @@ func SagaAddRoute(app *gin.Engine) {
 	app.POST(SagaBusiApi+"/TransInCompensate", common.WrapHandler(sagaTransInCompensate))
 	app.POST(SagaBusiApi+"/TransOut", common.WrapHandler(SagaTransOut))
 	app.POST(SagaBusiApi+"/TransOutCompensate", common.WrapHandler(sagaTransOutCompensate))
-	app.GET(SagaBusiApi+"/TransQuery", common.WrapHandler(sagaTransQuery))
 	logrus.Printf("examples listening at %d", SagaBusiPort)
 }
 
@@ -62,7 +58,6 @@ var SagaTransInResult = ""
 var SagaTransOutResult = ""
 var SagaTransInCompensateResult = ""
 var SagaTransOutCompensateResult = ""
-var SagaTransQueryResult = ""
 
 func sagaTransIn(c *gin.Context) (interface{}, error) {
 	gid := c.Query("gid")
@@ -93,12 +88,5 @@ func sagaTransOutCompensate(c *gin.Context) (interface{}, error) {
 	req := transReqFromContext(c)
 	res := common.OrString(SagaTransOutCompensateResult, "SUCCESS")
 	logrus.Printf("%s TransOutCompensate: %v result: %s", gid, req, res)
-	return M{"result": res}, nil
-}
-
-func sagaTransQuery(c *gin.Context) (interface{}, error) {
-	gid := c.Query("gid")
-	logrus.Printf("%s TransQuery", gid)
-	res := common.OrString(SagaTransQueryResult, "SUCCESS")
 	return M{"result": res}, nil
 }

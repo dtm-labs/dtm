@@ -42,9 +42,7 @@ func XaClientNew(server string, mysqlConf map[string]string, app *gin.Engine, ca
 		e2p(err)
 		common.MustUnmarshal(b, &req)
 		tx, my := common.DbAlone(xa.Conf)
-		defer func() {
-			my.Close()
-		}()
+		defer my.Close()
 		if req.Action == "commit" {
 			tx.Must().Exec(fmt.Sprintf("xa commit '%s'", req.Branch))
 		} else if req.Action == "rollback" {

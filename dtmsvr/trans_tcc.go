@@ -51,7 +51,6 @@ func (t *TransTccProcessor) ExecBranch(db *common.DB, branch *TransBranch) {
 }
 
 func (t *TransTccProcessor) ProcessOnce(db *common.DB, branches []TransBranch) {
-	t.MayQueryPrepared(db)
 	if t.Status != "committed" {
 		return
 	}

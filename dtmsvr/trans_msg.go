@@ -3,7 +3,9 @@ package dtmsvr
 import (
 	"fmt"
 	"strings"
+	"time"
 
+	"github.com/sirupsen/logrus"
 	"github.com/yedf/dtm/common"
 )
 
@@ -44,8 +46,29 @@ func (t *TransMsgProcessor) ExecBranch(db *common.DB, branch *TransBranch) {
 	}
 }
 
+func (t *TransGlobal) mayQueryPrepared(db *common.DB) {
+	if t.Status != "prepared" {
+		return
+	}
+	resp, err := common.RestyClient.R().SetQueryParam("gid", t.Gid).Get(t.QueryPrepared)
+	e2p(err)
+	body := resp.String()
+	if strings.Contains(body, "FAIL") {
+		preparedExpire := time.Now().Add(time.Duration(-config.PreparedExpire) * time.Second)
+		logrus.Printf("create time: %s prepared expire: %s ", t.CreateTime.Local(), preparedExpire.Local())
+		status := common.If(t.CreateTime.Before(preparedExpire), "canceled", "prepared").(string)
+		if status != t.Status {
+			t.changeStatus(db, status)
+		} else {
+			t.touch(db, t.NextCronInterval*2)
+		}
+	} else if strings.Contains(body, "SUCCESS") {
+		t.changeStatus(db, "committed")
+	}
+}
+
 func (t *TransMsgProcessor) ProcessOnce(db *common.DB, branches []TransBranch) {
-	t.MayQueryPrepared(db)
+	t.mayQueryPrepared(db)
 	if t.Status != "committed" {
 		return
 	}

@@ -11,7 +11,6 @@ import (
 )
 
 // 事务参与者的服务地址
-const TccBusiPort = 8083
 const TccBusiApi = "/api/busi_tcc"
 
 var TccBusi = fmt.Sprintf("http://localhost:%d%s", TccBusiPort, TccBusiApi)
@@ -40,10 +39,8 @@ func TccFireRequest() {
 	tcc := dtm.TccNew(DtmServer, gid).
 		Add(TccBusi+"/TransOutTry", TccBusi+"/TransOutConfirm", TccBusi+"/TransOutCancel", req).
 		Add(TccBusi+"/TransInTry", TccBusi+"/TransInConfirm", TccBusi+"/TransOutCancel", req)
-	err := tcc.Prepare(TccBusi + "/TransQuery")
-	e2p(err)
 	logrus.Printf("busi trans commit")
-	err = tcc.Commit()
+	err := tcc.Commit()
 	e2p(err)
 }
 
@@ -56,7 +53,6 @@ func TccAddRoute(app *gin.Engine) {
 	app.POST(TccBusiApi+"/TransOutTry", common.WrapHandler(tccTransOutTry))
 	app.POST(TccBusiApi+"/TransOutConfirm", common.WrapHandler(tccTransOutConfirm))
 	app.POST(TccBusiApi+"/TransOutCancel", common.WrapHandler(tccTransOutCancel))
-	app.GET(TccBusiApi+"/TransQuery", common.WrapHandler(tccTransQuery))
 	logrus.Printf("examples listening at %d", TccBusiPort)
 }
 
@@ -66,7 +62,6 @@ var TccTransInCancelResult = ""
 var TccTransOutCancelResult = ""
 var TccTransInConfirmResult = ""
 var TccTransOutConfirmResult = ""
-var TccTransQueryResult = ""
 
 func tccTransInTry(c *gin.Context) (interface{}, error) {
 	gid := c.Query("gid")
@@ -113,12 +108,5 @@ func tccTransOutCancel(c *gin.Context) (interface{}, error) {
 	req := transReqFromContext(c)
 	res := common.OrString(TccTransOutCancelResult, "SUCCESS")
 	logrus.Printf("%s tccTransOutCancel: %v result: %s", gid, req, res)
-	return M{"result": res}, nil
-}
-
-func tccTransQuery(c *gin.Context) (interface{}, error) {
-	gid := c.Query("gid")
-	logrus.Printf("%s TransQuery", gid)
-	res := common.OrString(TccTransQueryResult, "SUCCESS")
 	return M{"result": res}, nil
 }

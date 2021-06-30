@@ -12,6 +12,16 @@ type M = map[string]interface{}
 // 指定dtm服务地址
 const DtmServer = "http://localhost:8080/api/dtmsvr"
 
+const (
+	MsgBusiPort = iota + 8081
+	SagaBusiPort
+	SagaBarrierBusiPort
+	TccBusiPort
+	TccBarrierBusiPort
+	XaBusiPort
+	startBusiPort
+)
+
 type TransReq struct {
 	Amount         int    `json:"amount"`
 	TransInResult  string `json:"transInResult"`

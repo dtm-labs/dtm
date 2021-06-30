@@ -13,10 +13,9 @@ type Tcc struct {
 }
 
 type TccData struct {
-	Gid           string    `json:"gid"`
-	TransType     string    `json:"trans_type"`
-	Steps         []TccStep `json:"steps"`
-	QueryPrepared string    `json:"query_prepared"`
+	Gid       string    `json:"gid"`
+	TransType string    `json:"trans_type"`
+	Steps     []TccStep `json:"steps"`
 }
 type TccStep struct {
 	Try     string `json:"try"`
@@ -54,19 +53,6 @@ func (s *Tcc) Commit() error {
 	}
 	if resp.StatusCode() != 200 {
 		return fmt.Errorf("commit failed: %v", resp.Body())
-	}
-	return nil
-}
-
-func (s *Tcc) Prepare(queryPrepared string) error {
-	s.QueryPrepared = common.OrString(queryPrepared, s.QueryPrepared)
-	logrus.Printf("preparing %s body: %v", s.Gid, &s.TccData)
-	resp, err := common.RestyClient.R().SetBody(&s.TccData).Post(fmt.Sprintf("%s/prepare", s.Server))
-	if err != nil {
-		return err
-	}
-	if resp.StatusCode() != 200 {
-		return fmt.Errorf("prepare failed: %v", resp.Body())
 	}
 	return nil
 }

@@ -12,7 +12,6 @@ import (
 )
 
 // 事务参与者的服务地址
-const XaBusiPort = 8082
 const XaBusiApi = "/api/busi_xa"
 
 var XaBusi = fmt.Sprintf("http://localhost:%d%s", XaBusiPort, XaBusiApi)

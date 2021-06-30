@@ -17,11 +17,11 @@ drop table if exists user_account_trading;
 create table if not exists user_account_trading( -- 表示交易中被冻结的金额
   id int(11) PRIMARY KEY AUTO_INCREMENT,
   user_id int(11) UNIQUE ,
-  frozen DECIMAL(10, 2) not null default '0',
+  trading_balance DECIMAL(10, 2) not null default '0',
   create_time datetime DEFAULT now(),
   update_time datetime DEFAULT now(),
   key(create_time),
   key(update_time)
 );
 
-insert into user_account_trading (user_id, balance) values (1, 0), (2, 0) on DUPLICATE KEY UPDATE balance=values (balance);
+insert into user_account_trading (user_id, trading_balance) values (1, 0), (2, 0) on DUPLICATE KEY UPDATE trading_balance=values (trading_balance);
