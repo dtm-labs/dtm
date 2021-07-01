@@ -29,14 +29,13 @@ func MsgStartSvr() {
 }
 
 func MsgFireRequest() {
-	gid := common.GenGid()
-	logrus.Printf("busi transaction begin: %s", gid)
+	logrus.Printf("a busi transaction begin")
 	req := &TransReq{
 		Amount:         30,
 		TransInResult:  "SUCCESS",
 		TransOutResult: "SUCCESS",
 	}
-	msg := dtm.MsgNew(DtmServer, gid).
+	msg := dtm.MsgNew(DtmServer).
 		Add(MsgBusi+"/TransOut", req).
 		Add(MsgBusi+"/TransIn", req)
 	err := msg.Prepare(MsgBusi + "/TransQuery")

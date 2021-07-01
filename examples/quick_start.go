@@ -29,9 +29,8 @@ func startStartSvr() {
 }
 
 func startFireRequest() {
-	gid := common.GenGid()
 	req := &gin.H{"amount": 30}
-	saga := dtm.SagaNew(DtmServer, gid).
+	saga := dtm.SagaNew(DtmServer).
 		Add(startBusi+"/TransOut", startBusi+"/TransOutCompensate", req).
 		Add(startBusi+"/TransIn", startBusi+"/TransInCompensate", req)
 	err := saga.Commit()

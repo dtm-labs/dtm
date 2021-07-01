@@ -29,14 +29,13 @@ func TccStartSvr() {
 }
 
 func TccFireRequest() {
-	gid := common.GenGid()
-	logrus.Printf("busi transaction begin: %s", gid)
+	logrus.Printf("a busi transaction begin")
 	req := &TransReq{
 		Amount:         30,
 		TransInResult:  "SUCCESS",
 		TransOutResult: "SUCCESS",
 	}
-	tcc := dtm.TccNew(DtmServer, gid).
+	tcc := dtm.TccNew(DtmServer).
 		Add(TccBusi+"/TransOutTry", TccBusi+"/TransOutConfirm", TccBusi+"/TransOutCancel", req).
 		Add(TccBusi+"/TransInTry", TccBusi+"/TransInConfirm", TccBusi+"/TransOutCancel", req)
 	logrus.Printf("busi trans commit")

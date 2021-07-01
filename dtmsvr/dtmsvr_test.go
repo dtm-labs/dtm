@@ -209,29 +209,32 @@ func sagaCommittedPending(t *testing.T) {
 
 func genMsg(gid string) *dtm.Msg {
 	logrus.Printf("beginning a msg test ---------------- %s", gid)
-	msg := dtm.MsgNew(examples.DtmServer, gid)
+	msg := dtm.MsgNew(examples.DtmServer)
 	msg.QueryPrepared = examples.MsgBusi + "/TransQuery"
 	req := examples.GenTransReq(30, false, false)
 	msg.Add(examples.MsgBusi+"/TransOut", &req)
 	msg.Add(examples.MsgBusi+"/TransIn", &req)
+	msg.Gid = gid
 	return msg
 }
 
 func genSaga(gid string, outFailed bool, inFailed bool) *dtm.Saga {
 	logrus.Printf("beginning a saga test ---------------- %s", gid)
-	saga := dtm.SagaNew(examples.DtmServer, gid)
+	saga := dtm.SagaNew(examples.DtmServer)
 	req := examples.GenTransReq(30, outFailed, inFailed)
 	saga.Add(examples.SagaBusi+"/TransOut", examples.SagaBusi+"/TransOutCompensate", &req)
 	saga.Add(examples.SagaBusi+"/TransIn", examples.SagaBusi+"/TransInCompensate", &req)
+	saga.Gid = gid
 	return saga
 }
 
 func genTcc(gid string, outFailed bool, inFailed bool) *dtm.Tcc {
 	logrus.Printf("beginning a tcc test ---------------- %s", gid)
-	tcc := dtm.TccNew(examples.DtmServer, gid)
+	tcc := dtm.TccNew(examples.DtmServer)
 	req := examples.GenTransReq(30, outFailed, inFailed)
 	tcc.Add(examples.TccBusi+"/TransOutTry", examples.TccBusi+"/TransOutConfirm", examples.TccBusi+"/TransOutCancel", &req)
 	tcc.Add(examples.TccBusi+"/TransInTry", examples.TccBusi+"/TransInConfirm", examples.TccBusi+"/TransInCancel", &req)
+	tcc.Gid = gid
 	return tcc
 }
 

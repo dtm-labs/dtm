@@ -3,6 +3,7 @@ package dtm
 import (
 	"fmt"
 
+	jsonitor "github.com/json-iterator/go"
 	"github.com/sirupsen/logrus"
 	"github.com/yedf/dtm/common"
 )
@@ -24,10 +25,9 @@ type TccStep struct {
 	Data    string `json:"data"`
 }
 
-func TccNew(server string, gid string) *Tcc {
+func TccNew(server string) *Tcc {
 	return &Tcc{
 		TccData: TccData{
-			Gid:       gid,
 			TransType: "tcc",
 		},
 		Server: server,
@@ -54,5 +54,6 @@ func (s *Tcc) Commit() error {
 	if resp.StatusCode() != 200 {
 		return fmt.Errorf("commit failed: %v", resp.Body())
 	}
+	s.Gid = jsonitor.Get(resp.Body(), "gid").ToString()
 	return nil
 }

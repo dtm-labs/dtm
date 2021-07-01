@@ -3,6 +3,7 @@ package dtm
 import (
 	"fmt"
 
+	jsonitor "github.com/json-iterator/go"
 	"github.com/sirupsen/logrus"
 	"github.com/yedf/dtm/common"
 )
@@ -23,10 +24,9 @@ type MsgStep struct {
 	Data   string `json:"data"`
 }
 
-func MsgNew(server string, gid string) *Msg {
+func MsgNew(server string) *Msg {
 	return &Msg{
 		MsgData: MsgData{
-			Gid:       gid,
 			TransType: "msg",
 		},
 		Server: server,
@@ -51,6 +51,7 @@ func (s *Msg) Commit() error {
 	if resp.StatusCode() != 200 {
 		return fmt.Errorf("commit failed: %v", resp.Body())
 	}
+	s.Gid = jsonitor.Get(resp.Body(), "gid").ToString()
 	return nil
 }
 
@@ -64,5 +65,6 @@ func (s *Msg) Prepare(queryPrepared string) error {
 	if resp.StatusCode() != 200 {
 		return fmt.Errorf("prepare failed: %v", resp.Body())
 	}
+	s.Gid = jsonitor.Get(resp.Body(), "gid").ToString()
 	return nil
 }

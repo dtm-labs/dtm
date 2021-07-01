@@ -29,18 +29,18 @@ func SagaStartSvr() {
 }
 
 func SagaFireRequest() {
-	gid := common.GenGid()
-	logrus.Printf("busi transaction begin: %s", gid)
+	logrus.Printf("a busi transaction begin")
 	req := &TransReq{
 		Amount:         30,
 		TransInResult:  "SUCCESS",
 		TransOutResult: "SUCCESS",
 	}
-	saga := dtm.SagaNew(DtmServer, gid).
+	saga := dtm.SagaNew(DtmServer).
 		Add(SagaBusi+"/TransOut", SagaBusi+"/TransOutCompensate", req).
 		Add(SagaBusi+"/TransIn", SagaBusi+"/TransInCompensate", req)
 	logrus.Printf("busi trans commit")
 	err := saga.Commit()
+	logrus.Printf("result gid is: %s", saga.Gid)
 	e2p(err)
 }
 

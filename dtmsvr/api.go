@@ -22,7 +22,7 @@ func Prepare(c *gin.Context) (interface{}, error) {
 	m := TransFromContext(c)
 	m.Status = "prepared"
 	m.SaveNew(dbGet())
-	return M{"message": "SUCCESS"}, nil
+	return M{"message": "SUCCESS", "gid": m.Gid}, nil
 }
 
 func Commit(c *gin.Context) (interface{}, error) {
@@ -31,7 +31,7 @@ func Commit(c *gin.Context) (interface{}, error) {
 	m.Status = "committed"
 	m.SaveNew(db)
 	go m.Process(db)
-	return M{"message": "SUCCESS"}, nil
+	return M{"message": "SUCCESS", "gid": m.Gid}, nil
 }
 
 func Rollback(c *gin.Context) (interface{}, error) {

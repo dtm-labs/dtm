@@ -3,6 +3,7 @@ package dtm
 import (
 	"fmt"
 
+	jsonitor "github.com/json-iterator/go"
 	"github.com/sirupsen/logrus"
 	"github.com/yedf/dtm/common"
 )
@@ -23,10 +24,9 @@ type SagaStep struct {
 	Data       string `json:"data"`
 }
 
-func SagaNew(server string, gid string) *Saga {
+func SagaNew(server string) *Saga {
 	return &Saga{
 		SagaData: SagaData{
-			Gid:       gid,
 			TransType: "saga",
 		},
 		Server: server,
@@ -52,5 +52,6 @@ func (s *Saga) Commit() error {
 	if resp.StatusCode() != 200 {
 		return fmt.Errorf("commit failed: %v", resp.Body())
 	}
+	s.Gid = jsonitor.Get(resp.Body(), "gid").ToString()
 	return nil
 }
