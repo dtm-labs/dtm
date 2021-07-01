@@ -43,13 +43,31 @@ UPDATE accounts SET balance = balance + 100 WHERE id = 2;
 
 ### XA
 
+XA是由X/Open组织提出的分布式事务的规范，XA规范主要定义了(全局)事务管理器(TM)和(局部)资源管理器(RM)之间的接口。本地的数据库如mysql在XA中扮演的是RM角色
+
 XA一共分为两阶段：
 
-第一阶段（prepare）：事务管理器向所有本地资源管理器发起请求，询问是否是 ready 状态，所有参与者都将本事务能否成功的信息反馈发给协调者；
+第一阶段（prepare）：即所有的参与者RM准备执行事务并锁住需要的资源。参与者ready时，向TM报告已准备就绪。
 
-第二阶段 (commit/rollback)：事务管理器根据所有本地资源管理器的反馈，通知所有本地资源管理器，步调一致地在所有分支上提交或者回滚。
+第二阶段 (commit/rollback)：当事务管理者(TM)确认所有参与者(RM)都ready后，向所有参与者发送commit命令。
 
 目前主流的数据库基本都支持XA事务，包括mysql、oracle、sqlserver、postgre
+
+我们看看本地数据库是如何支持XA的：
+
+第一阶段 准备
+```
+XA start '4fPqCNTYeSG'
+UPDATE `user_account` SET `balance`=balance + 30,`update_time`='2021-06-09 11:50:42.438' WHERE user_id = '1'
+XA end '4fPqCNTYeSG'
+XA prepare '4fPqCNTYeSG'
+```
+
+当所有的参与者完成了prepare，就进入第二阶段 提交
+
+```
+xa commit '4fPqCNTYeSG'
+```
 
 ### xa实践
 
@@ -97,6 +115,11 @@ xa commit '4fPqCNTYeSG'
 xa commit '4fPqCPijxyC'
 ```
 
+整个交互的时序详情如下
+
+<img src="https://pic2.zhimg.com/v2-4b8483ebc69d3b19adc761c7ebd83f61_b.png" />
 
 ### 总结
+至此，一个完整的xa分布式事务介绍完成。
+
 在这篇简短的文章里，我们大致介绍了 事务->分布式事务->微服务处理XA事务。有兴趣的同学可以通过[dtm](https://github.com/yedf/dtm)继续研究分布式事务
