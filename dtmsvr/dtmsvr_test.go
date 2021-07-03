@@ -14,6 +14,9 @@ import (
 	"github.com/yedf/dtm/examples"
 )
 
+var DtmServer = examples.DtmServer
+var Busi = examples.Busi
+
 var myinit int = func() int {
 	common.InitApp(common.GetProjectDir(), &config)
 	config.Mysql["database"] = dbName
@@ -50,7 +53,6 @@ func TestDtmSvr(t *testing.T) {
 	sagaNormal(t)
 	tccNormal(t)
 	tccRollback(t)
-	tccRollbackPending(t)
 	xaNormal(t)
 	xaRollback(t)
 	sagaCommittedPending(t)
@@ -131,28 +133,27 @@ func xaRollback(t *testing.T) {
 }
 
 func tccNormal(t *testing.T) {
-	tcc := genTcc("gid-tcc-normal", false, false)
-	tcc.Submit()
-	assert.Equal(t, "submitted", getTransStatus(tcc.Gid))
-	WaitTransProcessed(tcc.Gid)
-	assert.Equal(t, []string{"prepared", "succeed", "succeed", "prepared", "succeed", "succeed"}, getBranchesStatus(tcc.Gid))
+	data := &examples.TransReq{Amount: 30}
+	_, err := dtmcli.TccGlobalTransaction(examples.DtmServer, func(tcc *dtmcli.Tcc) (rerr error) {
+		_, rerr = tcc.CallBranch(data, Busi+"/TransOut", Busi+"/TransOutConfirm", Busi+"/TransOutRevert")
+		e2p(rerr)
+		_, rerr = tcc.CallBranch(data, Busi+"/TransIn", Busi+"/TransInConfirm", Busi+"/TransInRevert")
+		e2p(rerr)
+		return
+	})
+	e2p(err)
 }
 func tccRollback(t *testing.T) {
-	tcc := genTcc("gid-tcc-rollback", false, true)
-	tcc.Submit()
-	WaitTransProcessed(tcc.Gid)
-	assert.Equal(t, []string{"succeed", "prepared", "succeed", "succeed", "prepared", "failed"}, getBranchesStatus(tcc.Gid))
+	data := &examples.TransReq{Amount: 30, TransInResult: "FAIL"}
+	_, err := dtmcli.TccGlobalTransaction(examples.DtmServer, func(tcc *dtmcli.Tcc) (rerr error) {
+		_, rerr = tcc.CallBranch(data, Busi+"/TransOut", Busi+"/TransOutConfirm", Busi+"/TransOutRevert")
+		e2p(rerr)
+		_, rerr = tcc.CallBranch(data, Busi+"/TransIn", Busi+"/TransInConfirm", Busi+"/TransInRevert")
+		e2p(rerr)
+		return
+	})
+	e2p(err)
 }
-func tccRollbackPending(t *testing.T) {
-	tcc := genTcc("gid-tcc-rollback-pending", false, true)
-	examples.MainSwitch.TransInRevertResult.SetOnce("PENDING")
-	tcc.Submit()
-	WaitTransProcessed(tcc.Gid)
-	// assert.Equal(t, "submitted", getTransStatus(tcc.Gid))
-	CronTransOnce(60*time.Second, "submitted")
-	assert.Equal(t, []string{"succeed", "prepared", "succeed", "succeed", "prepared", "failed"}, getBranchesStatus(tcc.Gid))
-}
-
 func msgNormal(t *testing.T) {
 	msg := genMsg("gid-normal-msg")
 	msg.Submit()
@@ -224,16 +225,6 @@ func genSaga(gid string, outFailed bool, inFailed bool) *dtmcli.Saga {
 	saga.Add(examples.Busi+"/TransIn", examples.Busi+"/TransInRevert", &req)
 	saga.Gid = gid
 	return saga
-}
-
-func genTcc(gid string, outFailed bool, inFailed bool) *dtmcli.Tcc {
-	logrus.Printf("beginning a tcc test ---------------- %s", gid)
-	tcc := dtmcli.NewTcc(examples.DtmServer)
-	req := examples.GenTransReq(30, outFailed, inFailed)
-	tcc.Add(examples.Busi+"/TransOut", examples.Busi+"/TransOutConfirm", examples.Busi+"/TransOutRevert", &req)
-	tcc.Add(examples.Busi+"/TransIn", examples.Busi+"/TransInConfirm", examples.Busi+"/TransInRevert", &req)
-	tcc.Gid = gid
-	return tcc
 }
 
 func transQuery(t *testing.T, gid string) {

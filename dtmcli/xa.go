@@ -65,7 +65,7 @@ func (xa *Xa) XaLocalTransaction(gid string, transFunc XaLocalFunc) (rerr error)
 	e2p(err)
 	resp, err := common.RestyClient.R().
 		SetBody(&M{"gid": gid, "branch": branch, "trans_type": "xa", "status": "prepared", "url": xa.CallbackUrl}).
-		Post(xa.Server + "/branch")
+		Post(xa.Server + "/registerXaBranch")
 	e2p(err)
 	if !strings.Contains(resp.String(), "SUCCESS") {
 		e2p(fmt.Errorf("unknown server response: %s", resp.String()))

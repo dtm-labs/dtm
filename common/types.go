@@ -11,6 +11,9 @@ import (
 	"gorm.io/gorm"
 )
 
+type M = map[string]interface{}
+type MS = map[string]string
+
 type ModelBase struct {
 	ID         uint
 	CreateTime *time.Time `gorm:"autoCreateTime"`

@@ -13,7 +13,8 @@ import (
 func AddRoute(engine *gin.Engine) {
 	engine.POST("/api/dtmsvr/prepare", common.WrapHandler(Prepare))
 	engine.POST("/api/dtmsvr/submit", common.WrapHandler(Submit))
-	engine.POST("/api/dtmsvr/branch", common.WrapHandler(Branch))
+	engine.POST("/api/dtmsvr/registerXaBranch", common.WrapHandler(RegisterXaBranch))
+	engine.POST("/api/dtmsvr/registerTccBranch", common.WrapHandler(RegisterTccBranch))
 	engine.POST("/api/dtmsvr/abort", common.WrapHandler(Abort))
 	engine.GET("/api/dtmsvr/query", common.WrapHandler(Query))
 }
@@ -46,7 +47,7 @@ func Abort(c *gin.Context) (interface{}, error) {
 	return M{"message": "SUCCESS"}, nil
 }
 
-func Branch(c *gin.Context) (interface{}, error) {
+func RegisterXaBranch(c *gin.Context) (interface{}, error) {
 	branch := TransBranch{}
 	err := c.BindJSON(&branch)
 	e2p(err)
@@ -55,6 +56,30 @@ func Branch(c *gin.Context) (interface{}, error) {
 	branches[0].BranchType = "rollback"
 	branches[1].BranchType = "commit"
 	db.Must().Clauses(clause.OnConflict{
+		DoNothing: true,
+	}).Create(branches)
+	e2p(err)
+	return M{"message": "SUCCESS"}, nil
+}
+
+func RegisterTccBranch(c *gin.Context) (interface{}, error) {
+	data := common.MS{}
+	err := c.BindJSON(&data)
+	e2p(err)
+	branch := TransBranch{
+		Gid:    data["gid"],
+		Branch: data["branch_id"],
+		Status: data["status"],
+		Data:   data["data"],
+	}
+
+	branches := []*TransBranch{&branch, &branch, &branch}
+	for i, b := range []string{"cancel", "confirm", "try"} {
+		branches[i].BranchType = b
+		branches[i].Url = data[b]
+	}
+
+	dbGet().Must().Clauses(clause.OnConflict{
 		DoNothing: true,
 	}).Create(branches)
 	e2p(err)

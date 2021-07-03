@@ -23,8 +23,6 @@ import (
 	"github.com/spf13/viper"
 )
 
-type M = map[string]interface{}
-
 func P2E(perr *error) {
 	if x := recover(); x != nil {
 		if e, ok := x.(error); ok {
@@ -86,16 +84,16 @@ func MustAtoi(s string) int {
 	return r
 }
 
-func GenGid() string {
-	return getOneHexIp() + "-" + gNode.Generate().Base58()
-}
-
 var gNode *snowflake.Node = nil
 
 func init() {
 	node, err := snowflake.NewNode(1)
 	E2P(err)
 	gNode = node
+}
+
+func GenGid() string {
+	return getOneHexIp() + "-" + gNode.Generate().Base58()
 }
 
 func OrString(ss ...string) string {
