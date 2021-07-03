@@ -24,7 +24,7 @@ type MsgStep struct {
 	Data   string `json:"data"`
 }
 
-func MsgNew(server string) *Msg {
+func NewMsg(server string) *Msg {
 	return &Msg{
 		MsgData: MsgData{
 			TransType: "msg",

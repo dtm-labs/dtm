@@ -17,14 +17,14 @@ type XaGlobalFunc func() error
 
 type XaLocalFunc func(db *common.DB) error
 
-type XaClient struct {
+type Xa struct {
 	Server      string
 	Conf        map[string]string
 	CallbackUrl string
 }
 
-func XaClientNew(server string, mysqlConf map[string]string, app *gin.Engine, callbackUrl string) *XaClient {
-	xa := &XaClient{
+func NewXa(server string, mysqlConf map[string]string, app *gin.Engine, callbackUrl string) *Xa {
+	xa := &Xa{
 		Server:      server,
 		Conf:        mysqlConf,
 		CallbackUrl: callbackUrl,
@@ -55,7 +55,7 @@ func XaClientNew(server string, mysqlConf map[string]string, app *gin.Engine, ca
 	return xa
 }
 
-func (xa *XaClient) XaLocalTransaction(gid string, transFunc XaLocalFunc) (rerr error) {
+func (xa *Xa) XaLocalTransaction(gid string, transFunc XaLocalFunc) (rerr error) {
 	defer common.P2E(&rerr)
 	branch := common.GenGid()
 	tx, my := common.DbAlone(xa.Conf)
@@ -75,7 +75,7 @@ func (xa *XaClient) XaLocalTransaction(gid string, transFunc XaLocalFunc) (rerr 
 	return nil
 }
 
-func (xa *XaClient) XaGlobalTransaction(gid string, transFunc XaGlobalFunc) (rerr error) {
+func (xa *Xa) XaGlobalTransaction(gid string, transFunc XaGlobalFunc) (rerr error) {
 	data := &M{
 		"gid":        gid,
 		"trans_type": "xa",

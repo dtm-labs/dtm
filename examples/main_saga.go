@@ -28,7 +28,7 @@ func SagaFireRequest() {
 		TransInResult:  "SUCCESS",
 		TransOutResult: "SUCCESS",
 	}
-	saga := dtmcli.SagaNew(DtmServer).
+	saga := dtmcli.NewSaga(DtmServer).
 		Add(Busi+"/TransOut", Busi+"/TransOutRevert", req).
 		Add(Busi+"/TransIn", Busi+"/TransInRevert", req)
 	logrus.Printf("saga busi trans submit")

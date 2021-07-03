@@ -24,7 +24,7 @@ type SagaStep struct {
 	Data       string `json:"data"`
 }
 
-func SagaNew(server string) *Saga {
+func NewSaga(server string) *Saga {
 	return &Saga{
 		SagaData: SagaData{
 			TransType: "saga",

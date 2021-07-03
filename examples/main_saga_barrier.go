@@ -37,7 +37,7 @@ func SagaBarrierFireRequest() {
 		TransInResult:  "SUCCESS",
 		TransOutResult: "SUCCESS",
 	}
-	saga := dtmcli.SagaNew(DtmServer).
+	saga := dtmcli.NewSaga(DtmServer).
 		Add(SagaBarrierBusi+"/TransOut", SagaBarrierBusi+"/TransOutCompensate", req).
 		Add(SagaBarrierBusi+"/TransIn", SagaBarrierBusi+"/TransInCompensate", req)
 	logrus.Printf("busi trans submit")

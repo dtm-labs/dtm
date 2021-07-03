@@ -10,7 +10,7 @@ import (
 	"gorm.io/gorm"
 )
 
-var XaClient *dtmcli.XaClient = nil
+var XaClient *dtmcli.Xa = nil
 
 type UserAccount struct {
 	common.ModelBase
@@ -58,7 +58,7 @@ func XaSetup(app *gin.Engine) {
 	app.POST(BusiApi+"/TransInXa", common.WrapHandler(xaTransIn))
 	app.POST(BusiApi+"/TransOutXa", common.WrapHandler(xaTransOut))
 	Config.Mysql["database"] = "dtm_busi"
-	XaClient = dtmcli.XaClientNew(DtmServer, Config.Mysql, app, Busi+"/xa")
+	XaClient = dtmcli.NewXa(DtmServer, Config.Mysql, app, Busi+"/xa")
 }
 
 func xaTransIn(c *gin.Context) (interface{}, error) {

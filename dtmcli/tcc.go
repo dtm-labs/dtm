@@ -25,7 +25,7 @@ type TccStep struct {
 	Data    string `json:"data"`
 }
 
-func TccNew(server string) *Tcc {
+func NewTcc(server string) *Tcc {
 	return &Tcc{
 		TccData: TccData{
 			TransType: "tcc",

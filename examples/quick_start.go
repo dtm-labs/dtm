@@ -31,7 +31,7 @@ func qsStartSvr() {
 
 func qsFireRequest() {
 	req := &gin.H{"amount": 30}
-	saga := dtmcli.SagaNew(DtmServer).
+	saga := dtmcli.NewSaga(DtmServer).
 		Add(qsBusi+"/TransOut", qsBusi+"/TransOutCompensate", req).
 		Add(qsBusi+"/TransIn", qsBusi+"/TransInCompensate", req)
 	err := saga.Submit()

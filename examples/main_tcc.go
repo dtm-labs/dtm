@@ -28,7 +28,7 @@ func TccFireRequest() {
 		TransInResult:  "SUCCESS",
 		TransOutResult: "SUCCESS",
 	}
-	tcc := dtmcli.TccNew(DtmServer).
+	tcc := dtmcli.NewTcc(DtmServer).
 		Add(Busi+"/TransOut", Busi+"/TransOutConfirm", Busi+"/TransOutRevert", req).
 		Add(Busi+"/TransIn", Busi+"/TransInConfirm", Busi+"/TransOutRevert", req)
 	logrus.Printf("tcc trans submit")
