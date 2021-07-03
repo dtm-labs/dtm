@@ -87,8 +87,7 @@ func getBranchesStatus(gid string) []string {
 
 func xaNormal(t *testing.T) {
 	xa := examples.XaClient
-	gid := "xa-normal"
-	err := xa.XaGlobalTransaction(gid, func() error {
+	gid, err := xa.XaGlobalTransaction(func(gid string) error {
 		req := examples.GenTransReq(30, false, false)
 		resp, err := common.RestyClient.R().SetBody(req).SetQueryParams(map[string]string{
 			"gid":     gid,
@@ -109,8 +108,7 @@ func xaNormal(t *testing.T) {
 
 func xaRollback(t *testing.T) {
 	xa := examples.XaClient
-	gid := "xa-rollback"
-	err := xa.XaGlobalTransaction(gid, func() error {
+	gid, err := xa.XaGlobalTransaction(func(gid string) error {
 		req := examples.GenTransReq(30, false, true)
 		resp, err := common.RestyClient.R().SetBody(req).SetQueryParams(map[string]string{
 			"gid":     gid,

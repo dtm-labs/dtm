@@ -13,7 +13,7 @@ type M = map[string]interface{}
 
 var e2p = common.E2P
 
-type XaGlobalFunc func() error
+type XaGlobalFunc func(gid string) error
 
 type XaLocalFunc func(db *common.DB) error
 
@@ -75,7 +75,8 @@ func (xa *Xa) XaLocalTransaction(gid string, transFunc XaLocalFunc) (rerr error)
 	return nil
 }
 
-func (xa *Xa) XaGlobalTransaction(gid string, transFunc XaGlobalFunc) (rerr error) {
+func (xa *Xa) XaGlobalTransaction(transFunc XaGlobalFunc) (gid string, rerr error) {
+	gid = common.GenGid()
 	data := &M{
 		"gid":        gid,
 		"trans_type": "xa",
@@ -87,17 +88,17 @@ func (xa *Xa) XaGlobalTransaction(gid string, transFunc XaGlobalFunc) (rerr erro
 			rerr = x.(error)
 		}
 	}()
-	resp, err := common.RestyClient.R().SetBody(data).Post(xa.Server + "/prepare")
-	e2p(err)
+	resp, rerr := common.RestyClient.R().SetBody(data).Post(xa.Server + "/prepare")
+	e2p(rerr)
 	if !strings.Contains(resp.String(), "SUCCESS") {
 		panic(fmt.Errorf("unexpected result: %s", resp.String()))
 	}
-	err = transFunc()
-	e2p(err)
-	resp, err = common.RestyClient.R().SetBody(data).Post(xa.Server + "/submit")
-	e2p(err)
+	rerr = transFunc(gid)
+	e2p(rerr)
+	resp, rerr = common.RestyClient.R().SetBody(data).Post(xa.Server + "/submit")
+	e2p(rerr)
 	if !strings.Contains(resp.String(), "SUCCESS") {
 		panic(fmt.Errorf("unexpected result: %s", resp.String()))
 	}
-	return nil
+	return
 }

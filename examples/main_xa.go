@@ -34,8 +34,7 @@ func XaMain() {
 }
 
 func XaFireRequest() {
-	gid := common.GenGid()
-	err := XaClient.XaGlobalTransaction(gid, func() (rerr error) {
+	_, err := XaClient.XaGlobalTransaction(func(gid string) (rerr error) {
 		defer common.P2E(&rerr)
 		req := GenTransReq(30, false, false)
 		resp, err := common.RestyClient.R().SetBody(req).SetQueryParams(map[string]string{
