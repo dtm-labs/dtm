@@ -83,7 +83,7 @@ func (xa *XaClient) XaGlobalTransaction(gid string, transFunc XaGlobalFunc) (rer
 	defer func() {
 		x := recover()
 		if x != nil {
-			_, _ = common.RestyClient.R().SetBody(data).Post(xa.Server + "/rollback")
+			_, _ = common.RestyClient.R().SetBody(data).Post(xa.Server + "/abort")
 			rerr = x.(error)
 		}
 	}()
@@ -94,7 +94,7 @@ func (xa *XaClient) XaGlobalTransaction(gid string, transFunc XaGlobalFunc) (rer
 	}
 	err = transFunc()
 	e2p(err)
-	resp, err = common.RestyClient.R().SetBody(data).Post(xa.Server + "/commit")
+	resp, err = common.RestyClient.R().SetBody(data).Post(xa.Server + "/submit")
 	e2p(err)
 	if !strings.Contains(resp.String(), "SUCCESS") {
 		panic(fmt.Errorf("unexpected result: %s", resp.String()))

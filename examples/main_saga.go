@@ -31,8 +31,8 @@ func SagaFireRequest() {
 	saga := dtm.SagaNew(DtmServer).
 		Add(Busi+"/TransOut", Busi+"/TransOutRevert", req).
 		Add(Busi+"/TransIn", Busi+"/TransInRevert", req)
-	logrus.Printf("saga busi trans commit")
-	err := saga.Commit()
+	logrus.Printf("saga busi trans submit")
+	err := saga.Submit()
 	logrus.Printf("result gid is: %s", saga.Gid)
 	e2p(err)
 }

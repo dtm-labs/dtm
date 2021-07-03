@@ -40,8 +40,8 @@ func SagaBarrierFireRequest() {
 	saga := dtm.SagaNew(DtmServer).
 		Add(SagaBarrierBusi+"/TransOut", SagaBarrierBusi+"/TransOutCompensate", req).
 		Add(SagaBarrierBusi+"/TransIn", SagaBarrierBusi+"/TransInCompensate", req)
-	logrus.Printf("busi trans commit")
-	err := saga.Commit()
+	logrus.Printf("busi trans submit")
+	err := saga.Submit()
 	e2p(err)
 }
 

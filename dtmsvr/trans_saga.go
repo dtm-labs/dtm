@@ -51,7 +51,7 @@ func (t *TransSagaProcessor) ExecBranch(db *common.DB, branch *TransBranch) {
 }
 
 func (t *TransSagaProcessor) ProcessOnce(db *common.DB, branches []TransBranch) {
-	if t.Status != "committed" {
+	if t.Status != "submitted" {
 		return
 	}
 	current := 0 // 当前正在处理的步骤

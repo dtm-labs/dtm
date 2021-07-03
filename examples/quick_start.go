@@ -34,7 +34,7 @@ func qsFireRequest() {
 	saga := dtm.SagaNew(DtmServer).
 		Add(qsBusi+"/TransOut", qsBusi+"/TransOutCompensate", req).
 		Add(qsBusi+"/TransIn", qsBusi+"/TransInCompensate", req)
-	err := saga.Commit()
+	err := saga.Submit()
 	e2p(err)
 }
 

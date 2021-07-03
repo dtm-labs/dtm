@@ -62,7 +62,7 @@ func TestCover(t *testing.T) {
 	db := dbGet()
 	db.NoMust()
 	CronTransOnce(0, "prepared")
-	CronTransOnce(0, "committed")
+	CronTransOnce(0, "submitted")
 	defer handlePanic()
 	checkAffected(db.DB)
 }
@@ -134,31 +134,31 @@ func xaRollback(t *testing.T) {
 
 func tccNormal(t *testing.T) {
 	tcc := genTcc("gid-tcc-normal", false, false)
-	tcc.Commit()
-	assert.Equal(t, "committed", getTransStatus(tcc.Gid))
+	tcc.Submit()
+	assert.Equal(t, "submitted", getTransStatus(tcc.Gid))
 	WaitTransProcessed(tcc.Gid)
 	assert.Equal(t, []string{"prepared", "succeed", "succeed", "prepared", "succeed", "succeed"}, getBranchesStatus(tcc.Gid))
 }
 func tccRollback(t *testing.T) {
 	tcc := genTcc("gid-tcc-rollback", false, true)
-	tcc.Commit()
+	tcc.Submit()
 	WaitTransProcessed(tcc.Gid)
 	assert.Equal(t, []string{"succeed", "prepared", "succeed", "succeed", "prepared", "failed"}, getBranchesStatus(tcc.Gid))
 }
 func tccRollbackPending(t *testing.T) {
 	tcc := genTcc("gid-tcc-rollback-pending", false, true)
 	examples.MainSwitch.TransInRevertResult.SetOnce("PENDING")
-	tcc.Commit()
+	tcc.Submit()
 	WaitTransProcessed(tcc.Gid)
-	// assert.Equal(t, "committed", getTransStatus(tcc.Gid))
-	CronTransOnce(60*time.Second, "committed")
+	// assert.Equal(t, "submitted", getTransStatus(tcc.Gid))
+	CronTransOnce(60*time.Second, "submitted")
 	assert.Equal(t, []string{"succeed", "prepared", "succeed", "succeed", "prepared", "failed"}, getBranchesStatus(tcc.Gid))
 }
 
 func msgNormal(t *testing.T) {
 	msg := genMsg("gid-normal-msg")
-	msg.Commit()
-	assert.Equal(t, "committed", getTransStatus(msg.Gid))
+	msg.Submit()
+	assert.Equal(t, "submitted", getTransStatus(msg.Gid))
 	WaitTransProcessed(msg.Gid)
 	assert.Equal(t, []string{"succeed", "succeed"}, getBranchesStatus(msg.Gid))
 	assert.Equal(t, "succeed", getTransStatus(msg.Gid))
@@ -173,16 +173,16 @@ func msgPending(t *testing.T) {
 	assert.Equal(t, "prepared", getTransStatus(msg.Gid))
 	examples.MainSwitch.TransInResult.SetOnce("PENDING")
 	CronTransOnce(60*time.Second, "prepared")
-	assert.Equal(t, "committed", getTransStatus(msg.Gid))
-	CronTransOnce(60*time.Second, "committed")
+	assert.Equal(t, "submitted", getTransStatus(msg.Gid))
+	CronTransOnce(60*time.Second, "submitted")
 	assert.Equal(t, []string{"succeed", "succeed"}, getBranchesStatus(msg.Gid))
 	assert.Equal(t, "succeed", getTransStatus(msg.Gid))
 }
 
 func sagaNormal(t *testing.T) {
 	saga := genSaga("gid-noramlSaga", false, false)
-	saga.Commit()
-	assert.Equal(t, "committed", getTransStatus(saga.Gid))
+	saga.Submit()
+	assert.Equal(t, "submitted", getTransStatus(saga.Gid))
 	WaitTransProcessed(saga.Gid)
 	assert.Equal(t, []string{"prepared", "succeed", "prepared", "succeed"}, getBranchesStatus(saga.Gid))
 	transQuery(t, saga.Gid)
@@ -190,7 +190,7 @@ func sagaNormal(t *testing.T) {
 
 func sagaRollback(t *testing.T) {
 	saga := genSaga("gid-rollbackSaga2", false, true)
-	saga.Commit()
+	saga.Submit()
 	WaitTransProcessed(saga.Gid)
 	assert.Equal(t, "failed", getTransStatus(saga.Gid))
 	assert.Equal(t, []string{"succeed", "succeed", "succeed", "failed"}, getBranchesStatus(saga.Gid))
@@ -199,10 +199,10 @@ func sagaRollback(t *testing.T) {
 func sagaCommittedPending(t *testing.T) {
 	saga := genSaga("gid-committedPending", false, false)
 	examples.MainSwitch.TransInResult.SetOnce("PENDING")
-	saga.Commit()
+	saga.Submit()
 	WaitTransProcessed(saga.Gid)
 	assert.Equal(t, []string{"prepared", "prepared", "prepared", "prepared"}, getBranchesStatus(saga.Gid))
-	CronTransOnce(60*time.Second, "committed")
+	CronTransOnce(60*time.Second, "submitted")
 	assert.Equal(t, []string{"prepared", "succeed", "prepared", "succeed"}, getBranchesStatus(saga.Gid))
 	assert.Equal(t, "succeed", getTransStatus(saga.Gid))
 }
@@ -273,7 +273,7 @@ func TestSqlDB(t *testing.T) {
 	dbr = db.Model(&dtm.BarrierModel{}).Where("gid=?", "gid2").Find(&[]dtm.BarrierModel{})
 	asserts.Equal(dbr.RowsAffected, int64(0))
 	_, err = dtm.ThroughBarrierCall(db.ToSqlDB(), "saga", "gid2", "branch_id2", "compensate", func(db *sql.DB) (interface{}, error) {
-		logrus.Printf("commit gid2")
+		logrus.Printf("submit gid2")
 		return nil, nil
 	})
 	asserts.Nil(err)

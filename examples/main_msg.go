@@ -31,7 +31,7 @@ func MsgFireRequest() {
 		Add(Busi+"/TransIn", req)
 	err := msg.Prepare(Busi + "/TransQuery")
 	e2p(err)
-	logrus.Printf("busi trans commit")
-	err = msg.Commit()
+	logrus.Printf("busi trans submit")
+	err = msg.Submit()
 	e2p(err)
 }

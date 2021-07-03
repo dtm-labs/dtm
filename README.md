@@ -44,7 +44,7 @@ saga := dtm.SagaNew(DtmServer).
   Add(startBusi+"/TransOut", startBusi+"/TransOutCompensate", req).
   Add(startBusi+"/TransIn", startBusi+"/TransInCompensate", req)
   // 提交saga事务
-err := saga.Commit()
+err := saga.Submit()
 ```
 ### 完整示例
 参考[examples/quick_start.go](./examples/quick_start.go)

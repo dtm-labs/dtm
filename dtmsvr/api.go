@@ -12,9 +12,9 @@ import (
 
 func AddRoute(engine *gin.Engine) {
 	engine.POST("/api/dtmsvr/prepare", common.WrapHandler(Prepare))
-	engine.POST("/api/dtmsvr/commit", common.WrapHandler(Commit))
+	engine.POST("/api/dtmsvr/submit", common.WrapHandler(Submit))
 	engine.POST("/api/dtmsvr/branch", common.WrapHandler(Branch))
-	engine.POST("/api/dtmsvr/rollback", common.WrapHandler(Rollback))
+	engine.POST("/api/dtmsvr/abort", common.WrapHandler(Abort))
 	engine.GET("/api/dtmsvr/query", common.WrapHandler(Query))
 }
 
@@ -25,16 +25,16 @@ func Prepare(c *gin.Context) (interface{}, error) {
 	return M{"message": "SUCCESS", "gid": m.Gid}, nil
 }
 
-func Commit(c *gin.Context) (interface{}, error) {
+func Submit(c *gin.Context) (interface{}, error) {
 	db := dbGet()
 	m := TransFromContext(c)
-	m.Status = "committed"
+	m.Status = "submitted"
 	m.SaveNew(db)
 	go m.Process(db)
 	return M{"message": "SUCCESS", "gid": m.Gid}, nil
 }
 
-func Rollback(c *gin.Context) (interface{}, error) {
+func Abort(c *gin.Context) (interface{}, error) {
 	db := dbGet()
 	m := TransFromContext(c)
 	m = TransFromDb(db, m.Gid)

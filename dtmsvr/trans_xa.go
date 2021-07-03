@@ -38,11 +38,11 @@ func (t *TransXaProcessor) ProcessOnce(db *common.DB, branches []TransBranch) {
 	if t.Status == "succeed" {
 		return
 	}
-	currentType := common.If(t.Status == "committed", "commit", "rollback").(string)
+	currentType := common.If(t.Status == "submitted", "commit", "rollback").(string)
 	for _, branch := range branches {
 		if branch.BranchType == currentType && branch.Status != "succeed" {
 			t.ExecBranch(db, &branch)
 		}
 	}
-	t.changeStatus(db, common.If(t.Status == "committed", "succeed", "failed").(string))
+	t.changeStatus(db, common.If(t.Status == "submitted", "succeed", "failed").(string))
 }

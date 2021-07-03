@@ -31,7 +31,7 @@ func TccFireRequest() {
 	tcc := dtm.TccNew(DtmServer).
 		Add(Busi+"/TransOut", Busi+"/TransOutConfirm", Busi+"/TransOutRevert", req).
 		Add(Busi+"/TransIn", Busi+"/TransInConfirm", Busi+"/TransOutRevert", req)
-	logrus.Printf("tcc trans commit")
-	err := tcc.Commit()
+	logrus.Printf("tcc trans submit")
+	err := tcc.Submit()
 	e2p(err)
 }

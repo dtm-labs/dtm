@@ -42,14 +42,14 @@ func (s *Msg) Add(action string, postData interface{}) *Msg {
 	return s
 }
 
-func (s *Msg) Commit() error {
+func (s *Msg) Submit() error {
 	logrus.Printf("committing %s body: %v", s.Gid, &s.MsgData)
-	resp, err := common.RestyClient.R().SetBody(&s.MsgData).Post(fmt.Sprintf("%s/commit", s.Server))
+	resp, err := common.RestyClient.R().SetBody(&s.MsgData).Post(fmt.Sprintf("%s/submit", s.Server))
 	if err != nil {
 		return err
 	}
 	if resp.StatusCode() != 200 {
-		return fmt.Errorf("commit failed: %v", resp.Body())
+		return fmt.Errorf("submit failed: %v", resp.Body())
 	}
 	s.Gid = jsonitor.Get(resp.Body(), "gid").ToString()
 	return nil

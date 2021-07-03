@@ -143,7 +143,7 @@ func (t *TransGlobal) SaveNew(db *common.DB) {
 					DoNothing: true,
 				}).Create(&branches)
 			}
-		} else if dbr.RowsAffected == 0 && t.Status == "committed" { // 如果数据库已经存放了prepared的事务，则修改状态
+		} else if dbr.RowsAffected == 0 && t.Status == "submitted" { // 如果数据库已经存放了prepared的事务，则修改状态
 			dbr = db.Must().Model(t).Where("gid=? and status=?", t.Gid, "prepared").Select(append(updates, "status")).Updates(t)
 		}
 		return nil
