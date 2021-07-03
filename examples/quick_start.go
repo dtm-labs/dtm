@@ -6,8 +6,8 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
-	"github.com/yedf/dtm"
 	"github.com/yedf/dtm/common"
+	"github.com/yedf/dtm/dtmcli"
 )
 
 // 事务参与者的服务地址
@@ -31,7 +31,7 @@ func qsStartSvr() {
 
 func qsFireRequest() {
 	req := &gin.H{"amount": 30}
-	saga := dtm.SagaNew(DtmServer).
+	saga := dtmcli.SagaNew(DtmServer).
 		Add(qsBusi+"/TransOut", qsBusi+"/TransOutCompensate", req).
 		Add(qsBusi+"/TransIn", qsBusi+"/TransInCompensate", req)
 	err := saga.Submit()

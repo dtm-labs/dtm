@@ -5,7 +5,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
-	"github.com/yedf/dtm"
+	"github.com/yedf/dtm/dtmcli"
 )
 
 func SagaMain() {
@@ -28,7 +28,7 @@ func SagaFireRequest() {
 		TransInResult:  "SUCCESS",
 		TransOutResult: "SUCCESS",
 	}
-	saga := dtm.SagaNew(DtmServer).
+	saga := dtmcli.SagaNew(DtmServer).
 		Add(Busi+"/TransOut", Busi+"/TransOutRevert", req).
 		Add(Busi+"/TransIn", Busi+"/TransInRevert", req)
 	logrus.Printf("saga busi trans submit")

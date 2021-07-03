@@ -9,8 +9,8 @@ import (
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
 	"github.com/stretchr/testify/assert"
-	"github.com/yedf/dtm"
 	"github.com/yedf/dtm/common"
+	"github.com/yedf/dtm/dtmcli"
 	"github.com/yedf/dtm/examples"
 )
 
@@ -207,9 +207,9 @@ func sagaCommittedPending(t *testing.T) {
 	assert.Equal(t, "succeed", getTransStatus(saga.Gid))
 }
 
-func genMsg(gid string) *dtm.Msg {
+func genMsg(gid string) *dtmcli.Msg {
 	logrus.Printf("beginning a msg test ---------------- %s", gid)
-	msg := dtm.MsgNew(examples.DtmServer)
+	msg := dtmcli.MsgNew(examples.DtmServer)
 	msg.QueryPrepared = examples.Busi + "/CanSubmit"
 	req := examples.GenTransReq(30, false, false)
 	msg.Add(examples.Busi+"/TransOut", &req)
@@ -218,9 +218,9 @@ func genMsg(gid string) *dtm.Msg {
 	return msg
 }
 
-func genSaga(gid string, outFailed bool, inFailed bool) *dtm.Saga {
+func genSaga(gid string, outFailed bool, inFailed bool) *dtmcli.Saga {
 	logrus.Printf("beginning a saga test ---------------- %s", gid)
-	saga := dtm.SagaNew(examples.DtmServer)
+	saga := dtmcli.SagaNew(examples.DtmServer)
 	req := examples.GenTransReq(30, outFailed, inFailed)
 	saga.Add(examples.Busi+"/TransOut", examples.Busi+"/TransOutRevert", &req)
 	saga.Add(examples.Busi+"/TransIn", examples.Busi+"/TransInRevert", &req)
@@ -228,9 +228,9 @@ func genSaga(gid string, outFailed bool, inFailed bool) *dtm.Saga {
 	return saga
 }
 
-func genTcc(gid string, outFailed bool, inFailed bool) *dtm.Tcc {
+func genTcc(gid string, outFailed bool, inFailed bool) *dtmcli.Tcc {
 	logrus.Printf("beginning a tcc test ---------------- %s", gid)
-	tcc := dtm.TccNew(examples.DtmServer)
+	tcc := dtmcli.TccNew(examples.DtmServer)
 	req := examples.GenTransReq(30, outFailed, inFailed)
 	tcc.Add(examples.Busi+"/TransOut", examples.Busi+"/TransOutConfirm", examples.Busi+"/TransOutRevert", &req)
 	tcc.Add(examples.Busi+"/TransIn", examples.Busi+"/TransInConfirm", examples.Busi+"/TransInRevert", &req)
@@ -263,20 +263,20 @@ func TestSqlDB(t *testing.T) {
 	asserts := assert.New(t)
 	db := common.DbGet(config.Mysql)
 	db.Must().Exec("insert ignore into dtm_barrier.barrier(trans_type, gid, branch_id, branch_type) values('saga', 'gid1', 'branch_id1', 'action')")
-	_, err := dtm.ThroughBarrierCall(db.ToSqlDB(), "saga", "gid2", "branch_id2", "compensate", func(db *sql.DB) (interface{}, error) {
+	_, err := dtmcli.ThroughBarrierCall(db.ToSqlDB(), "saga", "gid2", "branch_id2", "compensate", func(db *sql.DB) (interface{}, error) {
 		logrus.Printf("rollback gid2")
 		return nil, fmt.Errorf("gid2 error")
 	})
 	asserts.Error(err, fmt.Errorf("gid2 error"))
-	dbr := db.Model(&dtm.BarrierModel{}).Where("gid=?", "gid1").Find(&[]dtm.BarrierModel{})
+	dbr := db.Model(&dtmcli.BarrierModel{}).Where("gid=?", "gid1").Find(&[]dtmcli.BarrierModel{})
 	asserts.Equal(dbr.RowsAffected, int64(1))
-	dbr = db.Model(&dtm.BarrierModel{}).Where("gid=?", "gid2").Find(&[]dtm.BarrierModel{})
+	dbr = db.Model(&dtmcli.BarrierModel{}).Where("gid=?", "gid2").Find(&[]dtmcli.BarrierModel{})
 	asserts.Equal(dbr.RowsAffected, int64(0))
-	_, err = dtm.ThroughBarrierCall(db.ToSqlDB(), "saga", "gid2", "branch_id2", "compensate", func(db *sql.DB) (interface{}, error) {
+	_, err = dtmcli.ThroughBarrierCall(db.ToSqlDB(), "saga", "gid2", "branch_id2", "compensate", func(db *sql.DB) (interface{}, error) {
 		logrus.Printf("submit gid2")
 		return nil, nil
 	})
 	asserts.Nil(err)
-	dbr = db.Model(&dtm.BarrierModel{}).Where("gid=?", "gid2").Find(&[]dtm.BarrierModel{})
+	dbr = db.Model(&dtmcli.BarrierModel{}).Where("gid=?", "gid2").Find(&[]dtmcli.BarrierModel{})
 	asserts.Equal(dbr.RowsAffected, int64(2))
 }

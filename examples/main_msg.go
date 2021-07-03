@@ -5,7 +5,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
-	"github.com/yedf/dtm"
+	"github.com/yedf/dtm/dtmcli"
 )
 
 func MsgMain() {
@@ -26,7 +26,7 @@ func MsgFireRequest() {
 		TransInResult:  "SUCCESS",
 		TransOutResult: "SUCCESS",
 	}
-	msg := dtm.MsgNew(DtmServer).
+	msg := dtmcli.MsgNew(DtmServer).
 		Add(Busi+"/TransOut", req).
 		Add(Busi+"/TransIn", req)
 	err := msg.Prepare(Busi + "/TransQuery")

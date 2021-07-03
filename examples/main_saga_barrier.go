@@ -7,8 +7,8 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
-	"github.com/yedf/dtm"
 	"github.com/yedf/dtm/common"
+	"github.com/yedf/dtm/dtmcli"
 	"gorm.io/gorm"
 )
 
@@ -37,7 +37,7 @@ func SagaBarrierFireRequest() {
 		TransInResult:  "SUCCESS",
 		TransOutResult: "SUCCESS",
 	}
-	saga := dtm.SagaNew(DtmServer).
+	saga := dtmcli.SagaNew(DtmServer).
 		Add(SagaBarrierBusi+"/TransOut", SagaBarrierBusi+"/TransOutCompensate", req).
 		Add(SagaBarrierBusi+"/TransIn", SagaBarrierBusi+"/TransInCompensate", req)
 	logrus.Printf("busi trans submit")
@@ -80,7 +80,7 @@ func sagaBarrierTransOut(c *gin.Context) (interface{}, error) {
 	gid := c.Query("gid")
 	lid := c.Query("lid")
 	req := reqFrom(c)
-	return dtm.ThroughBarrierCall(dbGet().ToSqlDB(), "saga", gid, lid, "action", func(sdb *sql.DB) (interface{}, error) {
+	return dtmcli.ThroughBarrierCall(dbGet().ToSqlDB(), "saga", gid, lid, "action", func(sdb *sql.DB) (interface{}, error) {
 		db := common.SqlDB2DB(sdb)
 		dbr := db.Model(&UserAccount{}).Where("user_id = ?", c.Query("user_id")).
 			Update("balance", gorm.Expr("balance - ?", req.Amount))

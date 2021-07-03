@@ -5,7 +5,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
-	"github.com/yedf/dtm"
+	"github.com/yedf/dtm/dtmcli"
 )
 
 func TccMain() {
@@ -28,7 +28,7 @@ func TccFireRequest() {
 		TransInResult:  "SUCCESS",
 		TransOutResult: "SUCCESS",
 	}
-	tcc := dtm.TccNew(DtmServer).
+	tcc := dtmcli.TccNew(DtmServer).
 		Add(Busi+"/TransOut", Busi+"/TransOutConfirm", Busi+"/TransOutRevert", req).
 		Add(Busi+"/TransIn", Busi+"/TransInConfirm", Busi+"/TransOutRevert", req)
 	logrus.Printf("tcc trans submit")

@@ -4,8 +4,8 @@ import (
 	"fmt"
 
 	"github.com/gin-gonic/gin"
-	"github.com/yedf/dtm"
 	"github.com/yedf/dtm/common"
+	"github.com/yedf/dtm/dtmcli"
 )
 
 var e2p = common.E2P
@@ -44,8 +44,8 @@ func reqFrom(c *gin.Context) *TransReq {
 	return &req
 }
 
-func infoFromContext(c *gin.Context) *dtm.TransInfo {
-	info := dtm.TransInfo{
+func infoFromContext(c *gin.Context) *dtmcli.TransInfo {
+	info := dtmcli.TransInfo{
 		TransType:  c.Query("trans_type"),
 		Gid:        c.Query("gid"),
 		BranchID:   c.Query("branch_id"),

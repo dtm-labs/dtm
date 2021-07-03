@@ -5,12 +5,12 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
-	"github.com/yedf/dtm"
 	"github.com/yedf/dtm/common"
+	"github.com/yedf/dtm/dtmcli"
 	"gorm.io/gorm"
 )
 
-var XaClient *dtm.XaClient = nil
+var XaClient *dtmcli.XaClient = nil
 
 type UserAccount struct {
 	common.ModelBase
@@ -58,7 +58,7 @@ func XaSetup(app *gin.Engine) {
 	app.POST(BusiApi+"/TransInXa", common.WrapHandler(xaTransIn))
 	app.POST(BusiApi+"/TransOutXa", common.WrapHandler(xaTransOut))
 	Config.Mysql["database"] = "dtm_busi"
-	XaClient = dtm.XaClientNew(DtmServer, Config.Mysql, app, Busi+"/xa")
+	XaClient = dtmcli.XaClientNew(DtmServer, Config.Mysql, app, Busi+"/xa")
 }
 
 func xaTransIn(c *gin.Context) (interface{}, error) {
