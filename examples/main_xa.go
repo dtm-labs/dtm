@@ -5,16 +5,10 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
-	"github.com/sirupsen/logrus"
 	"github.com/yedf/dtm"
 	"github.com/yedf/dtm/common"
 	"gorm.io/gorm"
 )
-
-// 事务参与者的服务地址
-const XaBusiApi = "/api/busi_xa"
-
-var XaBusi = fmt.Sprintf("http://localhost:%d%s", XaBusiPort, XaBusiApi)
 
 var XaClient *dtm.XaClient = nil
 
@@ -31,20 +25,12 @@ func dbGet() *common.DB {
 }
 
 func XaMain() {
-	go XaStartSvr()
+	app := BaseAppNew()
+	XaSetup(app)
+	go BaseAppStart(app)
 	time.Sleep(100 * time.Millisecond)
 	XaFireRequest()
 	time.Sleep(1000 * time.Second)
-}
-
-func XaStartSvr() {
-	common.InitApp(common.GetProjectDir(), &Config)
-	Config.Mysql["database"] = "dtm_busi"
-	logrus.Printf("xa examples starting")
-	app := common.GetGinApp()
-	XaClient = dtm.XaClientNew(DtmServer, Config.Mysql, app, XaBusi+"/xa")
-	XaAddRoute(app)
-	app.Run(fmt.Sprintf(":%d", XaBusiPort))
 }
 
 func XaFireRequest() {
@@ -55,12 +41,12 @@ func XaFireRequest() {
 		resp, err := common.RestyClient.R().SetBody(req).SetQueryParams(map[string]string{
 			"gid":     gid,
 			"user_id": "1",
-		}).Post(XaBusi + "/TransOut")
+		}).Post(Busi + "/TransOutXa")
 		common.CheckRestySuccess(resp, err)
 		resp, err = common.RestyClient.R().SetBody(req).SetQueryParams(map[string]string{
 			"gid":     gid,
 			"user_id": "2",
-		}).Post(XaBusi + "/TransIn")
+		}).Post(Busi + "/TransInXa")
 		common.CheckRestySuccess(resp, err)
 		return nil
 	})
@@ -68,14 +54,16 @@ func XaFireRequest() {
 }
 
 // api
-func XaAddRoute(app *gin.Engine) {
-	app.POST(XaBusiApi+"/TransIn", common.WrapHandler(xaTransIn))
-	app.POST(XaBusiApi+"/TransOut", common.WrapHandler(xaTransOut))
+func XaSetup(app *gin.Engine) {
+	app.POST(BusiApi+"/TransInXa", common.WrapHandler(xaTransIn))
+	app.POST(BusiApi+"/TransOutXa", common.WrapHandler(xaTransOut))
+	Config.Mysql["database"] = "dtm_busi"
+	XaClient = dtm.XaClientNew(DtmServer, Config.Mysql, app, Busi+"/xa")
 }
 
 func xaTransIn(c *gin.Context) (interface{}, error) {
 	err := XaClient.XaLocalTransaction(c.Query("gid"), func(db *common.DB) (rerr error) {
-		req := transReqFromContext(c)
+		req := reqFrom(c)
 		if req.TransInResult != "SUCCESS" {
 			return fmt.Errorf("tranIn failed")
 		}
@@ -89,7 +77,7 @@ func xaTransIn(c *gin.Context) (interface{}, error) {
 
 func xaTransOut(c *gin.Context) (interface{}, error) {
 	err := XaClient.XaLocalTransaction(c.Query("gid"), func(db *common.DB) (rerr error) {
-		req := transReqFromContext(c)
+		req := reqFrom(c)
 		if req.TransOutResult != "SUCCESS" {
 			return fmt.Errorf("tranOut failed")
 		}

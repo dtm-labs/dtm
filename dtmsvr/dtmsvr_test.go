@@ -1,12 +1,14 @@
 package dtmsvr
 
 import (
+	"database/sql"
+	"fmt"
 	"testing"
 	"time"
 
-	"github.com/go-playground/assert/v2"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
+	"github.com/stretchr/testify/assert"
 	"github.com/yedf/dtm"
 	"github.com/yedf/dtm/common"
 	"github.com/yedf/dtm/examples"
@@ -15,6 +17,8 @@ import (
 var myinit int = func() int {
 	common.InitApp(common.GetProjectDir(), &config)
 	config.Mysql["database"] = dbName
+	PopulateMysql()
+	examples.PopulateMysql()
 	return 0
 }()
 
@@ -25,15 +29,15 @@ func TestViper(t *testing.T) {
 
 func TestDtmSvr(t *testing.T) {
 	TransProcessedTestChan = make(chan string, 1)
-	PopulateMysql()
-	examples.PopulateMysql()
 	// 启动组件
 	go StartSvr()
-	go examples.SagaStartSvr()
-	go examples.XaStartSvr()
-	go examples.TccStartSvr()
-	go examples.MsgStartSvr()
-	time.Sleep(time.Duration(200 * 1000 * 1000))
+	app := examples.BaseAppNew()
+	examples.BaseAppSetup(app)
+	examples.SagaSetup(app)
+	examples.TccSetup(app)
+	examples.XaSetup(app)
+	examples.MsgSetup(app)
+	examples.BaseAppStart(app)
 
 	// 清理数据
 	e2p(dbGet().Exec("truncate trans_global").Error)
@@ -89,12 +93,12 @@ func xaNormal(t *testing.T) {
 		resp, err := common.RestyClient.R().SetBody(req).SetQueryParams(map[string]string{
 			"gid":     gid,
 			"user_id": "1",
-		}).Post(examples.XaBusi + "/TransOut")
+		}).Post(examples.Busi + "/TransOutXa")
 		common.CheckRestySuccess(resp, err)
 		resp, err = common.RestyClient.R().SetBody(req).SetQueryParams(map[string]string{
 			"gid":     gid,
 			"user_id": "2",
-		}).Post(examples.XaBusi + "/TransIn")
+		}).Post(examples.Busi + "/TransInXa")
 		common.CheckRestySuccess(resp, err)
 		return nil
 	})
@@ -111,12 +115,12 @@ func xaRollback(t *testing.T) {
 		resp, err := common.RestyClient.R().SetBody(req).SetQueryParams(map[string]string{
 			"gid":     gid,
 			"user_id": "1",
-		}).Post(examples.XaBusi + "/TransOut")
+		}).Post(examples.Busi + "/TransOutXa")
 		common.CheckRestySuccess(resp, err)
 		resp, err = common.RestyClient.R().SetBody(req).SetQueryParams(map[string]string{
 			"gid":     gid,
 			"user_id": "2",
-		}).Post(examples.XaBusi + "/TransIn")
+		}).Post(examples.Busi + "/TransInXa")
 		common.CheckRestySuccess(resp, err)
 		return nil
 	})
@@ -143,11 +147,10 @@ func tccRollback(t *testing.T) {
 }
 func tccRollbackPending(t *testing.T) {
 	tcc := genTcc("gid-tcc-rollback-pending", false, true)
-	examples.TccTransInCancelResult = "PENDING"
+	examples.MainSwitch.TransInRevertResult.SetOnce("PENDING")
 	tcc.Commit()
 	WaitTransProcessed(tcc.Gid)
-	assert.Equal(t, "committed", getTransStatus(tcc.Gid))
-	examples.TccTransInCancelResult = ""
+	// assert.Equal(t, "committed", getTransStatus(tcc.Gid))
 	CronTransOnce(60*time.Second, "committed")
 	assert.Equal(t, []string{"succeed", "prepared", "succeed", "succeed", "prepared", "failed"}, getBranchesStatus(tcc.Gid))
 }
@@ -165,14 +168,12 @@ func msgPending(t *testing.T) {
 	msg := genMsg("gid-normal-pending")
 	msg.Prepare("")
 	assert.Equal(t, "prepared", getTransStatus(msg.Gid))
-	examples.MsgTransQueryResult = "PENDING"
+	examples.MainSwitch.CanSubmitResult.SetOnce("PENDING")
 	CronTransOnce(60*time.Second, "prepared")
 	assert.Equal(t, "prepared", getTransStatus(msg.Gid))
-	examples.MsgTransQueryResult = ""
-	examples.MsgTransInResult = "PENDING"
+	examples.MainSwitch.TransInResult.SetOnce("PENDING")
 	CronTransOnce(60*time.Second, "prepared")
 	assert.Equal(t, "committed", getTransStatus(msg.Gid))
-	examples.MsgTransInResult = ""
 	CronTransOnce(60*time.Second, "committed")
 	assert.Equal(t, []string{"succeed", "succeed"}, getBranchesStatus(msg.Gid))
 	assert.Equal(t, "succeed", getTransStatus(msg.Gid))
@@ -197,11 +198,10 @@ func sagaRollback(t *testing.T) {
 
 func sagaCommittedPending(t *testing.T) {
 	saga := genSaga("gid-committedPending", false, false)
-	examples.SagaTransInResult = "PENDING"
+	examples.MainSwitch.TransInResult.SetOnce("PENDING")
 	saga.Commit()
 	WaitTransProcessed(saga.Gid)
-	examples.SagaTransInResult = ""
-	assert.Equal(t, []string{"prepared", "succeed", "prepared", "prepared"}, getBranchesStatus(saga.Gid))
+	assert.Equal(t, []string{"prepared", "prepared", "prepared", "prepared"}, getBranchesStatus(saga.Gid))
 	CronTransOnce(60*time.Second, "committed")
 	assert.Equal(t, []string{"prepared", "succeed", "prepared", "succeed"}, getBranchesStatus(saga.Gid))
 	assert.Equal(t, "succeed", getTransStatus(saga.Gid))
@@ -210,10 +210,10 @@ func sagaCommittedPending(t *testing.T) {
 func genMsg(gid string) *dtm.Msg {
 	logrus.Printf("beginning a msg test ---------------- %s", gid)
 	msg := dtm.MsgNew(examples.DtmServer)
-	msg.QueryPrepared = examples.MsgBusi + "/TransQuery"
+	msg.QueryPrepared = examples.Busi + "/CanSubmit"
 	req := examples.GenTransReq(30, false, false)
-	msg.Add(examples.MsgBusi+"/TransOut", &req)
-	msg.Add(examples.MsgBusi+"/TransIn", &req)
+	msg.Add(examples.Busi+"/TransOut", &req)
+	msg.Add(examples.Busi+"/TransIn", &req)
 	msg.Gid = gid
 	return msg
 }
@@ -222,8 +222,8 @@ func genSaga(gid string, outFailed bool, inFailed bool) *dtm.Saga {
 	logrus.Printf("beginning a saga test ---------------- %s", gid)
 	saga := dtm.SagaNew(examples.DtmServer)
 	req := examples.GenTransReq(30, outFailed, inFailed)
-	saga.Add(examples.SagaBusi+"/TransOut", examples.SagaBusi+"/TransOutCompensate", &req)
-	saga.Add(examples.SagaBusi+"/TransIn", examples.SagaBusi+"/TransInCompensate", &req)
+	saga.Add(examples.Busi+"/TransOut", examples.Busi+"/TransOutRevert", &req)
+	saga.Add(examples.Busi+"/TransIn", examples.Busi+"/TransInRevert", &req)
 	saga.Gid = gid
 	return saga
 }
@@ -232,8 +232,8 @@ func genTcc(gid string, outFailed bool, inFailed bool) *dtm.Tcc {
 	logrus.Printf("beginning a tcc test ---------------- %s", gid)
 	tcc := dtm.TccNew(examples.DtmServer)
 	req := examples.GenTransReq(30, outFailed, inFailed)
-	tcc.Add(examples.TccBusi+"/TransOutTry", examples.TccBusi+"/TransOutConfirm", examples.TccBusi+"/TransOutCancel", &req)
-	tcc.Add(examples.TccBusi+"/TransInTry", examples.TccBusi+"/TransInConfirm", examples.TccBusi+"/TransInCancel", &req)
+	tcc.Add(examples.Busi+"/TransOut", examples.Busi+"/TransOutConfirm", examples.Busi+"/TransOutRevert", &req)
+	tcc.Add(examples.Busi+"/TransIn", examples.Busi+"/TransInConfirm", examples.Busi+"/TransInRevert", &req)
 	tcc.Gid = gid
 	return tcc
 }
@@ -257,4 +257,26 @@ func transQuery(t *testing.T, gid string) {
 	common.MustUnmarshalString(resp.String(), &m)
 	assert.Equal(t, nil, m["transaction"])
 	assert.Equal(t, 0, len(m["branches"].([]interface{})))
+}
+
+func TestSqlDB(t *testing.T) {
+	asserts := assert.New(t)
+	db := common.DbGet(config.Mysql)
+	db.Must().Exec("insert ignore into dtm_barrier.barrier(trans_type, gid, branch_id, branch_type) values('saga', 'gid1', 'branch_id1', 'action')")
+	_, err := dtm.ThroughBarrierCall(db.ToSqlDB(), "saga", "gid2", "branch_id2", "compensate", func(db *sql.DB) (interface{}, error) {
+		logrus.Printf("rollback gid2")
+		return nil, fmt.Errorf("gid2 error")
+	})
+	asserts.Error(err, fmt.Errorf("gid2 error"))
+	dbr := db.Model(&dtm.BarrierModel{}).Where("gid=?", "gid1").Find(&[]dtm.BarrierModel{})
+	asserts.Equal(dbr.RowsAffected, int64(1))
+	dbr = db.Model(&dtm.BarrierModel{}).Where("gid=?", "gid2").Find(&[]dtm.BarrierModel{})
+	asserts.Equal(dbr.RowsAffected, int64(0))
+	_, err = dtm.ThroughBarrierCall(db.ToSqlDB(), "saga", "gid2", "branch_id2", "compensate", func(db *sql.DB) (interface{}, error) {
+		logrus.Printf("commit gid2")
+		return nil, nil
+	})
+	asserts.Nil(err)
+	dbr = db.Model(&dtm.BarrierModel{}).Where("gid=?", "gid2").Find(&[]dtm.BarrierModel{})
+	asserts.Equal(dbr.RowsAffected, int64(2))
 }

@@ -3,4 +3,3 @@ conf.yml*
 *.out
 */**/main
 main
-intra-barrier.md

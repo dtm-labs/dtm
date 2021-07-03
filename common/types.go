@@ -33,6 +33,12 @@ func (m *DB) NoMust() *DB {
 	return &DB{DB: db}
 }
 
+func (m *DB) ToSqlDB() *sql.DB {
+	d, err := m.DB.DB()
+	E2P(err)
+	return d
+}
+
 type tracePlugin struct{}
 
 func (op *tracePlugin) Name() string {
@@ -98,6 +104,14 @@ func DbGet(conf map[string]string) *DB {
 		dbs[dsn] = &DB{DB: db1}
 	}
 	return dbs[dsn]
+}
+
+func SqlDB2DB(sdb *sql.DB) *DB {
+	db, err := gorm.Open(mysql.New(mysql.Config{
+		Conn: sdb,
+	}), &gorm.Config{})
+	E2P(err)
+	return &DB{DB: db}
 }
 
 type MyConn struct {

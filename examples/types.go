@@ -1,7 +1,10 @@
 package examples
 
 import (
+	"fmt"
+
 	"github.com/gin-gonic/gin"
+	"github.com/yedf/dtm"
 	"github.com/yedf/dtm/common"
 )
 
@@ -13,19 +16,17 @@ type M = map[string]interface{}
 const DtmServer = "http://localhost:8080/api/dtmsvr"
 
 const (
-	MsgBusiPort = iota + 8081
-	SagaBusiPort
-	SagaBarrierBusiPort
-	TccBusiPort
-	TccBarrierBusiPort
-	XaBusiPort
-	startBusiPort
+	SagaBarrierBusiPort = iota + 8090
 )
 
 type TransReq struct {
 	Amount         int    `json:"amount"`
 	TransInResult  string `json:"transInResult"`
 	TransOutResult string `json:"transOutResult"`
+}
+
+func (t *TransReq) String() string {
+	return fmt.Sprintf("amount: %d transIn: %s transOut: %s", t.Amount, t.TransInResult, t.TransOutResult)
 }
 
 func GenTransReq(amount int, outFailed bool, inFailed bool) *TransReq {
@@ -36,9 +37,19 @@ func GenTransReq(amount int, outFailed bool, inFailed bool) *TransReq {
 	}
 }
 
-func transReqFromContext(c *gin.Context) *TransReq {
+func reqFrom(c *gin.Context) *TransReq {
 	req := TransReq{}
 	err := c.BindJSON(&req)
 	e2p(err)
 	return &req
+}
+
+func infoFromContext(c *gin.Context) *dtm.TransInfo {
+	info := dtm.TransInfo{
+		TransType:  c.Query("trans_type"),
+		Gid:        c.Query("gid"),
+		BranchID:   c.Query("branch_id"),
+		BranchType: c.Query("branch_type"),
+	}
+	return &info
 }

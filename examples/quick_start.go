@@ -11,52 +11,45 @@ import (
 )
 
 // 事务参与者的服务地址
-const startBusiApi = "/api/busi_start"
+const qsBusiApi = "/api/busi_start"
+const qsBusiPort = 8082
 
-var startBusi = fmt.Sprintf("http://localhost:%d%s", startBusiPort, startBusiApi)
+var qsBusi = fmt.Sprintf("http://localhost:%d%s", qsBusiPort, qsBusiApi)
 
-func startMain() {
-	go startStartSvr()
-	startFireRequest()
+func StartMain() {
+	go qsStartSvr()
+	qsFireRequest()
 	time.Sleep(1000 * time.Second)
 }
 
-func startStartSvr() {
-	logrus.Printf("saga examples starting")
+func qsStartSvr() {
+	logrus.Printf("quick start examples starting")
 	app := common.GetGinApp()
-	startAddRoute(app)
-	app.Run(fmt.Sprintf(":%d", SagaBusiPort))
+	qsAddRoute(app)
+	app.Run(fmt.Sprintf(":%d", qsBusiPort))
 }
 
-func startFireRequest() {
+func qsFireRequest() {
 	req := &gin.H{"amount": 30}
 	saga := dtm.SagaNew(DtmServer).
-		Add(startBusi+"/TransOut", startBusi+"/TransOutCompensate", req).
-		Add(startBusi+"/TransIn", startBusi+"/TransInCompensate", req)
+		Add(qsBusi+"/TransOut", qsBusi+"/TransOutCompensate", req).
+		Add(qsBusi+"/TransIn", qsBusi+"/TransInCompensate", req)
 	err := saga.Commit()
 	e2p(err)
 }
 
-func startAddRoute(app *gin.Engine) {
-	app.POST(SagaBusiApi+"/TransIn", common.WrapHandler(startTransIn))
-	app.POST(SagaBusiApi+"/TransInCompensate", common.WrapHandler(startTransInCompensate))
-	app.POST(SagaBusiApi+"/TransOut", common.WrapHandler(startTransOut))
-	app.POST(SagaBusiApi+"/TransOutCompensate", common.WrapHandler(startTransOutCompensate))
-	logrus.Printf("examples listening at %d", startBusiPort)
-}
-
-func startTransIn(c *gin.Context) (interface{}, error) {
-	return M{"result": "SUCCESS"}, nil
-}
-
-func startTransInCompensate(c *gin.Context) (interface{}, error) {
-	return M{"result": "SUCCESS"}, nil
-}
-
-func startTransOut(c *gin.Context) (interface{}, error) {
-	return M{"result": "SUCCESS"}, nil
-}
-
-func startTransOutCompensate(c *gin.Context) (interface{}, error) {
-	return M{"result": "SUCCESS"}, nil
+func qsAddRoute(app *gin.Engine) {
+	app.POST(qsBusiApi+"/TransIn", common.WrapHandler(func(c *gin.Context) (interface{}, error) {
+		return M{"result": "SUCCESS"}, nil
+	}))
+	app.POST(qsBusiApi+"/TransInCompensate", common.WrapHandler(func(c *gin.Context) (interface{}, error) {
+		return M{"result": "SUCCESS"}, nil
+	}))
+	app.POST(qsBusiApi+"/TransOut", common.WrapHandler(func(c *gin.Context) (interface{}, error) {
+		return M{"result": "SUCCESS"}, nil
+	}))
+	app.POST(qsBusiApi+"/TransOutCompensate", common.WrapHandler(func(c *gin.Context) (interface{}, error) {
+		return M{"result": "SUCCESS"}, nil
+	}))
+	logrus.Printf("quick qs examples listening at %d", qsBusiPort)
 }
