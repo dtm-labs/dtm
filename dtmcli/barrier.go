@@ -72,6 +72,7 @@ func ThroughBarrierCall(db *sql.DB, transInfo *TransInfo, busiCall BusiFunc) (re
 	originAffected, _ := insertBarrier(tx, transInfo.TransType, transInfo.Gid, transInfo.BranchID, originType)
 	currentAffected, rerr := insertBarrier(tx, transInfo.TransType, transInfo.Gid, transInfo.BranchID, transInfo.TransType)
 	if currentAffected == 0 || (originType == "cancel" || originType == "compensate") && originAffected > 0 {
+		res = "SUCCESS" // 如果被忽略，那么直接返回 "SUCCESS"，表示成功，可以进行下一步
 		return
 	}
 	res, rerr = busiCall(db)

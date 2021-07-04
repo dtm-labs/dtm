@@ -32,11 +32,7 @@ func SagaBarrierStartSvr() {
 
 func SagaBarrierFireRequest() {
 	logrus.Printf("a busi transaction begin")
-	req := &TransReq{
-		Amount:         30,
-		TransInResult:  "SUCCESS",
-		TransOutResult: "SUCCESS",
-	}
+	req := &TransReq{Amount: 30}
 	saga := dtmcli.NewSaga(DtmServer).
 		Add(SagaBarrierBusi+"/TransOut", SagaBarrierBusi+"/TransOutCompensate", req).
 		Add(SagaBarrierBusi+"/TransIn", SagaBarrierBusi+"/TransInCompensate", req)
