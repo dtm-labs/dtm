@@ -14,6 +14,7 @@ func dbGet() *common.DB {
 	return common.DbGet(config.Mysql)
 }
 func writeTransLog(gid string, action string, status string, branch string, detail string) {
+	return
 	db := dbGet()
 	if detail == "" {
 		detail = "{}"

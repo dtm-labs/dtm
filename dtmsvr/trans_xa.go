@@ -20,9 +20,9 @@ func (t *TransXaProcessor) GenBranches() []TransBranch {
 }
 func (t *TransXaProcessor) ExecBranch(db *common.DB, branch *TransBranch) {
 	resp, err := common.RestyClient.R().SetBody(M{
-		"branch": branch.Branch,
-		"action": common.If(t.Status == "prepared", "rollback", "commit"),
-		"gid":    branch.Gid,
+		"branch_id": branch.BranchID,
+		"action":    common.If(t.Status == "prepared", "rollback", "commit"),
+		"gid":       branch.Gid,
 	}).Post(branch.Url)
 	e2p(err)
 	body := resp.String()

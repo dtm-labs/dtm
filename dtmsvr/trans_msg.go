@@ -3,9 +3,7 @@ package dtmsvr
 import (
 	"fmt"
 	"strings"
-	"time"
 
-	"github.com/sirupsen/logrus"
 	"github.com/yedf/dtm/common"
 )
 
@@ -24,7 +22,7 @@ func (t *TransMsgProcessor) GenBranches() []TransBranch {
 	for _, step := range steps {
 		branches = append(branches, TransBranch{
 			Gid:        t.Gid,
-			Branch:     common.GenGid(),
+			BranchID:   common.GenGid(),
 			Data:       step["data"].(string),
 			Url:        step["action"].(string),
 			BranchType: "action",
@@ -53,17 +51,10 @@ func (t *TransGlobal) mayQueryPrepared(db *common.DB) {
 	resp, err := common.RestyClient.R().SetQueryParam("gid", t.Gid).Get(t.QueryPrepared)
 	e2p(err)
 	body := resp.String()
-	if strings.Contains(body, "FAIL") {
-		preparedExpire := time.Now().Add(time.Duration(-config.PreparedExpire) * time.Second)
-		logrus.Printf("create time: %s prepared expire: %s ", t.CreateTime.Local(), preparedExpire.Local())
-		status := common.If(t.CreateTime.Before(preparedExpire), "canceled", "prepared").(string)
-		if status != t.Status {
-			t.changeStatus(db, status)
-		} else {
-			t.touch(db, t.NextCronInterval*2)
-		}
-	} else if strings.Contains(body, "SUCCESS") {
+	if strings.Contains(body, "SUCCESS") {
 		t.changeStatus(db, "submitted")
+	} else {
+		t.touch(db, t.NextCronInterval*2)
 	}
 }
 

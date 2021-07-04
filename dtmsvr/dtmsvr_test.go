@@ -27,7 +27,6 @@ var myinit int = func() int {
 
 func TestViper(t *testing.T) {
 	assert.Equal(t, true, viper.Get("mysql") != nil)
-	assert.Equal(t, int64(90), config.PreparedExpire)
 }
 
 func TestDtmSvr(t *testing.T) {
@@ -50,9 +49,9 @@ func TestDtmSvr(t *testing.T) {
 
 	msgPending(t)
 	msgNormal(t)
-	sagaNormal(t)
 	tccNormal(t)
 	tccRollback(t)
+	sagaNormal(t)
 	xaNormal(t)
 	xaRollback(t)
 	sagaCommittedPending(t)
@@ -155,7 +154,7 @@ func tccRollback(t *testing.T) {
 	e2p(err)
 }
 func msgNormal(t *testing.T) {
-	msg := genMsg("gid-normal-msg")
+	msg := genMsg("gid-msg-normal")
 	msg.Submit()
 	assert.Equal(t, "submitted", getTransStatus(msg.Gid))
 	WaitTransProcessed(msg.Gid)
@@ -164,7 +163,7 @@ func msgNormal(t *testing.T) {
 }
 
 func msgPending(t *testing.T) {
-	msg := genMsg("gid-normal-pending")
+	msg := genMsg("gid-msg-normal-pending")
 	msg.Prepare("")
 	assert.Equal(t, "prepared", getTransStatus(msg.Gid))
 	examples.MainSwitch.CanSubmitResult.SetOnce("PENDING")

@@ -24,7 +24,7 @@ func (t *TransSagaProcessor) GenBranches() []TransBranch {
 		for _, branchType := range []string{"compensate", "action"} {
 			branches = append(branches, TransBranch{
 				Gid:        t.Gid,
-				Branch:     branch,
+				BranchID:   branch,
 				Data:       step["data"].(string),
 				Url:        step[branchType].(string),
 				BranchType: branchType,

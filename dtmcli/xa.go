@@ -33,9 +33,9 @@ func NewXa(server string, mysqlConf map[string]string, app *gin.Engine, callback
 	e2p(err)
 	app.POST(u.Path, common.WrapHandler(func(c *gin.Context) (interface{}, error) {
 		type CallbackReq struct {
-			Gid    string `json:"gid"`
-			Branch string `json:"branch"`
-			Action string `json:"action"`
+			Gid      string `json:"gid"`
+			BranchID string `json:"branch_id"`
+			Action   string `json:"action"`
 		}
 		req := CallbackReq{}
 		b, err := c.GetRawData()
@@ -44,9 +44,9 @@ func NewXa(server string, mysqlConf map[string]string, app *gin.Engine, callback
 		tx, my := common.DbAlone(xa.Conf)
 		defer my.Close()
 		if req.Action == "commit" {
-			tx.Must().Exec(fmt.Sprintf("xa commit '%s'", req.Branch))
+			tx.Must().Exec(fmt.Sprintf("xa commit '%s'", req.BranchID))
 		} else if req.Action == "rollback" {
-			tx.Must().Exec(fmt.Sprintf("xa rollback '%s'", req.Branch))
+			tx.Must().Exec(fmt.Sprintf("xa rollback '%s'", req.BranchID))
 		} else {
 			panic(fmt.Errorf("unknown action: %s", req.Action))
 		}
@@ -57,21 +57,21 @@ func NewXa(server string, mysqlConf map[string]string, app *gin.Engine, callback
 
 func (xa *Xa) XaLocalTransaction(gid string, transFunc XaLocalFunc) (rerr error) {
 	defer common.P2E(&rerr)
-	branch := common.GenGid()
+	branchID := common.GenGid()
 	tx, my := common.DbAlone(xa.Conf)
 	defer func() { my.Close() }()
-	tx.Must().Exec(fmt.Sprintf("XA start '%s'", branch))
+	tx.Must().Exec(fmt.Sprintf("XA start '%s'", branchID))
 	err := transFunc(tx)
 	e2p(err)
 	resp, err := common.RestyClient.R().
-		SetBody(&M{"gid": gid, "branch": branch, "trans_type": "xa", "status": "prepared", "url": xa.CallbackUrl}).
+		SetBody(&M{"gid": gid, "branch_id": branchID, "trans_type": "xa", "status": "prepared", "url": xa.CallbackUrl}).
 		Post(xa.Server + "/registerXaBranch")
 	e2p(err)
 	if !strings.Contains(resp.String(), "SUCCESS") {
 		e2p(fmt.Errorf("unknown server response: %s", resp.String()))
 	}
-	tx.Must().Exec(fmt.Sprintf("XA end '%s'", branch))
-	tx.Must().Exec(fmt.Sprintf("XA prepare '%s'", branch))
+	tx.Must().Exec(fmt.Sprintf("XA end '%s'", branchID))
+	tx.Must().Exec(fmt.Sprintf("XA prepare '%s'", branchID))
 	return nil
 }
 

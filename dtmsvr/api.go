@@ -39,10 +39,9 @@ func Abort(c *gin.Context) (interface{}, error) {
 	db := dbGet()
 	m := TransFromContext(c)
 	m = TransFromDb(db, m.Gid)
-	if m.TransType != "xa" || m.Status != "prepared" {
-		return nil, fmt.Errorf("unkown trans data. type: %s status: %s for gid: %s", m.TransType, m.Status, m.Gid)
+	if m.TransType != "xa" && m.TransType != "tcc" || m.Status != "prepared" {
+		return nil, fmt.Errorf("unexpected trans data. type: %s status: %s for gid: %s", m.TransType, m.Status, m.Gid)
 	}
-	// 当前xa trans的状态为prepared，直接处理，则是回滚
 	go m.Process(db)
 	return M{"message": "SUCCESS"}, nil
 }
@@ -59,6 +58,8 @@ func RegisterXaBranch(c *gin.Context) (interface{}, error) {
 		DoNothing: true,
 	}).Create(branches)
 	e2p(err)
+	global := TransGlobal{Gid: branch.Gid}
+	global.touch(db, config.TransCronInterval)
 	return M{"message": "SUCCESS"}, nil
 }
 
@@ -67,10 +68,10 @@ func RegisterTccBranch(c *gin.Context) (interface{}, error) {
 	err := c.BindJSON(&data)
 	e2p(err)
 	branch := TransBranch{
-		Gid:    data["gid"],
-		Branch: data["branch_id"],
-		Status: data["status"],
-		Data:   data["data"],
+		Gid:      data["gid"],
+		BranchID: data["branch_id"],
+		Status:   data["status"],
+		Data:     data["data"],
 	}
 
 	branches := []TransBranch{branch, branch, branch}
@@ -83,6 +84,8 @@ func RegisterTccBranch(c *gin.Context) (interface{}, error) {
 		DoNothing: true,
 	}).Create(branches)
 	e2p(err)
+	global := TransGlobal{Gid: branch.Gid}
+	global.touch(dbGet(), config.TransCronInterval)
 	return M{"message": "SUCCESS"}, nil
 }
 

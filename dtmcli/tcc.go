@@ -52,7 +52,7 @@ func (t *Tcc) CallBranch(body interface{}, tryUrl string, confirmUrl string, can
 	return common.RestyClient.R().
 		SetBody(&M{
 			"gid":        t.Gid,
-			"branch":     common.GenGid(),
+			"branch_id":  common.GenGid(),
 			"trans_type": "tcc",
 			"status":     "prepared",
 			"data":       string(common.MustMarshal(body)),
@@ -60,5 +60,5 @@ func (t *Tcc) CallBranch(body interface{}, tryUrl string, confirmUrl string, can
 			"confirm":    confirmUrl,
 			"cancel":     cancelUrl,
 		}).
-		Post(t.Dtm + "/registerXaBranch")
+		Post(t.Dtm + "/registerTccBranch")
 }

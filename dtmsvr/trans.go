@@ -65,7 +65,7 @@ type TransBranch struct {
 	Gid          string
 	Url          string
 	Data         string
-	Branch       string
+	BranchID     string `json:"branch_id"`
 	BranchType   string
 	Status       string
 	FinishTime   *time.Time
@@ -77,7 +77,7 @@ func (*TransBranch) TableName() string {
 }
 
 func (t *TransBranch) changeStatus(db *common.DB, status string) *gorm.DB {
-	writeTransLog(t.Gid, "branch change", status, t.Branch, "")
+	writeTransLog(t.Gid, "branch change", status, t.BranchID, "")
 	dbr := db.Must().Model(t).Where("status=?", t.Status).Updates(M{
 		"status":      status,
 		"finish_time": time.Now(),

@@ -27,6 +27,7 @@ type MsgStep struct {
 func NewMsg(server string) *Msg {
 	return &Msg{
 		MsgData: MsgData{
+			Gid:       common.GenGid(),
 			TransType: "msg",
 		},
 		Server: server,
@@ -65,6 +66,5 @@ func (s *Msg) Prepare(queryPrepared string) error {
 	if resp.StatusCode() != 200 {
 		return fmt.Errorf("prepare failed: %v", resp.Body())
 	}
-	s.Gid = jsonitor.Get(resp.Body(), "gid").ToString()
 	return nil
 }

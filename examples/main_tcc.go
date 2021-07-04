@@ -26,7 +26,7 @@ func TccSetup(app *gin.Engine) {
 			return nil, err
 		}
 		req := reqFrom(c)
-		logrus.Printf("Trans in %f here, and Trans in another %f in call2 ", req.Amount/2, req.Amount/2)
+		logrus.Printf("Trans in %d here, and Trans in another %d in call2 ", req.Amount/2, req.Amount/2)
 		_, rerr := tcc.CallBranch(&TransReq{Amount: req.Amount / 2}, Busi+"/TransIn", Busi+"/TransInConfirm", Busi+"/TransInRevert")
 		if rerr != nil {
 			return nil, rerr
