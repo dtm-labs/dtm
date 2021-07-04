@@ -39,7 +39,7 @@ const DtmServer = "http://localhost:8080/api/dtmsvr"
 const startBusi = "http://localhost:8081/api/busi_saga"
 req := &gin.H{"amount": 30} // 微服务的负荷
 // 生成dtm的saga对象
-saga := dtm.SagaNew(DtmServer).
+saga := dtmcli.NewSaga(DtmServer).
   // 添加两个子事务
   Add(startBusi+"/TransOut", startBusi+"/TransOutCompensate", req).
   Add(startBusi+"/TransIn", startBusi+"/TransInCompensate", req)
