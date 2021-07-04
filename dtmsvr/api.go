@@ -73,7 +73,7 @@ func RegisterTccBranch(c *gin.Context) (interface{}, error) {
 		Data:   data["data"],
 	}
 
-	branches := []*TransBranch{&branch, &branch, &branch}
+	branches := []TransBranch{branch, branch, branch}
 	for i, b := range []string{"cancel", "confirm", "try"} {
 		branches[i].BranchType = b
 		branches[i].Url = data[b]
