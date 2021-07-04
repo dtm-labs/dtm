@@ -250,8 +250,14 @@ func transQuery(t *testing.T, gid string) {
 func TestSqlDB(t *testing.T) {
 	asserts := assert.New(t)
 	db := common.DbGet(config.Mysql)
+	transInfo := &dtmcli.TransInfo{
+		TransType:  "saga",
+		Gid:        "gid2",
+		BranchID:   "branch_id2",
+		BranchType: "compensate",
+	}
 	db.Must().Exec("insert ignore into dtm_barrier.barrier(trans_type, gid, branch_id, branch_type) values('saga', 'gid1', 'branch_id1', 'action')")
-	_, err := dtmcli.ThroughBarrierCall(db.ToSqlDB(), "saga", "gid2", "branch_id2", "compensate", func(db *sql.DB) (interface{}, error) {
+	_, err := dtmcli.ThroughBarrierCall(db.ToSqlDB(), transInfo, func(db *sql.DB) (interface{}, error) {
 		logrus.Printf("rollback gid2")
 		return nil, fmt.Errorf("gid2 error")
 	})
@@ -260,7 +266,7 @@ func TestSqlDB(t *testing.T) {
 	asserts.Equal(dbr.RowsAffected, int64(1))
 	dbr = db.Model(&dtmcli.BarrierModel{}).Where("gid=?", "gid2").Find(&[]dtmcli.BarrierModel{})
 	asserts.Equal(dbr.RowsAffected, int64(0))
-	_, err = dtmcli.ThroughBarrierCall(db.ToSqlDB(), "saga", "gid2", "branch_id2", "compensate", func(db *sql.DB) (interface{}, error) {
+	_, err = dtmcli.ThroughBarrierCall(db.ToSqlDB(), transInfo, func(db *sql.DB) (interface{}, error) {
 		logrus.Printf("submit gid2")
 		return nil, nil
 	})

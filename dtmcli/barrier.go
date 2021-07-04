@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"fmt"
 
+	"github.com/gin-gonic/gin"
 	"github.com/yedf/dtm/common"
 )
 
@@ -19,6 +20,15 @@ type TransInfo struct {
 
 func (t *TransInfo) String() string {
 	return fmt.Sprintf("transInfo: %s %s %s %s", t.TransType, t.Gid, t.BranchID, t.BranchType)
+}
+
+func TransInfoFromReq(c *gin.Context) *TransInfo {
+	return &TransInfo{
+		TransType:  c.Query("trans_type"),
+		Gid:        c.Query("gid"),
+		BranchID:   c.Query("branch_id"),
+		BranchType: c.Query("branch_type"),
+	}
 }
 
 type BarrierModel struct {
@@ -39,7 +49,7 @@ func insertBarrier(tx *sql.Tx, transType string, gid string, branchID string, br
 	return res.RowsAffected()
 }
 
-func ThroughBarrierCall(db *sql.DB, transType string, gid string, branchId string, branchType string, busiCall BusiFunc) (res interface{}, rerr error) {
+func ThroughBarrierCall(db *sql.DB, transInfo *TransInfo, busiCall BusiFunc) (res interface{}, rerr error) {
 	tx, rerr := db.BeginTx(context.Background(), &sql.TxOptions{})
 	if rerr != nil {
 		return
@@ -58,9 +68,9 @@ func ThroughBarrierCall(db *sql.DB, transType string, gid string, branchId strin
 	originType := map[string]string{
 		"cancel":     "action",
 		"compensate": "action",
-	}[branchType]
-	originAffected, _ := insertBarrier(tx, transType, gid, branchId, originType)
-	currentAffected, rerr := insertBarrier(tx, transType, gid, branchId, branchType)
+	}[transInfo.BranchType]
+	originAffected, _ := insertBarrier(tx, transInfo.TransType, transInfo.Gid, transInfo.BranchID, originType)
+	currentAffected, rerr := insertBarrier(tx, transInfo.TransType, transInfo.Gid, transInfo.BranchID, transInfo.TransType)
 	if currentAffected == 0 || (originType == "cancel" || originType == "compensate") && originAffected > 0 {
 		return
 	}

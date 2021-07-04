@@ -55,47 +55,42 @@ func SagaBarrierAddRoute(app *gin.Engine) {
 	logrus.Printf("examples listening at %d", SagaBarrierBusiPort)
 }
 
-var SagaBarrierTransInResult = ""
-var SagaBarrierTransOutResult = ""
-var SagaBarrierTransInCompensateResult = ""
-var SagaBarrierTransOutCompensateResult = ""
-
 func sagaBarrierTransIn(c *gin.Context) (interface{}, error) {
-	gid := c.Query("gid")
 	req := reqFrom(c)
-	res := common.OrString(SagaBarrierTransInResult, req.TransInResult, "SUCCESS")
-	logrus.Printf("%s TransIn: %v result: %s", gid, req, res)
-	return M{"result": res}, nil
+	return dtmcli.ThroughBarrierCall(dbGet().ToSqlDB(), dtmcli.TransInfoFromReq(c), func(sdb *sql.DB) (interface{}, error) {
+		db := common.SqlDB2DB(sdb)
+		dbr := db.Model(&UserAccount{}).Where("user_id = ?", c.Query("user_id")).
+			Update("balance", gorm.Expr("balance + ?", req.Amount))
+		return "SUCCESS", dbr.Error
+	})
 }
 
 func sagaBarrierTransInCompensate(c *gin.Context) (interface{}, error) {
-	gid := c.Query("gid")
 	req := reqFrom(c)
-	res := common.OrString(SagaBarrierTransInCompensateResult, "SUCCESS")
-	logrus.Printf("%s TransInCompensate: %v result: %s", gid, req, res)
-	return M{"result": res}, nil
-}
-
-func sagaBarrierTransOut(c *gin.Context) (interface{}, error) {
-	gid := c.Query("gid")
-	lid := c.Query("lid")
-	req := reqFrom(c)
-	return dtmcli.ThroughBarrierCall(dbGet().ToSqlDB(), "saga", gid, lid, "action", func(sdb *sql.DB) (interface{}, error) {
+	return dtmcli.ThroughBarrierCall(dbGet().ToSqlDB(), dtmcli.TransInfoFromReq(c), func(sdb *sql.DB) (interface{}, error) {
 		db := common.SqlDB2DB(sdb)
 		dbr := db.Model(&UserAccount{}).Where("user_id = ?", c.Query("user_id")).
 			Update("balance", gorm.Expr("balance - ?", req.Amount))
-		return nil, dbr.Error
+		return "SUCCESS", dbr.Error
 	})
+}
 
-	// res := common.OrString(SagaBarrierTransOutResult, req.TransOutResult, "SUCCESS")
-	// logrus.Printf("%s TransOut: %v result: %s", gid, req, res)
-	// return M{"result": res}, nil
+func sagaBarrierTransOut(c *gin.Context) (interface{}, error) {
+	req := reqFrom(c)
+	return dtmcli.ThroughBarrierCall(dbGet().ToSqlDB(), dtmcli.TransInfoFromReq(c), func(sdb *sql.DB) (interface{}, error) {
+		db := common.SqlDB2DB(sdb)
+		dbr := db.Model(&UserAccount{}).Where("user_id = ?", c.Query("user_id")).
+			Update("balance", gorm.Expr("balance - ?", req.Amount))
+		return "SUCCESS", dbr.Error
+	})
 }
 
 func sagaBarrierTransOutCompensate(c *gin.Context) (interface{}, error) {
-	gid := c.Query("gid")
 	req := reqFrom(c)
-	res := common.OrString(SagaBarrierTransOutCompensateResult, "SUCCESS")
-	logrus.Printf("%s TransOutCompensate: %v result: %s", gid, req, res)
-	return M{"result": res}, nil
+	return dtmcli.ThroughBarrierCall(dbGet().ToSqlDB(), dtmcli.TransInfoFromReq(c), func(sdb *sql.DB) (interface{}, error) {
+		db := common.SqlDB2DB(sdb)
+		dbr := db.Model(&UserAccount{}).Where("user_id = ?", c.Query("user_id")).
+			Update("balance", gorm.Expr("balance + ?", req.Amount))
+		return "SUCCESS", dbr.Error
+	})
 }

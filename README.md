@@ -35,9 +35,11 @@ DTM是一款go语言的分布式事务管理器，在微服务架构中，提供
 
 ### 使用
 ``` go
+  // 具体业务微服务地址
+  const qsBusi = "http://localhost:8081/api/busi_saga"
 	req := &gin.H{"amount": 30} // 微服务的载荷
 	// DtmServer为DTM服务的地址，是一个url
-	saga := dtmcli.NewSaga(DtmServer).
+	saga := dtmcli.NewSaga("http://localhost:8080/api/dtmsvr").
 		// 添加一个TransOut的子事务，正向操作为url: qsBusi+"/TransOut"， 逆向操作为url: qsBusi+"/TransOutCompensate"
 		Add(qsBusi+"/TransOut", qsBusi+"/TransOutCompensate", req).
 		// 添加一个TransIn的子事务，正向操作为url: qsBusi+"/TransOut"， 逆向操作为url: qsBusi+"/TransInCompensate"
