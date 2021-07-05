@@ -26,7 +26,7 @@ type TransGlobal struct {
 }
 
 func (*TransGlobal) TableName() string {
-	return "trans_global"
+	return "dtm.trans_global"
 }
 
 type TransProcessor interface {
@@ -73,7 +73,7 @@ type TransBranch struct {
 }
 
 func (*TransBranch) TableName() string {
-	return "trans_branch"
+	return "dtm.trans_branch"
 }
 
 func (t *TransBranch) changeStatus(db *common.DB, status string) *gorm.DB {

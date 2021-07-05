@@ -10,12 +10,15 @@ import (
 	"github.com/yedf/dtm/dtmcli"
 )
 
+// 启动命令：go run app/main.go qs
+
 // 事务参与者的服务地址
 const qsBusiApi = "/api/busi_start"
 const qsBusiPort = 8082
 
 var qsBusi = fmt.Sprintf("http://localhost:%d%s", qsBusiPort, qsBusiApi)
 
+// 被app/main.go调用，启动服务并运行示例
 func StartMain() {
 	go qsStartSvr()
 	qsFireRequest()
@@ -23,9 +26,9 @@ func StartMain() {
 }
 
 func qsStartSvr() {
-	logrus.Printf("quick start examples starting")
 	app := common.GetGinApp()
 	qsAddRoute(app)
+	logrus.Printf("quick qs examples listening at %d", qsBusiPort)
 	app.Run(fmt.Sprintf(":%d", qsBusiPort))
 }
 
@@ -55,5 +58,4 @@ func qsAddRoute(app *gin.Engine) {
 	app.POST(qsBusiApi+"/TransOutCompensate", common.WrapHandler(func(c *gin.Context) (interface{}, error) {
 		return M{"result": "SUCCESS"}, nil
 	}))
-	logrus.Printf("quick qs examples listening at %d", qsBusiPort)
 }

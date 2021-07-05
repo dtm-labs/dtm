@@ -3,6 +3,7 @@ package dtmsvr
 import (
 	"math"
 	"math/rand"
+	"runtime/debug"
 	"time"
 
 	"github.com/sirupsen/logrus"
@@ -54,7 +55,7 @@ func lockOneTrans(expireIn time.Duration, status string) *TransGlobal {
 
 func handlePanic() {
 	if err := recover(); err != nil {
-		logrus.Errorf("----panic %s handlered", err.(error).Error())
+		logrus.Errorf("\x1b[31m\n----panic %s handlered\x1b[0m\n%s", err.(error).Error(), string(debug.Stack()))
 	}
 }
 

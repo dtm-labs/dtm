@@ -12,7 +12,8 @@ import (
 type M = map[string]interface{}
 
 func main() {
-	if os.Args[1] == "quick_start" {
+	if len(os.Args) > 1 && (os.Args[1] == "quick_start" || os.Args[1] == "qs") {
+		dtmsvr.PopulateMysql()
 		dtmsvr.Main()
 		examples.StartMain()
 		for {
