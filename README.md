@@ -55,6 +55,10 @@ DTM是一款go语言的分布式事务管理器，在微服务架构中，提供
 
 ![yedf2008](http://service.ivydad.com/cover/dubbingb6b5e2c0-2d2a-cd59-f7c5-c6b90aceb6f1.jpeg)
 
+### 文档与介绍
+  * [分布式事务实战--一个完整的xa例子](https://zhuanlan.zhihu.com/p/384756957)
+  * [分布式事务实战--go语言的saga事务](https://zhuanlan.zhihu.com/p/385594256)
+
 ### 谁在使用
 <div style='vertical-align: middle'>
     <img alt='常青藤爸爸' height='40'  src='https://www.ivydad.com/_nuxt/img/header-logo.2645ad5.png'  /img>
