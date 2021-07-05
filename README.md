@@ -18,7 +18,17 @@ DTM是一款go语言的分布式事务管理器，在微服务架构中，提供
   + 可靠消息
   + XA
 
-### [分布式事务简介](./intro-xa.md)
+### 文档与介绍(更新中)
+  * [DTM简介](https://zhuanlan.zhihu.com/p/386770520)
+  * 分布式事务
+    - [XA事务模式](https://zhuanlan.zhihu.com/p/384756957)
+    - [SAGA事务模式](https://zhuanlan.zhihu.com/p/385594256)
+    - TCC事务模式
+    - 可靠消息事务模式
+  * 子事务屏障
+  * FAQ
+  * 部署指南
+
 # 快速开始
 ### 安装
 `go get github.com/yedf/dtm`
@@ -54,10 +64,6 @@ DTM是一款go语言的分布式事务管理器，在微服务架构中，提供
 请加 yedf2008 好友或者扫码加好友，验证回复 dtm 按照指引进群  
 
 ![yedf2008](http://service.ivydad.com/cover/dubbingb6b5e2c0-2d2a-cd59-f7c5-c6b90aceb6f1.jpeg)
-
-### 文档与介绍
-  * [分布式事务实战--一个完整的xa例子](https://zhuanlan.zhihu.com/p/384756957)
-  * [分布式事务实战--go语言的saga事务](https://zhuanlan.zhihu.com/p/385594256)
 
 ### 谁在使用
 <div style='vertical-align: middle'>
