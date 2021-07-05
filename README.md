@@ -20,7 +20,7 @@ DTM是一款go语言的分布式事务管理器，在微服务架构中，提供
 
 ### 文档与介绍(更新中)
   * [DTM简介](https://zhuanlan.zhihu.com/p/386770520)
-  * 分布式事务
+  * 分布式事务模式
     - [XA事务模式](https://zhuanlan.zhihu.com/p/384756957)
     - [SAGA事务模式](https://zhuanlan.zhihu.com/p/385594256)
     - TCC事务模式
