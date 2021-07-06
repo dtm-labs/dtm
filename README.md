@@ -65,7 +65,7 @@ DTM是一款go语言的分布式事务管理器，在微服务架构中，提供
 
 ![yedf2008](http://service.ivydad.com/cover/dubbingb6b5e2c0-2d2a-cd59-f7c5-c6b90aceb6f1.jpeg)
 
-如果您觉得此项目不错，或者对您有帮助，请赏颗星吧！感谢！
+如果您觉得此项目不错，或者对您有帮助，请赏颗星吧！赠人✨✨，手留余香！
 
 ### 谁在使用
 <div style='vertical-align: middle'>
