@@ -23,12 +23,16 @@ func (t *TransInfo) String() string {
 }
 
 func TransInfoFromReq(c *gin.Context) *TransInfo {
-	return &TransInfo{
+	ti := &TransInfo{
 		TransType:  c.Query("trans_type"),
 		Gid:        c.Query("gid"),
 		BranchID:   c.Query("branch_id"),
 		BranchType: c.Query("branch_type"),
 	}
+	if ti.TransType == "" || ti.Gid == "" || ti.BranchID == "" || ti.BranchType == "" {
+		panic(fmt.Errorf("invlid trans info: %v", ti))
+	}
+	return ti
 }
 
 type BarrierModel struct {

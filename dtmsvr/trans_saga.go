@@ -36,7 +36,7 @@ func (t *TransSagaProcessor) GenBranches() []TransBranch {
 }
 
 func (t *TransSagaProcessor) ExecBranch(db *common.DB, branch *TransBranch) {
-	resp, err := common.RestyClient.R().SetBody(branch.Data).SetQueryParam("gid", branch.Gid).Post(branch.Url)
+	resp, err := common.RestyClient.R().SetBody(branch.Data).SetQueryParams(t.getBranchParams(branch)).Post(branch.Url)
 	e2p(err)
 	body := resp.String()
 	if strings.Contains(body, "SUCCESS") {

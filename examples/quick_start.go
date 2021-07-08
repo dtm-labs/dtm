@@ -20,16 +20,16 @@ var qsBusi = fmt.Sprintf("http://localhost:%d%s", qsBusiPort, qsBusiApi)
 
 // 被app/main.go调用，启动服务并运行示例
 func StartMain() {
-	go qsStartSvr()
+	qsStartSvr()
 	qsFireRequest()
-	time.Sleep(1000 * time.Second)
 }
 
 func qsStartSvr() {
 	app := common.GetGinApp()
 	qsAddRoute(app)
 	logrus.Printf("quick qs examples listening at %d", qsBusiPort)
-	app.Run(fmt.Sprintf(":%d", qsBusiPort))
+	go app.Run(fmt.Sprintf(":%d", qsBusiPort))
+	time.Sleep(100 * time.Millisecond)
 }
 
 func qsFireRequest() {

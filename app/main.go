@@ -11,36 +11,38 @@ import (
 
 type M = map[string]interface{}
 
+func wait() {
+	time.Sleep(10000 * time.Second)
+}
+
 func main() {
 	if len(os.Args) > 1 && (os.Args[1] == "quick_start" || os.Args[1] == "qs") {
 		dtmsvr.PopulateMysql()
-		dtmsvr.Main()
+		dtmsvr.MainStart()
 		examples.StartMain()
-		for {
-			time.Sleep(1000 * time.Second)
-		}
+		wait()
 	}
 	app := examples.BaseAppNew()
 	examples.BaseAppSetup(app)
 	if len(os.Args) == 1 || os.Args[1] == "saga" { // 默认情况下，展示saga例子
 		dtmsvr.PopulateMysql()
-		dtmsvr.Main()
+		dtmsvr.MainStart()
 		examples.SagaSetup(app)
 		examples.BaseAppStart(app)
 		examples.SagaFireRequest()
 	} else if os.Args[1] == "xa" { // 启动xa示例
 		dtmsvr.PopulateMysql()
-		dtmsvr.Main()
+		dtmsvr.MainStart()
 		examples.PopulateMysql()
 		examples.XaSetup(app)
 		examples.BaseAppStart(app)
 		examples.XaFireRequest()
 	} else if os.Args[1] == "dtmsvr" { // 只启动dtmsvr
-		go dtmsvr.StartSvr()
+		go dtmsvr.MainStart()
 	} else if os.Args[1] == "all" { // 运行所有示例
 		dtmsvr.PopulateMysql()
 		examples.PopulateMysql()
-		dtmsvr.Main()
+		dtmsvr.MainStart()
 		examples.SagaSetup(app)
 		examples.TccSetup(app)
 		examples.XaSetup(app)
@@ -48,10 +50,13 @@ func main() {
 		examples.SagaFireRequest()
 		examples.TccFireRequest()
 		examples.XaFireRequest()
+	} else if os.Args[1] == "saga_barrier" {
+		dtmsvr.PopulateMysql()
+		dtmsvr.MainStart()
+		examples.PopulateMysql()
+		examples.SagaBarrierMainStart()
 	} else {
 		logrus.Fatalf("unknown arg: %s", os.Args[1])
 	}
-	for {
-		time.Sleep(1000 * time.Second)
-	}
+	wait()
 }

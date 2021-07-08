@@ -114,6 +114,7 @@ func SqlDB2DB(sdb *sql.DB) *DB {
 		Conn: sdb,
 	}), &gorm.Config{})
 	E2P(err)
+	db.Use(&tracePlugin{})
 	return &DB{DB: db}
 }
 

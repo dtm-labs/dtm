@@ -117,6 +117,15 @@ func (trans *TransGlobal) Process(db *common.DB) {
 	trans.getProcessor().ProcessOnce(db, branches)
 }
 
+func (trans *TransGlobal) getBranchParams(branch *TransBranch) common.MS {
+	return common.MS{
+		"gid":         trans.Gid,
+		"trans_type":  trans.TransType,
+		"branch_id":   branch.BranchID,
+		"branch_type": branch.BranchType,
+	}
+}
+
 func (t *TransGlobal) setNextCron(expireIn int64) []string {
 	t.NextCronInterval = expireIn
 	next := time.Now().Add(time.Duration(config.TransCronInterval) * time.Second)

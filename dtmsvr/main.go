@@ -2,6 +2,7 @@ package dtmsvr
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/sirupsen/logrus"
 	"github.com/yedf/dtm/common"
@@ -10,8 +11,8 @@ import (
 
 var dtmsvrPort = 8080
 
-func Main() {
-	go StartSvr()
+func MainStart() {
+	StartSvr()
 	go CronCommitted()
 	go CronPrepared()
 }
@@ -23,7 +24,8 @@ func StartSvr() {
 	app := common.GetGinApp()
 	AddRoute(app)
 	logrus.Printf("dtmsvr listen at: %d", dtmsvrPort)
-	app.Run(fmt.Sprintf(":%d", dtmsvrPort))
+	go app.Run(fmt.Sprintf(":%d", dtmsvrPort))
+	time.Sleep(100 * time.Millisecond)
 }
 
 func PopulateMysql() {
