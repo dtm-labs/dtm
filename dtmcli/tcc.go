@@ -49,7 +49,7 @@ func TccFromReq(c *gin.Context) (*Tcc, error) {
 }
 
 func (t *Tcc) CallBranch(body interface{}, tryUrl string, confirmUrl string, cancelUrl string) (*resty.Response, error) {
-	return common.RestyClient.R().
+	resp, err := common.RestyClient.R().
 		SetBody(&M{
 			"gid":        t.Gid,
 			"branch_id":  common.GenGid(),
@@ -61,4 +61,10 @@ func (t *Tcc) CallBranch(body interface{}, tryUrl string, confirmUrl string, can
 			"cancel":     cancelUrl,
 		}).
 		Post(t.Dtm + "/registerTccBranch")
+	if err != nil {
+		return resp, err
+	}
+	return common.RestyClient.R().
+		SetBody(body).
+		Post(tryUrl)
 }
