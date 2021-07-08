@@ -55,6 +55,11 @@ func main() {
 		dtmsvr.MainStart()
 		examples.PopulateMysql()
 		examples.SagaBarrierMainStart()
+	} else if os.Args[1] == "tcc_barrier" {
+		dtmsvr.PopulateMysql()
+		dtmsvr.MainStart()
+		examples.PopulateMysql()
+		examples.TccBarrierMainStart()
 	} else {
 		logrus.Fatalf("unknown arg: %s", os.Args[1])
 	}

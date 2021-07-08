@@ -20,6 +20,14 @@ type UserAccount struct {
 
 func (u *UserAccount) TableName() string { return "user_account" }
 
+type UserAccountTrading struct {
+	common.ModelBase
+	UserId         int
+	TradingBalance string
+}
+
+func (u *UserAccountTrading) TableName() string { return "user_account_trading" }
+
 func dbGet() *common.DB {
 	return common.DbGet(Config.Mysql)
 }

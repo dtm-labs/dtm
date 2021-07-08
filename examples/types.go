@@ -17,6 +17,7 @@ const DtmServer = "http://localhost:8080/api/dtmsvr"
 
 const (
 	SagaBarrierBusiPort = iota + 8090
+	TccBarrierBusiPort
 )
 
 type TransReq struct {
