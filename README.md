@@ -1,3 +1,5 @@
+[English](https://github.com/yedf/dtm/blob/master/README-en.md)
+
 # GO语言分布式事务管理服务
 DTM是首款golang的分布式事务管理器，优雅的解决了幂等、空补偿、悬挂等分布式事务难题。在微服务架构中，提供了高性能和简单易用的分布式事务解决方案。
 
