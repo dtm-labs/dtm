@@ -9,7 +9,6 @@ import (
 	"github.com/sirupsen/logrus"
 	"github.com/yedf/dtm/common"
 	"github.com/yedf/dtm/dtmcli"
-	"gorm.io/gorm"
 )
 
 // 事务参与者的服务地址
@@ -70,7 +69,7 @@ const transOutUid = 2
 
 func adjustTrading(sdb *sql.DB, uid int, amount int) (interface{}, error) {
 	db := common.SqlDB2DB(sdb)
-	dbr := db.Exec("update dtm_busi.user_account_trading t join dtm_busi.user_account a on t.user_id=a.user_id and t.user_id=? set t.trading_balance=t.trading_balance + ? where a.balance + t.trading_balance + ? > 0", uid, amount, amount)
+	dbr := db.Exec("update dtm_busi.user_account_trading t join dtm_busi.user_account a on t.user_id=a.user_id and t.user_id=? set t.trading_balance=t.trading_balance + ? where a.balance + t.trading_balance + ? >= 0", uid, amount, amount)
 	if dbr.Error == nil && dbr.RowsAffected == 0 {
 		return nil, fmt.Errorf("update error, maybe balance not enough")
 	}
@@ -79,15 +78,10 @@ func adjustTrading(sdb *sql.DB, uid int, amount int) (interface{}, error) {
 
 func adjustBalance(sdb *sql.DB, uid int, amount int) (interface{}, error) {
 	db := common.SqlDB2DB(sdb)
-	dbr := db.Exec("update dtm_busi.user_account_trading t join dtm_busi.user_account a on t.user_id=a.user_id and t.user_id=? set t.trading_balance=t.trading_balance + ? where a.balance + t.trading_balance + ? > 0", uid, -amount, -amount)
-	if dbr.Error != nil {
-		return nil, dbr.Error
+	dbr := db.Exec("update dtm_busi.user_account_trading t join dtm_busi.user_account a on t.user_id=a.user_id and t.user_id=? set t.trading_balance=t.trading_balance + ?", uid, -amount, -amount)
+	if dbr.Error == nil && dbr.RowsAffected == 1 {
+		dbr = db.Exec("update dtm_busi.user_account set balance=balance+? where user_id=?", amount, uid)
 	}
-	if dbr.RowsAffected == 0 {
-		return nil, fmt.Errorf("update trading error")
-	}
-	dbr = db.Model(&UserAccount{}).Where("user_id = ?", uid).
-		Update("balance", gorm.Expr("balance + ?", amount))
 	if dbr.Error != nil {
 		return nil, dbr.Error
 	}

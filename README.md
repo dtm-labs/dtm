@@ -23,13 +23,13 @@ DTM是首款golang的分布式事务管理器，优雅的解决了幂等、空�
   + XA
 
 ### 文档与介绍(更新中)
-  * [DTM简介](https://zhuanlan.zhihu.com/p/386770520)
+  * [分布式事务简介](https://zhuanlan.zhihu.com/p/387487859)
   * 分布式事务模式
     - [XA事务模式](https://zhuanlan.zhihu.com/p/384756957)
     - [SAGA事务模式](https://zhuanlan.zhihu.com/p/385594256)
-    - TCC事务模式
+    - [TCC事务模式](https://zhuanlan.zhihu.com/p/388357329)
     - 可靠消息事务模式
-  * 子事务屏障
+  * [子事务屏障](https://zhuanlan.zhihu.com/p/388444465)
   * FAQ
   * 部署指南
 
