@@ -20,7 +20,7 @@ func (t *TransSagaProcessor) GenBranches() []TransBranch {
 	steps := []M{}
 	common.MustUnmarshalString(t.Data, &steps)
 	for _, step := range steps {
-		branch := common.GenGid()
+		branch := GenGid()
 		for _, branchType := range []string{"compensate", "action"} {
 			branches = append(branches, TransBranch{
 				Gid:        t.Gid,

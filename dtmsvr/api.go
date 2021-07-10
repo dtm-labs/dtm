@@ -17,6 +17,11 @@ func AddRoute(engine *gin.Engine) {
 	engine.POST("/api/dtmsvr/registerTccBranch", common.WrapHandler(RegisterTccBranch))
 	engine.POST("/api/dtmsvr/abort", common.WrapHandler(Abort))
 	engine.GET("/api/dtmsvr/query", common.WrapHandler(Query))
+	engine.GET("/api/dtmsvr/newGid", common.WrapHandler(NewGid))
+}
+
+func NewGid(c *gin.Context) (interface{}, error) {
+	return M{"gid": GenGid()}, nil
 }
 
 func Prepare(c *gin.Context) (interface{}, error) {

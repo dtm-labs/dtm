@@ -57,7 +57,7 @@ func NewXa(server string, mysqlConf map[string]string, app *gin.Engine, callback
 
 func (xa *Xa) XaLocalTransaction(gid string, transFunc XaLocalFunc) (rerr error) {
 	defer common.P2E(&rerr)
-	branchID := common.GenGid()
+	branchID := GenGid(xa.Server)
 	tx, my := common.DbAlone(xa.Conf)
 	defer func() { my.Close() }()
 	tx.Must().Exec(fmt.Sprintf("XA start '%s'", branchID))
@@ -76,7 +76,7 @@ func (xa *Xa) XaLocalTransaction(gid string, transFunc XaLocalFunc) (rerr error)
 }
 
 func (xa *Xa) XaGlobalTransaction(transFunc XaGlobalFunc) (gid string, rerr error) {
-	gid = common.GenGid()
+	gid = GenGid(xa.Server)
 	data := &M{
 		"gid":        gid,
 		"trans_type": "xa",

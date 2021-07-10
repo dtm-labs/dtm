@@ -135,7 +135,7 @@ func (t *TransGlobal) setNextCron(expireIn int64) []string {
 
 func (t *TransGlobal) SaveNew(db *common.DB) {
 	if t.Gid == "" {
-		t.Gid = common.GenGid()
+		t.Gid = GenGid()
 	}
 	err := db.Transaction(func(db1 *gorm.DB) error {
 		db := &common.DB{DB: db1}

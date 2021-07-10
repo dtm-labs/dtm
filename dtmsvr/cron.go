@@ -7,7 +7,6 @@ import (
 	"time"
 
 	"github.com/sirupsen/logrus"
-	"github.com/yedf/dtm/common"
 )
 
 func CronPrepared() {
@@ -39,7 +38,7 @@ func CronCommitted() {
 
 func lockOneTrans(expireIn time.Duration, status string) *TransGlobal {
 	trans := TransGlobal{}
-	owner := common.GenGid()
+	owner := GenGid()
 	db := dbGet()
 	dbr := db.Must().Model(&trans).
 		Where("next_cron_time < date_add(now(), interval ? second) and status=?", int(expireIn/time.Second), status).

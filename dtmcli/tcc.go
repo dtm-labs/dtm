@@ -16,7 +16,7 @@ type Tcc struct {
 type TccGlobalFunc func(tcc *Tcc) error
 
 func TccGlobalTransaction(dtm string, tccFunc TccGlobalFunc) (gid string, rerr error) {
-	gid = common.GenGid()
+	gid = GenGid(dtm)
 	data := &M{
 		"gid":        gid,
 		"trans_type": "tcc",
@@ -49,7 +49,7 @@ func TccFromReq(c *gin.Context) (*Tcc, error) {
 }
 
 func (t *Tcc) CallBranch(body interface{}, tryUrl string, confirmUrl string, cancelUrl string) (*resty.Response, error) {
-	branchID := common.GenGid()
+	branchID := GenGid(t.Dtm)
 	resp, err := common.RestyClient.R().
 		SetBody(&M{
 			"gid":        t.Gid,

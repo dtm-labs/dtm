@@ -2,12 +2,10 @@ package common
 
 import (
 	"bytes"
-	"encoding/hex"
 	"encoding/json"
 	"errors"
 	"fmt"
 	"io/ioutil"
-	"net"
 	"os"
 	"path"
 	"path/filepath"
@@ -16,7 +14,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/bwmarrin/snowflake"
 	"github.com/gin-gonic/gin"
 	"github.com/go-resty/resty/v2"
 	"github.com/sirupsen/logrus"
@@ -51,30 +48,6 @@ func PanicIf(cond bool, err error) {
 	}
 }
 
-func getOneHexIp() string {
-	addrs, err := net.InterfaceAddrs()
-	if err != nil {
-		fmt.Printf("cannot get ip, default to another call")
-		return gNode.Generate().Base58()
-	}
-	for _, address := range addrs {
-		if ipnet, ok := address.(*net.IPNet); ok && !ipnet.IP.IsLoopback() {
-			if ipnet.IP.To4() != nil {
-				ip := ipnet.IP.To4().String()
-				ns := strings.Split(ip, ".")
-				r := []byte{}
-				for _, n := range ns {
-					r = append(r, byte(MustAtoi(n)))
-				}
-				return hex.EncodeToString(r)
-			}
-
-		}
-	}
-	fmt.Printf("none ipv4, default to another call")
-	return gNode.Generate().Base58()
-}
-
 // MustAtoi 走must逻辑
 func MustAtoi(s string) int {
 	r, err := strconv.Atoi(s)
@@ -82,18 +55,6 @@ func MustAtoi(s string) int {
 		E2P(errors.New("convert to int error: " + s))
 	}
 	return r
-}
-
-var gNode *snowflake.Node = nil
-
-func init() {
-	node, err := snowflake.NewNode(1)
-	E2P(err)
-	gNode = node
-}
-
-func GenGid() string {
-	return getOneHexIp() + "-" + gNode.Generate().Base58()
 }
 
 func OrString(ss ...string) string {

@@ -27,7 +27,7 @@ type MsgStep struct {
 func NewMsg(server string) *Msg {
 	return &Msg{
 		MsgData: MsgData{
-			Gid:       common.GenGid(),
+			Gid:       GenGid(server),
 			TransType: "msg",
 		},
 		Server: server,

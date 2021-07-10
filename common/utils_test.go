@@ -36,12 +36,6 @@ func TestEP(t *testing.T) {
 	}()
 }
 
-func TestGid(t *testing.T) {
-	id1 := GenGid()
-	id2 := GenGid()
-	assert.NotEqual(t, id1, id2)
-}
-
 func TestTernary(t *testing.T) {
 	assert.Equal(t, "1", OrString("", "", "1"))
 	assert.Equal(t, "", OrString("", "", ""))
