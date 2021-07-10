@@ -1,20 +1,14 @@
 version: '3.3'
 services:
-  mysql:
-    image: 'mysql:5.7'
+  api:
+    build: .
     environment:
-      MYSQL_ROOT_PASSWORD: my-secret-pw
-      TZ: Asia/shanghai
-    command:
-      [
-        '--character-set-server=utf8mb4',
-        '--collation-server=utf8mb4_unicode_ci',
-        '--default-time-zone=+8:00',
-      ]
+      IS_DOCKER_COMPOSE: '1'
     ports:
-      - '3306:3306'
-services:
-  dtm:
+      - '80:4005'
+    volumes:
+      - .:/app/dtm
+  mysql:
     image: 'mysql:5.7'
     environment:
       MYSQL_ROOT_PASSWORD: my-secret-pw

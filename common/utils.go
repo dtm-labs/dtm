@@ -188,7 +188,7 @@ func init() {
 	// RestyClient.SetRetryCount(2)
 	// RestyClient.SetRetryWaitTime(1 * time.Second)
 	RestyClient.OnBeforeRequest(func(c *resty.Client, r *resty.Request) error {
-		if IsDocker() {
+		if IsDockerCompose() {
 			r.URL = strings.Replace(r.URL, "localhost", "host.docker.internal", 1)
 		}
 		logrus.Printf("requesting: %s %s %v %v", r.Method, r.URL, r.Body, r.QueryParam)
@@ -273,6 +273,6 @@ func GetFuncName() string {
 	return runtime.FuncForPC(pc).Name()
 }
 
-func IsDocker() bool {
-	return os.Getenv("IS_DOCKER") != ""
+func IsDockerCompose() bool {
+	return os.Getenv("IS_DOCKER_COMPOSE") != ""
 }

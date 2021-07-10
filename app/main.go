@@ -24,12 +24,8 @@ func main() {
 	}
 	app := examples.BaseAppNew()
 	examples.BaseAppSetup(app)
-	if len(os.Args) == 1 || os.Args[1] == "saga" { // 默认情况下，展示saga例子
-		dtmsvr.PopulateMysql()
-		dtmsvr.MainStart()
-		examples.SagaSetup(app)
-		examples.BaseAppStart(app)
-		examples.SagaFireRequest()
+	if len(os.Args) == 1 || os.Args[1] == "dtmsvr" { // 只启动dtmsvr
+		go dtmsvr.MainStart()
 	} else if os.Args[1] == "xa" { // 启动xa示例
 		dtmsvr.PopulateMysql()
 		dtmsvr.MainStart()
@@ -37,8 +33,12 @@ func main() {
 		examples.XaSetup(app)
 		examples.BaseAppStart(app)
 		examples.XaFireRequest()
-	} else if os.Args[1] == "dtmsvr" { // 只启动dtmsvr
-		go dtmsvr.MainStart()
+	} else if os.Args[1] == "saga" { // 启动saga示例
+		dtmsvr.PopulateMysql()
+		dtmsvr.MainStart()
+		examples.SagaSetup(app)
+		examples.BaseAppStart(app)
+		examples.SagaFireRequest()
 	} else if os.Args[1] == "all" { // 运行所有示例
 		dtmsvr.PopulateMysql()
 		examples.PopulateMysql()

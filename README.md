@@ -43,7 +43,7 @@ DTM是首款golang的分布式事务管理器，优雅的解决了幂等、空�
 `cp conf.sample.yml conf.yml # 修改conf.yml`  
 
 ### 启动并运行saga示例
-`go run app/main.go`
+`go run app/main.go saga`
 
 # 开始使用
 

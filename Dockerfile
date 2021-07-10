@@ -3,5 +3,4 @@ WORKDIR /app/dtm
 RUN go env -w GO111MODULE=on
 RUN go env -w GOPROXY=https://mirrors.aliyun.com/goproxy/,direct
 EXPOSE 8080
-ENV IS_DOCKER 1
 CMD [ "/bin/bash", "-c", "go build app/main.go && /app/dtm/main" ]
