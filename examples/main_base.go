@@ -16,16 +16,14 @@ const (
 
 var Busi string = fmt.Sprintf("http://localhost:%d%s", BusiPort, BusiApi)
 
-func BaseAppNew() *gin.Engine {
+func BaseAppStartup() *gin.Engine {
 	logrus.Printf("examples starting")
 	app := common.GetGinApp()
-	return app
-}
-
-func BaseAppStart(app *gin.Engine) {
+	BaseAddRoute(app)
 	logrus.Printf("Starting busi at: %d", BusiPort)
 	go app.Run(fmt.Sprintf(":%d", BusiPort))
 	time.Sleep(100 * time.Millisecond)
+	return app
 }
 
 type AutoEmptyString struct {
@@ -62,7 +60,7 @@ func handleGeneralBusiness(c *gin.Context, result1 string, result2 string, busi 
 
 }
 
-func BaseAppSetup(app *gin.Engine) {
+func BaseAddRoute(app *gin.Engine) {
 	app.POST(BusiApi+"/TransIn", common.WrapHandler(func(c *gin.Context) (interface{}, error) {
 		return handleGeneralBusiness(c, MainSwitch.TransInResult.Fetch(), reqFrom(c).TransInResult, "transIn")
 	}))

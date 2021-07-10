@@ -1,22 +1,10 @@
 package examples
 
 import (
-	"time"
-
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
 	"github.com/yedf/dtm/dtmcli"
 )
-
-func SagaMain() {
-	app := BaseAppNew()
-	BaseAppSetup(app)
-	TccSetup(app)
-	go BaseAppStart(app)
-	time.Sleep(100 * time.Millisecond)
-	TccFireRequest()
-	time.Sleep(1000 * time.Second)
-}
 
 func SagaSetup(app *gin.Engine) {
 }

@@ -19,7 +19,7 @@ const qsBusiPort = 8082
 var qsBusi = fmt.Sprintf("http://localhost:%d%s", qsBusiPort, qsBusiApi)
 
 // 被app/main.go调用，启动服务并运行示例
-func StartMain() {
+func QuickStarMain() {
 	qsStartSvr()
 	qsFireRequest()
 }

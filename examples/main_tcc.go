@@ -1,23 +1,11 @@
 package examples
 
 import (
-	"time"
-
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
 	"github.com/yedf/dtm/common"
 	"github.com/yedf/dtm/dtmcli"
 )
-
-func TccMain() {
-	app := BaseAppNew()
-	BaseAppSetup(app)
-	TccSetup(app)
-	go BaseAppStart(app)
-	time.Sleep(100 * time.Millisecond)
-	TccFireRequest()
-	time.Sleep(1000 * time.Second)
-}
 
 func TccSetup(app *gin.Engine) {
 	app.POST(BusiApi+"/TransInTcc", common.WrapHandler(func(c *gin.Context) (interface{}, error) {

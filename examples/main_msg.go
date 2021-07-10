@@ -1,20 +1,10 @@
 package examples
 
 import (
-	"time"
-
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
 	"github.com/yedf/dtm/dtmcli"
 )
-
-func MsgMain() {
-	app := BaseAppNew()
-	BaseAppSetup(app)
-	BaseAppStart(app)
-	MsgFireRequest()
-	time.Sleep(1000 * time.Second)
-}
 
 func MsgSetup(app *gin.Engine) {
 }

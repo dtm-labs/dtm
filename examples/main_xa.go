@@ -2,7 +2,6 @@ package examples
 
 import (
 	"fmt"
-	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/yedf/dtm/common"
@@ -30,15 +29,6 @@ func (u *UserAccountTrading) TableName() string { return "user_account_trading" 
 
 func dbGet() *common.DB {
 	return common.DbGet(Config.Mysql)
-}
-
-func XaMain() {
-	app := BaseAppNew()
-	XaSetup(app)
-	go BaseAppStart(app)
-	time.Sleep(100 * time.Millisecond)
-	XaFireRequest()
-	time.Sleep(1000 * time.Second)
 }
 
 func XaFireRequest() {

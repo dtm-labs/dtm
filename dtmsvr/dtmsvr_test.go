@@ -33,13 +33,11 @@ func TestDtmSvr(t *testing.T) {
 	TransProcessedTestChan = make(chan string, 1)
 	// 启动组件
 	go StartSvr()
-	app := examples.BaseAppNew()
-	examples.BaseAppSetup(app)
+	app := examples.BaseAppStartup()
 	examples.SagaSetup(app)
 	examples.TccSetup(app)
 	examples.XaSetup(app)
 	examples.MsgSetup(app)
-	examples.BaseAppStart(app)
 
 	// 清理数据
 	e2p(dbGet().Exec("truncate trans_global").Error)
