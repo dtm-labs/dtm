@@ -188,6 +188,9 @@ func init() {
 	// RestyClient.SetRetryCount(2)
 	// RestyClient.SetRetryWaitTime(1 * time.Second)
 	RestyClient.OnBeforeRequest(func(c *resty.Client, r *resty.Request) error {
+		if IsDocker() {
+			r.URL = strings.Replace(r.URL, "localhost", "host.docker.internal", 1)
+		}
 		logrus.Printf("requesting: %s %s %v %v", r.Method, r.URL, r.Body, r.QueryParam)
 		return nil
 	})
@@ -268,4 +271,8 @@ func GetProjectDir() string {
 func GetFuncName() string {
 	pc, _, _, _ := runtime.Caller(1)
 	return runtime.FuncForPC(pc).Name()
+}
+
+func IsDocker() bool {
+	return os.Getenv("IS_DOCKER") != ""
 }

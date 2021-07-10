@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"fmt"
 	"regexp"
+	"strings"
 	"time"
 
 	"github.com/sirupsen/logrus"
@@ -87,6 +88,9 @@ func (op *tracePlugin) Initialize(db *gorm.DB) (err error) {
 }
 
 func GetDsn(conf map[string]string) string {
+	if IsDocker() {
+		conf["host"] = strings.Replace(conf["host"], "localhost", "host.docker.internal", 1)
+	}
 	return fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?charset=utf8mb4&parseTime=true&loc=Local", conf["user"], conf["password"], conf["host"], conf["port"], conf["database"])
 }
 
