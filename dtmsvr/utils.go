@@ -55,7 +55,7 @@ func init() {
 }
 
 func GenGid() string {
-	return getOneHexIp() + "-" + gNode.Generate().Base58()
+	return getOneHexIp() + "_" + gNode.Generate().Base58()
 }
 
 func getOneHexIp() string {

@@ -85,18 +85,12 @@ func getBranchesStatus(gid string) []string {
 }
 
 func xaNormal(t *testing.T) {
-	xa := examples.XaClient
-	gid, err := xa.XaGlobalTransaction(func(gid string) error {
+	xc := examples.XaClient
+	gid, err := xc.XaGlobalTransaction(func(xa *dtmcli.Xa) error {
 		req := examples.GenTransReq(30, false, false)
-		resp, err := common.RestyClient.R().SetBody(req).SetQueryParams(map[string]string{
-			"gid":     gid,
-			"user_id": "1",
-		}).Post(examples.Busi + "/TransOutXa")
+		resp, err := xa.CallBranch(req, examples.Busi+"/TransOutXa")
 		common.CheckRestySuccess(resp, err)
-		resp, err = common.RestyClient.R().SetBody(req).SetQueryParams(map[string]string{
-			"gid":     gid,
-			"user_id": "2",
-		}).Post(examples.Busi + "/TransInXa")
+		resp, err = xa.CallBranch(req, examples.Busi+"/TransInXa")
 		common.CheckRestySuccess(resp, err)
 		return nil
 	})
@@ -106,18 +100,12 @@ func xaNormal(t *testing.T) {
 }
 
 func xaRollback(t *testing.T) {
-	xa := examples.XaClient
-	gid, err := xa.XaGlobalTransaction(func(gid string) error {
+	xc := examples.XaClient
+	gid, err := xc.XaGlobalTransaction(func(xa *dtmcli.Xa) error {
 		req := examples.GenTransReq(30, false, true)
-		resp, err := common.RestyClient.R().SetBody(req).SetQueryParams(map[string]string{
-			"gid":     gid,
-			"user_id": "1",
-		}).Post(examples.Busi + "/TransOutXa")
+		resp, err := xa.CallBranch(req, examples.Busi+"/TransOutXa")
 		common.CheckRestySuccess(resp, err)
-		resp, err = common.RestyClient.R().SetBody(req).SetQueryParams(map[string]string{
-			"gid":     gid,
-			"user_id": "2",
-		}).Post(examples.Busi + "/TransInXa")
+		resp, err = xa.CallBranch(req, examples.Busi+"/TransInXa")
 		common.CheckRestySuccess(resp, err)
 		return nil
 	})

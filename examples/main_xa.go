@@ -9,7 +9,7 @@ import (
 	"gorm.io/gorm"
 )
 
-var XaClient *dtmcli.Xa = nil
+var XaClient *dtmcli.XaClient = nil
 
 type UserAccount struct {
 	common.ModelBase
@@ -32,18 +32,12 @@ func dbGet() *common.DB {
 }
 
 func XaFireRequest() {
-	_, err := XaClient.XaGlobalTransaction(func(gid string) (rerr error) {
+	_, err := XaClient.XaGlobalTransaction(func(xa *dtmcli.Xa) (rerr error) {
 		defer common.P2E(&rerr)
 		req := GenTransReq(30, false, false)
-		resp, err := common.RestyClient.R().SetBody(req).SetQueryParams(map[string]string{
-			"gid":     gid,
-			"user_id": "1",
-		}).Post(Busi + "/TransOutXa")
+		resp, err := xa.CallBranch(req, Busi+"/TransOutXa")
 		common.CheckRestySuccess(resp, err)
-		resp, err = common.RestyClient.R().SetBody(req).SetQueryParams(map[string]string{
-			"gid":     gid,
-			"user_id": "2",
-		}).Post(Busi + "/TransInXa")
+		resp, err = xa.CallBranch(req, Busi+"/TransInXa")
 		common.CheckRestySuccess(resp, err)
 		return nil
 	})
@@ -55,16 +49,16 @@ func XaSetup(app *gin.Engine) {
 	app.POST(BusiApi+"/TransInXa", common.WrapHandler(xaTransIn))
 	app.POST(BusiApi+"/TransOutXa", common.WrapHandler(xaTransOut))
 	Config.Mysql["database"] = "dtm_busi"
-	XaClient = dtmcli.NewXa(DtmServer, Config.Mysql, app, Busi+"/xa")
+	XaClient = dtmcli.NewXaClient(DtmServer, Config.Mysql, app, Busi+"/xa")
 }
 
 func xaTransIn(c *gin.Context) (interface{}, error) {
-	err := XaClient.XaLocalTransaction(c.Query("gid"), func(db *common.DB) (rerr error) {
+	err := XaClient.XaLocalTransaction(c, func(db *common.DB, xa *dtmcli.Xa) (rerr error) {
 		req := reqFrom(c)
 		if req.TransInResult != "SUCCESS" {
 			return fmt.Errorf("tranIn failed")
 		}
-		dbr := db.Model(&UserAccount{}).Where("user_id = ?", c.Query("user_id")).
+		dbr := db.Model(&UserAccount{}).Where("user_id = ?", 2).
 			Update("balance", gorm.Expr("balance + ?", req.Amount))
 		return dbr.Error
 	})
@@ -73,12 +67,12 @@ func xaTransIn(c *gin.Context) (interface{}, error) {
 }
 
 func xaTransOut(c *gin.Context) (interface{}, error) {
-	err := XaClient.XaLocalTransaction(c.Query("gid"), func(db *common.DB) (rerr error) {
+	err := XaClient.XaLocalTransaction(c, func(db *common.DB, xa *dtmcli.Xa) (rerr error) {
 		req := reqFrom(c)
 		if req.TransOutResult != "SUCCESS" {
 			return fmt.Errorf("tranOut failed")
 		}
-		dbr := db.Model(&UserAccount{}).Where("user_id = ?", c.Query("user_id")).
+		dbr := db.Model(&UserAccount{}).Where("user_id = ?", 1).
 			Update("balance", gorm.Expr("balance - ?", req.Amount))
 		return dbr.Error
 	})

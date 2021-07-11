@@ -9,6 +9,7 @@ import (
 )
 
 type Tcc struct {
+	IDGenerator
 	Dtm string
 	Gid string
 }
@@ -39,8 +40,9 @@ func TccGlobalTransaction(dtm string, tccFunc TccGlobalFunc) (gid string, rerr e
 
 func TccFromReq(c *gin.Context) (*Tcc, error) {
 	tcc := &Tcc{
-		Dtm: c.Query("dtm"),
-		Gid: c.Query("gid"),
+		Dtm:         c.Query("dtm"),
+		Gid:         c.Query("gid"),
+		IDGenerator: IDGenerator{parentID: c.Query("branch_id")},
 	}
 	if tcc.Dtm == "" || tcc.Gid == "" {
 		return nil, fmt.Errorf("bad tcc info. dtm: %s, gid: %s", tcc.Dtm, tcc.Gid)
@@ -49,7 +51,7 @@ func TccFromReq(c *gin.Context) (*Tcc, error) {
 }
 
 func (t *Tcc) CallBranch(body interface{}, tryUrl string, confirmUrl string, cancelUrl string) (*resty.Response, error) {
-	branchID := GenGid(t.Dtm)
+	branchID := t.NewBranchID()
 	resp, err := common.RestyClient.R().
 		SetBody(&M{
 			"gid":        t.Gid,

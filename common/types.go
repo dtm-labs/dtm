@@ -3,7 +3,6 @@ package common
 import (
 	"database/sql"
 	"fmt"
-	"os"
 	"regexp"
 	"strings"
 	"time"
@@ -92,7 +91,7 @@ func GetDsn(conf map[string]string) string {
 	if IsDockerCompose() {
 		conf["host"] = strings.Replace(conf["host"], "localhost", "host.docker.internal", 1)
 	}
-	logrus.Printf("is docker: %t IS_DOCKER_COMPOSE: %s and conf host: %s", IsDockerCompose(), os.Getenv("IS_DOCKER_COMPOSE"), conf["host"])
+	// logrus.Printf("is docker: %t IS_DOCKER_COMPOSE: %s and conf host: %s", IsDockerCompose(), os.Getenv("IS_DOCKER_COMPOSE"), conf["host"])
 	return fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?charset=utf8mb4&parseTime=true&loc=Local", conf["user"], conf["password"], conf["host"], conf["port"], conf["database"])
 }
 
