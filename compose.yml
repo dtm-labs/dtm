@@ -5,7 +5,7 @@ services:
     environment:
       IS_DOCKER_COMPOSE: '1'
     ports:
-      - '80:4005'
+      - '8080:8080'
     volumes:
       - .:/app/dtm
   mysql:

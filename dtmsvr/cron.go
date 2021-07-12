@@ -27,9 +27,9 @@ func CronTransOnce(expireIn time.Duration, status string) bool {
 	return true
 }
 
-func CronCommitted() {
+func CronSubmitted() {
 	for {
-		notEmpty := CronTransOnce(time.Duration(0), "commitetd")
+		notEmpty := CronTransOnce(time.Duration(0), "submitted")
 		if !notEmpty {
 			sleepCronTime()
 		}

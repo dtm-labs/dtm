@@ -13,7 +13,7 @@ var dtmsvrPort = 8080
 
 func MainStart() {
 	StartSvr()
-	go CronCommitted()
+	go CronSubmitted()
 	go CronPrepared()
 }
 

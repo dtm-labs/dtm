@@ -20,7 +20,7 @@ func (t *TransTccProcessor) GenBranches() []TransBranch {
 }
 
 func (t *TransTccProcessor) ExecBranch(db *common.DB, branch *TransBranch) {
-	resp, err := common.RestyClient.R().SetBody(branch.Data).SetQueryParams(t.getBranchParams(branch)).Post(branch.Url)
+	resp, err := common.RestyClient.R().SetBody(branch.Data).SetHeader("Content-type", "application/json").SetQueryParams(t.getBranchParams(branch)).Post(branch.Url)
 	e2p(err)
 	body := resp.String()
 	if strings.Contains(body, "SUCCESS") {
