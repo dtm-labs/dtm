@@ -1,3 +1,5 @@
+![license](https://img.shields.io/github/license/yedf/dtm)
+
 [English](https://github.com/yedf/dtm/blob/master/README-en.md)
 
 # GO语言分布式事务管理服务
