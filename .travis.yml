@@ -3,4 +3,6 @@ go:
   - 1.15.x
 env:
   - GO111MODULE=on
-script: true
+before_script:
+  - echo "USE mysql;\nUPDATE user SET password=PASSWORD('my-secret-pw') WHERE user='root';\nFLUSH PRIVILEGES;\n" | mysql -u root
+script: go test ./...
