@@ -1,7 +1,7 @@
 package examples
 
 type exampleConfig struct {
-	Mysql map[string]string
+	Mysql map[string]string `yaml:"Mysql"`
 }
 
 var Config = exampleConfig{}

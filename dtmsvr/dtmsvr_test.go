@@ -7,7 +7,6 @@ import (
 	"time"
 
 	"github.com/sirupsen/logrus"
-	"github.com/spf13/viper"
 	"github.com/stretchr/testify/assert"
 	"github.com/yedf/dtm/common"
 	"github.com/yedf/dtm/dtmcli"
@@ -25,10 +24,6 @@ var myinit int = func() int {
 	return 0
 }()
 
-func TestViper(t *testing.T) {
-	assert.Equal(t, true, viper.Get("mysql") != nil)
-}
-
 func TestDtmSvr(t *testing.T) {
 	TransProcessedTestChan = make(chan string, 1)
 	// 启动组件
@@ -45,8 +40,8 @@ func TestDtmSvr(t *testing.T) {
 	e2p(dbGet().Exec("truncate trans_log").Error)
 	examples.ResetXaData()
 
-	msgPending(t)
 	msgNormal(t)
+	msgPending(t)
 	tccNormal(t)
 	tccRollback(t)
 	sagaNormal(t)

@@ -7,7 +7,7 @@ import (
 )
 
 type testConfig struct {
-	Mysql map[string]string
+	Mysql map[string]string `yaml:"Mysql"`
 }
 
 var config = testConfig{}

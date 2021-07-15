@@ -17,7 +17,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/go-resty/resty/v2"
 	"github.com/sirupsen/logrus"
-	"github.com/spf13/viper"
+	yaml "gopkg.in/yaml.v2"
 )
 
 func P2E(perr *error) {
@@ -192,22 +192,16 @@ func (f *formatter) Format(entry *logrus.Entry) ([]byte, error) {
 	return b.Bytes(), nil
 }
 
-var configLoaded = map[string]bool{}
-
 // 加载调用者文件相同目录下的配置文件
 func InitApp(dir string, config interface{}) {
 	logrus.SetFormatter(&formatter{})
-	if !configLoaded[dir] {
-		configLoaded[dir] = true
-		viper.SetConfigFile(dir + "/conf.yml")
-		err := viper.ReadInConfig()
-		if err != nil {
-			viper.SetConfigFile(dir + "/conf.sample.yml")
-			err = viper.ReadInConfig()
-		}
-		E2P(err)
+	cont, err := ioutil.ReadFile(dir + "/conf.yml")
+	if err != nil {
+		cont, err = ioutil.ReadFile(dir + "/conf.sample.yml")
 	}
-	err := viper.Unmarshal(config)
+	logrus.Printf("cont is: \n%s", string(cont))
+	E2P(err)
+	err = yaml.Unmarshal(cont, config)
 	E2P(err)
 }
 

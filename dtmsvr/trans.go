@@ -109,9 +109,11 @@ func (trans *TransGlobal) Process(db *common.DB) {
 	defer handlePanic()
 	defer func() {
 		if TransProcessedTestChan != nil {
+			logrus.Printf("processed: %s", trans.Gid)
 			TransProcessedTestChan <- trans.Gid
 		}
 	}()
+	logrus.Printf("processing: %s", trans.Gid)
 	branches := []TransBranch{}
 	db.Must().Where("gid=?", trans.Gid).Order("id asc").Find(&branches)
 	trans.getProcessor().ProcessOnce(db, branches)
