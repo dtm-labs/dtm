@@ -4,9 +4,9 @@ import (
 	"fmt"
 
 	"github.com/gin-gonic/gin"
+	"github.com/sirupsen/logrus"
 	"github.com/yedf/dtm/common"
 	"github.com/yedf/dtm/dtmcli"
-	"gorm.io/gorm"
 )
 
 var XaClient *dtmcli.XaClient = nil
@@ -58,8 +58,7 @@ func xaTransIn(c *gin.Context) (interface{}, error) {
 		if req.TransInResult != "SUCCESS" {
 			return fmt.Errorf("tranIn failed")
 		}
-		dbr := db.Model(&UserAccount{}).Where("user_id = ?", 2).
-			Update("balance", gorm.Expr("balance + ?", req.Amount))
+		dbr := db.Exec("update user_account set balance=balance+? where user_id=?", req.Amount, 2)
 		return dbr.Error
 	})
 	e2p(err)
@@ -72,8 +71,9 @@ func xaTransOut(c *gin.Context) (interface{}, error) {
 		if req.TransOutResult != "SUCCESS" {
 			return fmt.Errorf("tranOut failed")
 		}
-		dbr := db.Model(&UserAccount{}).Where("user_id = ?", 1).
-			Update("balance", gorm.Expr("balance - ?", req.Amount))
+		logrus.Printf("before updating balance")
+		dbr := db.Exec("update user_account set balance=balance-? where user_id=?", req.Amount, 1)
+		logrus.Printf("after updating balance")
 		return dbr.Error
 	})
 	e2p(err)
