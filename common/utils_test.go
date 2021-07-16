@@ -79,11 +79,16 @@ func TestGin(t *testing.T) {
 	assert.Equal(t, "{\"code\":500,\"message\":\"err1\"}", getResultString("/api/error", strings.NewReader("{}")))
 }
 
-// func TestResty(t *testing.T) {
-// 	resp, err := RestyClient.R().Get("http://taobao.com")
-// 	assert.Equal(t, nil, err)
-// 	err2 := CatchP(func() {
-// 		CheckRestySuccess(resp, err)
-// 	})
-// 	assert.NotEqual(t, nil, err2)
-// }
+func TestSome(t *testing.T) {
+	n := MustAtoi("123")
+	assert.Equal(t, 123, n)
+
+	wd := MustGetwd()
+	assert.NotEqual(t, "", wd)
+
+	dir1 := GetCurrentCodeDir()
+	assert.Equal(t, true, strings.HasSuffix(dir1, "common"))
+
+	func1 := GetFuncName()
+	assert.Equal(t, true, strings.HasSuffix(func1, "TestSome"))
+}

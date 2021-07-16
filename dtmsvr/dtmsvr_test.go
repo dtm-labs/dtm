@@ -16,13 +16,12 @@ import (
 var DtmServer = examples.DtmServer
 var Busi = examples.Busi
 
-var myinit int = func() int {
+func init() {
 	common.InitApp(common.GetProjectDir(), &config)
 	config.Mysql["database"] = dbName
 	PopulateMysql()
 	examples.PopulateMysql()
-	return 0
-}()
+}
 
 func TestDtmSvr(t *testing.T) {
 	TransProcessedTestChan = make(chan string, 1)
@@ -72,6 +71,8 @@ func TestCover(t *testing.T) {
 	CronTransOnce(0, "submitted")
 	defer handlePanic()
 	checkAffected(db.DB)
+
+	go CronExpiredTrans("submitted", 1)
 }
 
 func getTransStatus(gid string) string {

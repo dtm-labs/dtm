@@ -28,6 +28,8 @@ func TestDb(t *testing.T) {
 		return nil
 	}()
 	assert.NotEqual(t, nil, err)
+	sdb := db.ToSQLDB()
+	db = SQLDB2DB(sdb)
 }
 
 func TestDbAlone(t *testing.T) {
