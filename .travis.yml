@@ -3,8 +3,5 @@ go:
   - 1.15.x
 env:
   - GO111MODULE=on
-  before_install:
-    - sudo mysql -e "use mysql; update user set authentication_string=PASSWORD('my-secret-pw') where User='root'; update user set plugin='mysql_native_password';FLUSH PRIVILEGES;"
-    - sudo mysql_upgrade -u root -pmy-secret-pw
-    - sudo service mysql restart
+
 script: go test ./...
