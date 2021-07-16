@@ -40,8 +40,12 @@ func sagaBarrierAdjustBalance(sdb *sql.DB, uid int, amount int) (interface{}, er
 }
 
 func sagaBarrierTransIn(c *gin.Context) (interface{}, error) {
+	req := reqFrom(c)
+	if req.TransInResult != "" {
+		return req.TransInResult, nil
+	}
 	return dtmcli.ThroughBarrierCall(dbGet().ToSQLDB(), dtmcli.TransInfoFromReq(c), func(sdb *sql.DB) (interface{}, error) {
-		return sagaBarrierAdjustBalance(sdb, 1, reqFrom(c).Amount)
+		return sagaBarrierAdjustBalance(sdb, 1, req.Amount)
 	})
 }
 
@@ -52,8 +56,12 @@ func sagaBarrierTransInCompensate(c *gin.Context) (interface{}, error) {
 }
 
 func sagaBarrierTransOut(c *gin.Context) (interface{}, error) {
+	req := reqFrom(c)
+	if req.TransInResult != "" {
+		return req.TransInResult, nil
+	}
 	return dtmcli.ThroughBarrierCall(dbGet().ToSQLDB(), dtmcli.TransInfoFromReq(c), func(sdb *sql.DB) (interface{}, error) {
-		return sagaBarrierAdjustBalance(sdb, 2, -reqFrom(c).Amount)
+		return sagaBarrierAdjustBalance(sdb, 2, -req.Amount)
 	})
 }
 

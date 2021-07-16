@@ -3,6 +3,7 @@ package dtmsvr
 import (
 	"database/sql"
 	"fmt"
+	"strings"
 	"testing"
 	"time"
 
@@ -42,7 +43,9 @@ func TestDtmSvr(t *testing.T) {
 	examples.ResetXaData()
 
 	tccBarrierNormal(t)
+	tccBarrierRollback(t)
 	sagaBarrierNormal(t)
+	sagaBarrierRollback(t)
 	msgNormal(t)
 	msgPending(t)
 	tccNormal(t)
@@ -139,12 +142,12 @@ func tccNormal(t *testing.T) {
 }
 func tccBarrierNormal(t *testing.T) {
 	_, err := dtmcli.TccGlobalTransaction(DtmServer, func(tcc *dtmcli.Tcc) (rerr error) {
-		res1, rerr := tcc.CallBranch(&examples.TransReq{Amount: 30}, Busi+"/TccBTransOutTry", Busi+"/TccBTransOutConfirm", Busi+"/TccBTransOutRevert")
+		res1, rerr := tcc.CallBranch(&examples.TransReq{Amount: 30}, Busi+"/TccBTransOutTry", Busi+"/TccBTransOutConfirm", Busi+"/TccBTransOutCancel")
 		e2p(rerr)
 		if res1.StatusCode() != 200 {
 			return fmt.Errorf("bad status code: %d", res1.StatusCode())
 		}
-		res2, rerr := tcc.CallBranch(&examples.TransReq{Amount: 30}, Busi+"/TccBTransInTry", Busi+"/TccBTransInConfirm", Busi+"/TccBTransInRevert")
+		res2, rerr := tcc.CallBranch(&examples.TransReq{Amount: 30}, Busi+"/TccBTransInTry", Busi+"/TccBTransInConfirm", Busi+"/TccBTransInCancel")
 		e2p(rerr)
 		if res2.StatusCode() != 200 {
 			return fmt.Errorf("bad status code: %d", res2.StatusCode())
@@ -153,6 +156,29 @@ func tccBarrierNormal(t *testing.T) {
 		return
 	})
 	e2p(err)
+}
+
+func tccBarrierRollback(t *testing.T) {
+	gid, err := dtmcli.TccGlobalTransaction(DtmServer, func(tcc *dtmcli.Tcc) (rerr error) {
+		res1, rerr := tcc.CallBranch(&examples.TransReq{Amount: 30}, Busi+"/TccBTransOutTry", Busi+"/TccBTransOutConfirm", Busi+"/TccBTransOutCancel")
+		e2p(rerr)
+		if res1.StatusCode() != 200 {
+			return fmt.Errorf("bad status code: %d", res1.StatusCode())
+		}
+		res2, rerr := tcc.CallBranch(&examples.TransReq{Amount: 30, TransInResult: "FAIL"}, Busi+"/TccBTransInTry", Busi+"/TccBTransInConfirm", Busi+"/TccBTransInCancel")
+		e2p(rerr)
+		if res2.StatusCode() != 200 {
+			return fmt.Errorf("bad status code: %d", res2.StatusCode())
+		}
+		if strings.Contains(res2.String(), "FAIL") {
+			return fmt.Errorf("branch trans in fail")
+		}
+		logrus.Printf("tcc returns: %s, %s", res1.String(), res2.String())
+		return
+	})
+	e2p(err)
+	WaitTransProcessed(gid)
+	assert.Equal(t, "failed", getTransStatus(gid))
 }
 
 func tccRollback(t *testing.T) {
@@ -217,6 +243,17 @@ func sagaRollback(t *testing.T) {
 	WaitTransProcessed(saga.Gid)
 	assert.Equal(t, "failed", getTransStatus(saga.Gid))
 	assert.Equal(t, []string{"succeed", "succeed", "succeed", "failed"}, getBranchesStatus(saga.Gid))
+}
+
+func sagaBarrierRollback(t *testing.T) {
+	saga := dtmcli.NewSaga(DtmServer).
+		Add(Busi+"/SagaBTransOut", Busi+"/SagaBTransOutCompensate", &examples.TransReq{Amount: 30}).
+		Add(Busi+"/SagaBTransIn", Busi+"/SagaBTransInCompensate", &examples.TransReq{Amount: 30, TransInResult: "FAIL"})
+	logrus.Printf("busi trans submit")
+	err := saga.Submit()
+	e2p(err)
+	WaitTransProcessed(saga.Gid)
+	assert.Equal(t, "failed", getTransStatus(saga.Gid))
 }
 
 func sagaCommittedPending(t *testing.T) {

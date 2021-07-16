@@ -26,7 +26,7 @@ func TccGlobalTransaction(dtm string, tccFunc TccGlobalFunc) (gid string, rerr e
 		"trans_type": "tcc",
 	}
 	defer func() {
-		if x := recover(); x != nil {
+		if x := recover(); x != nil || rerr != nil {
 			_, rerr = common.RestyClient.R().SetBody(data).Post(dtm + "/abort")
 		} else {
 			_, rerr = common.RestyClient.R().SetBody(data).Post(dtm + "/submit")
