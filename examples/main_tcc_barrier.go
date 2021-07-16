@@ -11,9 +11,9 @@ import (
 )
 
 // TccBarrierFireRequest 1
-func TccBarrierFireRequest() {
+func TccBarrierFireRequest() string {
 	logrus.Printf("tcc transaction begin")
-	_, err := dtmcli.TccGlobalTransaction(DtmServer, func(tcc *dtmcli.Tcc) (rerr error) {
+	gid, err := dtmcli.TccGlobalTransaction(DtmServer, func(tcc *dtmcli.Tcc) (rerr error) {
 		res1, rerr := tcc.CallBranch(&TransReq{Amount: 30}, Busi+"/TccBTransOutTry", Busi+"/TccBTransOutConfirm", Busi+"/TccBTransOutRevert")
 		if rerr != nil {
 			return
@@ -32,6 +32,7 @@ func TccBarrierFireRequest() {
 		return
 	})
 	e2p(err)
+	return gid
 }
 
 // TccBarrierAddRoute 1

@@ -11,7 +11,7 @@ import (
 )
 
 // SagaBarrierFireRequest 1
-func SagaBarrierFireRequest() {
+func SagaBarrierFireRequest() string {
 	logrus.Printf("a busi transaction begin")
 	req := &TransReq{Amount: 30}
 	saga := dtmcli.NewSaga(DtmServer).
@@ -20,6 +20,7 @@ func SagaBarrierFireRequest() {
 	logrus.Printf("busi trans submit")
 	err := saga.Submit()
 	e2p(err)
+	return saga.Gid
 }
 
 // SagaBarrierAddRoute 1

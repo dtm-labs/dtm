@@ -20,11 +20,12 @@ var qsBusi = fmt.Sprintf("http://localhost:%d%s", qsBusiPort, qsBusiAPI)
 
 // QuickStarMain called by app/main.go
 func QuickStarMain() {
-	qsStartSvr()
-	qsFireRequest()
+	QsStartSvr()
+	QsFireRequest()
 }
 
-func qsStartSvr() {
+// QsStartSvr 1
+func QsStartSvr() {
 	app := common.GetGinApp()
 	qsAddRoute(app)
 	logrus.Printf("quick qs examples listening at %d", qsBusiPort)
@@ -32,7 +33,8 @@ func qsStartSvr() {
 	time.Sleep(100 * time.Millisecond)
 }
 
-func qsFireRequest() {
+// QsFireRequest 1
+func QsFireRequest() string {
 	req := &gin.H{"amount": 30} // 微服务的载荷
 	// DtmServer为DTM服务的地址
 	saga := dtmcli.NewSaga(DtmServer).
@@ -43,6 +45,7 @@ func qsFireRequest() {
 	// 提交saga事务，dtm会完成所有的子事务/回滚所有的子事务
 	err := saga.Submit()
 	e2p(err)
+	return saga.Gid
 }
 
 func qsAddRoute(app *gin.Engine) {

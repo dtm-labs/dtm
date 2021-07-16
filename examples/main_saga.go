@@ -11,7 +11,7 @@ func SagaSetup(app *gin.Engine) {
 }
 
 // SagaFireRequest 1
-func SagaFireRequest() {
+func SagaFireRequest() string {
 	logrus.Printf("a saga busi transaction begin")
 	req := &TransReq{
 		Amount:         30,
@@ -25,4 +25,5 @@ func SagaFireRequest() {
 	err := saga.Submit()
 	logrus.Printf("result gid is: %s", saga.Gid)
 	e2p(err)
+	return saga.Gid
 }

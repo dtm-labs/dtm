@@ -54,6 +54,15 @@ func TestDtmSvr(t *testing.T) {
 	sagaCommittedPending(t)
 	sagaRollback(t)
 
+	// for coverage
+	examples.QsStartSvr()
+	assertSucceed(t, examples.QsFireRequest())
+	assertSucceed(t, examples.MsgFireRequest())
+	assertSucceed(t, examples.SagaBarrierFireRequest())
+	assertSucceed(t, examples.SagaFireRequest())
+	assertSucceed(t, examples.TccBarrierFireRequest())
+	assertSucceed(t, examples.TccFireRequest())
+	assertSucceed(t, examples.XaFireRequest())
 }
 
 func TestCover(t *testing.T) {
@@ -218,6 +227,11 @@ func sagaCommittedPending(t *testing.T) {
 	CronTransOnce(60*time.Second, "submitted")
 	assert.Equal(t, []string{"prepared", "succeed", "prepared", "succeed"}, getBranchesStatus(saga.Gid))
 	assert.Equal(t, "succeed", getTransStatus(saga.Gid))
+}
+
+func assertSucceed(t *testing.T, gid string) {
+	WaitTransProcessed(gid)
+	assert.Equal(t, "succeed", getTransStatus(gid))
 }
 
 func genMsg(gid string) *dtmcli.Msg {

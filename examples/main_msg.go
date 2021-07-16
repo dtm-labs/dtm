@@ -11,7 +11,7 @@ func MsgSetup(app *gin.Engine) {
 }
 
 // MsgFireRequest 1
-func MsgFireRequest() {
+func MsgFireRequest() string {
 	logrus.Printf("a busi transaction begin")
 	req := &TransReq{
 		Amount:         30,
@@ -26,4 +26,5 @@ func MsgFireRequest() {
 	logrus.Printf("busi trans submit")
 	err = msg.Submit()
 	e2p(err)
+	return msg.Gid
 }
