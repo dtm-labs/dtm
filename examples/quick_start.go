@@ -18,12 +18,6 @@ const qsBusiPort = 8082
 
 var qsBusi = fmt.Sprintf("http://localhost:%d%s", qsBusiPort, qsBusiAPI)
 
-// QuickStarMain called by app/main.go
-func QuickStarMain() {
-	QsStartSvr()
-	QsFireRequest()
-}
-
 // QsStartSvr 1
 func QsStartSvr() {
 	app := common.GetGinApp()

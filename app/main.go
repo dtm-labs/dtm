@@ -31,7 +31,8 @@ func main() {
 	}
 	// quick_start 比较独立，单独作为一个例子运行，方便新人上手
 	if len(os.Args) > 1 && (os.Args[1] == "quick_start" || os.Args[1] == "qs") {
-		examples.QuickStarMain()
+		examples.QsStartSvr()
+		examples.QsFireRequest()
 		wait()
 	}
 

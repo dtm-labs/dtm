@@ -75,6 +75,7 @@ func (t *Tcc) CallBranch(body interface{}, tryURL string, confirmURL string, can
 	return common.RestyClient.R().
 		SetBody(body).
 		SetQueryParams(common.MS{
+			"dtm":         t.Dtm,
 			"gid":         t.Gid,
 			"branch_id":   branchID,
 			"trans_type":  "tcc",

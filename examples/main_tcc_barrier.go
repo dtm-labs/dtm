@@ -68,7 +68,7 @@ func adjustBalance(sdb *sql.DB, uid int, amount int) (interface{}, error) {
 		return nil, dbr.Error
 	}
 	if dbr.RowsAffected == 0 {
-		return nil, fmt.Errorf("update trading error")
+		return nil, fmt.Errorf("update 0 rows")
 	}
 	return "SUCCESS", nil
 }
