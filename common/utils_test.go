@@ -80,7 +80,7 @@ func TestGin(t *testing.T) {
 }
 
 func TestResty(t *testing.T) {
-	resp, err := RestyClient.R().Get("http://baidu.com")
+	resp, err := RestyClient.R().Get("http://taobao.com")
 	assert.Equal(t, nil, err)
 	err2 := CatchP(func() {
 		CheckRestySuccess(resp, err)
