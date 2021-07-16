@@ -34,5 +34,5 @@ func StartSvr() {
 func PopulateMysql() {
 	common.InitApp(common.GetProjectDir(), &config)
 	config.Mysql["database"] = ""
-	examples.RunSqlScript(config.Mysql, common.GetCurrentCodeDir()+"/dtmsvr.sql")
+	examples.RunSQLScript(config.Mysql, common.GetCurrentCodeDir()+"/dtmsvr.sql")
 }

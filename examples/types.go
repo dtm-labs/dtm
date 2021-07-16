@@ -16,13 +16,6 @@ type M = map[string]interface{}
 // DtmServer dtm service address
 const DtmServer = "http://localhost:8080/api/dtmsvr"
 
-const (
-	// SagaBarrierBusiPort saga barrier sample port
-	SagaBarrierBusiPort = iota + 8090
-	// TccBarrierBusiPort tcc barrier sample port
-	TccBarrierBusiPort
-)
-
 // TransReq transaction request payload
 type TransReq struct {
 	Amount         int    `json:"amount"`

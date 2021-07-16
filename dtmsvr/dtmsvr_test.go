@@ -33,6 +33,8 @@ func TestDtmSvr(t *testing.T) {
 	examples.TccSetup(app)
 	examples.XaSetup(app)
 	examples.MsgSetup(app)
+	examples.TccBarrierAddRoute(app)
+	examples.SagaBarrierAddRoute(app)
 
 	// 清理数据
 	e2p(dbGet().Exec("truncate trans_global").Error)
@@ -40,6 +42,8 @@ func TestDtmSvr(t *testing.T) {
 	e2p(dbGet().Exec("truncate trans_log").Error)
 	examples.ResetXaData()
 
+	tccBarrierNormal(t)
+	sagaBarrierNormal(t)
 	msgNormal(t)
 	msgPending(t)
 	tccNormal(t)
@@ -123,6 +127,24 @@ func tccNormal(t *testing.T) {
 	})
 	e2p(err)
 }
+func tccBarrierNormal(t *testing.T) {
+	_, err := dtmcli.TccGlobalTransaction(DtmServer, func(tcc *dtmcli.Tcc) (rerr error) {
+		res1, rerr := tcc.CallBranch(&examples.TransReq{Amount: 30}, Busi+"/TccBTransOutTry", Busi+"/TccBTransOutConfirm", Busi+"/TccBTransOutRevert")
+		e2p(rerr)
+		if res1.StatusCode() != 200 {
+			return fmt.Errorf("bad status code: %d", res1.StatusCode())
+		}
+		res2, rerr := tcc.CallBranch(&examples.TransReq{Amount: 30}, Busi+"/TccBTransInTry", Busi+"/TccBTransInConfirm", Busi+"/TccBTransInRevert")
+		e2p(rerr)
+		if res2.StatusCode() != 200 {
+			return fmt.Errorf("bad status code: %d", res2.StatusCode())
+		}
+		logrus.Printf("tcc returns: %s, %s", res1.String(), res2.String())
+		return
+	})
+	e2p(err)
+}
+
 func tccRollback(t *testing.T) {
 	data := &examples.TransReq{Amount: 30, TransInResult: "FAIL"}
 	_, err := dtmcli.TccGlobalTransaction(examples.DtmServer, func(tcc *dtmcli.Tcc) (rerr error) {
@@ -165,6 +187,18 @@ func sagaNormal(t *testing.T) {
 	WaitTransProcessed(saga.Gid)
 	assert.Equal(t, []string{"prepared", "succeed", "prepared", "succeed"}, getBranchesStatus(saga.Gid))
 	transQuery(t, saga.Gid)
+}
+
+func sagaBarrierNormal(t *testing.T) {
+	req := &examples.TransReq{Amount: 30}
+	saga := dtmcli.NewSaga(DtmServer).
+		Add(Busi+"/SagaBTransOut", Busi+"/SagaBTransOutCompensate", req).
+		Add(Busi+"/SagaBTransIn", Busi+"/SagaBTransInCompensate", req)
+	logrus.Printf("busi trans submit")
+	err := saga.Submit()
+	e2p(err)
+	WaitTransProcessed(saga.Gid)
+	assert.Equal(t, []string{"prepared", "succeed", "prepared", "succeed"}, getBranchesStatus(saga.Gid))
 }
 
 func sagaRollback(t *testing.T) {

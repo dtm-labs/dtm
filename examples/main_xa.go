@@ -15,7 +15,7 @@ var XaClient *dtmcli.XaClient = nil
 // UserAccount busi model
 type UserAccount struct {
 	common.ModelBase
-	UserId  int
+	UserID  int
 	Balance string
 }
 
@@ -25,7 +25,7 @@ func (u *UserAccount) TableName() string { return "user_account" }
 // UserAccountTrading freeze user account table
 type UserAccountTrading struct {
 	common.ModelBase
-	UserId         int
+	UserID         int
 	TradingBalance string
 }
 
@@ -33,7 +33,7 @@ type UserAccountTrading struct {
 func (u *UserAccountTrading) TableName() string { return "user_account_trading" }
 
 func dbGet() *common.DB {
-	return common.DbGet(Config.Mysql)
+	return common.DbGet(config.Mysql)
 }
 
 // XaFireRequest 1
@@ -54,8 +54,8 @@ func XaFireRequest() {
 func XaSetup(app *gin.Engine) {
 	app.POST(BusiAPI+"/TransInXa", common.WrapHandler(xaTransIn))
 	app.POST(BusiAPI+"/TransOutXa", common.WrapHandler(xaTransOut))
-	Config.Mysql["database"] = "dtm_busi"
-	XaClient = dtmcli.NewXaClient(DtmServer, Config.Mysql, app, Busi+"/xa")
+	config.Mysql["database"] = "dtm_busi"
+	XaClient = dtmcli.NewXaClient(DtmServer, config.Mysql, app, Busi+"/xa")
 }
 
 func xaTransIn(c *gin.Context) (interface{}, error) {
