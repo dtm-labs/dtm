@@ -5,4 +5,8 @@ env:
   - GO111MODULE=on
 services:
   - mysql
-script: go test ./...
+before_install:
+  - go get -t -v ./...
+  - go get github.com/mattn/goveralls
+script:
+  - $GOPATH/bin/goveralls -service=travis-ci
