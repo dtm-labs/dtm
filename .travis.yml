@@ -3,5 +3,6 @@ go:
   - 1.15.x
 env:
   - GO111MODULE=on
-
+services:
+  - mysql
 script: go test ./...
