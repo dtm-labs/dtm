@@ -9,6 +9,7 @@ import (
 	"github.com/yedf/dtm/examples"
 )
 
+// M alias
 type M = map[string]interface{}
 
 func wait() {

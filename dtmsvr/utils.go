@@ -21,9 +21,9 @@ func dbGet() *common.DB {
 	return common.DbGet(config.Mysql)
 }
 func writeTransLog(gid string, action string, status string, branch string, detail string) {
-	if detail == "" {
-		detail = "{}"
-	}
+	// if detail == "" {
+	// 	detail = "{}"
+	// }
 	// dbGet().Must().Table("trans_log").Create(M{
 	// 	"gid":        gid,
 	// 	"action":     action,
