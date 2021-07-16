@@ -1,6 +1,6 @@
 ![license](https://img.shields.io/github/license/yedf/dtm)
 [![Go Reference](https://pkg.go.dev/badge/github.com/yedf/dtm.svg)](https://pkg.go.dev/github.com/yedf/dtm)
-<!-- [![Build Status](https://travis-ci.com/yedf/dtm.svg?branch=main)](https://travis-ci.com/yedf/dtm) -->
+[![Build Status](https://travis-ci.com/yedf/dtm.svg?branch=main)](https://travis-ci.com/yedf/dtm)
 
 [English](https://github.com/yedf/dtm/blob/master/README-en.md)
 
