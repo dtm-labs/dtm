@@ -7,8 +7,9 @@ import (
 	"github.com/yedf/dtm/dtmcli"
 )
 
+// TccSetup 1
 func TccSetup(app *gin.Engine) {
-	app.POST(BusiApi+"/TransInTcc", common.WrapHandler(func(c *gin.Context) (interface{}, error) {
+	app.POST(BusiAPI+"/TransInTcc", common.WrapHandler(func(c *gin.Context) (interface{}, error) {
 		tcc, err := dtmcli.TccFromReq(c)
 		if err != nil {
 			return nil, err
@@ -25,6 +26,7 @@ func TccSetup(app *gin.Engine) {
 	}))
 }
 
+// TccFireRequest 1
 func TccFireRequest() {
 	logrus.Printf("tcc transaction begin")
 	_, err := dtmcli.TccGlobalTransaction(DtmServer, func(tcc *dtmcli.Tcc) (rerr error) {

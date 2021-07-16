@@ -6,9 +6,11 @@ import (
 	"github.com/yedf/dtm/dtmcli"
 )
 
+// MsgSetup 1
 func MsgSetup(app *gin.Engine) {
 }
 
+// MsgFireRequest 1
 func MsgFireRequest() {
 	logrus.Printf("a busi transaction begin")
 	req := &TransReq{

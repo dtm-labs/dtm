@@ -13,12 +13,12 @@ import (
 // 启动命令：go run app/main.go qs
 
 // 事务参与者的服务地址
-const qsBusiApi = "/api/busi_start"
+const qsBusiAPI = "/api/busi_start"
 const qsBusiPort = 8082
 
-var qsBusi = fmt.Sprintf("http://localhost:%d%s", qsBusiPort, qsBusiApi)
+var qsBusi = fmt.Sprintf("http://localhost:%d%s", qsBusiPort, qsBusiAPI)
 
-// 被app/main.go调用，启动服务并运行示例
+// QuickStarMain called by app/main.go
 func QuickStarMain() {
 	qsStartSvr()
 	qsFireRequest()
@@ -46,16 +46,16 @@ func qsFireRequest() {
 }
 
 func qsAddRoute(app *gin.Engine) {
-	app.POST(qsBusiApi+"/TransIn", common.WrapHandler(func(c *gin.Context) (interface{}, error) {
+	app.POST(qsBusiAPI+"/TransIn", common.WrapHandler(func(c *gin.Context) (interface{}, error) {
 		return M{"result": "SUCCESS"}, nil
 	}))
-	app.POST(qsBusiApi+"/TransInCompensate", common.WrapHandler(func(c *gin.Context) (interface{}, error) {
+	app.POST(qsBusiAPI+"/TransInCompensate", common.WrapHandler(func(c *gin.Context) (interface{}, error) {
 		return M{"result": "SUCCESS"}, nil
 	}))
-	app.POST(qsBusiApi+"/TransOut", common.WrapHandler(func(c *gin.Context) (interface{}, error) {
+	app.POST(qsBusiAPI+"/TransOut", common.WrapHandler(func(c *gin.Context) (interface{}, error) {
 		return M{"result": "SUCCESS"}, nil
 	}))
-	app.POST(qsBusiApi+"/TransOutCompensate", common.WrapHandler(func(c *gin.Context) (interface{}, error) {
+	app.POST(qsBusiAPI+"/TransOutCompensate", common.WrapHandler(func(c *gin.Context) (interface{}, error) {
 		return M{"result": "SUCCESS"}, nil
 	}))
 }

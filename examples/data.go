@@ -8,6 +8,7 @@ import (
 	"github.com/yedf/dtm/common"
 )
 
+// RunSqlScript 1
 func RunSqlScript(mysql map[string]string, script string) {
 	conf := map[string]string{}
 	common.MustRemarshal(mysql, &conf)
@@ -29,6 +30,7 @@ func RunSqlScript(mysql map[string]string, script string) {
 	}
 }
 
+// PopulateMysql populate example mysql data
 func PopulateMysql() {
 	common.InitApp(common.GetProjectDir(), &Config)
 	Config.Mysql["database"] = dbName

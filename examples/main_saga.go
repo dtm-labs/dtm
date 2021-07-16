@@ -6,9 +6,11 @@ import (
 	"github.com/yedf/dtm/dtmcli"
 )
 
+// SagaSetup 1
 func SagaSetup(app *gin.Engine) {
 }
 
+// SagaFireRequest 1
 func SagaFireRequest() {
 	logrus.Printf("a saga busi transaction begin")
 	req := &TransReq{

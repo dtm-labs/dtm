@@ -9,28 +9,34 @@ import (
 	"github.com/yedf/dtm/dtmcli"
 )
 
+// XaClient XA client connection
 var XaClient *dtmcli.XaClient = nil
 
+// UserAccount busi model
 type UserAccount struct {
 	common.ModelBase
 	UserId  int
 	Balance string
 }
 
+// TableName gorm table name
 func (u *UserAccount) TableName() string { return "user_account" }
 
+// UserAccountTrading freeze user account table
 type UserAccountTrading struct {
 	common.ModelBase
 	UserId         int
 	TradingBalance string
 }
 
+// TableName gorm table name
 func (u *UserAccountTrading) TableName() string { return "user_account_trading" }
 
 func dbGet() *common.DB {
 	return common.DbGet(Config.Mysql)
 }
 
+// XaFireRequest 1
 func XaFireRequest() {
 	_, err := XaClient.XaGlobalTransaction(func(xa *dtmcli.Xa) (rerr error) {
 		defer common.P2E(&rerr)
@@ -44,10 +50,10 @@ func XaFireRequest() {
 	e2p(err)
 }
 
-// api
+// XaSetup 1
 func XaSetup(app *gin.Engine) {
-	app.POST(BusiApi+"/TransInXa", common.WrapHandler(xaTransIn))
-	app.POST(BusiApi+"/TransOutXa", common.WrapHandler(xaTransOut))
+	app.POST(BusiAPI+"/TransInXa", common.WrapHandler(xaTransIn))
+	app.POST(BusiAPI+"/TransOutXa", common.WrapHandler(xaTransOut))
 	Config.Mysql["database"] = "dtm_busi"
 	XaClient = dtmcli.NewXaClient(DtmServer, Config.Mysql, app, Busi+"/xa")
 }
@@ -80,6 +86,7 @@ func xaTransOut(c *gin.Context) (interface{}, error) {
 	return M{"result": "SUCCESS"}, nil
 }
 
+// ResetXaData 1
 func ResetXaData() {
 	db := dbGet()
 	db.Must().Exec("truncate user_account")

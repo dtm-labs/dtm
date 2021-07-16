@@ -10,6 +10,7 @@ import (
 	"gorm.io/gorm"
 )
 
+// SagaBarrierFireRequest 1
 func SagaBarrierFireRequest() {
 	logrus.Printf("a busi transaction begin")
 	req := &TransReq{Amount: 30}
@@ -21,13 +22,12 @@ func SagaBarrierFireRequest() {
 	e2p(err)
 }
 
-// api
-
+// SagaBarrierAddRoute 1
 func SagaBarrierAddRoute(app *gin.Engine) {
-	app.POST(BusiApi+"/SagaBTransIn", common.WrapHandler(sagaBarrierTransIn))
-	app.POST(BusiApi+"/SagaBTransInCompensate", common.WrapHandler(sagaBarrierTransInCompensate))
-	app.POST(BusiApi+"/SagaBTransOut", common.WrapHandler(sagaBarrierTransOut))
-	app.POST(BusiApi+"/SagaBTransOutCompensate", common.WrapHandler(sagaBarrierTransOutCompensate))
+	app.POST(BusiAPI+"/SagaBTransIn", common.WrapHandler(sagaBarrierTransIn))
+	app.POST(BusiAPI+"/SagaBTransInCompensate", common.WrapHandler(sagaBarrierTransInCompensate))
+	app.POST(BusiAPI+"/SagaBTransOut", common.WrapHandler(sagaBarrierTransOut))
+	app.POST(BusiAPI+"/SagaBTransOutCompensate", common.WrapHandler(sagaBarrierTransOutCompensate))
 	logrus.Printf("examples listening at %d", BusiPort)
 }
 

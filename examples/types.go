@@ -10,16 +10,20 @@ import (
 
 var e2p = common.E2P
 
+// M alias
 type M = map[string]interface{}
 
-// 指定dtm服务地址
+// DtmServer dtm service address
 const DtmServer = "http://localhost:8080/api/dtmsvr"
 
 const (
+	// SagaBarrierBusiPort saga barrier sample port
 	SagaBarrierBusiPort = iota + 8090
+	// TccBarrierBusiPort tcc barrier sample port
 	TccBarrierBusiPort
 )
 
+// TransReq transaction request payload
 type TransReq struct {
 	Amount         int    `json:"amount"`
 	TransInResult  string `json:"transInResult"`
@@ -30,6 +34,7 @@ func (t *TransReq) String() string {
 	return fmt.Sprintf("amount: %d transIn: %s transOut: %s", t.Amount, t.TransInResult, t.TransOutResult)
 }
 
+// GenTransReq 1
 func GenTransReq(amount int, outFailed bool, inFailed bool) *TransReq {
 	return &TransReq{
 		Amount:         amount,

@@ -10,6 +10,7 @@ import (
 	"github.com/yedf/dtm/dtmcli"
 )
 
+// TccBarrierFireRequest 1
 func TccBarrierFireRequest() {
 	logrus.Printf("tcc transaction begin")
 	_, err := dtmcli.TccGlobalTransaction(DtmServer, func(tcc *dtmcli.Tcc) (rerr error) {
@@ -33,20 +34,19 @@ func TccBarrierFireRequest() {
 	e2p(err)
 }
 
-// api
-
+// TccBarrierAddRoute 1
 func TccBarrierAddRoute(app *gin.Engine) {
-	app.POST(BusiApi+"/TccBTransInTry", common.WrapHandler(tccBarrierTransInTry))
-	app.POST(BusiApi+"/TccBTransInConfirm", common.WrapHandler(tccBarrierTransInConfirm))
-	app.POST(BusiApi+"/TccBTransInCancel", common.WrapHandler(tccBarrierTransInCancel))
-	app.POST(BusiApi+"/TccBTransOutTry", common.WrapHandler(tccBarrierTransOutTry))
-	app.POST(BusiApi+"/TccBTransOutConfirm", common.WrapHandler(tccBarrierTransOutConfirm))
-	app.POST(BusiApi+"/TccBTransOutCancel", common.WrapHandler(tccBarrierTransOutCancel))
+	app.POST(BusiAPI+"/TccBTransInTry", common.WrapHandler(tccBarrierTransInTry))
+	app.POST(BusiAPI+"/TccBTransInConfirm", common.WrapHandler(tccBarrierTransInConfirm))
+	app.POST(BusiAPI+"/TccBTransInCancel", common.WrapHandler(tccBarrierTransInCancel))
+	app.POST(BusiAPI+"/TccBTransOutTry", common.WrapHandler(tccBarrierTransOutTry))
+	app.POST(BusiAPI+"/TccBTransOutConfirm", common.WrapHandler(tccBarrierTransOutConfirm))
+	app.POST(BusiAPI+"/TccBTransOutCancel", common.WrapHandler(tccBarrierTransOutCancel))
 	logrus.Printf("examples listening at %d", BusiPort)
 }
 
-const transInUid = 1
-const transOutUid = 2
+const transInUID = 1
+const transOutUID = 2
 
 func adjustTrading(sdb *sql.DB, uid int, amount int) (interface{}, error) {
 	db := common.SQLDB2DB(sdb)
@@ -75,36 +75,36 @@ func adjustBalance(sdb *sql.DB, uid int, amount int) (interface{}, error) {
 // TCC下，转入
 func tccBarrierTransInTry(c *gin.Context) (interface{}, error) {
 	return dtmcli.ThroughBarrierCall(dbGet().ToSQLDB(), dtmcli.TransInfoFromReq(c), func(sdb *sql.DB) (interface{}, error) {
-		return adjustTrading(sdb, transInUid, reqFrom(c).Amount)
+		return adjustTrading(sdb, transInUID, reqFrom(c).Amount)
 	})
 }
 
 func tccBarrierTransInConfirm(c *gin.Context) (interface{}, error) {
 	return dtmcli.ThroughBarrierCall(dbGet().ToSQLDB(), dtmcli.TransInfoFromReq(c), func(sdb *sql.DB) (interface{}, error) {
-		return adjustBalance(sdb, transInUid, reqFrom(c).Amount)
+		return adjustBalance(sdb, transInUID, reqFrom(c).Amount)
 	})
 }
 
 func tccBarrierTransInCancel(c *gin.Context) (interface{}, error) {
 	return dtmcli.ThroughBarrierCall(dbGet().ToSQLDB(), dtmcli.TransInfoFromReq(c), func(sdb *sql.DB) (interface{}, error) {
-		return adjustTrading(sdb, transInUid, -reqFrom(c).Amount)
+		return adjustTrading(sdb, transInUID, -reqFrom(c).Amount)
 	})
 }
 
 func tccBarrierTransOutTry(c *gin.Context) (interface{}, error) {
 	return dtmcli.ThroughBarrierCall(dbGet().ToSQLDB(), dtmcli.TransInfoFromReq(c), func(sdb *sql.DB) (interface{}, error) {
-		return adjustTrading(sdb, transOutUid, -reqFrom(c).Amount)
+		return adjustTrading(sdb, transOutUID, -reqFrom(c).Amount)
 	})
 }
 
 func tccBarrierTransOutConfirm(c *gin.Context) (interface{}, error) {
 	return dtmcli.ThroughBarrierCall(dbGet().ToSQLDB(), dtmcli.TransInfoFromReq(c), func(sdb *sql.DB) (interface{}, error) {
-		return adjustBalance(sdb, transOutUid, -reqFrom(c).Amount)
+		return adjustBalance(sdb, transOutUID, -reqFrom(c).Amount)
 	})
 }
 
 func tccBarrierTransOutCancel(c *gin.Context) (interface{}, error) {
 	return dtmcli.ThroughBarrierCall(dbGet().ToSQLDB(), dtmcli.TransInfoFromReq(c), func(sdb *sql.DB) (interface{}, error) {
-		return adjustTrading(sdb, transOutUid, reqFrom(c).Amount)
+		return adjustTrading(sdb, transOutUID, reqFrom(c).Amount)
 	})
 }
