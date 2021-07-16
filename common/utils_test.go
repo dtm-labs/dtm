@@ -79,11 +79,11 @@ func TestGin(t *testing.T) {
 	assert.Equal(t, "{\"code\":500,\"message\":\"err1\"}", getResultString("/api/error", strings.NewReader("{}")))
 }
 
-func TestResty(t *testing.T) {
-	resp, err := RestyClient.R().Get("http://taobao.com")
-	assert.Equal(t, nil, err)
-	err2 := CatchP(func() {
-		CheckRestySuccess(resp, err)
-	})
-	assert.NotEqual(t, nil, err2)
-}
+// func TestResty(t *testing.T) {
+// 	resp, err := RestyClient.R().Get("http://taobao.com")
+// 	assert.Equal(t, nil, err)
+// 	err2 := CatchP(func() {
+// 		CheckRestySuccess(resp, err)
+// 	})
+// 	assert.NotEqual(t, nil, err2)
+// }
