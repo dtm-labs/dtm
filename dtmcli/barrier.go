@@ -9,8 +9,10 @@ import (
 	"github.com/yedf/dtm/common"
 )
 
+// BusiFunc type for busi func
 type BusiFunc func(db *sql.DB) (interface{}, error)
 
+// TransInfo every branch info
 type TransInfo struct {
 	TransType  string
 	Gid        string
@@ -22,6 +24,7 @@ func (t *TransInfo) String() string {
 	return fmt.Sprintf("transInfo: %s %s %s %s", t.TransType, t.Gid, t.BranchID, t.BranchType)
 }
 
+// TransInfoFromReq construct transaction info from request
 func TransInfoFromReq(c *gin.Context) *TransInfo {
 	ti := &TransInfo{
 		TransType:  c.Query("trans_type"),
@@ -35,11 +38,13 @@ func TransInfoFromReq(c *gin.Context) *TransInfo {
 	return ti
 }
 
+// BarrierModel barrier model for gorm
 type BarrierModel struct {
 	common.ModelBase
 	TransInfo
 }
 
+// TableName gorm table name
 func (BarrierModel) TableName() string { return "dtm_barrier.barrier" }
 
 func insertBarrier(tx *sql.Tx, transType string, gid string, branchID string, branchType string) (int64, error) {
@@ -53,6 +58,7 @@ func insertBarrier(tx *sql.Tx, transType string, gid string, branchID string, br
 	return res.RowsAffected()
 }
 
+// ThroughBarrierCall barrier interface. busiCall will be called only when the request is necessary
 func ThroughBarrierCall(db *sql.DB, transInfo *TransInfo, busiCall BusiFunc) (res interface{}, rerr error) {
 	tx, rerr := db.BeginTx(context.Background(), &sql.TxOptions{})
 	if rerr != nil {

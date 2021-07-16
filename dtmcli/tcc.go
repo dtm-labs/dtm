@@ -8,14 +8,17 @@ import (
 	"github.com/yedf/dtm/common"
 )
 
+// Tcc struct of tcc
 type Tcc struct {
 	IDGenerator
 	Dtm string
 	Gid string
 }
 
+// TccGlobalFunc type of global tcc call
 type TccGlobalFunc func(tcc *Tcc) error
 
+// TccGlobalTransaction begin a tcc global transaction
 func TccGlobalTransaction(dtm string, tccFunc TccGlobalFunc) (gid string, rerr error) {
 	gid = GenGid(dtm)
 	data := &M{
@@ -38,6 +41,7 @@ func TccGlobalTransaction(dtm string, tccFunc TccGlobalFunc) (gid string, rerr e
 	return
 }
 
+// TccFromReq tcc from request info
 func TccFromReq(c *gin.Context) (*Tcc, error) {
 	tcc := &Tcc{
 		Dtm:         c.Query("dtm"),
@@ -50,7 +54,8 @@ func TccFromReq(c *gin.Context) (*Tcc, error) {
 	return tcc, nil
 }
 
-func (t *Tcc) CallBranch(body interface{}, tryUrl string, confirmUrl string, cancelUrl string) (*resty.Response, error) {
+// CallBranch call a tcc branch
+func (t *Tcc) CallBranch(body interface{}, tryURL string, confirmURL string, cancelURL string) (*resty.Response, error) {
 	branchID := t.NewBranchID()
 	resp, err := common.RestyClient.R().
 		SetBody(&M{
@@ -59,9 +64,9 @@ func (t *Tcc) CallBranch(body interface{}, tryUrl string, confirmUrl string, can
 			"trans_type": "tcc",
 			"status":     "prepared",
 			"data":       string(common.MustMarshal(body)),
-			"try":        tryUrl,
-			"confirm":    confirmUrl,
-			"cancel":     cancelUrl,
+			"try":        tryURL,
+			"confirm":    confirmURL,
+			"cancel":     cancelURL,
 		}).
 		Post(t.Dtm + "/registerTccBranch")
 	if err != nil {
@@ -75,5 +80,5 @@ func (t *Tcc) CallBranch(body interface{}, tryUrl string, confirmUrl string, can
 			"trans_type":  "tcc",
 			"branch_type": "try",
 		}).
-		Post(tryUrl)
+		Post(tryURL)
 }

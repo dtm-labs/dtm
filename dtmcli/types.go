@@ -6,6 +6,7 @@ import (
 	"github.com/yedf/dtm/common"
 )
 
+// GenGid generate a new gid
 func GenGid(server string) string {
 	res := common.MS{}
 	_, err := common.RestyClient.R().SetResult(&res).Get(server + "/newGid")
@@ -13,11 +14,13 @@ func GenGid(server string) string {
 	return res["gid"]
 }
 
+// IDGenerator used to generate a branch id
 type IDGenerator struct {
 	parentID string
 	branchID int
 }
 
+// NewBranchID generate a branch id
 func (g *IDGenerator) NewBranchID() string {
 	if g.branchID >= 99 {
 		panic(fmt.Errorf("branch id is larger than 99"))

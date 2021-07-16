@@ -10,25 +10,31 @@ import (
 	"github.com/yedf/dtm/common"
 )
 
+// M alias
 type M = map[string]interface{}
 
 var e2p = common.E2P
 
+// XaGlobalFunc type of xa global function
 type XaGlobalFunc func(xa *Xa) error
 
+// XaLocalFunc type of xa local function
 type XaLocalFunc func(db *common.DB, xa *Xa) error
 
+// XaClient xa client
 type XaClient struct {
 	Server      string
 	Conf        map[string]string
-	CallbackUrl string
+	CallbackURL string
 }
 
+// Xa xa transaction
 type Xa struct {
 	IDGenerator
 	Gid string
 }
 
+// GetParams get xa params map
 func (x *Xa) GetParams(branchID string) common.MS {
 	return common.MS{
 		"gid":         x.Gid,
@@ -38,6 +44,7 @@ func (x *Xa) GetParams(branchID string) common.MS {
 	}
 }
 
+// XaFromReq construct xa info from request
 func XaFromReq(c *gin.Context) *Xa {
 	return &Xa{
 		Gid:         c.Query("gid"),
@@ -45,17 +52,19 @@ func XaFromReq(c *gin.Context) *Xa {
 	}
 }
 
+// NewXaBranchID generate a xa branch id
 func (x *Xa) NewXaBranchID() string {
 	return x.Gid + "-" + x.NewBranchID()
 }
 
-func NewXaClient(server string, mysqlConf map[string]string, app *gin.Engine, callbackUrl string) *XaClient {
+// NewXaClient construct a xa client
+func NewXaClient(server string, mysqlConf map[string]string, app *gin.Engine, callbackURL string) *XaClient {
 	xa := &XaClient{
 		Server:      server,
 		Conf:        mysqlConf,
-		CallbackUrl: callbackUrl,
+		CallbackURL: callbackURL,
 	}
-	u, err := url.Parse(callbackUrl)
+	u, err := url.Parse(callbackURL)
 	e2p(err)
 	app.POST(u.Path, common.WrapHandler(func(c *gin.Context) (interface{}, error) {
 		type CallbackReq struct {
@@ -82,18 +91,19 @@ func NewXaClient(server string, mysqlConf map[string]string, app *gin.Engine, ca
 	return xa
 }
 
+// XaLocalTransaction start a xa local transaction
 func (xc *XaClient) XaLocalTransaction(c *gin.Context, transFunc XaLocalFunc) (rerr error) {
 	defer common.P2E(&rerr)
 	xa := XaFromReq(c)
-	branchId := xa.NewBranchID()
-	xaBranch := xa.Gid + "-" + branchId
+	branchID := xa.NewBranchID()
+	xaBranch := xa.Gid + "-" + branchID
 	tx, my := common.DbAlone(xc.Conf)
 	defer func() { my.Close() }()
 	tx.Must().Exec(fmt.Sprintf("XA start '%s'", xaBranch))
 	err := transFunc(tx, xa)
 	e2p(err)
 	resp, err := common.RestyClient.R().
-		SetBody(&M{"gid": xa.Gid, "branch_id": branchId, "trans_type": "xa", "status": "prepared", "url": xc.CallbackUrl}).
+		SetBody(&M{"gid": xa.Gid, "branch_id": branchID, "trans_type": "xa", "status": "prepared", "url": xc.CallbackURL}).
 		Post(xc.Server + "/registerXaBranch")
 	e2p(err)
 	if !strings.Contains(resp.String(), "SUCCESS") {
@@ -104,6 +114,7 @@ func (xc *XaClient) XaLocalTransaction(c *gin.Context, transFunc XaLocalFunc) (r
 	return nil
 }
 
+// XaGlobalTransaction start a xa global transaction
 func (xc *XaClient) XaGlobalTransaction(transFunc XaGlobalFunc) (gid string, rerr error) {
 	xa := Xa{IDGenerator: IDGenerator{}, Gid: GenGid(xc.Server)}
 	gid = xa.Gid
@@ -133,12 +144,13 @@ func (xc *XaClient) XaGlobalTransaction(transFunc XaGlobalFunc) (gid string, rer
 	return
 }
 
-func (xa *Xa) CallBranch(body interface{}, url string) (*resty.Response, error) {
-	branchID := xa.NewBranchID()
+// CallBranch call a xa branch
+func (x *Xa) CallBranch(body interface{}, url string) (*resty.Response, error) {
+	branchID := x.NewBranchID()
 	return common.RestyClient.R().
 		SetBody(body).
 		SetQueryParams(common.MS{
-			"gid":         xa.Gid,
+			"gid":         x.Gid,
 			"branch_id":   branchID,
 			"trans_type":  "xa",
 			"branch_type": "action",

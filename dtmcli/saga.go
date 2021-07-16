@@ -8,22 +8,27 @@ import (
 	"github.com/yedf/dtm/common"
 )
 
+// Saga struct of saga
 type Saga struct {
 	SagaData
 	Server string
 }
 
+// SagaData sage data
 type SagaData struct {
 	Gid       string     `json:"gid"`
 	TransType string     `json:"trans_type"`
 	Steps     []SagaStep `json:"steps"`
 }
+
+// SagaStep one step of saga
 type SagaStep struct {
 	Action     string `json:"action"`
 	Compensate string `json:"compensate"`
 	Data       string `json:"data"`
 }
 
+// NewSaga create a saga
 func NewSaga(server string) *Saga {
 	return &Saga{
 		SagaData: SagaData{
@@ -32,6 +37,8 @@ func NewSaga(server string) *Saga {
 		Server: server,
 	}
 }
+
+// Add add a saga step
 func (s *Saga) Add(action string, compensate string, postData interface{}) *Saga {
 	logrus.Printf("saga %s Add %s %s %v", s.Gid, action, compensate, postData)
 	step := SagaStep{
@@ -43,6 +50,7 @@ func (s *Saga) Add(action string, compensate string, postData interface{}) *Saga
 	return s
 }
 
+// Submit submit the saga trans
 func (s *Saga) Submit() error {
 	logrus.Printf("committing %s body: %v", s.Gid, &s.SagaData)
 	resp, err := common.RestyClient.R().SetBody(&s.SagaData).Post(fmt.Sprintf("%s/submit", s.Server))
