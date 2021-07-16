@@ -32,32 +32,32 @@ func SagaBarrierAddRoute(app *gin.Engine) {
 }
 
 func sagaBarrierAdjustBalance(sdb *sql.DB, uid int, amount int) (interface{}, error) {
-	db := common.SqlDB2DB(sdb)
+	db := common.SQLDB2DB(sdb)
 	dbr := db.Model(&UserAccount{}).Where("user_id = ?", 1).Update("balance", gorm.Expr("balance + ?", amount))
 	return "SUCCESS", dbr.Error
 
 }
 
 func sagaBarrierTransIn(c *gin.Context) (interface{}, error) {
-	return dtmcli.ThroughBarrierCall(dbGet().ToSqlDB(), dtmcli.TransInfoFromReq(c), func(sdb *sql.DB) (interface{}, error) {
+	return dtmcli.ThroughBarrierCall(dbGet().ToSQLDB(), dtmcli.TransInfoFromReq(c), func(sdb *sql.DB) (interface{}, error) {
 		return sagaBarrierAdjustBalance(sdb, 1, reqFrom(c).Amount)
 	})
 }
 
 func sagaBarrierTransInCompensate(c *gin.Context) (interface{}, error) {
-	return dtmcli.ThroughBarrierCall(dbGet().ToSqlDB(), dtmcli.TransInfoFromReq(c), func(sdb *sql.DB) (interface{}, error) {
+	return dtmcli.ThroughBarrierCall(dbGet().ToSQLDB(), dtmcli.TransInfoFromReq(c), func(sdb *sql.DB) (interface{}, error) {
 		return sagaBarrierAdjustBalance(sdb, 1, -reqFrom(c).Amount)
 	})
 }
 
 func sagaBarrierTransOut(c *gin.Context) (interface{}, error) {
-	return dtmcli.ThroughBarrierCall(dbGet().ToSqlDB(), dtmcli.TransInfoFromReq(c), func(sdb *sql.DB) (interface{}, error) {
+	return dtmcli.ThroughBarrierCall(dbGet().ToSQLDB(), dtmcli.TransInfoFromReq(c), func(sdb *sql.DB) (interface{}, error) {
 		return sagaBarrierAdjustBalance(sdb, 2, -reqFrom(c).Amount)
 	})
 }
 
 func sagaBarrierTransOutCompensate(c *gin.Context) (interface{}, error) {
-	return dtmcli.ThroughBarrierCall(dbGet().ToSqlDB(), dtmcli.TransInfoFromReq(c), func(sdb *sql.DB) (interface{}, error) {
+	return dtmcli.ThroughBarrierCall(dbGet().ToSQLDB(), dtmcli.TransInfoFromReq(c), func(sdb *sql.DB) (interface{}, error) {
 		return sagaBarrierAdjustBalance(sdb, 2, reqFrom(c).Amount)
 	})
 }

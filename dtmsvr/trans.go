@@ -11,6 +11,7 @@ import (
 	"gorm.io/gorm/clause"
 )
 
+// TransGlobal global transaction
 type TransGlobal struct {
 	common.ModelBase
 	Gid              string `json:"gid"`
@@ -25,11 +26,12 @@ type TransGlobal struct {
 	NextCronTime     *time.Time
 }
 
+// TableName TableName
 func (*TransGlobal) TableName() string {
 	return "dtm.trans_global"
 }
 
-type TransProcessor interface {
+type transProcessor interface {
 	GenBranches() []TransBranch
 	ProcessOnce(db *common.DB, branches []TransBranch)
 	ExecBranch(db *common.DB, branch *TransBranch)
@@ -60,10 +62,11 @@ func (t *TransGlobal) changeStatus(db *common.DB, status string) *gorm.DB {
 	return dbr
 }
 
+// TransBranch branch transaction
 type TransBranch struct {
 	common.ModelBase
 	Gid          string
-	Url          string
+	URL          string `json:"url"`
 	Data         string
 	BranchID     string `json:"branch_id"`
 	BranchType   string
@@ -72,6 +75,7 @@ type TransBranch struct {
 	RollbackTime *time.Time
 }
 
+// TableName TableName
 func (*TransBranch) TableName() string {
 	return "dtm.trans_branch"
 }
@@ -93,7 +97,7 @@ func checkAffected(db1 *gorm.DB) {
 	}
 }
 
-type processorCreator func(*TransGlobal) TransProcessor
+type processorCreator func(*TransGlobal) transProcessor
 
 var processorFac = map[string]processorCreator{}
 
@@ -101,28 +105,29 @@ func registorProcessorCreator(transType string, creator processorCreator) {
 	processorFac[transType] = creator
 }
 
-func (trans *TransGlobal) getProcessor() TransProcessor {
-	return processorFac[trans.TransType](trans)
+func (t *TransGlobal) getProcessor() transProcessor {
+	return processorFac[t.TransType](t)
 }
 
-func (trans *TransGlobal) Process(db *common.DB) {
+// Process process global transaction once
+func (t *TransGlobal) Process(db *common.DB) {
 	defer handlePanic()
 	defer func() {
 		if TransProcessedTestChan != nil {
-			logrus.Printf("processed: %s", trans.Gid)
-			TransProcessedTestChan <- trans.Gid
+			logrus.Printf("processed: %s", t.Gid)
+			TransProcessedTestChan <- t.Gid
 		}
 	}()
-	logrus.Printf("processing: %s", trans.Gid)
+	logrus.Printf("processing: %s", t.Gid)
 	branches := []TransBranch{}
-	db.Must().Where("gid=?", trans.Gid).Order("id asc").Find(&branches)
-	trans.getProcessor().ProcessOnce(db, branches)
+	db.Must().Where("gid=?", t.Gid).Order("id asc").Find(&branches)
+	t.getProcessor().ProcessOnce(db, branches)
 }
 
-func (trans *TransGlobal) getBranchParams(branch *TransBranch) common.MS {
+func (t *TransGlobal) getBranchParams(branch *TransBranch) common.MS {
 	return common.MS{
-		"gid":         trans.Gid,
-		"trans_type":  trans.TransType,
+		"gid":         t.Gid,
+		"trans_type":  t.TransType,
 		"branch_id":   branch.BranchID,
 		"branch_type": branch.BranchType,
 	}
@@ -135,7 +140,7 @@ func (t *TransGlobal) setNextCron(expireIn int64) []string {
 	return []string{"next_cron_interval", "next_cron_time"}
 }
 
-func (t *TransGlobal) SaveNew(db *common.DB) {
+func (t *TransGlobal) saveNew(db *common.DB) {
 	if t.Gid == "" {
 		t.Gid = GenGid()
 	}
@@ -162,6 +167,7 @@ func (t *TransGlobal) SaveNew(db *common.DB) {
 	e2p(err)
 }
 
+// TransFromContext TransFromContext
 func TransFromContext(c *gin.Context) *TransGlobal {
 	data := M{}
 	b, err := c.GetRawData()
@@ -176,6 +182,7 @@ func TransFromContext(c *gin.Context) *TransGlobal {
 	return &m
 }
 
+// TransFromDb construct trans from db
 func TransFromDb(db *common.DB, gid string) *TransGlobal {
 	m := TransGlobal{}
 	dbr := db.Must().Model(&m).Where("gid=?", gid).First(&m)

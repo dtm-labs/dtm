@@ -11,25 +11,28 @@ import (
 
 var dtmsvrPort = 8080
 
+// MainStart main
 func MainStart() {
 	StartSvr()
 	go CronSubmitted()
 	go CronPrepared()
 }
 
+// StartSvr StartSvr
 func StartSvr() {
 	logrus.Printf("start dtmsvr")
 	common.InitApp(common.GetProjectDir(), &config)
 	config.Mysql["database"] = dbName
 	app := common.GetGinApp()
-	AddRoute(app)
+	addRoute(app)
 	logrus.Printf("dtmsvr listen at: %d", dtmsvrPort)
 	go app.Run(fmt.Sprintf(":%d", dtmsvrPort))
 	time.Sleep(100 * time.Millisecond)
 }
 
+// PopulateMysql setup mysql data
 func PopulateMysql() {
 	common.InitApp(common.GetProjectDir(), &config)
 	config.Mysql["database"] = ""
-	examples.RunSqlScript(config.Mysql, common.GetCurrentDir()+"/dtmsvr.sql")
+	examples.RunSqlScript(config.Mysql, common.GetCurrentCodeDir()+"/dtmsvr.sql")
 }

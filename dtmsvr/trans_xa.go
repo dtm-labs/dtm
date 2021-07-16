@@ -7,23 +7,23 @@ import (
 	"github.com/yedf/dtm/common"
 )
 
-type TransXaProcessor struct {
+type transXaProcessor struct {
 	*TransGlobal
 }
 
 func init() {
-	registorProcessorCreator("xa", func(trans *TransGlobal) TransProcessor { return &TransXaProcessor{TransGlobal: trans} })
+	registorProcessorCreator("xa", func(trans *TransGlobal) transProcessor { return &transXaProcessor{TransGlobal: trans} })
 }
 
-func (t *TransXaProcessor) GenBranches() []TransBranch {
+func (t *transXaProcessor) GenBranches() []TransBranch {
 	return []TransBranch{}
 }
-func (t *TransXaProcessor) ExecBranch(db *common.DB, branch *TransBranch) {
+func (t *transXaProcessor) ExecBranch(db *common.DB, branch *TransBranch) {
 	resp, err := common.RestyClient.R().SetBody(M{
 		"branch_id": branch.BranchID,
 		"action":    common.If(t.Status == "prepared", "rollback", "commit"),
 		"gid":       branch.Gid,
-	}).Post(branch.Url)
+	}).Post(branch.URL)
 	e2p(err)
 	body := resp.String()
 	if strings.Contains(body, "SUCCESS") {
@@ -34,7 +34,7 @@ func (t *TransXaProcessor) ExecBranch(db *common.DB, branch *TransBranch) {
 	}
 }
 
-func (t *TransXaProcessor) ProcessOnce(db *common.DB, branches []TransBranch) {
+func (t *transXaProcessor) ProcessOnce(db *common.DB, branches []TransBranch) {
 	if t.Status == "succeed" {
 		return
 	}

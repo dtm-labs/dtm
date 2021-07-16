@@ -12,9 +12,13 @@ import (
 	"gorm.io/gorm"
 )
 
+// M a short name
 type M = map[string]interface{}
+
+// MS a short name
 type MS = map[string]string
 
+// ModelBase model base for gorm to provide base fields
 type ModelBase struct {
 	ID         uint
 	CreateTime *time.Time `gorm:"autoCreateTime"`
@@ -23,21 +27,25 @@ type ModelBase struct {
 
 var dbs = map[string]*DB{}
 
+// DB provide more func over gorm.DB
 type DB struct {
 	*gorm.DB
 }
 
+// Must set must flag, panic when error occur
 func (m *DB) Must() *DB {
 	db := m.InstanceSet("ivy.must", true)
 	return &DB{DB: db}
 }
 
+// NoMust unset must flag, don't panic when error occur
 func (m *DB) NoMust() *DB {
 	db := m.InstanceSet("ivy.must", false)
 	return &DB{DB: db}
 }
 
-func (m *DB) ToSqlDB() *sql.DB {
+// ToSQLDB get the sql.DB
+func (m *DB) ToSQLDB() *sql.DB {
 	d, err := m.DB.DB()
 	E2P(err)
 	return d
@@ -87,6 +95,7 @@ func (op *tracePlugin) Initialize(db *gorm.DB) (err error) {
 	return
 }
 
+// GetDsn get dsn from map config
 func GetDsn(conf map[string]string) string {
 	if IsDockerCompose() {
 		conf["host"] = strings.Replace(conf["host"], "localhost", "host.docker.internal", 1)
@@ -95,11 +104,13 @@ func GetDsn(conf map[string]string) string {
 	return fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?charset=utf8mb4&parseTime=true&loc=Local", conf["user"], conf["password"], conf["host"], conf["port"], conf["database"])
 }
 
+// ReplaceDsnPassword replace password for log output
 func ReplaceDsnPassword(dsn string) string {
 	reg := regexp.MustCompile(`:.*@`)
 	return reg.ReplaceAllString(dsn, ":****@")
 }
 
+// DbGet get db connection for specified conf
 func DbGet(conf map[string]string) *DB {
 	dsn := GetDsn(conf)
 	if dbs[dsn] == nil {
@@ -114,7 +125,8 @@ func DbGet(conf map[string]string) *DB {
 	return dbs[dsn]
 }
 
-func SqlDB2DB(sdb *sql.DB) *DB {
+// SQLDB2DB name is clear
+func SQLDB2DB(sdb *sql.DB) *DB {
 	db, err := gorm.Open(mysql.New(mysql.Config{
 		Conn: sdb,
 	}), &gorm.Config{})
@@ -123,16 +135,19 @@ func SqlDB2DB(sdb *sql.DB) *DB {
 	return &DB{DB: db}
 }
 
+// MyConn for xa alone connection
 type MyConn struct {
 	Conn *sql.DB
 	Dsn  string
 }
 
+// Close name is clear
 func (conn *MyConn) Close() {
 	logrus.Printf("closing alone mysql: %s", ReplaceDsnPassword(conn.Dsn))
 	conn.Conn.Close()
 }
 
+// DbAlone get a standalone db connection
 func DbAlone(conf map[string]string) (*DB, *MyConn) {
 	dsn := GetDsn(conf)
 	logrus.Printf("opening alone mysql: %s", ReplaceDsnPassword(dsn))

@@ -49,7 +49,7 @@ const transInUid = 1
 const transOutUid = 2
 
 func adjustTrading(sdb *sql.DB, uid int, amount int) (interface{}, error) {
-	db := common.SqlDB2DB(sdb)
+	db := common.SQLDB2DB(sdb)
 	dbr := db.Exec("update dtm_busi.user_account_trading t join dtm_busi.user_account a on t.user_id=a.user_id and t.user_id=? set t.trading_balance=t.trading_balance + ? where a.balance + t.trading_balance + ? >= 0", uid, amount, amount)
 	if dbr.Error == nil && dbr.RowsAffected == 0 {
 		return nil, fmt.Errorf("update error, maybe balance not enough")
@@ -58,7 +58,7 @@ func adjustTrading(sdb *sql.DB, uid int, amount int) (interface{}, error) {
 }
 
 func adjustBalance(sdb *sql.DB, uid int, amount int) (interface{}, error) {
-	db := common.SqlDB2DB(sdb)
+	db := common.SQLDB2DB(sdb)
 	dbr := db.Exec("update dtm_busi.user_account_trading t join dtm_busi.user_account a on t.user_id=a.user_id and t.user_id=? set t.trading_balance=t.trading_balance + ?", uid, -amount, -amount)
 	if dbr.Error == nil && dbr.RowsAffected == 1 {
 		dbr = db.Exec("update dtm_busi.user_account set balance=balance+? where user_id=?", amount, uid)
@@ -74,37 +74,37 @@ func adjustBalance(sdb *sql.DB, uid int, amount int) (interface{}, error) {
 
 // TCC下，转入
 func tccBarrierTransInTry(c *gin.Context) (interface{}, error) {
-	return dtmcli.ThroughBarrierCall(dbGet().ToSqlDB(), dtmcli.TransInfoFromReq(c), func(sdb *sql.DB) (interface{}, error) {
+	return dtmcli.ThroughBarrierCall(dbGet().ToSQLDB(), dtmcli.TransInfoFromReq(c), func(sdb *sql.DB) (interface{}, error) {
 		return adjustTrading(sdb, transInUid, reqFrom(c).Amount)
 	})
 }
 
 func tccBarrierTransInConfirm(c *gin.Context) (interface{}, error) {
-	return dtmcli.ThroughBarrierCall(dbGet().ToSqlDB(), dtmcli.TransInfoFromReq(c), func(sdb *sql.DB) (interface{}, error) {
+	return dtmcli.ThroughBarrierCall(dbGet().ToSQLDB(), dtmcli.TransInfoFromReq(c), func(sdb *sql.DB) (interface{}, error) {
 		return adjustBalance(sdb, transInUid, reqFrom(c).Amount)
 	})
 }
 
 func tccBarrierTransInCancel(c *gin.Context) (interface{}, error) {
-	return dtmcli.ThroughBarrierCall(dbGet().ToSqlDB(), dtmcli.TransInfoFromReq(c), func(sdb *sql.DB) (interface{}, error) {
+	return dtmcli.ThroughBarrierCall(dbGet().ToSQLDB(), dtmcli.TransInfoFromReq(c), func(sdb *sql.DB) (interface{}, error) {
 		return adjustTrading(sdb, transInUid, -reqFrom(c).Amount)
 	})
 }
 
 func tccBarrierTransOutTry(c *gin.Context) (interface{}, error) {
-	return dtmcli.ThroughBarrierCall(dbGet().ToSqlDB(), dtmcli.TransInfoFromReq(c), func(sdb *sql.DB) (interface{}, error) {
+	return dtmcli.ThroughBarrierCall(dbGet().ToSQLDB(), dtmcli.TransInfoFromReq(c), func(sdb *sql.DB) (interface{}, error) {
 		return adjustTrading(sdb, transOutUid, -reqFrom(c).Amount)
 	})
 }
 
 func tccBarrierTransOutConfirm(c *gin.Context) (interface{}, error) {
-	return dtmcli.ThroughBarrierCall(dbGet().ToSqlDB(), dtmcli.TransInfoFromReq(c), func(sdb *sql.DB) (interface{}, error) {
+	return dtmcli.ThroughBarrierCall(dbGet().ToSQLDB(), dtmcli.TransInfoFromReq(c), func(sdb *sql.DB) (interface{}, error) {
 		return adjustBalance(sdb, transOutUid, -reqFrom(c).Amount)
 	})
 }
 
 func tccBarrierTransOutCancel(c *gin.Context) (interface{}, error) {
-	return dtmcli.ThroughBarrierCall(dbGet().ToSqlDB(), dtmcli.TransInfoFromReq(c), func(sdb *sql.DB) (interface{}, error) {
+	return dtmcli.ThroughBarrierCall(dbGet().ToSQLDB(), dtmcli.TransInfoFromReq(c), func(sdb *sql.DB) (interface{}, error) {
 		return adjustTrading(sdb, transOutUid, reqFrom(c).Amount)
 	})
 }

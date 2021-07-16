@@ -10,37 +10,37 @@ import (
 	"gorm.io/gorm/clause"
 )
 
-func AddRoute(engine *gin.Engine) {
-	engine.POST("/api/dtmsvr/prepare", common.WrapHandler(Prepare))
-	engine.POST("/api/dtmsvr/submit", common.WrapHandler(Submit))
-	engine.POST("/api/dtmsvr/registerXaBranch", common.WrapHandler(RegisterXaBranch))
-	engine.POST("/api/dtmsvr/registerTccBranch", common.WrapHandler(RegisterTccBranch))
-	engine.POST("/api/dtmsvr/abort", common.WrapHandler(Abort))
-	engine.GET("/api/dtmsvr/query", common.WrapHandler(Query))
-	engine.GET("/api/dtmsvr/newGid", common.WrapHandler(NewGid))
+func addRoute(engine *gin.Engine) {
+	engine.POST("/api/dtmsvr/prepare", common.WrapHandler(prepare))
+	engine.POST("/api/dtmsvr/submit", common.WrapHandler(submit))
+	engine.POST("/api/dtmsvr/registerXaBranch", common.WrapHandler(registerXaBranch))
+	engine.POST("/api/dtmsvr/registerTccBranch", common.WrapHandler(registerTccBranch))
+	engine.POST("/api/dtmsvr/abort", common.WrapHandler(abort))
+	engine.GET("/api/dtmsvr/query", common.WrapHandler(query))
+	engine.GET("/api/dtmsvr/newGid", common.WrapHandler(newGid))
 }
 
-func NewGid(c *gin.Context) (interface{}, error) {
+func newGid(c *gin.Context) (interface{}, error) {
 	return M{"gid": GenGid()}, nil
 }
 
-func Prepare(c *gin.Context) (interface{}, error) {
+func prepare(c *gin.Context) (interface{}, error) {
 	m := TransFromContext(c)
 	m.Status = "prepared"
-	m.SaveNew(dbGet())
+	m.saveNew(dbGet())
 	return M{"message": "SUCCESS", "gid": m.Gid}, nil
 }
 
-func Submit(c *gin.Context) (interface{}, error) {
+func submit(c *gin.Context) (interface{}, error) {
 	db := dbGet()
 	m := TransFromContext(c)
 	m.Status = "submitted"
-	m.SaveNew(db)
+	m.saveNew(db)
 	go m.Process(db)
 	return M{"message": "SUCCESS", "gid": m.Gid}, nil
 }
 
-func Abort(c *gin.Context) (interface{}, error) {
+func abort(c *gin.Context) (interface{}, error) {
 	db := dbGet()
 	m := TransFromContext(c)
 	m = TransFromDb(db, m.Gid)
@@ -51,7 +51,7 @@ func Abort(c *gin.Context) (interface{}, error) {
 	return M{"message": "SUCCESS"}, nil
 }
 
-func RegisterXaBranch(c *gin.Context) (interface{}, error) {
+func registerXaBranch(c *gin.Context) (interface{}, error) {
 	branch := TransBranch{}
 	err := c.BindJSON(&branch)
 	e2p(err)
@@ -68,7 +68,7 @@ func RegisterXaBranch(c *gin.Context) (interface{}, error) {
 	return M{"message": "SUCCESS"}, nil
 }
 
-func RegisterTccBranch(c *gin.Context) (interface{}, error) {
+func registerTccBranch(c *gin.Context) (interface{}, error) {
 	data := common.MS{}
 	err := c.BindJSON(&data)
 	e2p(err)
@@ -82,7 +82,7 @@ func RegisterTccBranch(c *gin.Context) (interface{}, error) {
 	branches := []TransBranch{branch, branch, branch}
 	for i, b := range []string{"cancel", "confirm", "try"} {
 		branches[i].BranchType = b
-		branches[i].Url = data[b]
+		branches[i].URL = data[b]
 	}
 
 	dbGet().Must().Clauses(clause.OnConflict{
@@ -94,7 +94,7 @@ func RegisterTccBranch(c *gin.Context) (interface{}, error) {
 	return M{"message": "SUCCESS"}, nil
 }
 
-func Query(c *gin.Context) (interface{}, error) {
+func query(c *gin.Context) (interface{}, error) {
 	gid := c.Query("gid")
 	if gid == "" {
 		return nil, errors.New("no gid specified")

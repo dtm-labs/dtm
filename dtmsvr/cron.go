@@ -9,13 +9,17 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
+// CronPrepared cron expired prepared trans forever
 func CronPrepared() {
 	for {
-		CronTransOnce(time.Duration(0), "prepared")
-		sleepCronTime()
+		notEmpty := CronTransOnce(time.Duration(0), "prepared")
+		if !notEmpty {
+			sleepCronTime()
+		}
 	}
 }
 
+// CronTransOnce cron expired trans who's status match param status for once. use expireIn as expire time
 func CronTransOnce(expireIn time.Duration, status string) bool {
 	defer handlePanic()
 	trans := lockOneTrans(expireIn, status)
@@ -27,6 +31,7 @@ func CronTransOnce(expireIn time.Duration, status string) bool {
 	return true
 }
 
+// CronSubmitted cron expired submitted trans forever
 func CronSubmitted() {
 	for {
 		notEmpty := CronTransOnce(time.Duration(0), "submitted")

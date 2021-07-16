@@ -7,20 +7,20 @@ import (
 	"github.com/yedf/dtm/common"
 )
 
-type TransTccProcessor struct {
+type transTccProcessor struct {
 	*TransGlobal
 }
 
 func init() {
-	registorProcessorCreator("tcc", func(trans *TransGlobal) TransProcessor { return &TransTccProcessor{TransGlobal: trans} })
+	registorProcessorCreator("tcc", func(trans *TransGlobal) transProcessor { return &transTccProcessor{TransGlobal: trans} })
 }
 
-func (t *TransTccProcessor) GenBranches() []TransBranch {
+func (t *transTccProcessor) GenBranches() []TransBranch {
 	return []TransBranch{}
 }
 
-func (t *TransTccProcessor) ExecBranch(db *common.DB, branch *TransBranch) {
-	resp, err := common.RestyClient.R().SetBody(branch.Data).SetHeader("Content-type", "application/json").SetQueryParams(t.getBranchParams(branch)).Post(branch.Url)
+func (t *transTccProcessor) ExecBranch(db *common.DB, branch *TransBranch) {
+	resp, err := common.RestyClient.R().SetBody(branch.Data).SetHeader("Content-type", "application/json").SetQueryParams(t.getBranchParams(branch)).Post(branch.URL)
 	e2p(err)
 	body := resp.String()
 	if strings.Contains(body, "SUCCESS") {
@@ -34,7 +34,7 @@ func (t *TransTccProcessor) ExecBranch(db *common.DB, branch *TransBranch) {
 	}
 }
 
-func (t *TransTccProcessor) ProcessOnce(db *common.DB, branches []TransBranch) {
+func (t *transTccProcessor) ProcessOnce(db *common.DB, branches []TransBranch) {
 	if t.Status == "succeed" || t.Status == "failed" {
 		return
 	}

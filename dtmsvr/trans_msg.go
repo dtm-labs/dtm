@@ -7,15 +7,15 @@ import (
 	"github.com/yedf/dtm/common"
 )
 
-type TransMsgProcessor struct {
+type transMsgProcessor struct {
 	*TransGlobal
 }
 
 func init() {
-	registorProcessorCreator("msg", func(trans *TransGlobal) TransProcessor { return &TransMsgProcessor{TransGlobal: trans} })
+	registorProcessorCreator("msg", func(trans *TransGlobal) transProcessor { return &transMsgProcessor{TransGlobal: trans} })
 }
 
-func (t *TransMsgProcessor) GenBranches() []TransBranch {
+func (t *transMsgProcessor) GenBranches() []TransBranch {
 	branches := []TransBranch{}
 	steps := []M{}
 	common.MustUnmarshalString(t.Data, &steps)
@@ -24,7 +24,7 @@ func (t *TransMsgProcessor) GenBranches() []TransBranch {
 			Gid:        t.Gid,
 			BranchID:   GenGid(),
 			Data:       step["data"].(string),
-			Url:        step["action"].(string),
+			URL:        step["action"].(string),
 			BranchType: "action",
 			Status:     "prepared",
 		})
@@ -32,8 +32,8 @@ func (t *TransMsgProcessor) GenBranches() []TransBranch {
 	return branches
 }
 
-func (t *TransMsgProcessor) ExecBranch(db *common.DB, branch *TransBranch) {
-	resp, err := common.RestyClient.R().SetBody(branch.Data).SetQueryParams(t.getBranchParams(branch)).Post(branch.Url)
+func (t *transMsgProcessor) ExecBranch(db *common.DB, branch *TransBranch) {
+	resp, err := common.RestyClient.R().SetBody(branch.Data).SetQueryParams(t.getBranchParams(branch)).Post(branch.URL)
 	e2p(err)
 	body := resp.String()
 	if strings.Contains(body, "SUCCESS") {
@@ -58,7 +58,7 @@ func (t *TransGlobal) mayQueryPrepared(db *common.DB) {
 	}
 }
 
-func (t *TransMsgProcessor) ProcessOnce(db *common.DB, branches []TransBranch) {
+func (t *transMsgProcessor) ProcessOnce(db *common.DB, branches []TransBranch) {
 	t.mayQueryPrepared(db)
 	if t.Status != "submitted" {
 		return

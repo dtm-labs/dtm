@@ -20,6 +20,7 @@ import (
 	yaml "gopkg.in/yaml.v2"
 )
 
+// P2E panic to error
 func P2E(perr *error) {
 	if x := recover(); x != nil {
 		if e, ok := x.(error); ok {
@@ -30,18 +31,21 @@ func P2E(perr *error) {
 	}
 }
 
+// E2P error to panic
 func E2P(err error) {
 	if err != nil {
 		panic(err)
 	}
 }
 
+// CatchP catch panic to error
 func CatchP(f func()) (rerr error) {
 	defer P2E(&rerr)
 	f()
 	return nil
 }
 
+// PanicIf name is clear
 func PanicIf(cond bool, err error) {
 	if cond {
 		panic(err)
@@ -57,6 +61,7 @@ func MustAtoi(s string) int {
 	return r
 }
 
+// OrString return the first not empty string
 func OrString(ss ...string) string {
 	for _, s := range ss {
 		if s != "" {
@@ -66,6 +71,7 @@ func OrString(ss ...string) string {
 	return ""
 }
 
+// If ternary operator
 func If(condition bool, trueObj interface{}, falseObj interface{}) interface{} {
 	if condition {
 		return trueObj
@@ -73,24 +79,30 @@ func If(condition bool, trueObj interface{}, falseObj interface{}) interface{} {
 	return falseObj
 }
 
+// MustMarshal checked version for marshal
 func MustMarshal(v interface{}) []byte {
 	b, err := json.Marshal(v)
 	E2P(err)
 	return b
 }
 
+// MustMarshalString string version of MustMarshal
 func MustMarshalString(v interface{}) string {
 	return string(MustMarshal(v))
 }
 
+// MustUnmarshal checked version for unmarshal
 func MustUnmarshal(b []byte, obj interface{}) {
 	err := json.Unmarshal(b, obj)
 	E2P(err)
 }
+
+// MustUnmarshalString string version of MustUnmarshal
 func MustUnmarshalString(s string, obj interface{}) {
 	MustUnmarshal([]byte(s), obj)
 }
 
+// MustRemarshal marshal and unmarshal, and check error
 func MustRemarshal(from interface{}, to interface{}) {
 	b, err := json.Marshal(from)
 	E2P(err)
@@ -98,6 +110,7 @@ func MustRemarshal(from interface{}, to interface{}) {
 	E2P(err)
 }
 
+// GetGinApp init and return gin
 func GetGinApp() *gin.Engine {
 	gin.SetMode(gin.ReleaseMode)
 	app := gin.Default()
@@ -121,6 +134,7 @@ func GetGinApp() *gin.Engine {
 	return app
 }
 
+// WrapHandler name is clear
 func WrapHandler(fn func(*gin.Context) (interface{}, error)) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		r, err := fn(c)
@@ -141,7 +155,7 @@ func WrapHandler(fn func(*gin.Context) (interface{}, error)) gin.HandlerFunc {
 	}
 }
 
-// 辅助工具与代码
+// RestyClient the resty object
 var RestyClient = resty.New()
 
 func init() {
@@ -162,6 +176,7 @@ func init() {
 	})
 }
 
+// CheckRestySuccess panic if error or resp not success
 func CheckRestySuccess(resp *resty.Response, err error) {
 	E2P(err)
 	if !strings.Contains(resp.String(), "SUCCESS") {
@@ -192,7 +207,7 @@ func (f *formatter) Format(entry *logrus.Entry) ([]byte, error) {
 	return b.Bytes(), nil
 }
 
-// 加载调用者文件相同目录下的配置文件
+// InitApp init config
 func InitApp(dir string, config interface{}) {
 	logrus.SetFormatter(&formatter{})
 	cont, err := ioutil.ReadFile(dir + "/conf.yml")
@@ -205,17 +220,20 @@ func InitApp(dir string, config interface{}) {
 	E2P(err)
 }
 
-func Getwd() string {
+// MustGetwd must version of os.Getwd
+func MustGetwd() string {
 	wd, err := os.Getwd()
 	E2P(err)
 	return wd
 }
 
-func GetCurrentDir() string {
+// GetCurrentCodeDir name is clear
+func GetCurrentCodeDir() string {
 	_, file, _, _ := runtime.Caller(1)
 	return filepath.Dir(file)
 }
 
+// GetProjectDir name is clear
 func GetProjectDir() string {
 	_, file, _, _ := runtime.Caller(1)
 	for ; !strings.HasSuffix(file, "/dtm"); file = filepath.Dir(file) {
@@ -223,11 +241,13 @@ func GetProjectDir() string {
 	return file
 }
 
+// GetFuncName get current call func name
 func GetFuncName() string {
 	pc, _, _, _ := runtime.Caller(1)
 	return runtime.FuncForPC(pc).Name()
 }
 
+// IsDockerCompose name is clear
 func IsDockerCompose() bool {
 	return os.Getenv("IS_DOCKER_COMPOSE") != ""
 }

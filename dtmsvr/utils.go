@@ -11,6 +11,7 @@ import (
 	"github.com/yedf/dtm/common"
 )
 
+// M a short name
 type M = map[string]interface{}
 
 var p2e = common.P2E
@@ -20,22 +21,22 @@ func dbGet() *common.DB {
 	return common.DbGet(config.Mysql)
 }
 func writeTransLog(gid string, action string, status string, branch string, detail string) {
-	return
-	db := dbGet()
 	if detail == "" {
 		detail = "{}"
 	}
-	db.Must().Table("trans_log").Create(M{
-		"gid":        gid,
-		"action":     action,
-		"new_status": status,
-		"branch":     branch,
-		"detail":     detail,
-	})
+	// dbGet().Must().Table("trans_log").Create(M{
+	// 	"gid":        gid,
+	// 	"action":     action,
+	// 	"new_status": status,
+	// 	"branch":     branch,
+	// 	"detail":     detail,
+	// })
 }
 
-var TransProcessedTestChan chan string = nil // 用于测试时，通知处理结束
+// TransProcessedTestChan only for test usage. when transaction processed once, write gid to this chan
+var TransProcessedTestChan chan string = nil
 
+// WaitTransProcessed only for test usage. wait for transaction processed once
 func WaitTransProcessed(gid string) {
 	logrus.Printf("waiting for gid %s", gid)
 	id := <-TransProcessedTestChan
@@ -54,11 +55,12 @@ func init() {
 	gNode = node
 }
 
+// GenGid generate gid, use ip + snowflake
 func GenGid() string {
-	return getOneHexIp() + "_" + gNode.Generate().Base58()
+	return getOneHexIP() + "_" + gNode.Generate().Base58()
 }
 
-func getOneHexIp() string {
+func getOneHexIP() string {
 	addrs, err := net.InterfaceAddrs()
 	if err != nil {
 		fmt.Printf("cannot get ip, default to another call")
