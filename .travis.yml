@@ -3,6 +3,10 @@ go:
   - 1.15.x
 env:
   - GO111MODULE=on
+branches:
+  only:
+    - master
+    - main
 services:
   - mysql
 before_install:
