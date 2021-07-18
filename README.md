@@ -41,7 +41,9 @@ DTM是首款golang的开源分布式事务管理器，优雅的解决了幂等�
 
 ### 与其他框架对比
 
-目前开源的分布式事务框架，有阿里的SEATA、华为的ServiceComb-Pack，京东的shardingsphere，以及himly，tcc-transaction，ByteTCC等等，这些框架基本都是Java语言，其中以seata应用最为广泛。
+目前开源的分布式事务框架，有阿里的SEATA、华为的ServiceComb-Pack，京东的shardingsphere，以及himly，tcc-transaction，ByteTCC等等，其中以seata应用最为广泛。
+
+这些框架基本都是Java语言，非Java语言的，暂未看到有成熟的框架。
 
 下面将dtm和seata的主要特性做一下对比：
 
