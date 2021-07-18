@@ -46,16 +46,16 @@ DTM是首款golang的开源分布式事务管理器，优雅的解决了幂等�
 下面将dtm和seata的主要特性做一下对比：
 
 |  特性| DTM | SEATA |备注|
-| :-----:|:----: | :----: |
+|:-----:|:----:|:----:|:----:|
 | 支持的语言 |  <font color=green>Golang、python、nodejs及其他</font> | <font color=orange>Java</font> |dtm的客户端很轻，可轻松接入一门新语言|
-|事务乱序处理| <font color=green>子事务屏障技术</font>|<font color=orange>手动处理</font> |子事务屏障轻松解决幂等、悬挂、空补偿等问题
+|事务乱序处理| <font color=green>子事务屏障技术</font>|<font color=orange>手动处理</font> |子事务屏障轻松解决幂等、悬挂、空补偿等问题|
 | TCC事务| <font color=green>✓</font>|<font color=green>✓</font>||
 | XA事务|<font color=green>✓</font>|<font color=green>✓</font>||
 |AT事务|<font color=red>✗</font>|<font color=green>✓</font>|AT事务与XA事务特性上非常近似|
 | SAGA事务 |  <font color=orange>简单模式</font> |  <font color=green>状态机复杂模式</font> |dtm的状态机模式在规划中|
 |事务消息|<font color=green>✓</font>|<font color=red>✗</font>|dtm提供了类似rocketmq的事务消息|
 |通信协议|HTTP|dubbo、springcloud等协议，无HTTP|dtm后续将支持grpc类协议|
-|github star数量|<img src="https://img.shields.io/github/stars/yedf/dtm.svg?style=social" alt="github stars"/>|<img src="https://img.shields.io/github/stars/seata/seata.svg?style=social" alt="github stars"/>|dtm从2021-06-04发布0.1版本，发展较快
+|github star数量|<img src="https://img.shields.io/github/stars/yedf/dtm.svg?style=social" alt="github stars"/>|<img src="https://img.shields.io/github/stars/seata/seata.svg?style=social" alt="github stars"/>|dtm从2021-06-04发布0.1版本，发展较快|
 
 从上面对比的特性来看，如果您的语言栈包含了Java之外的语言，那么dtm是您的首选。如果您的语言栈是Java，您也可以选择接入dtm，使用子事务屏障技术，简化您的业务编写。
 
