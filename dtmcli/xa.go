@@ -86,7 +86,7 @@ func NewXaClient(server string, mysqlConf map[string]string, app *gin.Engine, ca
 		} else {
 			panic(fmt.Errorf("unknown action: %s", req.Action))
 		}
-		return M{"result": "SUCCESS"}, nil
+		return M{"dtm_result": "SUCCESS"}, nil
 	}))
 	return xa
 }

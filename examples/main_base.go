@@ -64,7 +64,7 @@ func handleGeneralBusiness(c *gin.Context, result1 string, result2 string, busi 
 	info := infoFromContext(c)
 	res := common.OrString(MainSwitch.TransInResult.Fetch(), result2, "SUCCESS")
 	logrus.Printf("%s %s result: %s", info.String(), common.GetFuncName(), res)
-	return M{"result": res}, nil
+	return M{"dtm_result": res}, nil
 
 }
 

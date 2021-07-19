@@ -26,7 +26,7 @@ func (t *transTccProcessor) ExecBranch(db *common.DB, branch *TransBranch) {
 	if strings.Contains(body, "SUCCESS") {
 		t.touch(db, config.TransCronInterval)
 		branch.changeStatus(db, "succeed")
-	} else if branch.BranchType == "try" && strings.Contains(body, "FAIL") {
+	} else if branch.BranchType == "try" && strings.Contains(body, "FAILURE") {
 		t.touch(db, config.TransCronInterval)
 		branch.changeStatus(db, "failed")
 	} else {

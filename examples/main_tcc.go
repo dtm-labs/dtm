@@ -21,7 +21,7 @@ func TccSetup(app *gin.Engine) {
 			return nil, rerr
 		}
 
-		return M{"result": "SUCCESS"}, nil
+		return M{"dtm_result": "SUCCESS"}, nil
 
 	}))
 }

@@ -31,8 +31,8 @@ func (t *TransReq) String() string {
 func GenTransReq(amount int, outFailed bool, inFailed bool) *TransReq {
 	return &TransReq{
 		Amount:         amount,
-		TransOutResult: common.If(outFailed, "FAIL", "SUCCESS").(string),
-		TransInResult:  common.If(inFailed, "FAIL", "SUCCESS").(string),
+		TransOutResult: common.If(outFailed, "FAILURE", "SUCCESS").(string),
+		TransInResult:  common.If(inFailed, "FAILURE", "SUCCESS").(string),
 	}
 }
 

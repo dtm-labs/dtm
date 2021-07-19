@@ -165,12 +165,12 @@ func tccBarrierRollback(t *testing.T) {
 		if res1.StatusCode() != 200 {
 			return fmt.Errorf("bad status code: %d", res1.StatusCode())
 		}
-		res2, rerr := tcc.CallBranch(&examples.TransReq{Amount: 30, TransInResult: "FAIL"}, Busi+"/TccBTransInTry", Busi+"/TccBTransInConfirm", Busi+"/TccBTransInCancel")
+		res2, rerr := tcc.CallBranch(&examples.TransReq{Amount: 30, TransInResult: "FAILURE"}, Busi+"/TccBTransInTry", Busi+"/TccBTransInConfirm", Busi+"/TccBTransInCancel")
 		e2p(rerr)
 		if res2.StatusCode() != 200 {
 			return fmt.Errorf("bad status code: %d", res2.StatusCode())
 		}
-		if strings.Contains(res2.String(), "FAIL") {
+		if strings.Contains(res2.String(), "FAILURE") {
 			return fmt.Errorf("branch trans in fail")
 		}
 		logrus.Printf("tcc returns: %s, %s", res1.String(), res2.String())
@@ -182,7 +182,7 @@ func tccBarrierRollback(t *testing.T) {
 }
 
 func tccRollback(t *testing.T) {
-	data := &examples.TransReq{Amount: 30, TransInResult: "FAIL"}
+	data := &examples.TransReq{Amount: 30, TransInResult: "FAILURE"}
 	_, err := dtmcli.TccGlobalTransaction(examples.DtmServer, func(tcc *dtmcli.Tcc) (rerr error) {
 		_, rerr = tcc.CallBranch(data, Busi+"/TransOut", Busi+"/TransOutConfirm", Busi+"/TransOutRevert")
 		e2p(rerr)
@@ -248,7 +248,7 @@ func sagaRollback(t *testing.T) {
 func sagaBarrierRollback(t *testing.T) {
 	saga := dtmcli.NewSaga(DtmServer).
 		Add(Busi+"/SagaBTransOut", Busi+"/SagaBTransOutCompensate", &examples.TransReq{Amount: 30}).
-		Add(Busi+"/SagaBTransIn", Busi+"/SagaBTransInCompensate", &examples.TransReq{Amount: 30, TransInResult: "FAIL"})
+		Add(Busi+"/SagaBTransIn", Busi+"/SagaBTransInCompensate", &examples.TransReq{Amount: 30, TransInResult: "FAILURE"})
 	logrus.Printf("busi trans submit")
 	err := saga.Submit()
 	e2p(err)
@@ -321,9 +321,9 @@ func TestSqlDB(t *testing.T) {
 		TransType:  "saga",
 		Gid:        "gid2",
 		BranchID:   "branch_id2",
-		BranchType: "compensate",
+		BranchType: "action",
 	}
-	db.Must().Exec("insert ignore into dtm_barrier.barrier(trans_type, gid, branch_id, branch_type) values('saga', 'gid1', 'branch_id1', 'action')")
+	db.Must().Exec("insert ignore into dtm_barrier.barrier(trans_type, gid, branch_id, branch_type, reason) values('saga', 'gid1', 'branch_id1', 'action', 'saga')")
 	_, err := dtmcli.ThroughBarrierCall(db.ToSQLDB(), transInfo, func(db *sql.DB) (interface{}, error) {
 		logrus.Printf("rollback gid2")
 		return nil, fmt.Errorf("gid2 error")
@@ -339,5 +339,5 @@ func TestSqlDB(t *testing.T) {
 	})
 	asserts.Nil(err)
 	dbr = db.Model(&dtmcli.BarrierModel{}).Where("gid=?", "gid2").Find(&[]dtmcli.BarrierModel{})
-	asserts.Equal(dbr.RowsAffected, int64(2))
+	asserts.Equal(dbr.RowsAffected, int64(1))
 }

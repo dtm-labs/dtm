@@ -55,7 +55,7 @@ func adjustTrading(sdb *sql.DB, uid int, amount int) (interface{}, error) {
 	if dbr.Error == nil && dbr.RowsAffected == 0 {
 		return nil, fmt.Errorf("update error, maybe balance not enough")
 	}
-	return "SUCCESS", nil
+	return common.MS{"dtm_server": "SUCCESS"}, nil
 }
 
 func adjustBalance(sdb *sql.DB, uid int, amount int) (interface{}, error) {
@@ -70,12 +70,12 @@ func adjustBalance(sdb *sql.DB, uid int, amount int) (interface{}, error) {
 	if dbr.RowsAffected == 0 {
 		return nil, fmt.Errorf("update 0 rows")
 	}
-	return "SUCCESS", nil
+	return common.MS{"dtm_result": "SUCCESS"}, nil
 }
 
 // TCC下，转入
 func tccBarrierTransInTry(c *gin.Context) (interface{}, error) {
-	req := reqFrom(c)
+	req := reqFrom(c) // 去重构一下，改成可以重复使用的输入
 	if req.TransInResult != "" {
 		return req.TransInResult, nil
 	}

@@ -44,15 +44,15 @@ func QsFireRequest() string {
 
 func qsAddRoute(app *gin.Engine) {
 	app.POST(qsBusiAPI+"/TransIn", common.WrapHandler(func(c *gin.Context) (interface{}, error) {
-		return M{"result": "SUCCESS"}, nil
+		return M{"dtm_result": "SUCCESS"}, nil
 	}))
 	app.POST(qsBusiAPI+"/TransInCompensate", common.WrapHandler(func(c *gin.Context) (interface{}, error) {
-		return M{"result": "SUCCESS"}, nil
+		return M{"dtm_result": "SUCCESS"}, nil
 	}))
 	app.POST(qsBusiAPI+"/TransOut", common.WrapHandler(func(c *gin.Context) (interface{}, error) {
-		return M{"result": "SUCCESS"}, nil
+		return M{"dtm_result": "SUCCESS"}, nil
 	}))
 	app.POST(qsBusiAPI+"/TransOutCompensate", common.WrapHandler(func(c *gin.Context) (interface{}, error) {
-		return M{"result": "SUCCESS"}, nil
+		return M{"dtm_result": "SUCCESS"}, nil
 	}))
 }

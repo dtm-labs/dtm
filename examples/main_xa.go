@@ -69,7 +69,7 @@ func xaTransIn(c *gin.Context) (interface{}, error) {
 		return dbr.Error
 	})
 	e2p(err)
-	return M{"result": "SUCCESS"}, nil
+	return M{"dtm_result": "SUCCESS"}, nil
 }
 
 func xaTransOut(c *gin.Context) (interface{}, error) {
@@ -84,7 +84,7 @@ func xaTransOut(c *gin.Context) (interface{}, error) {
 		return dbr.Error
 	})
 	e2p(err)
-	return M{"result": "SUCCESS"}, nil
+	return M{"dtm_result": "SUCCESS"}, nil
 }
 
 // ResetXaData 1

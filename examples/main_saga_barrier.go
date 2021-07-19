@@ -35,7 +35,7 @@ func SagaBarrierAddRoute(app *gin.Engine) {
 func sagaBarrierAdjustBalance(sdb *sql.DB, uid int, amount int) (interface{}, error) {
 	db := common.SQLDB2DB(sdb)
 	dbr := db.Model(&UserAccount{}).Where("user_id = ?", 1).Update("balance", gorm.Expr("balance + ?", amount))
-	return "SUCCESS", dbr.Error
+	return common.MS{"dtm_result": "SUCCESS"}, dbr.Error
 
 }
 
