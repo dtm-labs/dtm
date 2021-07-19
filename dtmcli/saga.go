@@ -32,6 +32,7 @@ type SagaStep struct {
 func NewSaga(server string) *Saga {
 	return &Saga{
 		SagaData: SagaData{
+			Gid:       GenGid(server),
 			TransType: "saga",
 		},
 		Server: server,

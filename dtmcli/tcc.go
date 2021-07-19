@@ -5,6 +5,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/go-resty/resty/v2"
+	"github.com/sirupsen/logrus"
 	"github.com/yedf/dtm/common"
 )
 
@@ -26,10 +27,14 @@ func TccGlobalTransaction(dtm string, tccFunc TccGlobalFunc) (gid string, rerr e
 		"trans_type": "tcc",
 	}
 	defer func() {
+		var err error
 		if x := recover(); x != nil || rerr != nil {
-			_, rerr = common.RestyClient.R().SetBody(data).Post(dtm + "/abort")
+			_, err = common.RestyClient.R().SetBody(data).Post(dtm + "/abort")
 		} else {
-			_, rerr = common.RestyClient.R().SetBody(data).Post(dtm + "/submit")
+			_, err = common.RestyClient.R().SetBody(data).Post(dtm + "/submit")
+		}
+		if err != nil {
+			logrus.Errorf("submitting or abort global transaction error: %v", err)
 		}
 	}()
 	tcc := &Tcc{Dtm: dtm, Gid: gid}

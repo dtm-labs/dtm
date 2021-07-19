@@ -118,7 +118,10 @@ func (t *TransGlobal) Process(db *common.DB) {
 			TransProcessedTestChan <- t.Gid
 		}
 	}()
-	logrus.Printf("processing: %s", t.Gid)
+	logrus.Printf("processing: %s status: %s", t.Gid, t.Status)
+	if t.Status == "prepared" && t.TransType != "msg" {
+		t.changeStatus(db, "aborting")
+	}
 	branches := []TransBranch{}
 	db.Must().Where("gid=?", t.Gid).Order("id asc").Find(&branches)
 	t.getProcessor().ProcessOnce(db, branches)
@@ -186,6 +189,9 @@ func TransFromContext(c *gin.Context) *TransGlobal {
 func TransFromDb(db *common.DB, gid string) *TransGlobal {
 	m := TransGlobal{}
 	dbr := db.Must().Model(&m).Where("gid=?", gid).First(&m)
+	if dbr.Error == gorm.ErrRecordNotFound {
+		return nil
+	}
 	e2p(dbr.Error)
 	return &m
 }
