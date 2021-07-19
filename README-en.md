@@ -4,7 +4,7 @@
 [![Go Report Card](https://goreportcard.com/badge/github.com/yedf/dtm)](https://goreportcard.com/report/github.com/yedf/dtm)
 [![Go Reference](https://pkg.go.dev/badge/github.com/yedf/dtm.svg)](https://pkg.go.dev/github.com/yedf/dtm)
 
-[中文版](https://github.com/yedf/dtm/blob/master/README-en.md)
+[中文版](https://github.com/yedf/dtm/blob/main/README.md)
 
 # a golang distributed transaction manager
 DTM is the first golang open source distributed transaction project. It elegantly resolve the problem of execution out of order. In the microservice architecture, a high-performance and easy-to-use distributed transaction solution is provided.
