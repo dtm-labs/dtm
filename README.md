@@ -4,7 +4,7 @@
 [![Go Report Card](https://goreportcard.com/badge/github.com/yedf/dtm)](https://goreportcard.com/report/github.com/yedf/dtm)
 [![Go Reference](https://pkg.go.dev/badge/github.com/yedf/dtm.svg)](https://pkg.go.dev/github.com/yedf/dtm)
 
-[English](https://github.com/yedf/dtm/blob/master/README-en.md)
+[English](https://github.com/yedf/dtm/blob/main/README-en.md)
 
 # GO语言分布式事务管理服务
 DTM是首款golang的开源分布式事务管理器，优雅的解决了幂等、空补偿、悬挂等分布式事务难题。在微服务架构中，提供了高性能和简单易用的分布式事务解决方案。
@@ -36,6 +36,7 @@ DTM是首款golang的开源分布式事务管理器，优雅的解决了幂等�
     - [TCC事务模式](https://zhuanlan.zhihu.com/p/388357329)
     - 可靠消息事务模式
   * [子事务屏障](https://zhuanlan.zhihu.com/p/388444465)
+  * [通信协议](https://github.com/yedf/dtm/blob/main/protocol.md)
   * FAQ
   * 部署指南
 
