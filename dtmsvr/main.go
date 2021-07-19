@@ -14,8 +14,7 @@ var dtmsvrPort = 8080
 // MainStart main
 func MainStart() {
 	StartSvr()
-	go CronExpiredTrans("submitted", -1)
-	go CronExpiredTrans("prepared", -1)
+	go CronExpiredTrans(-1)
 }
 
 // StartSvr StartSvr

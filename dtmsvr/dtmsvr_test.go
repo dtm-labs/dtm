@@ -7,6 +7,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
 	"github.com/yedf/dtm/common"
@@ -16,19 +17,17 @@ import (
 
 var DtmServer = examples.DtmServer
 var Busi = examples.Busi
+var app *gin.Engine
 
 func init() {
+	TransProcessedTestChan = make(chan string, 1)
 	common.InitApp(common.GetProjectDir(), &config)
 	config.Mysql["database"] = dbName
 	PopulateMysql()
 	examples.PopulateMysql()
-}
-
-func TestDtmSvr(t *testing.T) {
-	TransProcessedTestChan = make(chan string, 1)
 	// 启动组件
 	go StartSvr()
-	app := examples.BaseAppStartup()
+	app = examples.BaseAppStartup()
 	examples.SagaSetup(app)
 	examples.TccSetup(app)
 	examples.XaSetup(app)
@@ -41,7 +40,11 @@ func TestDtmSvr(t *testing.T) {
 	e2p(dbGet().Exec("truncate trans_branch").Error)
 	e2p(dbGet().Exec("truncate trans_log").Error)
 	examples.ResetXaData()
+}
 
+func TestDtmSvr(t *testing.T) {
+
+	tccBarrierDisorder(t)
 	tccBarrierNormal(t)
 	tccBarrierRollback(t)
 	sagaBarrierNormal(t)
@@ -70,12 +73,11 @@ func TestDtmSvr(t *testing.T) {
 func TestCover(t *testing.T) {
 	db := dbGet()
 	db.NoMust()
-	CronTransOnce(0, "prepared")
-	CronTransOnce(0, "submitted")
+	CronTransOnce(0)
 	defer handlePanic()
 	checkAffected(db.DB)
 
-	go CronExpiredTrans("submitted", 1)
+	go CronExpiredTrans(1)
 }
 
 func getTransStatus(gid string) string {
@@ -176,7 +178,7 @@ func tccBarrierRollback(t *testing.T) {
 		logrus.Printf("tcc returns: %s, %s", res1.String(), res2.String())
 		return
 	})
-	e2p(err)
+	assert.Equal(t, err, fmt.Errorf("branch trans in fail"))
 	WaitTransProcessed(gid)
 	assert.Equal(t, "failed", getTransStatus(gid))
 }
@@ -206,12 +208,12 @@ func msgPending(t *testing.T) {
 	msg.Prepare("")
 	assert.Equal(t, "prepared", getTransStatus(msg.Gid))
 	examples.MainSwitch.CanSubmitResult.SetOnce("PENDING")
-	CronTransOnce(60*time.Second, "prepared")
+	CronTransOnce(60 * time.Second)
 	assert.Equal(t, "prepared", getTransStatus(msg.Gid))
 	examples.MainSwitch.TransInResult.SetOnce("PENDING")
-	CronTransOnce(60*time.Second, "prepared")
+	CronTransOnce(60 * time.Second)
 	assert.Equal(t, "submitted", getTransStatus(msg.Gid))
-	CronTransOnce(60*time.Second, "submitted")
+	CronTransOnce(60 * time.Second)
 	assert.Equal(t, []string{"succeed", "succeed"}, getBranchesStatus(msg.Gid))
 	assert.Equal(t, "succeed", getTransStatus(msg.Gid))
 }
@@ -262,7 +264,7 @@ func sagaCommittedPending(t *testing.T) {
 	saga.Submit()
 	WaitTransProcessed(saga.Gid)
 	assert.Equal(t, []string{"prepared", "prepared", "prepared", "prepared"}, getBranchesStatus(saga.Gid))
-	CronTransOnce(60*time.Second, "submitted")
+	CronTransOnce(60 * time.Second)
 	assert.Equal(t, []string{"prepared", "succeed", "prepared", "succeed"}, getBranchesStatus(saga.Gid))
 	assert.Equal(t, "succeed", getTransStatus(saga.Gid))
 }
@@ -340,4 +342,71 @@ func TestSqlDB(t *testing.T) {
 	asserts.Nil(err)
 	dbr = db.Model(&dtmcli.BarrierModel{}).Where("gid=?", "gid2").Find(&[]dtmcli.BarrierModel{})
 	asserts.Equal(dbr.RowsAffected, int64(1))
+}
+
+func tccBarrierDisorder(t *testing.T) {
+	timeoutChan := make(chan string, 2)
+	finishedChan := make(chan string, 2)
+	gid, err := dtmcli.TccGlobalTransaction(DtmServer, func(tcc *dtmcli.Tcc) (rerr error) {
+		body := &examples.TransReq{Amount: 30}
+		tryURL := Busi + "/TccBTransOutTry"
+		confirmURL := Busi + "/TccBTransOutConfirm"
+		cancelURL := Busi + "/TccBSleepCancel"
+		// 请参见子事务屏障里的时序图，这里为了模拟该时序图，手动拆解了callbranch
+		branchID := tcc.NewBranchID()
+		sleeped := false
+		app.POST(examples.BusiAPI+"/TccBSleepCancel", common.WrapHandler(func(c *gin.Context) (interface{}, error) {
+			res, err := examples.TccBarrierTransOutCancel(c)
+			if !sleeped {
+				sleeped = true
+				logrus.Printf("sleep before cancel return")
+				<-timeoutChan
+				finishedChan <- "1"
+			}
+			return res, err
+		}))
+		// 注册子事务
+		_, err := common.RestyClient.R().
+			SetBody(&M{
+				"gid":        tcc.Gid,
+				"branch_id":  branchID,
+				"trans_type": "tcc",
+				"status":     "prepared",
+				"data":       string(common.MustMarshal(body)),
+				"try":        tryURL,
+				"confirm":    confirmURL,
+				"cancel":     cancelURL,
+			}).
+			Post(tcc.Dtm + "/registerTccBranch")
+		e2p(err)
+		go func() {
+			logrus.Printf("sleeping to wait for tcc try timeout")
+			<-timeoutChan
+			_, _ = common.RestyClient.R().
+				SetBody(body).
+				SetQueryParams(common.MS{
+					"dtm":         tcc.Dtm,
+					"gid":         tcc.Gid,
+					"branch_id":   branchID,
+					"trans_type":  "tcc",
+					"branch_type": "try",
+				}).
+				Post(tryURL)
+			finishedChan <- "1"
+		}()
+		logrus.Printf("cron to timeout and then call cancel")
+		go CronTransOnce(60 * time.Second)
+		time.Sleep(100 * time.Millisecond)
+		logrus.Printf("cron to timeout and then call cancelled twice")
+		CronTransOnce(60 * time.Second)
+		timeoutChan <- "wake"
+		timeoutChan <- "wake"
+		<-finishedChan
+		<-finishedChan
+		time.Sleep(100 * time.Millisecond)
+		return fmt.Errorf("a cancelled tcc")
+	})
+	assert.Error(t, err, fmt.Errorf("a cancelled tcc"))
+	assert.Equal(t, []string{"succeed", "prepared", "prepared"}, getBranchesStatus(gid))
+	assert.Equal(t, "failed", getTransStatus(gid))
 }

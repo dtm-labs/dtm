@@ -9,10 +9,10 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-// CronTransOnce cron expired trans who's status match param status for once. use expireIn as expire time
-func CronTransOnce(expireIn time.Duration, status string) bool {
+// CronTransOnce cron expired trans. use expireIn as expire time
+func CronTransOnce(expireIn time.Duration) bool {
 	defer handlePanic()
-	trans := lockOneTrans(expireIn, status)
+	trans := lockOneTrans(expireIn)
 	if trans == nil {
 		return false
 	}
@@ -22,21 +22,21 @@ func CronTransOnce(expireIn time.Duration, status string) bool {
 }
 
 // CronExpiredTrans cron expired trans, num == -1 indicate for ever
-func CronExpiredTrans(status string, num int) {
+func CronExpiredTrans(num int) {
 	for i := 0; i < num || num == -1; i++ {
-		notEmpty := CronTransOnce(time.Duration(0), status)
+		notEmpty := CronTransOnce(time.Duration(0))
 		if !notEmpty {
 			sleepCronTime()
 		}
 	}
 }
 
-func lockOneTrans(expireIn time.Duration, status string) *TransGlobal {
+func lockOneTrans(expireIn time.Duration) *TransGlobal {
 	trans := TransGlobal{}
 	owner := GenGid()
 	db := dbGet()
 	dbr := db.Must().Model(&trans).
-		Where("next_cron_time < date_add(now(), interval ? second) and status=?", int(expireIn/time.Second), status).
+		Where("next_cron_time < date_add(now(), interval ? second) and status in ('prepared', 'aborting', 'submitted')", int(expireIn/time.Second)).
 		Limit(1).Update("owner", owner)
 	if dbr.RowsAffected == 0 {
 		return nil

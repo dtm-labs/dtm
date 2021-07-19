@@ -69,6 +69,9 @@ func (t *transSagaProcessor) ProcessOnce(db *common.DB, branches []TransBranch) 
 		t.changeStatus(db, "succeed")
 		return
 	}
+	if t.Status != "aborting" && t.Status != "failed" {
+		t.changeStatus(db, "aborting")
+	}
 	for current = current - 1; current >= 0; current-- {
 		branch := &branches[current]
 		if branch.BranchType != "compensate" || branch.Status != "prepared" {

@@ -42,7 +42,7 @@ func TccBarrierAddRoute(app *gin.Engine) {
 	app.POST(BusiAPI+"/TccBTransInCancel", common.WrapHandler(tccBarrierTransInCancel))
 	app.POST(BusiAPI+"/TccBTransOutTry", common.WrapHandler(tccBarrierTransOutTry))
 	app.POST(BusiAPI+"/TccBTransOutConfirm", common.WrapHandler(tccBarrierTransOutConfirm))
-	app.POST(BusiAPI+"/TccBTransOutCancel", common.WrapHandler(tccBarrierTransOutCancel))
+	app.POST(BusiAPI+"/TccBTransOutCancel", common.WrapHandler(TccBarrierTransOutCancel))
 	logrus.Printf("examples listening at %d", BusiPort)
 }
 
@@ -112,7 +112,7 @@ func tccBarrierTransOutConfirm(c *gin.Context) (interface{}, error) {
 	})
 }
 
-func tccBarrierTransOutCancel(c *gin.Context) (interface{}, error) {
+func TccBarrierTransOutCancel(c *gin.Context) (interface{}, error) {
 	return dtmcli.ThroughBarrierCall(dbGet().ToSQLDB(), dtmcli.TransInfoFromReq(c), func(sdb *sql.DB) (interface{}, error) {
 		return adjustTrading(sdb, transOutUID, reqFrom(c).Amount)
 	})

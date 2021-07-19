@@ -25,38 +25,46 @@ func newGid(c *gin.Context) (interface{}, error) {
 }
 
 func prepare(c *gin.Context) (interface{}, error) {
-	m := TransFromContext(c)
-	m.Status = "prepared"
-	m.saveNew(dbGet())
-	return M{"message": "SUCCESS", "gid": m.Gid}, nil
+	t := TransFromContext(c)
+	t.Status = "prepared"
+	t.saveNew(dbGet())
+	return M{"dtm_result": "SUCCESS", "gid": t.Gid}, nil
 }
 
 func submit(c *gin.Context) (interface{}, error) {
 	db := dbGet()
-	m := TransFromContext(c)
-	m.Status = "submitted"
-	m.saveNew(db)
-	go m.Process(db)
-	return M{"message": "SUCCESS", "gid": m.Gid}, nil
+	t := TransFromContext(c)
+	dbt := TransFromDb(db, t.Gid)
+	if dbt != nil && dbt.Status != "prepared" && dbt.Status != "submitted" {
+		return M{"dtm_result": "FAILURE", "message": fmt.Sprintf("current status %s, cannot sumbmit", dbt.Status)}, nil
+	}
+	t.Status = "submitted"
+	t.saveNew(db)
+	go t.Process(db)
+	return M{"dtm_result": "SUCCESS", "gid": t.Gid}, nil
 }
 
 func abort(c *gin.Context) (interface{}, error) {
 	db := dbGet()
-	m := TransFromContext(c)
-	m = TransFromDb(db, m.Gid)
-	if m.TransType != "xa" && m.TransType != "tcc" || m.Status != "prepared" {
-		return nil, fmt.Errorf("unexpected trans data. type: %s status: %s for gid: %s", m.TransType, m.Status, m.Gid)
+	t := TransFromContext(c)
+	dbt := TransFromDb(db, t.Gid)
+	if t.TransType != "xa" && t.TransType != "tcc" || dbt.Status != "prepared" && dbt.Status != "aborting" {
+		return M{"dtm_result": "FAILURE", "message": fmt.Sprintf("trans type: %s current status %s, cannot abort", dbt.TransType, dbt.Status)}, nil
 	}
-	go m.Process(db)
-	return M{"message": "SUCCESS"}, nil
+	go dbt.Process(db)
+	return M{"dtm_result": "SUCCESS"}, nil
 }
 
 func registerXaBranch(c *gin.Context) (interface{}, error) {
 	branch := TransBranch{}
 	err := c.BindJSON(&branch)
 	e2p(err)
-	branches := []TransBranch{branch, branch}
 	db := dbGet()
+	dbt := TransFromDb(db, branch.Gid)
+	if dbt.Status != "prepared" {
+		return M{"dtm_result": "FAILURE", "message": fmt.Sprintf("current status: %s cannot register branch", dbt.Status)}, nil
+	}
+	branches := []TransBranch{branch, branch}
 	branches[0].BranchType = "rollback"
 	branches[1].BranchType = "commit"
 	db.Must().Clauses(clause.OnConflict{
@@ -65,7 +73,7 @@ func registerXaBranch(c *gin.Context) (interface{}, error) {
 	e2p(err)
 	global := TransGlobal{Gid: branch.Gid}
 	global.touch(db, config.TransCronInterval)
-	return M{"message": "SUCCESS"}, nil
+	return M{"dtm_result": "SUCCESS"}, nil
 }
 
 func registerTccBranch(c *gin.Context) (interface{}, error) {
@@ -78,6 +86,11 @@ func registerTccBranch(c *gin.Context) (interface{}, error) {
 		Status:   data["status"],
 		Data:     data["data"],
 	}
+	db := dbGet()
+	dbt := TransFromDb(db, branch.Gid)
+	if dbt.Status != "prepared" {
+		return M{"dtm_result": "FAILURE", "message": fmt.Sprintf("current status: %s cannot register branch", dbt.Status)}, nil
+	}
 
 	branches := []TransBranch{branch, branch, branch}
 	for i, b := range []string{"cancel", "confirm", "try"} {
@@ -85,13 +98,13 @@ func registerTccBranch(c *gin.Context) (interface{}, error) {
 		branches[i].URL = data[b]
 	}
 
-	dbGet().Must().Clauses(clause.OnConflict{
+	db.Must().Clauses(clause.OnConflict{
 		DoNothing: true,
 	}).Create(branches)
 	e2p(err)
 	global := TransGlobal{Gid: branch.Gid}
 	global.touch(dbGet(), config.TransCronInterval)
-	return M{"message": "SUCCESS"}, nil
+	return M{"dtm_result": "SUCCESS"}, nil
 }
 
 func query(c *gin.Context) (interface{}, error) {
