@@ -23,12 +23,12 @@
 
 AP调用TM的接口，主要为全局事务注册、提交，子事务注册等：
   - 成功: {dtm_result:"SUCCESS"}
-  - 失败: {dtm_result:"FAILURE} // 表示这个请求状态不对，例如已经走fail的全局事务不允许再注册分支
+  - 失败: {dtm_result:"FAILURE} 表示这个请求状态不对，例如已经走fail的全局事务不允许再注册分支
   - 其他错误则需要重试
 
 TM调用RM的接口，主要为二阶段的提交、回滚，以及saga的各分支
-  - 成功: {dtm_result: "SUCCESS"} // 表示这个接口调用成功，正常进行下一步操作
-  - 失败: {dtm_result: "FAILURE"} // 表示这个接口调用失败，业务需要进行回滚。例如saga中的动作如果返回FAILURE，则整个saga事务失败回滚
+  - 成功: {dtm_result: "SUCCESS"} 表示这个接口调用成功，正常进行下一步操作
+  - 失败: {dtm_result: "FAILURE"} 表示这个接口调用失败，业务需要进行回滚。例如saga中的动作如果返回FAILURE，则整个saga事务失败回滚
   - 其他则需要重试 // 结果不确定，需要重试
 
 AP调用RM的接口，跟业务相关，建议的接口形式，非必须
