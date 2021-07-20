@@ -35,8 +35,9 @@ func lockOneTrans(expireIn time.Duration) *TransGlobal {
 	trans := TransGlobal{}
 	owner := GenGid()
 	db := dbGet()
+	// 这里next_cron_time需要限定范围，否则数据量累计之后，会导致查询变慢
 	dbr := db.Must().Model(&trans).
-		Where("next_cron_time < date_add(now(), interval ? second) and status in ('prepared', 'aborting', 'submitted')", int(expireIn/time.Second)).
+		Where("next_cron_time < date_add(now(), interval ? second) and next_cron_time > date_add(now(), interval -3600 second) and status in ('prepared', 'aborting', 'submitted')", int(expireIn/time.Second)).
 		Limit(1).Update("owner", owner)
 	if dbr.RowsAffected == 0 {
 		return nil
