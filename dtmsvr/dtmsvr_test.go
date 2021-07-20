@@ -221,9 +221,9 @@ func msgPending(t *testing.T) {
 func sagaNormal(t *testing.T) {
 	saga := genSaga("gid-noramlSaga", false, false)
 	saga.Submit()
-	assert.Equal(t, "submitted", getTransStatus(saga.Gid))
 	WaitTransProcessed(saga.Gid)
 	assert.Equal(t, []string{"prepared", "succeed", "prepared", "succeed"}, getBranchesStatus(saga.Gid))
+	assert.Equal(t, "succeed", getTransStatus(saga.Gid))
 	transQuery(t, saga.Gid)
 }
 
