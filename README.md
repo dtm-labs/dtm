@@ -50,7 +50,7 @@ DTM是首款golang的开源分布式事务管理器，优雅的解决了幂等�
 
 |  特性| DTM | SEATA |备注|
 |:-----:|:----:|:----:|:----:|
-| 支持语言 |  <font color=green>Golang、python、node及其他</font> | <font color=orange>Java</font> |dtm可轻松接入一门新语言|
+| 支持语言 |  <font color=green>Golang、python、php及其他</font> | <font color=orange>Java</font> |dtm可轻松接入一门新语言|
 |异常处理| <font color=green>子事务屏障技术</font>|<font color=orange>手动处理</font> |dtm解决了幂等、悬挂、空补偿|
 | TCC事务| <font color=green>✓</font>|<font color=green>✓</font>||
 | XA事务|<font color=green>✓</font>|<font color=green>✓</font>||
@@ -107,6 +107,14 @@ DTM是首款golang的开源分布式事务管理器，优雅的解决了幂等�
 客户端sdk（当前只支持TCC）: [https://github.com/yedf/dtmcli-python](https://github.com/yedf/dtmcli-python)
 
 示例: [https://github.com/yedf/dtmcli-python-sample](https://github.com/yedf/dtmcli-python-sample)
+
+#### php
+
+客户端sdk（当前只支持TCC）: [https://github.com/yedf/dtmcli-php](https://github.com/yedf/dtmcli-php)
+
+示例: [https://github.com/yedf/dtmcli-php-sample](https://github.com/yedf/dtmcli-php-sample)
+
+感谢 [onlyshow](https://github.com/onlyshow) 的帮助，php的sdk和示例，全部由[onlyshow](https://github.com/onlyshow)独立完成
 
 #### node
 
