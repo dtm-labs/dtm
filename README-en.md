@@ -27,7 +27,7 @@ DTM is the first golang open source distributed transaction project. It elegantl
 
 # Quick start
 ### installation
-`git clone github.com/yedf/dtm`
+`git clone https://github.com/yedf/dtm`
 ### dtm depends on mysql
 
 Configure mysql：  

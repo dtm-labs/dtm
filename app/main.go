@@ -5,7 +5,6 @@ import (
 	"time"
 
 	"github.com/sirupsen/logrus"
-	"github.com/yedf/dtm/common"
 	"github.com/yedf/dtm/dtmsvr"
 	"github.com/yedf/dtm/examples"
 )
@@ -20,11 +19,6 @@ func wait() {
 }
 
 func main() {
-	var a, b interface{}
-	common.MustUnmarshalString("{\"a\": 1}", &a)
-	common.MustUnmarshalString("[1, 2]", &b)
-	logrus.Printf("a is: %v, b is: %v", a, b)
-	os.Exit(0)
 	if len(os.Args) > 1 && os.Args[1] == "dtmsvr" { // 实际运行，只启动dtmsvr，不重新load数据
 		dtmsvr.MainStart()
 		wait()
