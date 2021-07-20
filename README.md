@@ -103,9 +103,9 @@ DTM是首款golang的开源分布式事务管理器，优雅的解决了幂等�
 
 #### python
 
-客户端sdk（当前只支持TCC）: [https://github.com/yedf/dtmcli-python](https://github.com/yedf/dtmcli-python)
+客户端sdk（当前只支持TCC）: [https://github.com/yedf/dtmcli-py](https://github.com/yedf/dtmcli-py)
 
-示例: [https://github.com/yedf/dtmcli-python-sample](https://github.com/yedf/dtmcli-python-sample)
+示例: [https://github.com/yedf/dtmcli-py-sample](https://github.com/yedf/dtmcli-py-sample)
 
 #### php
 
