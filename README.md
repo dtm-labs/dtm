@@ -64,7 +64,7 @@ DTM是首款golang的开源分布式事务管理器，优雅的解决了幂等�
 
 # 快速开始
 ### 安装
-`git clone github.com/yedf/dtm`
+`git get -u github.com/yedf/dtm`
 ### dtm依赖于mysql
 
 配置mysql：  
