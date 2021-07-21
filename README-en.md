@@ -25,6 +25,8 @@ DTM is the first golang open source distributed transaction project. It elegantl
   + Reliable news
   + XA
 
+### [sub-transaction barrier](./doc/barrier-en.md)
+
 # Quick start
 ### installation
 `git clone https://github.com/yedf/dtm`

@@ -36,7 +36,7 @@ DTM是首款golang的开源分布式事务管理器，优雅的解决了幂等�
     - [TCC事务模式](https://zhuanlan.zhihu.com/p/388357329)
     - 可靠消息事务模式
   * [子事务屏障](https://zhuanlan.zhihu.com/p/388444465)
-  * [通信协议](https://github.com/yedf/dtm/blob/main/protocol.md)
+  * [通信协议](./doc/protocol.md)
   * FAQ
   * 部署指南
 
