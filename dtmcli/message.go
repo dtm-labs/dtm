@@ -2,6 +2,7 @@ package dtmcli
 
 import (
 	"fmt"
+	"strings"
 
 	jsonitor "github.com/json-iterator/go"
 	"github.com/sirupsen/logrus"
@@ -57,7 +58,7 @@ func (s *Msg) Submit() error {
 	if err != nil {
 		return err
 	}
-	if resp.StatusCode() != 200 {
+	if !strings.Contains(resp.String(), "SUCCESS") {
 		return fmt.Errorf("submit failed: %v", resp.Body())
 	}
 	s.Gid = jsonitor.Get(resp.Body(), "gid").ToString()
@@ -72,7 +73,7 @@ func (s *Msg) Prepare(queryPrepared string) error {
 	if err != nil {
 		return err
 	}
-	if resp.StatusCode() != 200 {
+	if !strings.Contains(resp.String(), "SUCCESS") {
 		return fmt.Errorf("prepare failed: %v", resp.Body())
 	}
 	return nil

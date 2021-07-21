@@ -63,7 +63,7 @@ func insertBarrier(tx *sql.Tx, transType string, gid string, branchID string, br
 	if branchType == "" {
 		return 0, nil
 	}
-	res, err := logExec(tx, "insert into dtm_barrier.barrier(trans_type, gid, branch_id, branch_type, reason) values(?,?,?,?,?)", transType, gid, branchID, branchType, reason)
+	res, err := logExec(tx, "insert ignore into dtm_barrier.barrier(trans_type, gid, branch_id, branch_type, reason) values(?,?,?,?,?)", transType, gid, branchID, branchType, reason)
 	if err != nil {
 		return 0, err
 	}

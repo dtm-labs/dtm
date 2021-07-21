@@ -2,6 +2,7 @@ package dtmcli
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/gin-gonic/gin"
 	"github.com/go-resty/resty/v2"
@@ -38,9 +39,12 @@ func TccGlobalTransaction(dtm string, tccFunc TccGlobalFunc) (gid string, rerr e
 		}
 	}()
 	tcc := &Tcc{Dtm: dtm, Gid: gid}
-	_, rerr = common.RestyClient.R().SetBody(data).Post(tcc.Dtm + "/prepare")
+	resp, rerr := common.RestyClient.R().SetBody(data).Post(tcc.Dtm + "/prepare")
 	if rerr != nil {
 		return
+	}
+	if !strings.Contains(resp.String(), "SUCCESS") {
+		rerr = fmt.Errorf("bad response: %s", resp.String())
 	}
 	rerr = tccFunc(tcc)
 	return
@@ -76,6 +80,9 @@ func (t *Tcc) CallBranch(body interface{}, tryURL string, confirmURL string, can
 		Post(t.Dtm + "/registerTccBranch")
 	if err != nil {
 		return resp, err
+	}
+	if !strings.Contains(resp.String(), "SUCCESS") {
+		return nil, fmt.Errorf("registerTccBranch failed: %s", resp.String())
 	}
 	return common.RestyClient.R().
 		SetBody(body).

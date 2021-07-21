@@ -383,7 +383,7 @@ func tccBarrierDisorder(t *testing.T) {
 		go func() {
 			logrus.Printf("sleeping to wait for tcc try timeout")
 			<-timeoutChan
-			_, _ = common.RestyClient.R().
+			r, _ = common.RestyClient.R().
 				SetBody(body).
 				SetQueryParams(common.MS{
 					"dtm":         tcc.Dtm,
@@ -393,6 +393,7 @@ func tccBarrierDisorder(t *testing.T) {
 					"branch_type": "try",
 				}).
 				Post(tryURL)
+			assert.True(t, strings.Contains(r.String(), "FAILURE"))
 			finishedChan <- "1"
 		}()
 		logrus.Printf("cron to timeout and then call cancel")
