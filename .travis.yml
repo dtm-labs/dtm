@@ -7,7 +7,7 @@ branches:
   only:
     - master
     - main
-    - test
+    - alpha
 services:
   - mysql
 before_install:
