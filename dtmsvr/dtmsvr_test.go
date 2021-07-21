@@ -366,7 +366,7 @@ func tccBarrierDisorder(t *testing.T) {
 			return res, err
 		}))
 		// 注册子事务
-		_, err := common.RestyClient.R().
+		r, err := common.RestyClient.R().
 			SetBody(&M{
 				"gid":        tcc.Gid,
 				"branch_id":  branchID,
@@ -379,6 +379,7 @@ func tccBarrierDisorder(t *testing.T) {
 			}).
 			Post(tcc.Dtm + "/registerTccBranch")
 		e2p(err)
+		assert.True(t, strings.Contains(r.String(), "SUCCESS"))
 		go func() {
 			logrus.Printf("sleeping to wait for tcc try timeout")
 			<-timeoutChan

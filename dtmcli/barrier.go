@@ -46,6 +46,16 @@ type BarrierModel struct {
 	TransInfo
 }
 
+func logExec(tx *sql.Tx, query string, args ...interface{}) (sql.Result, error) {
+	logrus.Printf("executing: "+query, args...)
+	return tx.Exec(query, args...)
+}
+
+func logQueryRow(tx *sql.Tx, query string, args ...interface{}) *sql.Row {
+	logrus.Printf("querying: "+query, args...)
+	return tx.QueryRow(query, args...)
+}
+
 // TableName gorm table name
 func (BarrierModel) TableName() string { return "dtm_barrier.barrier" }
 
@@ -53,14 +63,14 @@ func insertBarrier(tx *sql.Tx, transType string, gid string, branchID string, br
 	if branchType == "" {
 		return 0, nil
 	}
-	res, err := tx.Exec("insert into dtm_barrier.barrier(trans_type, gid, branch_id, branch_type, reason) values(?,?,?,?,?)", transType, gid, branchID, branchType, reason)
+	res, err := logExec(tx, "insert into dtm_barrier.barrier(trans_type, gid, branch_id, branch_type, reason) values(?,?,?,?,?)", transType, gid, branchID, branchType, reason)
 	if err != nil {
 		return 0, err
 	}
 	return res.RowsAffected()
 }
 
-// ThroughBarrierCall2 子事务屏障，详细介绍见 https://zhuanlan.zhihu.com/p/388444465
+// ThroughBarrierCall 子事务屏障，详细介绍见 https://zhuanlan.zhihu.com/p/388444465
 // db: 本地数据库
 // transInfo: 事务信息
 // bisiCall: 业务函数，仅在必要时被调用
@@ -94,10 +104,11 @@ func ThroughBarrierCall(db *sql.DB, transInfo *TransInfo, busiCall BusiFunc) (re
 	currentAffected, rerr := insertBarrier(tx, ti.TransType, ti.Gid, ti.BranchID, ti.BranchType, ti.BranchType)
 	logrus.Printf("originAffected: %d currentAffected: %d", originAffected, currentAffected)
 	if (ti.BranchType == "cancel" || ti.BranchType == "compensate") && originAffected > 0 { // 这个是空补偿，返回成功
-		return common.MS{"dtm_result": "SUCCESS"}, nil
+		res = common.MS{"dtm_result": "SUCCESS"}
+		return
 	} else if currentAffected == 0 { // 插入不成功
-		var result string
-		err := tx.QueryRow("select result from dtm_barrier.barrier where trans_type=? and gid=? and branch_id=? and branch_type=? and reason=?",
+		var result sql.NullString
+		err := logQueryRow(tx, "select result from dtm_barrier.barrier where trans_type=? and gid=? and branch_id=? and branch_type=? and reason=?",
 			ti.TransType, ti.Gid, ti.BranchID, ti.BranchType, ti.BranchType).Scan(&result)
 		if err == sql.ErrNoRows { // 这个是悬挂操作，返回失败，AP收到这个返回，会尽快回滚
 			res = common.MS{"dtm_result": "FAILURE"}
@@ -107,14 +118,18 @@ func ThroughBarrierCall(db *sql.DB, transInfo *TransInfo, busiCall BusiFunc) (re
 			rerr = err
 			return
 		}
-		// 返回上一次的结果
-		rerr = json.Unmarshal([]byte(result), &res)
-		return
+		if result.Valid { // 数据库里有上一次结果，返回上一次的结果
+			res = json.Unmarshal([]byte(result.String), &res)
+			return
+		} else { // 数据库里没有上次的结果，属于重复空补偿，直接返回成功
+			res = common.MS{"dtm_result": "SUCCESS"}
+			return
+		}
 	}
 	res, rerr = busiCall(db)
 	if rerr == nil { // 正确返回了，需要将结果保存到数据库
 		sval := common.MustMarshalString(res)
-		_, rerr = tx.Exec("update dtm_barrier.barrier set result=? where trans_type=? and gid=? and branch_id=? and branch_type=?", sval,
+		_, rerr = logExec(tx, "update dtm_barrier.barrier set result=? where trans_type=? and gid=? and branch_id=? and branch_type=?", sval,
 			ti.TransType, ti.Gid, ti.BranchID, ti.BranchType)
 	}
 	return
