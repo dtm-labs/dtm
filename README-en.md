@@ -6,10 +6,10 @@
 
 [中文版](https://github.com/yedf/dtm/blob/main/README.md)
 
-# a golang distributed transaction manager
+# A golang distributed transaction manager
 DTM is the first golang open source distributed transaction project. It elegantly resolve the problem of execution out of order. In the microservice architecture, a high-performance and easy-to-use distributed transaction solution is provided.
 
-## characteristic
+## Characteristic
 
 * Stable and reliable
   + Tested in the production environment, unit test coverage is over 90%
@@ -26,22 +26,23 @@ DTM is the first golang open source distributed transaction project. It elegantl
   + XA
 
 ### [sub-transaction barrier](./doc/barrier-en.md)
+### [protocol](./doc/protocol-en.md)
 
 # Quick start
-### installation
+### Installation
 `git clone https://github.com/yedf/dtm`
-### dtm depends on mysql
+### DTM depends on mysql
 
-Configure mysql：  
+Configure mysql:
 
-`cp conf.sample.yml conf.yml # 修改conf.yml`  
+`cp conf.sample.yml conf.yml # Modify conf.yml`
 
 ### Start and run the saga example
 `go run app/main.go`
 
-# start using
+# Start using
 
-### use
+### Use
 ``` go
   // business microservice address
   const qsBusi = "http://localhost:8081/api/busi_saga"
@@ -61,7 +62,7 @@ Configure mysql：
 Refer to [examples/quick_start.go](./examples/quick_start.go)
 
 ### Wechat Group
-Please add wechat yedf2008 friends or scan the code to add friends  
+Please add wechat yedf2008 friends or scan the code to add friends
 
 ![yedf2008](http://service.ivydad.com/cover/dubbingb6b5e2c0-2d2a-cd59-f7c5-c6b90aceb6f1.jpeg)
 
