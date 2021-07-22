@@ -70,6 +70,6 @@ If you think this project is good, or helpful to you, please give a star!
 
 ### Who is using
 <div style='vertical-align: middle'>
-    <img alt='常青藤爸爸' height='40'  src='https://www.ivydad.com/_nuxt/img/header-logo.2645ad5.png'  /img>
-    <img alt='镜小二' height='40'  src='https://img.epeijing.cn/official-website/assets/logo.png'  /img>
+    <img alt='ivydad' height='40'  src='https://www.ivydad.com/_nuxt/img/header-logo.2645ad5.png'  /img>
+    <img alt='eglass' height='40'  src='https://img.epeijing.cn/official-website/assets/logo.png'  /img>
 </div>
