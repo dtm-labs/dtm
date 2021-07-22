@@ -65,6 +65,15 @@ DTM是首款golang的开源分布式事务管理器，优雅的解决了幂等�
 	// 提交saga事务，dtm会完成所有的子事务/回滚所有的子事务
   err := saga.Submit()
 ```
+
+成功运行后，可以看到TransOut、TransIn依次被调用，完成了整个分布式事务
+
+### 时序图
+
+上述saga分布式事务的时序图如下：
+
+![saga](https://pic3.zhimg.com/80/v2-b7d98659093c399e182a0173a8e549ca_1440w.jpg)
+
 ### 完整示例
 参考[examples/quick_start.go](./examples/quick_start.go)
 
