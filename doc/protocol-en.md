@@ -12,7 +12,7 @@ A dtm transaction has three roles：
 
 In the case of nested sub-transactions, a microservice will play the roles of RM and AP at the same time, as shown in the figure
 
-<img src="https://pic1.zhimg.com/80/v2-b6645d3aedefe42ffe8395faa1a94224_1440w.png" alt="diagram">
+<img src="https://pic2.zhimg.com/80/v2-fdd4676c62a1ed1df6979c7ad08903c0_1440w.png" alt="diagram">
 
 ### Protocol
 

@@ -7,26 +7,30 @@
 [English](https://github.com/yedf/dtm/blob/main/README-en.md)
 
 # GO语言分布式事务管理服务
-DTM是首款golang的开源分布式事务管理器，优雅的解决了幂等、空补偿、悬挂等分布式事务难题。在微服务架构中，提供了高性能和简单易用的分布式事务解决方案。
+
+DTM是首款golang的开源分布式事务管理器，优雅的解决了幂等、空补偿、悬挂等分布式事务难题。提供了高性能和简单易用的分布式事务解决方案。
 
 受邀参加中国数据库大会分享[多语言环境下分布式事务实践](http://dtcc.it168.com/yicheng.html#b9)
-## 亮点
 
-* 稳定可靠
-  + 经过生产环境考验，单元测试覆盖率90%以上
-* 使用简单
-  + 接口简单，开发者不再担心悬挂、空补偿、幂等各类问题，框架层代为处理
-* 跨语言
-  + 可适合多语言栈的公司使用。协议支持http。方便go、python、php、nodejs、ruby各类语言使用。
-* 社区活跃
-  + 任何问题都快速响应
-* 易部署、易扩展
-  + 仅依赖mysql，部署简单，易集群化，易水平扩展
-* 多种分布式事务协议支持
-  + TCC: Try-Confirm-Cancel
-  + SAGA:
-  + 可靠消息
-  + XA
+### 与其他框架对比
+
+目前开源的分布式事务框架，暂未看到非Java语言有成熟的框架。而Java语言的较多，有阿里的SEATA、华为的ServiceComb-Pack，京东的shardingsphere，以及himly，tcc-transaction，ByteTCC等等，其中以seata应用最为广泛。
+
+下面是dtm和seata的主要特性对比：
+
+|  特性| DTM | SEATA |备注|
+|:-----:|:----:|:----:|:----:|
+| 支持语言 |  <font color=green>Golang、python、php及其他</font> | <font color=orange>Java</font> |dtm可轻松接入一门新语言|
+|异常处理| <font color=green>子事务屏障自动处理</font>|<font color=orange>手动处理</font> |dtm解决了幂等、悬挂、空补偿|
+| TCC事务| <font color=green>✓</font>|<font color=green>✓</font>||
+| XA事务|<font color=green>✓</font>|<font color=green>✓</font>||
+|AT事务|<font color=red>✗</font>|<font color=green>✓</font>|AT与XA类似，性能更好|
+| SAGA事务 |  <font color=orange>简单模式</font> |  <font color=green>状态机复杂模式</font> |dtm的状态机模式在规划中|
+|事务消息|<font color=green>✓</font>|<font color=red>✗</font>|dtm提供类似rocketmq的事务消息|
+|通信协议|HTTP|dubbo等协议，无HTTP|dtm后续将支持grpc类协议|
+|star数量|<img src="https://img.shields.io/github/stars/yedf/dtm.svg?style=social" alt="github stars"/>|<img src="https://img.shields.io/github/stars/seata/seata.svg?style=social" alt="github stars"/>|dtm从20210604发布0.1，发展快|
+
+从上面对比的特性来看，如果您的语言栈包含了Java之外的语言，那么dtm是您的首选。如果您的语言栈是Java，您也可以选择接入dtm，使用子事务屏障技术，简化您的业务编写。
 
 ### 文档与介绍(更新中)
   * [分布式事务简介](https://zhuanlan.zhihu.com/p/387487859)
@@ -39,28 +43,6 @@ DTM是首款golang的开源分布式事务管理器，优雅的解决了幂等�
   * [通信协议](./doc/protocol.md)
   * FAQ
   * 部署指南
-
-### 与其他框架对比
-
-目前开源的分布式事务框架，有阿里的SEATA、华为的ServiceComb-Pack，京东的shardingsphere，以及himly，tcc-transaction，ByteTCC等等，其中以seata应用最为广泛。
-
-这些框架基本都是Java语言，非Java语言的，暂未看到有成熟的框架。
-
-下面将dtm和seata的主要特性做一下对比：
-
-|  特性| DTM | SEATA |备注|
-|:-----:|:----:|:----:|:----:|
-| 支持语言 |  <font color=green>Golang、python、php及其他</font> | <font color=orange>Java</font> |dtm可轻松接入一门新语言|
-|异常处理| <font color=green>子事务屏障技术</font>|<font color=orange>手动处理</font> |dtm解决了幂等、悬挂、空补偿|
-| TCC事务| <font color=green>✓</font>|<font color=green>✓</font>||
-| XA事务|<font color=green>✓</font>|<font color=green>✓</font>||
-|AT事务|<font color=red>✗</font>|<font color=green>✓</font>|AT事务与XA事务类似|
-| SAGA事务 |  <font color=orange>简单模式</font> |  <font color=green>状态机复杂模式</font> |dtm的状态机模式在规划中|
-|事务消息|<font color=green>✓</font>|<font color=red>✗</font>|dtm提供类似rocketmq的事务消息|
-|通信协议|HTTP|dubbo等协议，无HTTP|dtm后续将支持grpc类协议|
-|star数量|<img src="https://img.shields.io/github/stars/yedf/dtm.svg?style=social" alt="github stars"/>|<img src="https://img.shields.io/github/stars/seata/seata.svg?style=social" alt="github stars"/>|dtm从20210604发布0.1，发展快|
-
-从上面对比的特性来看，如果您的语言栈包含了Java之外的语言，那么dtm是您的首选。如果您的语言栈是Java，您也可以选择接入dtm，使用子事务屏障技术，简化您的业务编写。
 
 # 快速开始
 ### 安装
