@@ -31,9 +31,14 @@ type SagaStep struct {
 
 // NewSaga create a saga
 func NewSaga(server string) *Saga {
+	return NewSaga2(server, GenGid(server))
+}
+
+// NewSaga2 create a saga
+func NewSaga2(server string, gid string) *Saga {
 	return &Saga{
 		SagaData: SagaData{
-			Gid:       GenGid(server),
+			Gid:       gid,
 			TransType: "saga",
 		},
 		Server: server,

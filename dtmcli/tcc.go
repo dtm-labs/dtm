@@ -22,7 +22,12 @@ type TccGlobalFunc func(tcc *Tcc) error
 
 // TccGlobalTransaction begin a tcc global transaction
 func TccGlobalTransaction(dtm string, tccFunc TccGlobalFunc) (gid string, rerr error) {
-	gid = GenGid(dtm)
+	return TccGlobalTransaction2(dtm, GenGid(dtm), tccFunc)
+}
+
+// TccGlobalTransaction2 begin a tcc global transaction
+func TccGlobalTransaction2(dtm string, gidIn string, tccFunc TccGlobalFunc) (gid string, rerr error) {
+	gid = gidIn
 	data := &M{
 		"gid":        gid,
 		"trans_type": "tcc",

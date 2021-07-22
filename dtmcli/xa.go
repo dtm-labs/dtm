@@ -116,7 +116,12 @@ func (xc *XaClient) XaLocalTransaction(c *gin.Context, transFunc XaLocalFunc) (r
 
 // XaGlobalTransaction start a xa global transaction
 func (xc *XaClient) XaGlobalTransaction(transFunc XaGlobalFunc) (gid string, rerr error) {
-	xa := Xa{IDGenerator: IDGenerator{}, Gid: GenGid(xc.Server)}
+	return xc.XaGlobalTransaction2(GenGid(xc.Server), transFunc)
+}
+
+// XaGlobalTransaction2 start a xa global transaction with gid=ginIn
+func (xc *XaClient) XaGlobalTransaction2(gidIn string, transFunc XaGlobalFunc) (gid string, rerr error) {
+	xa := Xa{IDGenerator: IDGenerator{}, Gid: gidIn}
 	gid = xa.Gid
 	data := &M{
 		"gid":        gid,
