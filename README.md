@@ -55,14 +55,15 @@ DTM是首款golang的开源分布式事务管理器，优雅的解决了幂等�
 ``` GO
   // 具体业务微服务地址
   const qsBusi = "http://localhost:8081/api/busi_saga"
-	req := &gin.H{"amount": 30} // 微服务的载荷
-	// DtmServer为DTM服务的地址，是一个url
-	saga := dtmcli.NewSaga("http://localhost:8080/api/dtmsvr").
-		// 添加一个TransOut的子事务，正向操作为url: qsBusi+"/TransOut"， 补偿操作为url: qsBusi+"/TransOutCompensate"
-		Add(qsBusi+"/TransOut", qsBusi+"/TransOutCompensate", req).
-		// 添加一个TransIn的子事务，正向操作为url: qsBusi+"/TransOut"， 补偿操作为url: qsBusi+"/TransInCompensate"
-		Add(qsBusi+"/TransIn", qsBusi+"/TransInCompensate", req)
-	// 提交saga事务，dtm会完成所有的子事务/回滚所有的子事务
+  req := &gin.H{"amount": 30} // 微服务的载荷
+  // DtmServer为DTM服务的地址，是一个url
+  DtmServer := "http://localhost:8080/api/dtmsvr"
+  saga := dtmcli.NewSaga(DtmServer, dtmcli.MustGenGid(DtmServer)).
+    // 添加一个TransOut的子事务，正向操作为url: qsBusi+"/TransOut"， 补偿操作为url: qsBusi+"/TransOutCompensate"
+    Add(qsBusi+"/TransOut", qsBusi+"/TransOutCompensate", req).
+    // 添加一个TransIn的子事务，正向操作为url: qsBusi+"/TransOut"， 补偿操作为url: qsBusi+"/TransInCompensate"
+    Add(qsBusi+"/TransIn", qsBusi+"/TransInCompensate", req)
+  // 提交saga事务，dtm会完成所有的子事务/回滚所有的子事务
   err := saga.Submit()
 ```
 
