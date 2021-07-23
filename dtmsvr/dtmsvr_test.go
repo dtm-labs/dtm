@@ -56,6 +56,14 @@ func TestType(t *testing.T) {
 		dtmcli.MustGenGid("http://localhost:8080/api/no")
 	})
 	assert.Error(t, err)
+	err = common.CatchP(func() {
+		resp, err := common.RestyClient.R().SetBody(common.M{
+			"gid":        "1",
+			"trans_type": "msg",
+		}).Get("http://localhost:8080/api/dtmsvr/abort")
+		common.CheckRestySuccess(resp, err)
+	})
+	assert.Error(t, err)
 }
 
 func getTransStatus(gid string) string {
@@ -140,11 +148,17 @@ func TestSqlDB(t *testing.T) {
 	asserts.Equal(dbr.RowsAffected, int64(1))
 	dbr = db.Model(&dtmcli.BarrierModel{}).Where("gid=?", "gid2").Find(&[]dtmcli.BarrierModel{})
 	asserts.Equal(dbr.RowsAffected, int64(0))
+	gid2Res := common.M{"result": "first"}
 	_, err = dtmcli.ThroughBarrierCall(db.ToSQLDB(), transInfo, func(db *sql.DB) (interface{}, error) {
 		logrus.Printf("submit gid2")
-		return nil, nil
+		return gid2Res, nil
 	})
 	asserts.Nil(err)
 	dbr = db.Model(&dtmcli.BarrierModel{}).Where("gid=?", "gid2").Find(&[]dtmcli.BarrierModel{})
 	asserts.Equal(dbr.RowsAffected, int64(1))
+	newResult, err := dtmcli.ThroughBarrierCall(db.ToSQLDB(), transInfo, func(db *sql.DB) (interface{}, error) {
+		logrus.Printf("submit gid2")
+		return common.MS{"result": "ignored"}, nil
+	})
+	asserts.Equal(newResult, gid2Res)
 }

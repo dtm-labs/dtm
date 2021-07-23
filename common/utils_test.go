@@ -9,7 +9,7 @@ import (
 	"testing"
 
 	"github.com/gin-gonic/gin"
-	"github.com/go-playground/assert/v2"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestEP(t *testing.T) {
@@ -83,6 +83,10 @@ func TestSome(t *testing.T) {
 	n := MustAtoi("123")
 	assert.Equal(t, 123, n)
 
+	err := CatchP(func() {
+		MustAtoi("abc")
+	})
+	assert.Error(t, err)
 	wd := MustGetwd()
 	assert.NotEqual(t, "", wd)
 

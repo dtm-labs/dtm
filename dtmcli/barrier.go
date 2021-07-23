@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
+	"net/url"
 
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
@@ -26,18 +27,25 @@ func (t *TransInfo) String() string {
 	return fmt.Sprintf("transInfo: %s %s %s %s", t.TransType, t.Gid, t.BranchID, t.BranchType)
 }
 
-// TransInfoFromReq construct transaction info from request
-func TransInfoFromReq(c *gin.Context) *TransInfo {
+// MustGetTrans construct transaction info from request
+func MustGetTrans(c *gin.Context) *TransInfo {
+	ti, err := TransInfoFromQuery(c.Request.URL.Query())
+	e2p(err)
+	return ti
+}
+
+// TransInfoFromQuery construct transaction info from request
+func TransInfoFromQuery(qs url.Values) (*TransInfo, error) {
 	ti := &TransInfo{
-		TransType:  c.Query("trans_type"),
-		Gid:        c.Query("gid"),
-		BranchID:   c.Query("branch_id"),
-		BranchType: c.Query("branch_type"),
+		TransType:  qs.Get("trans_type"),
+		Gid:        qs.Get("gid"),
+		BranchID:   qs.Get("branch_id"),
+		BranchType: qs.Get("branch_type"),
 	}
 	if ti.TransType == "" || ti.Gid == "" || ti.BranchID == "" || ti.BranchType == "" {
-		panic(fmt.Errorf("invlid trans info: %v", ti))
+		return nil, fmt.Errorf("invlid trans info: %v", ti)
 	}
-	return ti
+	return ti, nil
 }
 
 // BarrierModel barrier model for gorm
@@ -119,7 +127,7 @@ func ThroughBarrierCall(db *sql.DB, transInfo *TransInfo, busiCall BusiFunc) (re
 			return
 		}
 		if result.Valid { // 数据库里有上一次结果，返回上一次的结果
-			res = json.Unmarshal([]byte(result.String), &res)
+			rerr = json.Unmarshal([]byte(result.String), &res)
 			return
 		}
 		// 数据库里没有上次的结果，属于重复空补偿，直接返回成功

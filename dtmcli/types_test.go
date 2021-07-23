@@ -1,6 +1,7 @@
 package dtmcli
 
 import (
+	"net/url"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -17,5 +18,7 @@ func TestTypes(t *testing.T) {
 		idGen := IDGenerator{branchID: 99}
 		idGen.NewBranchID()
 	})
+	assert.Error(t, err)
+	_, err = TransInfoFromQuery(url.Values{})
 	assert.Error(t, err)
 }

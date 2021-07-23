@@ -3,7 +3,6 @@ package dtmcli
 import (
 	"fmt"
 
-	jsonitor "github.com/json-iterator/go"
 	"github.com/sirupsen/logrus"
 	"github.com/yedf/dtm/common"
 )
@@ -54,12 +53,7 @@ func (s *Msg) Add(action string, postData interface{}) *Msg {
 func (s *Msg) Submit() error {
 	logrus.Printf("committing %s body: %v", s.Gid, &s.MsgData)
 	resp, err := common.RestyClient.R().SetBody(&s.MsgData).Post(fmt.Sprintf("%s/submit", s.Server))
-	rerr := CheckDtmResponse(resp, err)
-	if rerr != nil {
-		return rerr
-	}
-	s.Gid = jsonitor.Get(resp.Body(), "gid").ToString()
-	return nil
+	return CheckDtmResponse(resp, err)
 }
 
 // Prepare prepare the msg

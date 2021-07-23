@@ -81,13 +81,11 @@ func (t *Tcc) CallBranch(body interface{}, tryURL string, confirmURL string, can
 			"cancel":     cancelURL,
 		}).
 		Post(t.Dtm + "/registerTccBranch")
+	err = CheckDtmResponse(resp, err)
 	if err != nil {
 		return resp, err
 	}
-	if !strings.Contains(resp.String(), "SUCCESS") {
-		return nil, fmt.Errorf("registerTccBranch failed: %s", resp.String())
-	}
-	r, err := common.RestyClient.R().
+	resp, err = common.RestyClient.R().
 		SetBody(body).
 		SetQueryParams(common.MS{
 			"dtm":         t.Dtm,
@@ -97,8 +95,8 @@ func (t *Tcc) CallBranch(body interface{}, tryURL string, confirmURL string, can
 			"branch_type": "try",
 		}).
 		Post(tryURL)
-	if err == nil && strings.Contains(r.String(), "FAILURE") {
-		return r, fmt.Errorf("branch return failure: %s", r.String())
+	if err == nil && strings.Contains(resp.String(), "FAILURE") {
+		err = fmt.Errorf("branch return failure: %s", resp.String())
 	}
-	return r, err
+	return resp, err
 }

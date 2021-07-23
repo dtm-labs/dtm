@@ -21,14 +21,14 @@ func addRoute(engine *gin.Engine) {
 }
 
 func newGid(c *gin.Context) (interface{}, error) {
-	return M{"gid": GenGid()}, nil
+	return M{"gid": GenGid(), "dtm_result": "SUCCESS"}, nil
 }
 
 func prepare(c *gin.Context) (interface{}, error) {
 	t := TransFromContext(c)
 	t.Status = "prepared"
 	t.saveNew(dbGet())
-	return M{"dtm_result": "SUCCESS", "gid": t.Gid}, nil
+	return M{"dtm_result": "SUCCESS"}, nil
 }
 
 func submit(c *gin.Context) (interface{}, error) {
@@ -41,7 +41,7 @@ func submit(c *gin.Context) (interface{}, error) {
 	t.Status = "submitted"
 	t.saveNew(db)
 	go t.Process(db)
-	return M{"dtm_result": "SUCCESS", "gid": t.Gid}, nil
+	return M{"dtm_result": "SUCCESS"}, nil
 }
 
 func abort(c *gin.Context) (interface{}, error) {
