@@ -8,7 +8,7 @@
 
 # GO语言分布式事务管理服务
 
-DTM是首款golang的开源分布式事务管理器，优雅的解决了幂等、空补偿、悬挂等分布式事务难题。提供了高性能和简单易用的分布式事务解决方案。
+DTM是首款golang的开源分布式事务管理器，优雅的解决了幂等、空补偿、悬挂等分布式事务难题。提供了简单易用、高性能、易水平扩展的分布式事务解决方案。
 
 受邀参加中国数据库大会分享[多语言环境下分布式事务实践](http://dtcc.it168.com/yicheng.html#b9)
 
@@ -24,7 +24,7 @@ DTM是首款golang的开源分布式事务管理器，优雅的解决了幂等�
 |异常处理| <font color=green>[子事务屏障自动处理](https://zhuanlan.zhihu.com/p/388444465)</font>|<font color=orange>手动处理</font> |dtm解决了幂等、悬挂、空补偿|
 | TCC事务| <font color=green>✓</font>|<font color=green>✓</font>||
 | XA事务|<font color=green>✓</font>|<font color=green>✓</font>||
-|AT事务|<font color=red>✗</font>|<font color=green>✓</font>|AT与XA类似，性能更好|
+|AT事务|<font color=red>✗</font>|<font color=green>✓</font>|AT与XA类似，性能更好，但有脏回滚|
 | SAGA事务 |  <font color=orange>简单模式</font> |  <font color=green>状态机复杂模式</font> |dtm的状态机模式在规划中|
 |事务消息|<font color=green>✓</font>|<font color=red>✗</font>|dtm提供类似rocketmq的事务消息|
 |通信协议|HTTP|dubbo等协议，无HTTP|dtm后续将支持grpc类协议|
