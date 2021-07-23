@@ -3,7 +3,6 @@ package dtmcli
 import (
 	"fmt"
 
-	jsonitor "github.com/json-iterator/go"
 	"github.com/sirupsen/logrus"
 	"github.com/yedf/dtm/common"
 )
@@ -29,10 +28,10 @@ type MsgStep struct {
 }
 
 // NewMsg create new msg
-func NewMsg(server string) *Msg {
+func NewMsg(server string, gid string) *Msg {
 	return &Msg{
 		MsgData: MsgData{
-			Gid:       GenGid(server),
+			Gid:       gid,
 			TransType: "msg",
 		},
 		Server: server,
@@ -54,14 +53,7 @@ func (s *Msg) Add(action string, postData interface{}) *Msg {
 func (s *Msg) Submit() error {
 	logrus.Printf("committing %s body: %v", s.Gid, &s.MsgData)
 	resp, err := common.RestyClient.R().SetBody(&s.MsgData).Post(fmt.Sprintf("%s/submit", s.Server))
-	if err != nil {
-		return err
-	}
-	if resp.StatusCode() != 200 {
-		return fmt.Errorf("submit failed: %v", resp.Body())
-	}
-	s.Gid = jsonitor.Get(resp.Body(), "gid").ToString()
-	return nil
+	return CheckDtmResponse(resp, err)
 }
 
 // Prepare prepare the msg
@@ -69,11 +61,9 @@ func (s *Msg) Prepare(queryPrepared string) error {
 	s.QueryPrepared = common.OrString(queryPrepared, s.QueryPrepared)
 	logrus.Printf("preparing %s body: %v", s.Gid, &s.MsgData)
 	resp, err := common.RestyClient.R().SetBody(&s.MsgData).Post(fmt.Sprintf("%s/prepare", s.Server))
-	if err != nil {
-		return err
-	}
-	if resp.StatusCode() != 200 {
-		return fmt.Errorf("prepare failed: %v", resp.Body())
+	rerr := CheckDtmResponse(resp, err)
+	if rerr != nil {
+		return rerr
 	}
 	return nil
 }

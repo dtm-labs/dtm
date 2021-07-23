@@ -2,6 +2,7 @@ package dtmcli
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/gin-gonic/gin"
 	"github.com/go-resty/resty/v2"
@@ -20,25 +21,31 @@ type Tcc struct {
 type TccGlobalFunc func(tcc *Tcc) error
 
 // TccGlobalTransaction begin a tcc global transaction
-func TccGlobalTransaction(dtm string, tccFunc TccGlobalFunc) (gid string, rerr error) {
-	gid = GenGid(dtm)
+func TccGlobalTransaction(dtm string, gid string, tccFunc TccGlobalFunc) (rerr error) {
 	data := &M{
 		"gid":        gid,
 		"trans_type": "tcc",
 	}
 	defer func() {
+		var resp *resty.Response
 		var err error
-		if x := recover(); x != nil || rerr != nil {
-			_, err = common.RestyClient.R().SetBody(data).Post(dtm + "/abort")
+		var x interface{}
+		if x = recover(); x != nil || rerr != nil {
+			resp, err = common.RestyClient.R().SetBody(data).Post(dtm + "/abort")
 		} else {
-			_, err = common.RestyClient.R().SetBody(data).Post(dtm + "/submit")
+			resp, err = common.RestyClient.R().SetBody(data).Post(dtm + "/submit")
 		}
-		if err != nil {
-			logrus.Errorf("submitting or abort global transaction error: %v", err)
+		err2 := CheckDtmResponse(resp, err)
+		if err2 != nil {
+			logrus.Errorf("submitting or abort global transaction error: %v", err2)
+		}
+		if x != nil {
+			panic(x)
 		}
 	}()
 	tcc := &Tcc{Dtm: dtm, Gid: gid}
-	_, rerr = common.RestyClient.R().SetBody(data).Post(tcc.Dtm + "/prepare")
+	resp, err := common.RestyClient.R().SetBody(data).Post(tcc.Dtm + "/prepare")
+	rerr = CheckDtmResponse(resp, err)
 	if rerr != nil {
 		return
 	}
@@ -74,10 +81,11 @@ func (t *Tcc) CallBranch(body interface{}, tryURL string, confirmURL string, can
 			"cancel":     cancelURL,
 		}).
 		Post(t.Dtm + "/registerTccBranch")
+	err = CheckDtmResponse(resp, err)
 	if err != nil {
 		return resp, err
 	}
-	return common.RestyClient.R().
+	resp, err = common.RestyClient.R().
 		SetBody(body).
 		SetQueryParams(common.MS{
 			"dtm":         t.Dtm,
@@ -87,4 +95,8 @@ func (t *Tcc) CallBranch(body interface{}, tryURL string, confirmURL string, can
 			"branch_type": "try",
 		}).
 		Post(tryURL)
+	if err == nil && strings.Contains(resp.String(), "FAILURE") {
+		err = fmt.Errorf("branch return failure: %s", resp.String())
+	}
+	return resp, err
 }

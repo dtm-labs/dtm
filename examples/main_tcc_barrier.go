@@ -13,21 +13,12 @@ import (
 // TccBarrierFireRequest 1
 func TccBarrierFireRequest() string {
 	logrus.Printf("tcc transaction begin")
-	gid, err := dtmcli.TccGlobalTransaction(DtmServer, func(tcc *dtmcli.Tcc) (rerr error) {
+	gid := dtmcli.MustGenGid(DtmServer)
+	err := dtmcli.TccGlobalTransaction(DtmServer, gid, func(tcc *dtmcli.Tcc) (rerr error) {
 		res1, rerr := tcc.CallBranch(&TransReq{Amount: 30}, Busi+"/TccBTransOutTry", Busi+"/TccBTransOutConfirm", Busi+"/TccBTransOutCancel")
-		if rerr != nil {
-			return
-		}
-		if res1.StatusCode() != 200 {
-			return fmt.Errorf("bad status code: %d", res1.StatusCode())
-		}
+		common.CheckRestySuccess(res1, rerr)
 		res2, rerr := tcc.CallBranch(&TransReq{Amount: 30}, Busi+"/TccBTransInTry", Busi+"/TccBTransInConfirm", Busi+"/TccBTransInCancel")
-		if rerr != nil {
-			return
-		}
-		if res2.StatusCode() != 200 {
-			return fmt.Errorf("bad status code: %d", res2.StatusCode())
-		}
+		common.CheckRestySuccess(res1, rerr)
 		logrus.Printf("tcc returns: %s, %s", res1.String(), res2.String())
 		return
 	})
@@ -79,19 +70,19 @@ func tccBarrierTransInTry(c *gin.Context) (interface{}, error) {
 	if req.TransInResult != "" {
 		return req.TransInResult, nil
 	}
-	return dtmcli.ThroughBarrierCall(dbGet().ToSQLDB(), dtmcli.TransInfoFromReq(c), func(sdb *sql.DB) (interface{}, error) {
+	return dtmcli.ThroughBarrierCall(dbGet().ToSQLDB(), dtmcli.MustGetTrans(c), func(sdb *sql.DB) (interface{}, error) {
 		return adjustTrading(sdb, transInUID, req.Amount)
 	})
 }
 
 func tccBarrierTransInConfirm(c *gin.Context) (interface{}, error) {
-	return dtmcli.ThroughBarrierCall(dbGet().ToSQLDB(), dtmcli.TransInfoFromReq(c), func(sdb *sql.DB) (interface{}, error) {
+	return dtmcli.ThroughBarrierCall(dbGet().ToSQLDB(), dtmcli.MustGetTrans(c), func(sdb *sql.DB) (interface{}, error) {
 		return adjustBalance(sdb, transInUID, reqFrom(c).Amount)
 	})
 }
 
 func tccBarrierTransInCancel(c *gin.Context) (interface{}, error) {
-	return dtmcli.ThroughBarrierCall(dbGet().ToSQLDB(), dtmcli.TransInfoFromReq(c), func(sdb *sql.DB) (interface{}, error) {
+	return dtmcli.ThroughBarrierCall(dbGet().ToSQLDB(), dtmcli.MustGetTrans(c), func(sdb *sql.DB) (interface{}, error) {
 		return adjustTrading(sdb, transInUID, -reqFrom(c).Amount)
 	})
 }
@@ -101,19 +92,20 @@ func tccBarrierTransOutTry(c *gin.Context) (interface{}, error) {
 	if req.TransInResult != "" {
 		return req.TransInResult, nil
 	}
-	return dtmcli.ThroughBarrierCall(dbGet().ToSQLDB(), dtmcli.TransInfoFromReq(c), func(sdb *sql.DB) (interface{}, error) {
+	return dtmcli.ThroughBarrierCall(dbGet().ToSQLDB(), dtmcli.MustGetTrans(c), func(sdb *sql.DB) (interface{}, error) {
 		return adjustTrading(sdb, transOutUID, -req.Amount)
 	})
 }
 
 func tccBarrierTransOutConfirm(c *gin.Context) (interface{}, error) {
-	return dtmcli.ThroughBarrierCall(dbGet().ToSQLDB(), dtmcli.TransInfoFromReq(c), func(sdb *sql.DB) (interface{}, error) {
+	return dtmcli.ThroughBarrierCall(dbGet().ToSQLDB(), dtmcli.MustGetTrans(c), func(sdb *sql.DB) (interface{}, error) {
 		return adjustBalance(sdb, transOutUID, -reqFrom(c).Amount)
 	})
 }
 
+// TccBarrierTransOutCancel will be use in test
 func TccBarrierTransOutCancel(c *gin.Context) (interface{}, error) {
-	return dtmcli.ThroughBarrierCall(dbGet().ToSQLDB(), dtmcli.TransInfoFromReq(c), func(sdb *sql.DB) (interface{}, error) {
+	return dtmcli.ThroughBarrierCall(dbGet().ToSQLDB(), dtmcli.MustGetTrans(c), func(sdb *sql.DB) (interface{}, error) {
 		return adjustTrading(sdb, transOutUID, reqFrom(c).Amount)
 	})
 }

@@ -7,6 +7,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/go-resty/resty/v2"
+	"github.com/sirupsen/logrus"
 	"github.com/yedf/dtm/common"
 )
 
@@ -34,16 +35,6 @@ type Xa struct {
 	Gid string
 }
 
-// GetParams get xa params map
-func (x *Xa) GetParams(branchID string) common.MS {
-	return common.MS{
-		"gid":         x.Gid,
-		"trans_type":  "xa",
-		"branch_id":   branchID,
-		"branch_type": "action",
-	}
-}
-
 // XaFromReq construct xa info from request
 func XaFromReq(c *gin.Context) *Xa {
 	return &Xa{
@@ -52,20 +43,17 @@ func XaFromReq(c *gin.Context) *Xa {
 	}
 }
 
-// NewXaBranchID generate a xa branch id
-func (x *Xa) NewXaBranchID() string {
-	return x.Gid + "-" + x.NewBranchID()
-}
-
 // NewXaClient construct a xa client
-func NewXaClient(server string, mysqlConf map[string]string, app *gin.Engine, callbackURL string) *XaClient {
+func NewXaClient(server string, mysqlConf map[string]string, app *gin.Engine, callbackURL string) (*XaClient, error) {
 	xa := &XaClient{
 		Server:      server,
 		Conf:        mysqlConf,
 		CallbackURL: callbackURL,
 	}
 	u, err := url.Parse(callbackURL)
-	e2p(err)
+	if err != nil {
+		return nil, err
+	}
 	app.POST(u.Path, common.WrapHandler(func(c *gin.Context) (interface{}, error) {
 		type CallbackReq struct {
 			Gid      string `json:"gid"`
@@ -74,7 +62,9 @@ func NewXaClient(server string, mysqlConf map[string]string, app *gin.Engine, ca
 		}
 		req := CallbackReq{}
 		b, err := c.GetRawData()
-		e2p(err)
+		if err != nil {
+			return nil, err
+		}
 		common.MustUnmarshal(b, &req)
 		tx, my := common.DbAlone(xa.Conf)
 		defer my.Close()
@@ -88,7 +78,7 @@ func NewXaClient(server string, mysqlConf map[string]string, app *gin.Engine, ca
 		}
 		return M{"dtm_result": "SUCCESS"}, nil
 	}))
-	return xa
+	return xa, nil
 }
 
 // XaLocalTransaction start a xa local transaction
@@ -115,9 +105,8 @@ func (xc *XaClient) XaLocalTransaction(c *gin.Context, transFunc XaLocalFunc) (r
 }
 
 // XaGlobalTransaction start a xa global transaction
-func (xc *XaClient) XaGlobalTransaction(transFunc XaGlobalFunc) (gid string, rerr error) {
-	xa := Xa{IDGenerator: IDGenerator{}, Gid: GenGid(xc.Server)}
-	gid = xa.Gid
+func (xc *XaClient) XaGlobalTransaction(gid string, transFunc XaGlobalFunc) error {
+	xa := Xa{IDGenerator: IDGenerator{}, Gid: gid}
 	data := &M{
 		"gid":        gid,
 		"trans_type": "xa",
@@ -125,29 +114,33 @@ func (xc *XaClient) XaGlobalTransaction(transFunc XaGlobalFunc) (gid string, rer
 	defer func() {
 		x := recover()
 		if x != nil {
-			_, _ = common.RestyClient.R().SetBody(data).Post(xc.Server + "/abort")
-			rerr = x.(error)
+			r, err := common.RestyClient.R().SetBody(data).Post(xc.Server + "/abort")
+			if !strings.Contains(r.String(), "SUCCESS") {
+				logrus.Errorf("abort xa error: resp: %s err: %v", r.String(), err)
+			}
 		}
 	}()
-	resp, rerr := common.RestyClient.R().SetBody(data).Post(xc.Server + "/prepare")
-	e2p(rerr)
-	if !strings.Contains(resp.String(), "SUCCESS") {
-		panic(fmt.Errorf("unexpected result: %s", resp.String()))
+	resp, err := common.RestyClient.R().SetBody(data).Post(xc.Server + "/prepare")
+	rerr := CheckDtmResponse(resp, err)
+	if rerr != nil {
+		return rerr
 	}
 	rerr = transFunc(&xa)
-	e2p(rerr)
-	resp, rerr = common.RestyClient.R().SetBody(data).Post(xc.Server + "/submit")
-	e2p(rerr)
-	if !strings.Contains(resp.String(), "SUCCESS") {
-		panic(fmt.Errorf("unexpected result: %s", resp.String()))
+	if rerr != nil {
+		return rerr
 	}
-	return
+	resp, err = common.RestyClient.R().SetBody(data).Post(xc.Server + "/submit")
+	rerr = CheckDtmResponse(resp, err)
+	if rerr != nil {
+		return rerr
+	}
+	return nil
 }
 
 // CallBranch call a xa branch
 func (x *Xa) CallBranch(body interface{}, url string) (*resty.Response, error) {
 	branchID := x.NewBranchID()
-	return common.RestyClient.R().
+	resp, err := common.RestyClient.R().
 		SetBody(body).
 		SetQueryParams(common.MS{
 			"gid":         x.Gid,
@@ -156,4 +149,8 @@ func (x *Xa) CallBranch(body interface{}, url string) (*resty.Response, error) {
 			"branch_type": "action",
 		}).
 		Post(url)
+	if strings.Contains(resp.String(), "FAILURE") {
+		return resp, fmt.Errorf("FAILURE result: %s err: %v", resp.String(), err)
+	}
+	return resp, err
 }

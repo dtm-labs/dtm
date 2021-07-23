@@ -2,6 +2,7 @@ package examples
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
@@ -38,7 +39,8 @@ func dbGet() *common.DB {
 
 // XaFireRequest 1
 func XaFireRequest() string {
-	gid, err := XaClient.XaGlobalTransaction(func(xa *dtmcli.Xa) (rerr error) {
+	gid := dtmcli.MustGenGid(DtmServer)
+	err := XaClient.XaGlobalTransaction(gid, func(xa *dtmcli.Xa) (rerr error) {
 		defer common.P2E(&rerr)
 		req := GenTransReq(30, false, false)
 		resp, err := xa.CallBranch(req, Busi+"/TransOutXa")
@@ -56,18 +58,23 @@ func XaSetup(app *gin.Engine) {
 	app.POST(BusiAPI+"/TransInXa", common.WrapHandler(xaTransIn))
 	app.POST(BusiAPI+"/TransOutXa", common.WrapHandler(xaTransOut))
 	config.Mysql["database"] = "dtm_busi"
-	XaClient = dtmcli.NewXaClient(DtmServer, config.Mysql, app, Busi+"/xa")
+	var err error
+	XaClient, err = dtmcli.NewXaClient(DtmServer, config.Mysql, app, Busi+"/xa")
+	e2p(err)
 }
 
 func xaTransIn(c *gin.Context) (interface{}, error) {
 	err := XaClient.XaLocalTransaction(c, func(db *common.DB, xa *dtmcli.Xa) (rerr error) {
 		req := reqFrom(c)
 		if req.TransInResult != "SUCCESS" {
-			return fmt.Errorf("tranIn failed")
+			return fmt.Errorf("tranIn FAILURE")
 		}
 		dbr := db.Exec("update user_account set balance=balance+? where user_id=?", req.Amount, 2)
 		return dbr.Error
 	})
+	if err != nil && strings.Contains(err.Error(), "FAILURE") {
+		return M{"dtm_result": "FAILURE"}, nil
+	}
 	e2p(err)
 	return M{"dtm_result": "SUCCESS"}, nil
 }

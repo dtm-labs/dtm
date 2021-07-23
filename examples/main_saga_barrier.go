@@ -14,7 +14,7 @@ import (
 func SagaBarrierFireRequest() string {
 	logrus.Printf("a busi transaction begin")
 	req := &TransReq{Amount: 30}
-	saga := dtmcli.NewSaga(DtmServer).
+	saga := dtmcli.NewSaga(DtmServer, dtmcli.MustGenGid(DtmServer)).
 		Add(Busi+"/SagaBTransOut", Busi+"/SagaBTransOutCompensate", req).
 		Add(Busi+"/SagaBTransIn", Busi+"/SagaBTransInCompensate", req)
 	logrus.Printf("busi trans submit")
@@ -44,13 +44,13 @@ func sagaBarrierTransIn(c *gin.Context) (interface{}, error) {
 	if req.TransInResult != "" {
 		return req.TransInResult, nil
 	}
-	return dtmcli.ThroughBarrierCall(dbGet().ToSQLDB(), dtmcli.TransInfoFromReq(c), func(sdb *sql.DB) (interface{}, error) {
+	return dtmcli.ThroughBarrierCall(dbGet().ToSQLDB(), dtmcli.MustGetTrans(c), func(sdb *sql.DB) (interface{}, error) {
 		return sagaBarrierAdjustBalance(sdb, 1, req.Amount)
 	})
 }
 
 func sagaBarrierTransInCompensate(c *gin.Context) (interface{}, error) {
-	return dtmcli.ThroughBarrierCall(dbGet().ToSQLDB(), dtmcli.TransInfoFromReq(c), func(sdb *sql.DB) (interface{}, error) {
+	return dtmcli.ThroughBarrierCall(dbGet().ToSQLDB(), dtmcli.MustGetTrans(c), func(sdb *sql.DB) (interface{}, error) {
 		return sagaBarrierAdjustBalance(sdb, 1, -reqFrom(c).Amount)
 	})
 }
@@ -60,13 +60,13 @@ func sagaBarrierTransOut(c *gin.Context) (interface{}, error) {
 	if req.TransInResult != "" {
 		return req.TransInResult, nil
 	}
-	return dtmcli.ThroughBarrierCall(dbGet().ToSQLDB(), dtmcli.TransInfoFromReq(c), func(sdb *sql.DB) (interface{}, error) {
+	return dtmcli.ThroughBarrierCall(dbGet().ToSQLDB(), dtmcli.MustGetTrans(c), func(sdb *sql.DB) (interface{}, error) {
 		return sagaBarrierAdjustBalance(sdb, 2, -req.Amount)
 	})
 }
 
 func sagaBarrierTransOutCompensate(c *gin.Context) (interface{}, error) {
-	return dtmcli.ThroughBarrierCall(dbGet().ToSQLDB(), dtmcli.TransInfoFromReq(c), func(sdb *sql.DB) (interface{}, error) {
+	return dtmcli.ThroughBarrierCall(dbGet().ToSQLDB(), dtmcli.MustGetTrans(c), func(sdb *sql.DB) (interface{}, error) {
 		return sagaBarrierAdjustBalance(sdb, 2, reqFrom(c).Amount)
 	})
 }

@@ -2,16 +2,31 @@ package dtmcli
 
 import (
 	"fmt"
+	"strings"
 
+	"github.com/go-resty/resty/v2"
 	"github.com/yedf/dtm/common"
 )
 
-// GenGid generate a new gid
-func GenGid(server string) string {
+// MustGenGid generate a new gid
+func MustGenGid(server string) string {
 	res := common.MS{}
-	_, err := common.RestyClient.R().SetResult(&res).Get(server + "/newGid")
-	e2p(err)
+	resp, err := common.RestyClient.R().SetResult(&res).Get(server + "/newGid")
+	if err != nil || res["gid"] == "" {
+		panic(fmt.Errorf("newGid error: %v, resp: %s", err, resp))
+	}
 	return res["gid"]
+}
+
+// CheckDtmResponse check the response of dtm, if not ok ,generate error
+func CheckDtmResponse(resp *resty.Response, err error) error {
+	if err != nil {
+		return err
+	}
+	if !strings.Contains(resp.String(), "SUCCESS") {
+		return fmt.Errorf("dtm response failed: %s", resp.String())
+	}
+	return nil
 }
 
 // IDGenerator used to generate a branch id
