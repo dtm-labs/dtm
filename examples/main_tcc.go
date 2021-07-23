@@ -29,7 +29,8 @@ func TccSetup(app *gin.Engine) {
 // TccFireRequest 1
 func TccFireRequest() string {
 	logrus.Printf("tcc transaction begin")
-	gid, err := dtmcli.TccGlobalTransaction(DtmServer, func(tcc *dtmcli.Tcc) (rerr error) {
+	gid := dtmcli.GenGid(DtmServer)
+	err := dtmcli.TccGlobalTransaction(DtmServer, gid, func(tcc *dtmcli.Tcc) (rerr error) {
 		res1, rerr := tcc.CallBranch(&TransReq{Amount: 30}, Busi+"/TransOut", Busi+"/TransOutConfirm", Busi+"/TransOutRevert")
 		if rerr != nil {
 			return

@@ -18,7 +18,8 @@ func TestXa(t *testing.T) {
 
 func xaNormal(t *testing.T) {
 	xc := examples.XaClient
-	gid, err := xc.XaGlobalTransaction(func(xa *dtmcli.Xa) error {
+	gid := "xaNormal"
+	err := xc.XaGlobalTransaction(gid, func(xa *dtmcli.Xa) error {
 		req := examples.GenTransReq(30, false, false)
 		resp, err := xa.CallBranch(req, examples.Busi+"/TransOutXa")
 		common.CheckRestySuccess(resp, err)
@@ -33,7 +34,8 @@ func xaNormal(t *testing.T) {
 
 func xaRollback(t *testing.T) {
 	xc := examples.XaClient
-	gid, err := xc.XaGlobalTransaction(func(xa *dtmcli.Xa) error {
+	gid := "xaRollback"
+	err := xc.XaGlobalTransaction(gid, func(xa *dtmcli.Xa) error {
 		req := examples.GenTransReq(30, false, true)
 		resp, err := xa.CallBranch(req, examples.Busi+"/TransOutXa")
 		common.CheckRestySuccess(resp, err)

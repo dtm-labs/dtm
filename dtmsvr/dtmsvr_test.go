@@ -76,22 +76,20 @@ func assertSucceed(t *testing.T, gid string) {
 
 func genMsg(gid string) *dtmcli.Msg {
 	logrus.Printf("beginning a msg test ---------------- %s", gid)
-	msg := dtmcli.NewMsg(examples.DtmServer)
+	msg := dtmcli.NewMsg(examples.DtmServer, gid)
 	msg.QueryPrepared = examples.Busi + "/CanSubmit"
 	req := examples.GenTransReq(30, false, false)
 	msg.Add(examples.Busi+"/TransOut", &req)
 	msg.Add(examples.Busi+"/TransIn", &req)
-	msg.Gid = gid
 	return msg
 }
 
 func genSaga(gid string, outFailed bool, inFailed bool) *dtmcli.Saga {
 	logrus.Printf("beginning a saga test ---------------- %s", gid)
-	saga := dtmcli.NewSaga(examples.DtmServer)
+	saga := dtmcli.NewSaga(examples.DtmServer, gid)
 	req := examples.GenTransReq(30, outFailed, inFailed)
 	saga.Add(examples.Busi+"/TransOut", examples.Busi+"/TransOutRevert", &req)
 	saga.Add(examples.Busi+"/TransIn", examples.Busi+"/TransInRevert", &req)
-	saga.Gid = gid
 	return saga
 }
 

@@ -7,6 +7,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/go-resty/resty/v2"
+	"github.com/sirupsen/logrus"
 	"github.com/yedf/dtm/common"
 )
 
@@ -115,14 +116,8 @@ func (xc *XaClient) XaLocalTransaction(c *gin.Context, transFunc XaLocalFunc) (r
 }
 
 // XaGlobalTransaction start a xa global transaction
-func (xc *XaClient) XaGlobalTransaction(transFunc XaGlobalFunc) (gid string, rerr error) {
-	return xc.XaGlobalTransaction2(GenGid(xc.Server), transFunc)
-}
-
-// XaGlobalTransaction2 start a xa global transaction with gid=ginIn
-func (xc *XaClient) XaGlobalTransaction2(gidIn string, transFunc XaGlobalFunc) (gid string, rerr error) {
-	xa := Xa{IDGenerator: IDGenerator{}, Gid: gidIn}
-	gid = xa.Gid
+func (xc *XaClient) XaGlobalTransaction(gid string, transFunc XaGlobalFunc) error {
+	xa := Xa{IDGenerator: IDGenerator{}, Gid: gid}
 	data := &M{
 		"gid":        gid,
 		"trans_type": "xa",
@@ -130,29 +125,31 @@ func (xc *XaClient) XaGlobalTransaction2(gidIn string, transFunc XaGlobalFunc) (
 	defer func() {
 		x := recover()
 		if x != nil {
-			_, _ = common.RestyClient.R().SetBody(data).Post(xc.Server + "/abort")
-			rerr = x.(error)
+			r, err := common.RestyClient.R().SetBody(data).Post(xc.Server + "/abort")
+			if !strings.Contains(r.String(), "SUCCESS") {
+				logrus.Errorf("abort xa error: resp: %s err: %v", r.String(), err)
+			}
 		}
 	}()
 	resp, rerr := common.RestyClient.R().SetBody(data).Post(xc.Server + "/prepare")
-	e2p(rerr)
 	if !strings.Contains(resp.String(), "SUCCESS") {
-		panic(fmt.Errorf("unexpected result: %s", resp.String()))
+		return fmt.Errorf("unexpected result: %s", resp.String())
 	}
 	rerr = transFunc(&xa)
-	e2p(rerr)
-	resp, rerr = common.RestyClient.R().SetBody(data).Post(xc.Server + "/submit")
-	e2p(rerr)
-	if !strings.Contains(resp.String(), "SUCCESS") {
-		panic(fmt.Errorf("unexpected result: %s", resp.String()))
+	if rerr != nil {
+		return rerr
 	}
-	return
+	resp, rerr = common.RestyClient.R().SetBody(data).Post(xc.Server + "/submit")
+	if !strings.Contains(resp.String(), "SUCCESS") {
+		return fmt.Errorf("unexpected result: %s err: %v", resp.String(), rerr)
+	}
+	return nil
 }
 
 // CallBranch call a xa branch
 func (x *Xa) CallBranch(body interface{}, url string) (*resty.Response, error) {
 	branchID := x.NewBranchID()
-	return common.RestyClient.R().
+	resp, err := common.RestyClient.R().
 		SetBody(body).
 		SetQueryParams(common.MS{
 			"gid":         x.Gid,
@@ -161,4 +158,8 @@ func (x *Xa) CallBranch(body interface{}, url string) (*resty.Response, error) {
 			"branch_type": "action",
 		}).
 		Post(url)
+	if strings.Contains(resp.String(), "FAILURE") {
+		return resp, fmt.Errorf("unexpected result: %s err: %v", resp.String(), err)
+	}
+	return resp, err
 }

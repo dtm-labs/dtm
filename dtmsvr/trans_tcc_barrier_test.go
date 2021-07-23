@@ -22,30 +22,22 @@ func TestTccBarrier(t *testing.T) {
 }
 
 func tccBarrierRollback(t *testing.T) {
-	gid, err := dtmcli.TccGlobalTransaction(DtmServer, func(tcc *dtmcli.Tcc) (rerr error) {
+	gid := "tccBarrierRollback"
+	err := dtmcli.TccGlobalTransaction(DtmServer, gid, func(tcc *dtmcli.Tcc) (rerr error) {
 		res1, rerr := tcc.CallBranch(&examples.TransReq{Amount: 30}, Busi+"/TccBTransOutTry", Busi+"/TccBTransOutConfirm", Busi+"/TccBTransOutCancel")
-		e2p(rerr)
-		if res1.StatusCode() != 200 {
-			return fmt.Errorf("bad status code: %d", res1.StatusCode())
-		}
-		res2, rerr := tcc.CallBranch(&examples.TransReq{Amount: 30, TransInResult: "FAILURE"}, Busi+"/TccBTransInTry", Busi+"/TccBTransInConfirm", Busi+"/TccBTransInCancel")
-		e2p(rerr)
-		if res2.StatusCode() != 200 {
-			return fmt.Errorf("bad status code: %d", res2.StatusCode())
-		}
-		if strings.Contains(res2.String(), "FAILURE") {
-			return fmt.Errorf("branch trans in fail")
-		}
-		logrus.Printf("tcc returns: %s, %s", res1.String(), res2.String())
+		assert.Contains(t, res1.String(), "SUCCESS")
+		_, rerr = tcc.CallBranch(&examples.TransReq{Amount: 30, TransInResult: "FAILURE"}, Busi+"/TccBTransInTry", Busi+"/TccBTransInConfirm", Busi+"/TccBTransInCancel")
+		assert.Error(t, rerr)
 		return
 	})
-	assert.Equal(t, err, fmt.Errorf("branch trans in fail"))
+	assert.Error(t, err)
 	WaitTransProcessed(gid)
 	assert.Equal(t, "failed", getTransStatus(gid))
 }
 
 func tccBarrierNormal(t *testing.T) {
-	_, err := dtmcli.TccGlobalTransaction(DtmServer, func(tcc *dtmcli.Tcc) (rerr error) {
+	gid := "tccBarrierNormal"
+	err := dtmcli.TccGlobalTransaction(DtmServer, gid, func(tcc *dtmcli.Tcc) (rerr error) {
 		res1, rerr := tcc.CallBranch(&examples.TransReq{Amount: 30}, Busi+"/TccBTransOutTry", Busi+"/TccBTransOutConfirm", Busi+"/TccBTransOutCancel")
 		e2p(rerr)
 		if res1.StatusCode() != 200 {
@@ -60,12 +52,15 @@ func tccBarrierNormal(t *testing.T) {
 		return
 	})
 	e2p(err)
+	WaitTransProcessed(gid)
+	assert.Equal(t, "succeed", getTransStatus(gid))
 }
 
 func tccBarrierDisorder(t *testing.T) {
 	timeoutChan := make(chan string, 2)
 	finishedChan := make(chan string, 2)
-	gid, err := dtmcli.TccGlobalTransaction(DtmServer, func(tcc *dtmcli.Tcc) (rerr error) {
+	gid := "tccBarrierDisorder"
+	err := dtmcli.TccGlobalTransaction(DtmServer, gid, func(tcc *dtmcli.Tcc) (rerr error) {
 		body := &examples.TransReq{Amount: 30}
 		tryURL := Busi + "/TccBTransOutTry"
 		confirmURL := Busi + "/TccBTransOutConfirm"

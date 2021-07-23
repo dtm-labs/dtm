@@ -21,26 +21,24 @@ type Tcc struct {
 type TccGlobalFunc func(tcc *Tcc) error
 
 // TccGlobalTransaction begin a tcc global transaction
-func TccGlobalTransaction(dtm string, tccFunc TccGlobalFunc) (gid string, rerr error) {
-	return TccGlobalTransaction2(dtm, GenGid(dtm), tccFunc)
-}
-
-// TccGlobalTransaction2 begin a tcc global transaction
-func TccGlobalTransaction2(dtm string, gidIn string, tccFunc TccGlobalFunc) (gid string, rerr error) {
-	gid = gidIn
+func TccGlobalTransaction(dtm string, gid string, tccFunc TccGlobalFunc) (rerr error) {
 	data := &M{
 		"gid":        gid,
 		"trans_type": "tcc",
 	}
 	defer func() {
 		var err error
-		if x := recover(); x != nil || rerr != nil {
+		var x interface{}
+		if x = recover(); x != nil || rerr != nil {
 			_, err = common.RestyClient.R().SetBody(data).Post(dtm + "/abort")
 		} else {
 			_, err = common.RestyClient.R().SetBody(data).Post(dtm + "/submit")
 		}
 		if err != nil {
 			logrus.Errorf("submitting or abort global transaction error: %v", err)
+		}
+		if x != nil {
+			panic(x)
 		}
 	}()
 	tcc := &Tcc{Dtm: dtm, Gid: gid}
@@ -50,6 +48,7 @@ func TccGlobalTransaction2(dtm string, gidIn string, tccFunc TccGlobalFunc) (gid
 	}
 	if !strings.Contains(resp.String(), "SUCCESS") {
 		rerr = fmt.Errorf("bad response: %s", resp.String())
+		return
 	}
 	rerr = tccFunc(tcc)
 	return
@@ -89,7 +88,7 @@ func (t *Tcc) CallBranch(body interface{}, tryURL string, confirmURL string, can
 	if !strings.Contains(resp.String(), "SUCCESS") {
 		return nil, fmt.Errorf("registerTccBranch failed: %s", resp.String())
 	}
-	return common.RestyClient.R().
+	r, err := common.RestyClient.R().
 		SetBody(body).
 		SetQueryParams(common.MS{
 			"dtm":         t.Dtm,
@@ -99,4 +98,8 @@ func (t *Tcc) CallBranch(body interface{}, tryURL string, confirmURL string, can
 			"branch_type": "try",
 		}).
 		Post(tryURL)
+	if err == nil && strings.Contains(r.String(), "FAILURE") {
+		return r, fmt.Errorf("branch return failure: %s", r.String())
+	}
+	return r, err
 }

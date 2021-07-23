@@ -13,7 +13,8 @@ import (
 // TccBarrierFireRequest 1
 func TccBarrierFireRequest() string {
 	logrus.Printf("tcc transaction begin")
-	gid, err := dtmcli.TccGlobalTransaction(DtmServer, func(tcc *dtmcli.Tcc) (rerr error) {
+	gid := dtmcli.GenGid(DtmServer)
+	err := dtmcli.TccGlobalTransaction(DtmServer, gid, func(tcc *dtmcli.Tcc) (rerr error) {
 		res1, rerr := tcc.CallBranch(&TransReq{Amount: 30}, Busi+"/TccBTransOutTry", Busi+"/TccBTransOutConfirm", Busi+"/TccBTransOutCancel")
 		if rerr != nil {
 			return
@@ -112,6 +113,7 @@ func tccBarrierTransOutConfirm(c *gin.Context) (interface{}, error) {
 	})
 }
 
+// TccBarrierTransOutCancel will be use in test
 func TccBarrierTransOutCancel(c *gin.Context) (interface{}, error) {
 	return dtmcli.ThroughBarrierCall(dbGet().ToSQLDB(), dtmcli.TransInfoFromReq(c), func(sdb *sql.DB) (interface{}, error) {
 		return adjustTrading(sdb, transOutUID, reqFrom(c).Amount)

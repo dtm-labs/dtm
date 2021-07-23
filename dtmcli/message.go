@@ -30,12 +30,7 @@ type MsgStep struct {
 }
 
 // NewMsg create new msg
-func NewMsg(server string) *Msg {
-	return NewMsg2(server, GenGid(server))
-}
-
-// NewMsg2 create new msg with specified gid
-func NewMsg2(server string, gid string) *Msg {
+func NewMsg(server string, gid string) *Msg {
 	return &Msg{
 		MsgData: MsgData{
 			Gid:       gid,

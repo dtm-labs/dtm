@@ -38,7 +38,8 @@ func dbGet() *common.DB {
 
 // XaFireRequest 1
 func XaFireRequest() string {
-	gid, err := XaClient.XaGlobalTransaction(func(xa *dtmcli.Xa) (rerr error) {
+	gid := dtmcli.GenGid(DtmServer)
+	err := XaClient.XaGlobalTransaction(gid, func(xa *dtmcli.Xa) (rerr error) {
 		defer common.P2E(&rerr)
 		req := GenTransReq(30, false, false)
 		resp, err := xa.CallBranch(req, Busi+"/TransOutXa")

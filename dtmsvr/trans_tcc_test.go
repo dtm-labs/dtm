@@ -3,6 +3,7 @@ package dtmsvr
 import (
 	"testing"
 
+	"github.com/stretchr/testify/assert"
 	"github.com/yedf/dtm/dtmcli"
 	"github.com/yedf/dtm/examples"
 )
@@ -15,7 +16,8 @@ func TestTcc(t *testing.T) {
 
 func tccNormal(t *testing.T) {
 	data := &examples.TransReq{Amount: 30}
-	_, err := dtmcli.TccGlobalTransaction(examples.DtmServer, func(tcc *dtmcli.Tcc) (rerr error) {
+	gid := "tccNormal"
+	err := dtmcli.TccGlobalTransaction(examples.DtmServer, gid, func(tcc *dtmcli.Tcc) (rerr error) {
 		_, rerr = tcc.CallBranch(data, Busi+"/TransOut", Busi+"/TransOutConfirm", Busi+"/TransOutRevert")
 		e2p(rerr)
 		_, rerr = tcc.CallBranch(data, Busi+"/TransIn", Busi+"/TransInConfirm", Busi+"/TransInRevert")
@@ -26,13 +28,14 @@ func tccNormal(t *testing.T) {
 }
 
 func tccRollback(t *testing.T) {
+	gid := "tccRollback"
 	data := &examples.TransReq{Amount: 30, TransInResult: "FAILURE"}
-	_, err := dtmcli.TccGlobalTransaction(examples.DtmServer, func(tcc *dtmcli.Tcc) (rerr error) {
-		_, rerr = tcc.CallBranch(data, Busi+"/TransOut", Busi+"/TransOutConfirm", Busi+"/TransOutRevert")
-		e2p(rerr)
+	err := dtmcli.TccGlobalTransaction(examples.DtmServer, gid, func(tcc *dtmcli.Tcc) (rerr error) {
+		resp, rerr := tcc.CallBranch(data, Busi+"/TransOut", Busi+"/TransOutConfirm", Busi+"/TransOutRevert")
+		assert.Contains(t, resp.String(), "SUCCESS")
 		_, rerr = tcc.CallBranch(data, Busi+"/TransIn", Busi+"/TransInConfirm", Busi+"/TransInRevert")
-		e2p(rerr)
+		assert.Error(t, rerr)
 		return
 	})
-	e2p(err)
+	assert.Error(t, err)
 }

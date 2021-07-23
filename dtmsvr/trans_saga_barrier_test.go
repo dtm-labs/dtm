@@ -17,7 +17,7 @@ func TestSagaBarrier(t *testing.T) {
 
 func sagaBarrierNormal(t *testing.T) {
 	req := &examples.TransReq{Amount: 30}
-	saga := dtmcli.NewSaga(DtmServer).
+	saga := dtmcli.NewSaga(DtmServer, "sagaBarrierNormal").
 		Add(Busi+"/SagaBTransOut", Busi+"/SagaBTransOutCompensate", req).
 		Add(Busi+"/SagaBTransIn", Busi+"/SagaBTransInCompensate", req)
 	logrus.Printf("busi trans submit")
@@ -28,7 +28,7 @@ func sagaBarrierNormal(t *testing.T) {
 }
 
 func sagaBarrierRollback(t *testing.T) {
-	saga := dtmcli.NewSaga(DtmServer).
+	saga := dtmcli.NewSaga(DtmServer, "sagaBarrierRollback").
 		Add(Busi+"/SagaBTransOut", Busi+"/SagaBTransOutCompensate", &examples.TransReq{Amount: 30}).
 		Add(Busi+"/SagaBTransIn", Busi+"/SagaBTransInCompensate", &examples.TransReq{Amount: 30, TransInResult: "FAILURE"})
 	logrus.Printf("busi trans submit")

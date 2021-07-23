@@ -18,7 +18,7 @@ func MsgFireRequest() string {
 		TransInResult:  "SUCCESS",
 		TransOutResult: "SUCCESS",
 	}
-	msg := dtmcli.NewMsg(DtmServer).
+	msg := dtmcli.NewMsg(DtmServer, dtmcli.GenGid(DtmServer)).
 		Add(Busi+"/TransOut", req).
 		Add(Busi+"/TransIn", req)
 	err := msg.Prepare(Busi + "/TransQuery")
