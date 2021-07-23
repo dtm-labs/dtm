@@ -51,6 +51,13 @@ func TestCover(t *testing.T) {
 	go CronExpiredTrans(1)
 }
 
+func TestType(t *testing.T) {
+	err := common.CatchP(func() {
+		dtmcli.MustGenGid("http://localhost:8080/api/no")
+	})
+	assert.Error(t, err)
+}
+
 func getTransStatus(gid string) string {
 	sm := TransGlobal{}
 	dbr := dbGet().Model(&sm).Where("gid=?", gid).First(&sm)

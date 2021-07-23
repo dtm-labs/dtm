@@ -2,7 +2,6 @@ package dtmcli
 
 import (
 	"fmt"
-	"strings"
 
 	jsonitor "github.com/json-iterator/go"
 	"github.com/sirupsen/logrus"
@@ -56,11 +55,9 @@ func (s *Saga) Add(action string, compensate string, postData interface{}) *Saga
 func (s *Saga) Submit() error {
 	logrus.Printf("committing %s body: %v", s.Gid, &s.SagaData)
 	resp, err := common.RestyClient.R().SetBody(&s.SagaData).Post(fmt.Sprintf("%s/submit", s.Server))
-	if err != nil {
-		return err
-	}
-	if !strings.Contains(resp.String(), "SUCCESS") {
-		return fmt.Errorf("submit failed: %v", resp.Body())
+	rerr := CheckDtmResponse(resp, err)
+	if rerr != nil {
+		return rerr
 	}
 	s.Gid = jsonitor.Get(resp.Body(), "gid").ToString()
 	return nil

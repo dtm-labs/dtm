@@ -1,6 +1,7 @@
 package dtmsvr
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/sirupsen/logrus"
@@ -11,11 +12,17 @@ import (
 )
 
 func TestXa(t *testing.T) {
-
+	xaLocalError(t)
 	xaNormal(t)
 	xaRollback(t)
 }
 
+func xaLocalError(t *testing.T) {
+	err := examples.XaClient.XaGlobalTransaction("xaLocalError", func(xa *dtmcli.Xa) error {
+		return fmt.Errorf("an error")
+	})
+	assert.Error(t, err, fmt.Errorf("an error"))
+}
 func xaNormal(t *testing.T) {
 	xc := examples.XaClient
 	gid := "xaNormal"

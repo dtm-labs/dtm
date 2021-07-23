@@ -27,27 +27,26 @@ func TccGlobalTransaction(dtm string, gid string, tccFunc TccGlobalFunc) (rerr e
 		"trans_type": "tcc",
 	}
 	defer func() {
+		var resp *resty.Response
 		var err error
 		var x interface{}
 		if x = recover(); x != nil || rerr != nil {
-			_, err = common.RestyClient.R().SetBody(data).Post(dtm + "/abort")
+			resp, err = common.RestyClient.R().SetBody(data).Post(dtm + "/abort")
 		} else {
-			_, err = common.RestyClient.R().SetBody(data).Post(dtm + "/submit")
+			resp, err = common.RestyClient.R().SetBody(data).Post(dtm + "/submit")
 		}
-		if err != nil {
-			logrus.Errorf("submitting or abort global transaction error: %v", err)
+		err2 := CheckDtmResponse(resp, err)
+		if err2 != nil {
+			logrus.Errorf("submitting or abort global transaction error: %v", err2)
 		}
 		if x != nil {
 			panic(x)
 		}
 	}()
 	tcc := &Tcc{Dtm: dtm, Gid: gid}
-	resp, rerr := common.RestyClient.R().SetBody(data).Post(tcc.Dtm + "/prepare")
+	resp, err := common.RestyClient.R().SetBody(data).Post(tcc.Dtm + "/prepare")
+	rerr = CheckDtmResponse(resp, err)
 	if rerr != nil {
-		return
-	}
-	if !strings.Contains(resp.String(), "SUCCESS") {
-		rerr = fmt.Errorf("bad response: %s", resp.String())
 		return
 	}
 	rerr = tccFunc(tcc)

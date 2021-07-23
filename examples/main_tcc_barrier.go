@@ -13,22 +13,12 @@ import (
 // TccBarrierFireRequest 1
 func TccBarrierFireRequest() string {
 	logrus.Printf("tcc transaction begin")
-	gid := dtmcli.GenGid(DtmServer)
+	gid := dtmcli.MustGenGid(DtmServer)
 	err := dtmcli.TccGlobalTransaction(DtmServer, gid, func(tcc *dtmcli.Tcc) (rerr error) {
 		res1, rerr := tcc.CallBranch(&TransReq{Amount: 30}, Busi+"/TccBTransOutTry", Busi+"/TccBTransOutConfirm", Busi+"/TccBTransOutCancel")
-		if rerr != nil {
-			return
-		}
-		if res1.StatusCode() != 200 {
-			return fmt.Errorf("bad status code: %d", res1.StatusCode())
-		}
+		common.CheckRestySuccess(res1, rerr)
 		res2, rerr := tcc.CallBranch(&TransReq{Amount: 30}, Busi+"/TccBTransInTry", Busi+"/TccBTransInConfirm", Busi+"/TccBTransInCancel")
-		if rerr != nil {
-			return
-		}
-		if res2.StatusCode() != 200 {
-			return fmt.Errorf("bad status code: %d", res2.StatusCode())
-		}
+		common.CheckRestySuccess(res1, rerr)
 		logrus.Printf("tcc returns: %s, %s", res1.String(), res2.String())
 		return
 	})

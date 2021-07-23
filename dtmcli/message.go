@@ -2,7 +2,6 @@ package dtmcli
 
 import (
 	"fmt"
-	"strings"
 
 	jsonitor "github.com/json-iterator/go"
 	"github.com/sirupsen/logrus"
@@ -55,11 +54,9 @@ func (s *Msg) Add(action string, postData interface{}) *Msg {
 func (s *Msg) Submit() error {
 	logrus.Printf("committing %s body: %v", s.Gid, &s.MsgData)
 	resp, err := common.RestyClient.R().SetBody(&s.MsgData).Post(fmt.Sprintf("%s/submit", s.Server))
-	if err != nil {
-		return err
-	}
-	if !strings.Contains(resp.String(), "SUCCESS") {
-		return fmt.Errorf("submit failed: %v", resp.Body())
+	rerr := CheckDtmResponse(resp, err)
+	if rerr != nil {
+		return rerr
 	}
 	s.Gid = jsonitor.Get(resp.Body(), "gid").ToString()
 	return nil
@@ -70,11 +67,9 @@ func (s *Msg) Prepare(queryPrepared string) error {
 	s.QueryPrepared = common.OrString(queryPrepared, s.QueryPrepared)
 	logrus.Printf("preparing %s body: %v", s.Gid, &s.MsgData)
 	resp, err := common.RestyClient.R().SetBody(&s.MsgData).Post(fmt.Sprintf("%s/prepare", s.Server))
-	if err != nil {
-		return err
-	}
-	if !strings.Contains(resp.String(), "SUCCESS") {
-		return fmt.Errorf("prepare failed: %v", resp.Body())
+	rerr := CheckDtmResponse(resp, err)
+	if rerr != nil {
+		return rerr
 	}
 	return nil
 }

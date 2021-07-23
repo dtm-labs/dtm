@@ -35,16 +35,6 @@ type Xa struct {
 	Gid string
 }
 
-// GetParams get xa params map
-func (x *Xa) GetParams(branchID string) common.MS {
-	return common.MS{
-		"gid":         x.Gid,
-		"trans_type":  "xa",
-		"branch_id":   branchID,
-		"branch_type": "action",
-	}
-}
-
 // XaFromReq construct xa info from request
 func XaFromReq(c *gin.Context) *Xa {
 	return &Xa{
@@ -53,20 +43,17 @@ func XaFromReq(c *gin.Context) *Xa {
 	}
 }
 
-// NewXaBranchID generate a xa branch id
-func (x *Xa) NewXaBranchID() string {
-	return x.Gid + "-" + x.NewBranchID()
-}
-
 // NewXaClient construct a xa client
-func NewXaClient(server string, mysqlConf map[string]string, app *gin.Engine, callbackURL string) *XaClient {
+func NewXaClient(server string, mysqlConf map[string]string, app *gin.Engine, callbackURL string) (*XaClient, error) {
 	xa := &XaClient{
 		Server:      server,
 		Conf:        mysqlConf,
 		CallbackURL: callbackURL,
 	}
 	u, err := url.Parse(callbackURL)
-	e2p(err)
+	if err != nil {
+		return nil, err
+	}
 	app.POST(u.Path, common.WrapHandler(func(c *gin.Context) (interface{}, error) {
 		type CallbackReq struct {
 			Gid      string `json:"gid"`
@@ -75,7 +62,9 @@ func NewXaClient(server string, mysqlConf map[string]string, app *gin.Engine, ca
 		}
 		req := CallbackReq{}
 		b, err := c.GetRawData()
-		e2p(err)
+		if err != nil {
+			return nil, err
+		}
 		common.MustUnmarshal(b, &req)
 		tx, my := common.DbAlone(xa.Conf)
 		defer my.Close()
@@ -89,7 +78,7 @@ func NewXaClient(server string, mysqlConf map[string]string, app *gin.Engine, ca
 		}
 		return M{"dtm_result": "SUCCESS"}, nil
 	}))
-	return xa
+	return xa, nil
 }
 
 // XaLocalTransaction start a xa local transaction
@@ -131,17 +120,19 @@ func (xc *XaClient) XaGlobalTransaction(gid string, transFunc XaGlobalFunc) erro
 			}
 		}
 	}()
-	resp, rerr := common.RestyClient.R().SetBody(data).Post(xc.Server + "/prepare")
-	if !strings.Contains(resp.String(), "SUCCESS") {
-		return fmt.Errorf("unexpected result: %s", resp.String())
+	resp, err := common.RestyClient.R().SetBody(data).Post(xc.Server + "/prepare")
+	rerr := CheckDtmResponse(resp, err)
+	if rerr != nil {
+		return rerr
 	}
 	rerr = transFunc(&xa)
 	if rerr != nil {
 		return rerr
 	}
-	resp, rerr = common.RestyClient.R().SetBody(data).Post(xc.Server + "/submit")
-	if !strings.Contains(resp.String(), "SUCCESS") {
-		return fmt.Errorf("unexpected result: %s err: %v", resp.String(), rerr)
+	resp, err = common.RestyClient.R().SetBody(data).Post(xc.Server + "/submit")
+	rerr = CheckDtmResponse(resp, err)
+	if rerr != nil {
+		return rerr
 	}
 	return nil
 }
@@ -159,7 +150,7 @@ func (x *Xa) CallBranch(body interface{}, url string) (*resty.Response, error) {
 		}).
 		Post(url)
 	if strings.Contains(resp.String(), "FAILURE") {
-		return resp, fmt.Errorf("unexpected result: %s err: %v", resp.String(), err)
+		return resp, fmt.Errorf("FAILURE result: %s err: %v", resp.String(), err)
 	}
 	return resp, err
 }

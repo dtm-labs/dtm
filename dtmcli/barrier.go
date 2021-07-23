@@ -121,10 +121,10 @@ func ThroughBarrierCall(db *sql.DB, transInfo *TransInfo, busiCall BusiFunc) (re
 		if result.Valid { // 数据库里有上一次结果，返回上一次的结果
 			res = json.Unmarshal([]byte(result.String), &res)
 			return
-		} else { // 数据库里没有上次的结果，属于重复空补偿，直接返回成功
-			res = common.MS{"dtm_result": "SUCCESS"}
-			return
 		}
+		// 数据库里没有上次的结果，属于重复空补偿，直接返回成功
+		res = common.MS{"dtm_result": "SUCCESS"}
+		return
 	}
 	res, rerr = busiCall(db)
 	if rerr == nil { // 正确返回了，需要将结果保存到数据库

@@ -14,7 +14,7 @@ import (
 func SagaBarrierFireRequest() string {
 	logrus.Printf("a busi transaction begin")
 	req := &TransReq{Amount: 30}
-	saga := dtmcli.NewSaga(DtmServer, dtmcli.GenGid(DtmServer)).
+	saga := dtmcli.NewSaga(DtmServer, dtmcli.MustGenGid(DtmServer)).
 		Add(Busi+"/SagaBTransOut", Busi+"/SagaBTransOutCompensate", req).
 		Add(Busi+"/SagaBTransIn", Busi+"/SagaBTransInCompensate", req)
 	logrus.Printf("busi trans submit")
