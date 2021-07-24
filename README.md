@@ -12,6 +12,19 @@ DTM是首款golang的开源分布式事务管理器，优雅的解决了幂等�
 
 受邀参加中国数据库大会分享[多语言环境下分布式事务实践](http://dtcc.it168.com/yicheng.html#b9)
 
+## 亮点
+
+* 极易接入
+  - 支持HTTP，提供非常简单的接口，极大降低上手分布式事务的难度，新手也能快速接入
+* 使用简单
+  - 开发者不再担心悬挂、空补偿、幂等各类问题，框架层代为处理
+* 跨语言
+  - 可适合多语言栈的公司使用。方便go、python、php、nodejs、ruby各类语言使用。
+* 易部署、易扩展
+  - 仅依赖mysql，部署简单，易集群化，易水平扩展
+* 多种分布式事务协议支持
+  - TCC、SAGA、XA、事务消息
+
 ## 与其他框架对比
 
 目前开源的分布式事务框架，暂未看到非Java语言有成熟的框架。而Java语言的较多，有阿里的SEATA、华为的ServiceComb-Pack，京东的shardingsphere，以及himly，tcc-transaction，ByteTCC等等，其中以seata应用最为广泛。
