@@ -24,7 +24,7 @@ func main() {
 		wait()
 	}
 	// 下面都是运行示例，因此首先把服务器的数据重新准备好
-	dtmsvr.PopulateMysql()
+	dtmsvr.PopulateMysql(true)
 	dtmsvr.MainStart()
 	if len(os.Args) == 1 { // 默认没有参数的情况下，准备好数据并启动dtmsvr即可
 		wait()
@@ -37,7 +37,7 @@ func main() {
 	}
 
 	// 下面是各类的例子
-	examples.PopulateMysql()
+	examples.PopulateMysql(true)
 	app := examples.BaseAppStartup()
 	if os.Args[1] == "xa" { // 启动xa示例
 		examples.XaSetup(app)
@@ -47,7 +47,7 @@ func main() {
 		examples.SagaFireRequest()
 	} else if os.Args[1] == "tcc" { // 启动tcc示例
 		examples.TccSetup(app)
-		examples.TccFireRequest()
+		examples.TccFireRequestNested()
 	} else if os.Args[1] == "msg" { // 启动msg示例
 		examples.MsgSetup(app)
 		examples.MsgFireRequest()
@@ -57,7 +57,7 @@ func main() {
 		examples.XaSetup(app)
 		examples.MsgSetup(app)
 		examples.SagaFireRequest()
-		examples.TccFireRequest()
+		examples.TccFireRequestNested()
 		examples.XaFireRequest()
 		examples.MsgFireRequest()
 	} else if os.Args[1] == "saga_barrier" {

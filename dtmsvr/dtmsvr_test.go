@@ -21,8 +21,8 @@ func TestMain(m *testing.M) {
 	TransProcessedTestChan = make(chan string, 1)
 	common.InitApp(common.GetProjectDir(), &config)
 	config.Mysql["database"] = dbName
-	PopulateMysql()
-	examples.PopulateMysql()
+	PopulateMysql(false)
+	examples.PopulateMysql(false)
 	// 启动组件
 	go StartSvr()
 	app = examples.BaseAppStartup()
@@ -33,10 +33,6 @@ func TestMain(m *testing.M) {
 	examples.TccBarrierAddRoute(app)
 	examples.SagaBarrierAddRoute(app)
 
-	// 清理数据
-	e2p(dbGet().Exec("truncate trans_global").Error)
-	e2p(dbGet().Exec("truncate trans_branch").Error)
-	e2p(dbGet().Exec("truncate trans_log").Error)
 	examples.ResetXaData()
 	m.Run()
 }

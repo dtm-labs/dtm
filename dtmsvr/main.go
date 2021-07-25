@@ -30,8 +30,8 @@ func StartSvr() {
 }
 
 // PopulateMysql setup mysql data
-func PopulateMysql() {
+func PopulateMysql(skipDrop bool) {
 	common.InitApp(common.GetProjectDir(), &config)
 	config.Mysql["database"] = ""
-	examples.RunSQLScript(config.Mysql, common.GetCurrentCodeDir()+"/dtmsvr.sql")
+	examples.RunSQLScript(config.Mysql, common.GetCurrentCodeDir()+"/dtmsvr.sql", skipDrop)
 }

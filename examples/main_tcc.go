@@ -21,8 +21,8 @@ func TccSetup(app *gin.Engine) {
 	}))
 }
 
-// TccFireRequest 1
-func TccFireRequest() string {
+// TccFireRequestNested 1
+func TccFireRequestNested() string {
 	logrus.Printf("tcc transaction begin")
 	gid := dtmcli.MustGenGid(DtmServer)
 	err := dtmcli.TccGlobalTransaction(DtmServer, gid, func(tcc *dtmcli.Tcc) (rerr error) {
@@ -30,6 +30,21 @@ func TccFireRequest() string {
 		e2p(rerr)
 		res2, rerr := tcc.CallBranch(&TransReq{Amount: 30}, Busi+"/TransInTcc", Busi+"/TransInConfirm", Busi+"/TransInRevert")
 		e2p(rerr)
+		logrus.Printf("tcc returns: %s, %s", res1.String(), res2.String())
+		return
+	})
+	e2p(err)
+	return gid
+}
+
+// TccFireRequest 1
+func TccFireRequest() string {
+	logrus.Printf("tcc simple transaction begin")
+	gid := dtmcli.MustGenGid(DtmServer)
+	err := dtmcli.TccGlobalTransaction(DtmServer, gid, func(tcc *dtmcli.Tcc) (rerr error) {
+		res1, rerr := tcc.CallBranch(&TransReq{Amount: 30}, Busi+"/TransOut", Busi+"/TransOutConfirm", Busi+"/TransOutRevert")
+		e2p(rerr)
+		res2, rerr := tcc.CallBranch(&TransReq{Amount: 30}, Busi+"/TransIn", Busi+"/TransInConfirm", Busi+"/TransInRevert")
 		logrus.Printf("tcc returns: %s, %s", res1.String(), res2.String())
 		return
 	})

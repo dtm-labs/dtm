@@ -9,7 +9,7 @@ import (
 )
 
 // RunSQLScript 1
-func RunSQLScript(mysql map[string]string, script string) {
+func RunSQLScript(mysql map[string]string, script string, skipDrop bool) {
 	conf := map[string]string{}
 	common.MustRemarshal(mysql, &conf)
 	conf["database"] = ""
@@ -22,7 +22,7 @@ func RunSQLScript(mysql map[string]string, script string) {
 	sqls := strings.Split(string(content), ";")
 	for _, sql := range sqls {
 		s := strings.TrimSpace(sql)
-		if s == "" {
+		if s == "" || skipDrop && strings.Contains(s, "drop") {
 			continue
 		}
 		logrus.Printf("executing: '%s'", s)
@@ -31,8 +31,8 @@ func RunSQLScript(mysql map[string]string, script string) {
 }
 
 // PopulateMysql populate example mysql data
-func PopulateMysql() {
+func PopulateMysql(skipDrop bool) {
 	common.InitApp(common.GetProjectDir(), &config)
 	config.Mysql["database"] = dbName
-	RunSQLScript(config.Mysql, common.GetCurrentCodeDir()+"/examples.sql")
+	RunSQLScript(config.Mysql, common.GetCurrentCodeDir()+"/examples.sql", skipDrop)
 }

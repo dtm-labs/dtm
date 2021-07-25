@@ -21,6 +21,9 @@ type Tcc struct {
 type TccGlobalFunc func(tcc *Tcc) error
 
 // TccGlobalTransaction begin a tcc global transaction
+// dtm dtm服务器地址
+// gid 全局事务id
+// tccFunc tcc事务函数，里面会定义全局事务的分支
 func TccGlobalTransaction(dtm string, gid string, tccFunc TccGlobalFunc) (rerr error) {
 	data := &M{
 		"gid":        gid,
@@ -67,6 +70,7 @@ func TccFromReq(c *gin.Context) (*Tcc, error) {
 }
 
 // CallBranch call a tcc branch
+// 函数首先注册子事务的所有分支，成功后调用try分支，返回try分支的调用结果
 func (t *Tcc) CallBranch(body interface{}, tryURL string, confirmURL string, cancelURL string) (*resty.Response, error) {
 	branchID := t.NewBranchID()
 	resp, err := common.RestyClient.R().
