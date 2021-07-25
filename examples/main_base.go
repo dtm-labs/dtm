@@ -63,7 +63,7 @@ var MainSwitch mainSwitchType
 func handleGeneralBusiness(c *gin.Context, result1 string, result2 string, busi string) (interface{}, error) {
 	info := infoFromContext(c)
 	res := common.OrString(MainSwitch.TransInResult.Fetch(), result2, "SUCCESS")
-	logrus.Printf("%s %s result: %s", info.String(), common.GetFuncName(), res)
+	logrus.Printf("%s %s result: %s", busi, info.String(), res)
 	return M{"dtm_result": res}, nil
 
 }
@@ -74,19 +74,19 @@ func BaseAddRoute(app *gin.Engine) {
 		return handleGeneralBusiness(c, MainSwitch.TransInResult.Fetch(), reqFrom(c).TransInResult, "transIn")
 	}))
 	app.POST(BusiAPI+"/TransOut", common.WrapHandler(func(c *gin.Context) (interface{}, error) {
-		return handleGeneralBusiness(c, MainSwitch.TransOutResult.Fetch(), reqFrom(c).TransOutResult, "transIn")
+		return handleGeneralBusiness(c, MainSwitch.TransOutResult.Fetch(), reqFrom(c).TransOutResult, "TransOut")
 	}))
 	app.POST(BusiAPI+"/TransInConfirm", common.WrapHandler(func(c *gin.Context) (interface{}, error) {
-		return handleGeneralBusiness(c, MainSwitch.TransInConfirmResult.Fetch(), "", "transIn")
+		return handleGeneralBusiness(c, MainSwitch.TransInConfirmResult.Fetch(), "", "TransInConfirm")
 	}))
 	app.POST(BusiAPI+"/TransOutConfirm", common.WrapHandler(func(c *gin.Context) (interface{}, error) {
-		return handleGeneralBusiness(c, MainSwitch.TransOutConfirmResult.Fetch(), "", "transIn")
+		return handleGeneralBusiness(c, MainSwitch.TransOutConfirmResult.Fetch(), "", "TransOutConfirm")
 	}))
 	app.POST(BusiAPI+"/TransInRevert", common.WrapHandler(func(c *gin.Context) (interface{}, error) {
-		return handleGeneralBusiness(c, MainSwitch.TransInRevertResult.Fetch(), "", "transIn")
+		return handleGeneralBusiness(c, MainSwitch.TransInRevertResult.Fetch(), "", "TransInRevert")
 	}))
 	app.POST(BusiAPI+"/TransOutRevert", common.WrapHandler(func(c *gin.Context) (interface{}, error) {
-		return handleGeneralBusiness(c, MainSwitch.TransOutRevertResult.Fetch(), "", "transIn")
+		return handleGeneralBusiness(c, MainSwitch.TransOutRevertResult.Fetch(), "", "TransOutRevert")
 	}))
 	app.GET(BusiAPI+"/CanSubmit", common.WrapHandler(func(c *gin.Context) (interface{}, error) {
 		logrus.Printf("%s CanSubmit", c.Query("gid"))
