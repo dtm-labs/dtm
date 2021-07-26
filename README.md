@@ -8,9 +8,22 @@
 
 # GO语言分布式事务管理服务
 
-DTM是首款golang的开源分布式事务管理器，优雅的解决了幂等、空补偿、悬挂等分布式事务难题。提供了高性能和简单易用的分布式事务解决方案。
+DTM是首款golang的开源分布式事务管理器，优雅的解决了幂等、空补偿、悬挂等分布式事务难题。提供了简单易用、高性能、易水平扩展的分布式事务解决方案。
 
 受邀参加中国数据库大会分享[多语言环境下分布式事务实践](http://dtcc.it168.com/yicheng.html#b9)
+
+## 亮点
+
+* 极易接入
+  - 支持HTTP，提供非常简单的接口，极大降低上手分布式事务的难度，新手也能快速接入
+* 使用简单
+  - 开发者不再担心悬挂、空补偿、幂等各类问题，框架层代为处理
+* 跨语言
+  - 可适合多语言栈的公司使用。方便go、python、php、nodejs、ruby各类语言使用。
+* 易部署、易扩展
+  - 仅依赖mysql，部署简单，易集群化，易水平扩展
+* 多种分布式事务协议支持
+  - TCC、SAGA、XA、事务消息
 
 ## 与其他框架对比
 
@@ -24,7 +37,7 @@ DTM是首款golang的开源分布式事务管理器，优雅的解决了幂等�
 |异常处理| <font color=green>[子事务屏障自动处理](https://zhuanlan.zhihu.com/p/388444465)</font>|<font color=orange>手动处理</font> |dtm解决了幂等、悬挂、空补偿|
 | TCC事务| <font color=green>✓</font>|<font color=green>✓</font>||
 | XA事务|<font color=green>✓</font>|<font color=green>✓</font>||
-|AT事务|<font color=red>✗</font>|<font color=green>✓</font>|AT与XA类似，性能更好|
+|AT事务|<font color=red>✗</font>|<font color=green>✓</font>|AT与XA类似，性能更好，但有脏回滚|
 | SAGA事务 |  <font color=orange>简单模式</font> |  <font color=green>状态机复杂模式</font> |dtm的状态机模式在规划中|
 |事务消息|<font color=green>✓</font>|<font color=red>✗</font>|dtm提供类似rocketmq的事务消息|
 |通信协议|HTTP|dubbo等协议，无HTTP|dtm后续将支持grpc类协议|
@@ -55,14 +68,15 @@ DTM是首款golang的开源分布式事务管理器，优雅的解决了幂等�
 ``` GO
   // 具体业务微服务地址
   const qsBusi = "http://localhost:8081/api/busi_saga"
-	req := &gin.H{"amount": 30} // 微服务的载荷
-	// DtmServer为DTM服务的地址，是一个url
-	saga := dtmcli.NewSaga("http://localhost:8080/api/dtmsvr").
-		// 添加一个TransOut的子事务，正向操作为url: qsBusi+"/TransOut"， 补偿操作为url: qsBusi+"/TransOutCompensate"
-		Add(qsBusi+"/TransOut", qsBusi+"/TransOutCompensate", req).
-		// 添加一个TransIn的子事务，正向操作为url: qsBusi+"/TransOut"， 补偿操作为url: qsBusi+"/TransInCompensate"
-		Add(qsBusi+"/TransIn", qsBusi+"/TransInCompensate", req)
-	// 提交saga事务，dtm会完成所有的子事务/回滚所有的子事务
+  req := &gin.H{"amount": 30} // 微服务的载荷
+  // DtmServer为DTM服务的地址，是一个url
+  DtmServer := "http://localhost:8080/api/dtmsvr"
+  saga := dtmcli.NewSaga(DtmServer, dtmcli.MustGenGid(DtmServer)).
+    // 添加一个TransOut的子事务，正向操作为url: qsBusi+"/TransOut"， 补偿操作为url: qsBusi+"/TransOutCompensate"
+    Add(qsBusi+"/TransOut", qsBusi+"/TransOutCompensate", req).
+    // 添加一个TransIn的子事务，正向操作为url: qsBusi+"/TransOut"， 补偿操作为url: qsBusi+"/TransInCompensate"
+    Add(qsBusi+"/TransIn", qsBusi+"/TransInCompensate", req)
+  // 提交saga事务，dtm会完成所有的子事务/回滚所有的子事务
   err := saga.Submit()
 ```
 

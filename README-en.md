@@ -46,16 +46,17 @@ Configure mysql:
 ``` go
   // business microservice address
   const qsBusi = "http://localhost:8081/api/busi_saga"
-	req := &gin.H{"amount": 30} // Microservice payload
-	// The address where DtmServer serves DTM, which is a url
-	saga := dtmcli.NewSaga("http://localhost:8080/api/dtmsvr").
+  req := &gin.H{"amount": 30} // Microservice payload
+  // The address where DtmServer serves DTM, which is a url
+  DtmServer := "http://localhost:8080/api/dtmsvr"
+  saga := dtmcli.NewSaga(DtmServer, dtmcli.MustGenGid(DtmServer)).
     // Add a TransOut sub-transaction, the operation is url: qsBusi+"/TransOut"，
     // compensation operation is url: qsBusi+"/TransOutCompensate"
-		Add(qsBusi+"/TransOut", qsBusi+"/TransOutCompensate", req).
+    Add(qsBusi+"/TransOut", qsBusi+"/TransOutCompensate", req).
     // Add a TransIn sub-transaction, the operation is url: qsBusi+"/TransOut"，
     // compensation operation is url: qsBusi+"/TransInCompensate"
-		Add(qsBusi+"/TransIn", qsBusi+"/TransInCompensate", req)
-	// Submit the saga transaction, dtm will complete all sub-transactions/rollback all sub-transactions
+    Add(qsBusi+"/TransIn", qsBusi+"/TransInCompensate", req)
+  // Submit the saga transaction, dtm will complete all sub-transactions/rollback all sub-transactions
   err := saga.Submit()
 ```
 ### Complete example
