@@ -81,9 +81,9 @@ Configure mysql:
 
 Refer to [examples/quick_start.go](./examples/quick_start.go)
 
-## [sub-transaction barrier](./doc/barrier-en.md)
+### [sub-transaction barrier](./doc/barrier-en.md)
 
-## [protocol](./doc/protocol-en.md)
+### [protocol](./doc/protocol-en.md)
 
 ### Wechat Group
 
@@ -98,3 +98,14 @@ If you think this project is good, or helpful to you, please give a star!
     <img alt='ivydad' height='40'  src='https://www.ivydad.com/_nuxt/img/header-logo.2645ad5.png'  /img>
     <img alt='eglass' height='40'  src='https://img.epeijing.cn/official-website/assets/logo.png'  /img>
 </div>
+
+### Following is keyword for SEO
+
+分布式事务框架
+
+事务消息
+
+可靠消息
+
+微服务
+

@@ -65,7 +65,7 @@ func XaFireRequest() string {
 func xaTransIn(c *gin.Context) (interface{}, error) {
 	err := XaClient.XaLocalTransaction(c, func(db *common.DB, xa *dtmcli.Xa) (rerr error) {
 		req := reqFrom(c)
-		if req.TransInResult != "SUCCESS" {
+		if req.TransInResult == "FAILURE" {
 			return fmt.Errorf("tranIn FAILURE")
 		}
 		dbr := db.Exec("update user_account set balance=balance+? where user_id=?", req.Amount, 2)
@@ -81,7 +81,7 @@ func xaTransIn(c *gin.Context) (interface{}, error) {
 func xaTransOut(c *gin.Context) (interface{}, error) {
 	err := XaClient.XaLocalTransaction(c, func(db *common.DB, xa *dtmcli.Xa) (rerr error) {
 		req := reqFrom(c)
-		if req.TransOutResult != "SUCCESS" {
+		if req.TransOutResult == "FAILURE" {
 			return fmt.Errorf("tranOut failed")
 		}
 		dbr := db.Exec("update user_account set balance=balance-? where user_id=?", req.Amount, 1)
