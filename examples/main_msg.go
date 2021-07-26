@@ -13,11 +13,7 @@ func MsgSetup(app *gin.Engine) {
 // MsgFireRequest 1
 func MsgFireRequest() string {
 	logrus.Printf("a busi transaction begin")
-	req := &TransReq{
-		Amount:         30,
-		TransInResult:  "SUCCESS",
-		TransOutResult: "SUCCESS",
-	}
+	req := &TransReq{Amount: 30}
 	msg := dtmcli.NewMsg(DtmServer, dtmcli.MustGenGid(DtmServer)).
 		Add(Busi+"/TransOut", req).
 		Add(Busi+"/TransIn", req)

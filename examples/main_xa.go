@@ -5,7 +5,6 @@ import (
 	"strings"
 
 	"github.com/gin-gonic/gin"
-	"github.com/sirupsen/logrus"
 	"github.com/yedf/dtm/common"
 	"github.com/yedf/dtm/dtmcli"
 )
@@ -37,12 +36,22 @@ func dbGet() *common.DB {
 	return common.DbGet(config.Mysql)
 }
 
-// XaFireRequest 1
+// XaSetup 挂载http的api，创建XaClient
+func XaSetup(app *gin.Engine) {
+	app.POST(BusiAPI+"/TransInXa", common.WrapHandler(xaTransIn))
+	app.POST(BusiAPI+"/TransOutXa", common.WrapHandler(xaTransOut))
+	config.Mysql["database"] = "dtm_busi"
+	var err error
+	XaClient, err = dtmcli.NewXaClient(DtmServer, config.Mysql, app, Busi+"/xa")
+	e2p(err)
+}
+
+// XaFireRequest 注册全局XA事务，调用XA的分支
 func XaFireRequest() string {
 	gid := dtmcli.MustGenGid(DtmServer)
 	err := XaClient.XaGlobalTransaction(gid, func(xa *dtmcli.Xa) (rerr error) {
 		defer common.P2E(&rerr)
-		req := GenTransReq(30, false, false)
+		req := &TransReq{Amount: 30}
 		resp, err := xa.CallBranch(req, Busi+"/TransOutXa")
 		common.CheckRestySuccess(resp, err)
 		resp, err = xa.CallBranch(req, Busi+"/TransInXa")
@@ -51,16 +60,6 @@ func XaFireRequest() string {
 	})
 	e2p(err)
 	return gid
-}
-
-// XaSetup 1
-func XaSetup(app *gin.Engine) {
-	app.POST(BusiAPI+"/TransInXa", common.WrapHandler(xaTransIn))
-	app.POST(BusiAPI+"/TransOutXa", common.WrapHandler(xaTransOut))
-	config.Mysql["database"] = "dtm_busi"
-	var err error
-	XaClient, err = dtmcli.NewXaClient(DtmServer, config.Mysql, app, Busi+"/xa")
-	e2p(err)
 }
 
 func xaTransIn(c *gin.Context) (interface{}, error) {
@@ -85,9 +84,7 @@ func xaTransOut(c *gin.Context) (interface{}, error) {
 		if req.TransOutResult != "SUCCESS" {
 			return fmt.Errorf("tranOut failed")
 		}
-		logrus.Printf("before updating balance")
 		dbr := db.Exec("update user_account set balance=balance-? where user_id=?", req.Amount, 1)
-		logrus.Printf("after updating balance")
 		return dbr.Error
 	})
 	e2p(err)

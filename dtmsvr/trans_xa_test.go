@@ -43,7 +43,7 @@ func xaRollback(t *testing.T) {
 	xc := examples.XaClient
 	gid := "xaRollback"
 	err := xc.XaGlobalTransaction(gid, func(xa *dtmcli.Xa) error {
-		req := examples.GenTransReq(30, false, true)
+		req := &examples.TransReq{Amount: 30, TransInResult: "FAILURE"}
 		resp, err := xa.CallBranch(req, examples.Busi+"/TransOutXa")
 		common.CheckRestySuccess(resp, err)
 		resp, err = xa.CallBranch(req, examples.Busi+"/TransInXa")
