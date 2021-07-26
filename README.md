@@ -42,7 +42,7 @@ The following is a comparison of the main features of dtm and seata:
 | SAGA | <font color=orange>simple mode</font> | <font color=green>state machine complex mode</font> |dtm's state machine mode is under planning|
 |Transaction message|<font color=green>✓</font>|<font color=red>✗</font>|dtm provides transaction messages similar to rocketmq|
 |Communication protocol|HTTP|dubbo and other protocols, no HTTP|dtm will support grpc protocol in the future|
-|star number|<img src="https://img.shields.io/github/stars/yedf/dtm.svg?style=social" alt="github stars"/>|<img src="https:/ /img.shields.io/github/stars/seata/seata.svg?style=social" alt="github stars"/>|dtm releases 0.1 from 20210604, fast development|
+|star number|<img src="https://img.shields.io/github/stars/yedf/dtm.svg?style=social" alt="github stars"/>|<img src="https://img.shields.io/github/stars/seata/seata.svg?style=social" alt="github stars"/>|dtm releases 0.1 from 20210604, fast development|
 
 From the features of the comparison above, if your language stack includes languages ​​other than Java, then dtm is your first choice. If your language stack is Java, you can also choose to access dtm and use sub-transaction barrier technology to simplify your business writing.
 
