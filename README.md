@@ -4,7 +4,7 @@
 [![Go Report Card](https://goreportcard.com/badge/github.com/yedf/dtm)](https://goreportcard.com/report/github.com/yedf/dtm)
 [![Go Reference](https://pkg.go.dev/badge/github.com/yedf/dtm.svg)](https://pkg.go.dev/github.com/yedf/dtm)
 
-[中文文档](https://dtm.pub)
+# [中文文档](./README-cn.md)
 
 # A lightweight distributed transaction manager
 

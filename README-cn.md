@@ -4,7 +4,7 @@
 [![Go Report Card](https://goreportcard.com/badge/github.com/yedf/dtm)](https://goreportcard.com/report/github.com/yedf/dtm)
 [![Go Reference](https://pkg.go.dev/badge/github.com/yedf/dtm.svg)](https://pkg.go.dev/github.com/yedf/dtm)
 
-[English Docs](https://github.com/yedf/dtm/blob/main/README.md)
+# [English Docs](https://github.com/yedf/dtm/blob/main/README.md)
 
 # GO语言分布式事务管理服务
 
@@ -108,7 +108,7 @@ DTM是首款golang的开源分布式事务管理器，优雅的解决了幂等�
 
 ![yedf2008](http://service.ivydad.com/cover/dubbingb6b5e2c0-2d2a-cd59-f7c5-c6b90aceb6f1.jpeg)
 
-如果您觉得此项目不错，或者对您有帮助，请赏颗星吧！
+如果您觉得[dtm](https://github.com/yedf/dtm)不错，或者对您有帮助，请赏颗星吧！
 
 ## 谁在使用
 <div style='vertical-align: middle'>
