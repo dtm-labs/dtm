@@ -34,13 +34,13 @@ The following is a comparison of the main features of dtm and seata:
 
 | Features | DTM | SEATA | Remarks |
 |:-----:|:----:|:----:|:----:|
-| Supported languages ​​| <font color=green>Golang, python, php and others</font> | <font color=orange>Java</font> |dtm can easily support a new language|
-|Exception Handling| <font color=green>[Sub-transaction barrier automatic processing](./doc/barrier-en.md)</font>|<font color=orange>Manual processing</font> | dtm solves idempotence, suspension, and null compensation|
-| TCC| <font color=green>✓</font>|<font color=green>✓</font>||
-| XA|<font color=green>✓</font>|<font color=green>✓</font>||
-|AT |<font color=red>✗</font>|<font color=green>✓</font>|AT is similar to XA, with better performance but dirty rollback|
-| SAGA | <font color=orange>simple mode</font> | <font color=green>state machine complex mode</font> |dtm's state machine mode is under planning|
-|Transaction message|<font color=green>✓</font>|<font color=red>✗</font>|dtm provides transaction messages similar to rocketmq|
+| Supported languages| <span style="color:green">Golang, python, php and others</span> | <span style="color:orange">Java</span> |dtm can easily support a new language|
+|Exception Handling| <span style="color:green">[Sub-transaction barrier automatic processing](./doc/barrier-en.md)</span>|<span style="color:orange">Manual processing</span> | dtm solves idempotence, suspension, and null compensation|
+| TCC| <span style="color:green">✓</span>|<span style="color:green">✓</span>||
+| XA|<span style="color:green">✓</span>|<span style="color:green">✓</span>||
+|AT |<span style="color:red">✗</span>|<span style="color:green">✓</span>|AT is similar to XA, with better performance but dirty rollback|
+| SAGA |<span style="color:orange">simple mode</span> |<span style="color:green">state machine complex mode</span> |dtm's state machine mode is under planning|
+|Transaction message|<span style="color:green">✓</span>|<span style="color:red">✗</span>|dtm provides transaction messages similar to rocketmq|
 |Communication protocol|HTTP|dubbo and other protocols, no HTTP|dtm will support grpc protocol in the future|
 |star number|<img src="https://img.shields.io/github/stars/yedf/dtm.svg?style=social" alt="github stars"/>|<img src="https://img.shields.io/github/stars/seata/seata.svg?style=social" alt="github stars"/>|dtm releases 0.1 from 20210604, fast development|
 
