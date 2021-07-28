@@ -16,7 +16,9 @@ func CronTransOnce(expireIn time.Duration) bool {
 	if trans == nil {
 		return false
 	}
-	defer WaitTransProcessed(trans.Gid)
+	if TransProcessedTestChan != nil {
+		defer WaitTransProcessed(trans.Gid)
+	}
 	trans.Process(dbGet())
 	return true
 }
