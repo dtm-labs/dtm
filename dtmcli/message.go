@@ -61,9 +61,5 @@ func (s *Msg) Prepare(queryPrepared string) error {
 	s.QueryPrepared = common.OrString(queryPrepared, s.QueryPrepared)
 	logrus.Printf("preparing %s body: %v", s.Gid, &s.MsgData)
 	resp, err := common.RestyClient.R().SetBody(&s.MsgData).Post(fmt.Sprintf("%s/prepare", s.Server))
-	rerr := CheckDtmResponse(resp, err)
-	if rerr != nil {
-		return rerr
-	}
-	return nil
+	return CheckDtmResponse(resp, err)
 }

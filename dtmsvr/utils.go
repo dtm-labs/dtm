@@ -38,6 +38,9 @@ var TransProcessedTestChan chan string = nil
 
 // WaitTransProcessed only for test usage. wait for transaction processed once
 func WaitTransProcessed(gid string) {
+	if TransProcessedTestChan == nil {
+		return
+	}
 	logrus.Printf("waiting for gid %s", gid)
 	id := <-TransProcessedTestChan
 	for id != gid {
