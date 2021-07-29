@@ -62,13 +62,9 @@ func GenGid() string {
 
 func getOneHexIP() string {
 	addrs, err := net.InterfaceAddrs()
-	if err != nil {
-		fmt.Printf("cannot get ip, default to another call")
-		return gNode.Generate().Base58()
-	}
-	for _, address := range addrs {
-		if ipnet, ok := address.(*net.IPNet); ok && !ipnet.IP.IsLoopback() {
-			if ipnet.IP.To4() != nil {
+	if err == nil {
+		for _, address := range addrs {
+			if ipnet, ok := address.(*net.IPNet); ok && !ipnet.IP.IsLoopback() && ipnet.IP.To4() != nil {
 				ip := ipnet.IP.To4().String()
 				ns := strings.Split(ip, ".")
 				r := []byte{}
@@ -77,9 +73,8 @@ func getOneHexIP() string {
 				}
 				return hex.EncodeToString(r)
 			}
-
 		}
 	}
-	fmt.Printf("none ipv4, default to another call")
-	return gNode.Generate().Base58()
+	fmt.Printf("err is: %s", err.Error())
+	return "" // 获取不到IP，则直接返回空
 }

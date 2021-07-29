@@ -16,9 +16,7 @@ func RunSQLScript(mysql map[string]string, script string, skipDrop bool) {
 	db, con := common.DbAlone(conf)
 	defer func() { con.Close() }()
 	content, err := ioutil.ReadFile(script)
-	if err != nil {
-		e2p(err)
-	}
+	e2p(err)
 	sqls := strings.Split(string(content), ";")
 	for _, sql := range sqls {
 		s := strings.TrimSpace(sql)
