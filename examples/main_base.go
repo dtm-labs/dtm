@@ -62,7 +62,7 @@ var MainSwitch mainSwitchType
 
 func handleGeneralBusiness(c *gin.Context, result1 string, result2 string, busi string) (interface{}, error) {
 	info := infoFromContext(c)
-	res := common.OrString(MainSwitch.TransInResult.Fetch(), result2, "SUCCESS")
+	res := common.OrString(result1, result2, "SUCCESS")
 	logrus.Printf("%s %s result: %s", busi, info.String(), res)
 	return M{"dtm_result": res}, nil
 

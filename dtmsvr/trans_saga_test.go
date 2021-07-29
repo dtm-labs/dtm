@@ -26,7 +26,7 @@ func sagaNormal(t *testing.T) {
 
 func sagaCommittedPending(t *testing.T) {
 	saga := genSaga("gid-committedPending", false, false)
-	examples.MainSwitch.TransInResult.SetOnce("PENDING")
+	examples.MainSwitch.TransOutResult.SetOnce("PENDING")
 	saga.Submit()
 	WaitTransProcessed(saga.Gid)
 	assert.Equal(t, []string{"prepared", "prepared", "prepared", "prepared"}, getBranchesStatus(saga.Gid))
@@ -37,8 +37,11 @@ func sagaCommittedPending(t *testing.T) {
 
 func sagaRollback(t *testing.T) {
 	saga := genSaga("gid-rollbackSaga2", false, true)
+	examples.MainSwitch.TransOutRevertResult.SetOnce("PENDING")
 	saga.Submit()
 	WaitTransProcessed(saga.Gid)
+	assert.Equal(t, "aborting", getTransStatus(saga.Gid))
+	CronTransOnce(60 * time.Second)
 	assert.Equal(t, "failed", getTransStatus(saga.Gid))
 	assert.Equal(t, []string{"succeed", "succeed", "succeed", "failed"}, getBranchesStatus(saga.Gid))
 }
