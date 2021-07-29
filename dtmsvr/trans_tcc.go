@@ -39,11 +39,10 @@ func (t *transTccProcessor) ProcessOnce(db *common.DB, branches []TransBranch) {
 		return
 	}
 	branchType := common.If(t.Status == "submitted", "confirm", "cancel").(string)
-	for current := len(branches) - 1; current >= -1; current-- {
-		if current == -1 { // 已全部处理完
-			t.changeStatus(db, common.If(t.Status == "submitted", "succeed", "failed").(string))
-		} else if branches[current].BranchType == branchType {
+	for current := len(branches) - 1; current >= 0; current-- {
+		if branches[current].BranchType == branchType && branches[current].Status == "prepared" {
 			t.ExecBranch(db, &branches[current])
 		}
 	}
+	t.changeStatus(db, common.If(t.Status == "submitted", "succeed", "failed").(string))
 }

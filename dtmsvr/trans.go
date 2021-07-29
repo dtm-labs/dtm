@@ -138,7 +138,7 @@ func (t *TransGlobal) getBranchParams(branch *TransBranch) common.MS {
 
 func (t *TransGlobal) setNextCron(expireIn int64) []string {
 	t.NextCronInterval = expireIn
-	next := time.Now().Add(time.Duration(config.TransCronInterval) * time.Second)
+	next := time.Now().Add(time.Duration(t.NextCronInterval) * time.Second)
 	t.NextCronTime = &next
 	return []string{"next_cron_interval", "next_cron_time"}
 }

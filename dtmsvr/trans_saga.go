@@ -51,16 +51,19 @@ func (t *transSagaProcessor) ExecBranch(db *common.DB, branch *TransBranch) {
 }
 
 func (t *transSagaProcessor) ProcessOnce(db *common.DB, branches []TransBranch) {
-	if t.Status != "submitted" {
+	if t.Status == "failed" || t.Status == "succeed" {
 		return
 	}
 	current := 0 // 当前正在处理的步骤
 	for ; current < len(branches); current++ {
 		branch := &branches[current]
-		if branch.BranchType != "action" || branch.Status != "prepared" {
+		if branch.BranchType != "action" || branch.Status == "succeed" {
 			continue
 		}
-		t.ExecBranch(db, branch)
+		// 找到了一个非succeed的action
+		if branch.Status == "prepared" {
+			t.ExecBranch(db, branch)
+		}
 		if branch.Status != "succeed" {
 			break
 		}
@@ -79,8 +82,5 @@ func (t *transSagaProcessor) ProcessOnce(db *common.DB, branches []TransBranch) 
 		}
 		t.ExecBranch(db, branch)
 	}
-	if current != -1 {
-		panic(fmt.Errorf("saga current not -1"))
-	}
-	t.changeStatus(db.Must(), "failed")
+	t.changeStatus(db, "failed")
 }
