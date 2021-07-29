@@ -207,8 +207,8 @@ func (f *formatter) Format(entry *logrus.Entry) ([]byte, error) {
 	return b.Bytes(), nil
 }
 
-// InitApp init config
-func InitApp(dir string, config interface{}) {
+// InitConfig init config
+func InitConfig(dir string, config interface{}) {
 	logrus.SetFormatter(&formatter{})
 	cont, err := ioutil.ReadFile(dir + "/conf.yml")
 	if err != nil {

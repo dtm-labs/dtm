@@ -8,6 +8,7 @@ import (
 	"github.com/sirupsen/logrus"
 	"github.com/yedf/dtm/common"
 	"github.com/yedf/dtm/dtmcli"
+	"gorm.io/gorm"
 )
 
 // 启动命令：go run app/main.go qs
@@ -42,17 +43,27 @@ func QsFireRequest() string {
 	return saga.Gid
 }
 
+func qsAdjustBalance(uid int, amount int) (interface{}, error) {
+	err := dbGet().Transaction(func(tx *gorm.DB) error {
+		return tx.Model(&UserAccount{}).Where("user_id = ?", uid).Update("balance", gorm.Expr("balance + ?", amount)).Error
+	})
+	if err != nil {
+		return nil, err
+	}
+	return M{"dtm_result": "SUCCESS"}, nil
+}
+
 func qsAddRoute(app *gin.Engine) {
 	app.POST(qsBusiAPI+"/TransIn", common.WrapHandler(func(c *gin.Context) (interface{}, error) {
-		return M{"dtm_result": "SUCCESS"}, nil
+		return qsAdjustBalance(2, 30)
 	}))
 	app.POST(qsBusiAPI+"/TransInCompensate", common.WrapHandler(func(c *gin.Context) (interface{}, error) {
-		return M{"dtm_result": "SUCCESS"}, nil
+		return qsAdjustBalance(2, -30)
 	}))
 	app.POST(qsBusiAPI+"/TransOut", common.WrapHandler(func(c *gin.Context) (interface{}, error) {
-		return M{"dtm_result": "SUCCESS"}, nil
+		return qsAdjustBalance(1, -30)
 	}))
 	app.POST(qsBusiAPI+"/TransOutCompensate", common.WrapHandler(func(c *gin.Context) (interface{}, error) {
-		return M{"dtm_result": "SUCCESS"}, nil
+		return qsAdjustBalance(1, 30)
 	}))
 }

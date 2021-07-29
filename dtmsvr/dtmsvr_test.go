@@ -19,7 +19,7 @@ var app *gin.Engine
 
 func TestMain(m *testing.M) {
 	TransProcessedTestChan = make(chan string, 1)
-	common.InitApp(common.GetProjectDir(), &config)
+	common.InitConfig(common.GetProjectDir(), &config)
 	config.Mysql["database"] = dbName
 	PopulateMysql(false)
 	examples.PopulateMysql(false)

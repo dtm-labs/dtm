@@ -12,11 +12,10 @@ type testConfig struct {
 
 var config = testConfig{}
 
-var myinit int = func() int {
-	InitApp(GetProjectDir(), &config)
+func init() {
+	InitConfig(GetProjectDir(), &config)
 	config.Mysql["database"] = ""
-	return 0
-}()
+}
 
 func TestDb(t *testing.T) {
 	db := DbGet(config.Mysql)
