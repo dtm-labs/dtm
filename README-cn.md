@@ -12,7 +12,7 @@ DTM是首款golang的开源分布式事务管理器，优雅的解决了幂等�
 
 受邀参加中国数据库大会分享[多语言环境下分布式事务实践](http://dtcc.it168.com/yicheng.html#b9)
 
-## Who's using dtm
+## 谁在使用dtm
 
 [ivydad 常青藤爸爸](https://ivydad.com)
 [Eglass 视咖镜小二](https://epeijing.cn)
