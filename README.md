@@ -12,7 +12,8 @@ DTM is the first golang open source distributed transaction project. It elegantl
 
 ## Who's using dtm
 
-[ivydad 常青藤爸爸](https://ivydad.com)
+[Ivydad 常青藤爸爸](https://ivydad.com)
+
 [Eglass 视咖镜小二](https://epeijing.cn)
 
 ## Characteristic
