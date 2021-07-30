@@ -44,7 +44,8 @@ func TestCover(t *testing.T) {
 	defer handlePanic()
 	checkAffected(db.DB)
 
-	go CronExpiredTrans(1)
+	CronExpiredTrans(1)
+	go sleepCronTime()
 }
 
 func TestType(t *testing.T) {

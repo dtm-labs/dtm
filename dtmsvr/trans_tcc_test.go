@@ -2,6 +2,7 @@ package dtmsvr
 
 import (
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/yedf/dtm/dtmcli"
@@ -33,9 +34,14 @@ func tccRollback(t *testing.T) {
 	err := dtmcli.TccGlobalTransaction(examples.DtmServer, gid, func(tcc *dtmcli.Tcc) (rerr error) {
 		resp, rerr := tcc.CallBranch(data, Busi+"/TransOut", Busi+"/TransOutConfirm", Busi+"/TransOutRevert")
 		assert.Contains(t, resp.String(), "SUCCESS")
+		examples.MainSwitch.TransOutRevertResult.SetOnce("PENDING")
 		_, rerr = tcc.CallBranch(data, Busi+"/TransIn", Busi+"/TransInConfirm", Busi+"/TransInRevert")
 		assert.Error(t, rerr)
 		return
 	})
 	assert.Error(t, err)
+	WaitTransProcessed(gid)
+	assert.Equal(t, "aborting", getTransStatus(gid))
+	CronTransOnce(60 * time.Second)
+	assert.Equal(t, "failed", getTransStatus(gid))
 }

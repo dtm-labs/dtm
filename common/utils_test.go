@@ -5,6 +5,7 @@ import (
 	"io"
 	"net/http"
 	"net/http/httptest"
+	"os"
 	"strings"
 	"testing"
 
@@ -95,4 +96,11 @@ func TestSome(t *testing.T) {
 
 	func1 := GetFuncName()
 	assert.Equal(t, true, strings.HasSuffix(func1, "TestSome"))
+
+	os.Setenv("IS_DOCKER_COMPOSE", "1")
+	s := MayReplaceLocalhost("http://localhost")
+	assert.Equal(t, "http://host.docker.internal", s)
+	os.Setenv("IS_DOCKER_COMPOSE", "")
+	s2 := MayReplaceLocalhost("http://localhost")
+	assert.Equal(t, "http://localhost", s2)
 }

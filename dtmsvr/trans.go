@@ -116,6 +116,7 @@ func (t *TransGlobal) Process(db *common.DB) {
 		if TransProcessedTestChan != nil {
 			logrus.Printf("processed: %s", t.Gid)
 			TransProcessedTestChan <- t.Gid
+			logrus.Printf("notified: %s", t.Gid)
 		}
 	}()
 	logrus.Printf("processing: %s status: %s", t.Gid, t.Status)

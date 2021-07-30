@@ -1,6 +1,7 @@
 package dtmcli
 
 import (
+	"fmt"
 	"net/url"
 	"testing"
 
@@ -21,4 +22,8 @@ func TestTypes(t *testing.T) {
 	assert.Error(t, err)
 	_, err = TransInfoFromQuery(url.Values{})
 	assert.Error(t, err)
+
+	err2 := fmt.Errorf("an error")
+	err3 := CheckDtmResponse(nil, err2)
+	assert.Error(t, err2, err3)
 }
