@@ -26,8 +26,8 @@ func CronTransOnce(expireIn time.Duration) bool {
 // CronExpiredTrans cron expired trans, num == -1 indicate for ever
 func CronExpiredTrans(num int) {
 	for i := 0; i < num || num == -1; i++ {
-		notEmpty := CronTransOnce(time.Duration(0))
-		if !notEmpty {
+		hasTrans := CronTransOnce(time.Duration(0))
+		if !hasTrans && num != 1 {
 			sleepCronTime()
 		}
 	}
@@ -60,5 +60,6 @@ func handlePanic() {
 func sleepCronTime() {
 	delta := math.Min(3, float64(config.TransCronInterval))
 	interval := time.Duration((float64(config.TransCronInterval) - rand.Float64()*delta) * float64(time.Second))
+	logrus.Printf("sleeping for %v", interval)
 	time.Sleep(interval)
 }

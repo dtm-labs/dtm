@@ -41,8 +41,10 @@ func TestCover(t *testing.T) {
 	db := dbGet()
 	db.NoMust()
 	CronTransOnce(0)
-	defer handlePanic()
-	checkAffected(db.DB)
+	err := common.CatchP(func() {
+		checkAffected(db.DB)
+	})
+	assert.Error(t, err)
 
 	CronExpiredTrans(1)
 	go sleepCronTime()

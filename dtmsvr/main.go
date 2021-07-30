@@ -11,12 +11,6 @@ import (
 
 var dtmsvrPort = 8080
 
-// MainStart main
-func MainStart() {
-	StartSvr()
-	go CronExpiredTrans(-1)
-}
-
 // StartSvr StartSvr
 func StartSvr() {
 	logrus.Printf("start dtmsvr")

@@ -19,16 +19,17 @@ func wait() {
 }
 
 func main() {
-	if len(os.Args) > 1 && os.Args[1] == "dtmsvr" { // 实际运行，只启动dtmsvr，不重新load数据
-		dtmsvr.MainStart()
+	onlyServer := len(os.Args) > 1 && os.Args[1] == "dtmsvr"
+	if !onlyServer { // 实际线上运行，只启动dtmsvr，不准备table相关的数据
+		dtmsvr.PopulateMysql(true)
+	}
+	dtmsvr.StartSvr()              // 启动dtmsvr的api服务
+	go dtmsvr.CronExpiredTrans(-1) // 启动dtmsvr的定时过期查询
+
+	if onlyServer || len(os.Args) == 1 { // 没有参数，或者参数为dtmsvr，则不运行例子
 		wait()
 	}
-	// 下面都是运行示例，因此首先把服务器的数据重新准备好
-	dtmsvr.PopulateMysql(true)
-	dtmsvr.MainStart()
-	if len(os.Args) == 1 { // 默认没有参数的情况下，准备好数据并启动dtmsvr即可
-		wait()
-	}
+
 	// quick_start 比较独立，单独作为一个例子运行，方便新人上手
 	if len(os.Args) > 1 && (os.Args[1] == "quick_start" || os.Args[1] == "qs") {
 		examples.QsStartSvr()
