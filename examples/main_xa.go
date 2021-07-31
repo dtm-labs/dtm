@@ -37,6 +37,10 @@ func dbGet() *common.DB {
 	return common.DbGet(config.DB)
 }
 
+func sdbGet() *sql.DB {
+	return common.SdbGet(config.DB)
+}
+
 // XaSetup 挂载http的api，创建XaClient
 func XaSetup(app *gin.Engine) {
 	app.POST(BusiAPI+"/TransInXa", common.WrapHandler(xaTransIn))
@@ -68,7 +72,7 @@ func xaTransIn(c *gin.Context) (interface{}, error) {
 		if req.TransInResult == "FAILURE" {
 			return fmt.Errorf("tranIn FAILURE")
 		}
-		_, rerr = common.DbExec(db, "update dtm_busi.user_account set balance=balance+? where user_id=?", req.Amount, 2)
+		_, rerr = common.SdbExec(db, "update dtm_busi.user_account set balance=balance+? where user_id=?", req.Amount, 2)
 		return
 	})
 	if err != nil && strings.Contains(err.Error(), "FAILURE") {
@@ -84,7 +88,7 @@ func xaTransOut(c *gin.Context) (interface{}, error) {
 		if req.TransOutResult == "FAILURE" {
 			return fmt.Errorf("tranOut failed")
 		}
-		_, rerr = common.DbExec(db, "update dtm_busi.user_account set balance=balance-? where user_id=?", req.Amount, 1)
+		_, rerr = common.SdbExec(db, "update dtm_busi.user_account set balance=balance-? where user_id=?", req.Amount, 1)
 		return
 	})
 	e2p(err)

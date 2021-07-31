@@ -28,7 +28,17 @@ type ModelBase struct {
 	UpdateTime *time.Time `gorm:"autoUpdateTime"`
 }
 
+func getGormDialator(driver string, dsn string) gorm.Dialector {
+	if driver == "mysql" {
+		return mysql.Open(dsn)
+		// } else if driver == "postgres" {
+		// 	return postgres.Open(dsn)
+	}
+	panic(fmt.Errorf("unkown driver: %s", driver))
+}
+
 var dbs = map[string]*DB{}
+var sqlDbs = map[string]*sql.DB{}
 
 // DB provide more func over gorm.DB
 type DB struct {
@@ -112,15 +122,6 @@ func GetDsn(conf map[string]string) string {
 	return dsn
 }
 
-func getGormDialator(driver string, dsn string) gorm.Dialector {
-	if driver == "mysql" {
-		return mysql.Open(dsn)
-		// } else if driver == "postgres" {
-		// 	return postgres.Open(dsn)
-	}
-	panic(fmt.Errorf("unkown driver: %s", driver))
-}
-
 // DbGet get db connection for specified conf
 func DbGet(conf map[string]string) *DB {
 	dsn := GetDsn(conf)
@@ -136,18 +137,17 @@ func DbGet(conf map[string]string) *DB {
 	return dbs[dsn]
 }
 
-// SQLDB2DB name is clear
-func SQLDB2DB(sdb *sql.DB) *DB {
-	db, err := gorm.Open(mysql.New(mysql.Config{
-		Conn: sdb,
-	}), &gorm.Config{})
-	E2P(err)
-	db.Use(&tracePlugin{})
-	return &DB{DB: db}
+// SdbGet get pooled sql.DB
+func SdbGet(conf map[string]string) *sql.DB {
+	dsn := GetDsn(conf)
+	if sqlDbs[dsn] == nil {
+		sqlDbs[dsn] = SdbAlone(conf)
+	}
+	return sqlDbs[dsn]
 }
 
-// DbAlone get a standalone db connection
-func DbAlone(conf map[string]string) *sql.DB {
+// SdbAlone get a standalone db connection
+func SdbAlone(conf map[string]string) *sql.DB {
 	dsn := GetDsn(conf)
 	logrus.Printf("opening alone %s: %s", conf["driver"], strings.Replace(dsn, conf["password"], "****", 1))
 	mdb, err := sql.Open(conf["driver"], dsn)
@@ -155,12 +155,32 @@ func DbAlone(conf map[string]string) *sql.DB {
 	return mdb
 }
 
-// DbExec use raw db to exec
-func DbExec(db *sql.DB, sql string, values ...interface{}) (affected int64, rerr error) {
+// SdbExec use raw db to exec
+func SdbExec(db *sql.DB, sql string, values ...interface{}) (affected int64, rerr error) {
 	r, rerr := db.Exec(sql, values...)
 	if rerr == nil {
 		affected, rerr = r.RowsAffected()
+		logrus.Printf("affected: %d for %s %v", affected, sql, values)
+	} else {
+		logrus.Printf("\x1b[31m\nexec error: %v for %s %v\x1b[0m\n", rerr, sql, values)
 	}
-	logrus.Printf("affected: %d error: %v for %s %v", affected, rerr, sql, values)
 	return
+}
+
+// StxExec use raw tx to exec
+func StxExec(tx *sql.Tx, sql string, values ...interface{}) (affected int64, rerr error) {
+	r, rerr := tx.Exec(sql, values...)
+	if rerr == nil {
+		affected, rerr = r.RowsAffected()
+		logrus.Printf("affected: %d for %s %v", affected, sql, values)
+	} else {
+		logrus.Printf("\x1b[31m\nexec error: %v for %s %v\x1b[0m\n", rerr, sql, values)
+	}
+	return
+}
+
+// StxQueryRow use raw tx to query row
+func StxQueryRow(tx *sql.Tx, query string, args ...interface{}) *sql.Row {
+	logrus.Printf("querying: "+query, args...)
+	return tx.QueryRow(query, args...)
 }

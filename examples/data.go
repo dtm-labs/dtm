@@ -10,7 +10,7 @@ import (
 
 // RunSQLScript 1
 func RunSQLScript(conf map[string]string, script string, skipDrop bool) {
-	con := common.DbAlone(conf)
+	con := common.SdbAlone(conf)
 	defer func() { con.Close() }()
 	content, err := ioutil.ReadFile(script)
 	e2p(err)
@@ -20,7 +20,7 @@ func RunSQLScript(conf map[string]string, script string, skipDrop bool) {
 		if s == "" || skipDrop && strings.Contains(s, "drop") {
 			continue
 		}
-		_, err = common.DbExec(con, s)
+		_, err = common.SdbExec(con, s)
 		e2p(err)
 	}
 }

@@ -137,7 +137,7 @@ func TestSqlDB(t *testing.T) {
 		BranchType: "action",
 	}
 	db.Must().Exec("insert ignore into dtm_barrier.barrier(trans_type, gid, branch_id, branch_type, reason) values('saga', 'gid1', 'branch_id1', 'action', 'saga')")
-	_, err := dtmcli.ThroughBarrierCall(db.ToSQLDB(), transInfo, func(db *sql.DB) (interface{}, error) {
+	_, err := dtmcli.ThroughBarrierCall(db.ToSQLDB(), transInfo, func(db *sql.Tx) (interface{}, error) {
 		logrus.Printf("rollback gid2")
 		return nil, fmt.Errorf("gid2 error")
 	})
@@ -147,14 +147,14 @@ func TestSqlDB(t *testing.T) {
 	dbr = db.Model(&dtmcli.BarrierModel{}).Where("gid=?", "gid2").Find(&[]dtmcli.BarrierModel{})
 	asserts.Equal(dbr.RowsAffected, int64(0))
 	gid2Res := common.M{"result": "first"}
-	_, err = dtmcli.ThroughBarrierCall(db.ToSQLDB(), transInfo, func(db *sql.DB) (interface{}, error) {
+	_, err = dtmcli.ThroughBarrierCall(db.ToSQLDB(), transInfo, func(db *sql.Tx) (interface{}, error) {
 		logrus.Printf("submit gid2")
 		return gid2Res, nil
 	})
 	asserts.Nil(err)
 	dbr = db.Model(&dtmcli.BarrierModel{}).Where("gid=?", "gid2").Find(&[]dtmcli.BarrierModel{})
 	asserts.Equal(dbr.RowsAffected, int64(1))
-	newResult, err := dtmcli.ThroughBarrierCall(db.ToSQLDB(), transInfo, func(db *sql.DB) (interface{}, error) {
+	newResult, err := dtmcli.ThroughBarrierCall(db.ToSQLDB(), transInfo, func(db *sql.Tx) (interface{}, error) {
 		logrus.Printf("submit gid2")
 		return common.MS{"result": "ignored"}, nil
 	})

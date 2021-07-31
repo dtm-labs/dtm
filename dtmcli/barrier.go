@@ -13,7 +13,7 @@ import (
 )
 
 // BusiFunc type for busi func
-type BusiFunc func(db *sql.DB) (interface{}, error)
+type BusiFunc func(db *sql.Tx) (interface{}, error)
 
 // TransInfo every branch info
 type TransInfo struct {
@@ -54,16 +54,6 @@ type BarrierModel struct {
 	TransInfo
 }
 
-func logExec(tx *sql.Tx, query string, args ...interface{}) (sql.Result, error) {
-	logrus.Printf("executing: "+query, args...)
-	return tx.Exec(query, args...)
-}
-
-func logQueryRow(tx *sql.Tx, query string, args ...interface{}) *sql.Row {
-	logrus.Printf("querying: "+query, args...)
-	return tx.QueryRow(query, args...)
-}
-
 // TableName gorm table name
 func (BarrierModel) TableName() string { return "dtm_barrier.barrier" }
 
@@ -71,11 +61,7 @@ func insertBarrier(tx *sql.Tx, transType string, gid string, branchID string, br
 	if branchType == "" {
 		return 0, nil
 	}
-	res, err := logExec(tx, "insert ignore into dtm_barrier.barrier(trans_type, gid, branch_id, branch_type, reason) values(?,?,?,?,?)", transType, gid, branchID, branchType, reason)
-	if err != nil {
-		return 0, err
-	}
-	return res.RowsAffected()
+	return common.StxExec(tx, "insert ignore into dtm_barrier.barrier(trans_type, gid, branch_id, branch_type, reason) values(?,?,?,?,?)", transType, gid, branchID, branchType, reason)
 }
 
 // ThroughBarrierCall 子事务屏障，详细介绍见 https://zhuanlan.zhihu.com/p/388444465
@@ -116,7 +102,7 @@ func ThroughBarrierCall(db *sql.DB, transInfo *TransInfo, busiCall BusiFunc) (re
 		return
 	} else if currentAffected == 0 { // 插入不成功
 		var result sql.NullString
-		err := logQueryRow(tx, "select result from dtm_barrier.barrier where trans_type=? and gid=? and branch_id=? and branch_type=? and reason=?",
+		err := common.StxQueryRow(tx, "select result from dtm_barrier.barrier where trans_type=? and gid=? and branch_id=? and branch_type=? and reason=?",
 			ti.TransType, ti.Gid, ti.BranchID, ti.BranchType, ti.BranchType).Scan(&result)
 		if err == sql.ErrNoRows { // 这个是悬挂操作，返回失败，AP收到这个返回，会尽快回滚
 			res = common.MS{"dtm_result": "FAILURE"}
@@ -134,10 +120,10 @@ func ThroughBarrierCall(db *sql.DB, transInfo *TransInfo, busiCall BusiFunc) (re
 		res = common.MS{"dtm_result": "SUCCESS"}
 		return
 	}
-	res, rerr = busiCall(db)
+	res, rerr = busiCall(tx)
 	if rerr == nil { // 正确返回了，需要将结果保存到数据库
 		sval := common.MustMarshalString(res)
-		_, rerr = logExec(tx, "update dtm_barrier.barrier set result=? where trans_type=? and gid=? and branch_id=? and branch_type=?", sval,
+		_, rerr = common.StxExec(tx, "update dtm_barrier.barrier set result=? where trans_type=? and gid=? and branch_id=? and branch_type=?", sval,
 			ti.TransType, ti.Gid, ti.BranchID, ti.BranchType)
 	}
 	return

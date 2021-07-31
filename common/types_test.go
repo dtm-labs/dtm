@@ -27,15 +27,13 @@ func TestDb(t *testing.T) {
 		return nil
 	}()
 	assert.NotEqual(t, nil, err)
-	sdb := db.ToSQLDB()
-	db = SQLDB2DB(sdb)
 }
 
 func TestDbAlone(t *testing.T) {
-	db := DbAlone(config.DB)
-	_, err := DbExec(db, "select 1")
+	db := SdbAlone(config.DB)
+	_, err := SdbExec(db, "select 1")
 	assert.Equal(t, nil, err)
 	db.Close()
-	_, err = DbExec(db, "select 1")
+	_, err = SdbExec(db, "select 1")
 	assert.NotEqual(t, nil, err)
 }

@@ -67,14 +67,14 @@ func NewXaClient(server string, mysqlConf map[string]string, app *gin.Engine, ca
 			return nil, err
 		}
 		common.MustUnmarshal(b, &req)
-		db := common.DbAlone(xa.Conf)
+		db := common.SdbAlone(xa.Conf)
 		defer db.Close()
 		branchID := req.Gid + "-" + req.BranchID
 		if req.Action == "commit" {
-			_, err := common.DbExec(db, fmt.Sprintf("xa commit '%s'", branchID))
+			_, err := common.SdbExec(db, fmt.Sprintf("xa commit '%s'", branchID))
 			e2p(err)
 		} else if req.Action == "rollback" {
-			_, err := common.DbExec(db, fmt.Sprintf("xa rollback '%s'", branchID))
+			_, err := common.SdbExec(db, fmt.Sprintf("xa rollback '%s'", branchID))
 			e2p(err)
 		} else {
 			panic(fmt.Errorf("unknown action: %s", req.Action))
@@ -90,9 +90,9 @@ func (xc *XaClient) XaLocalTransaction(c *gin.Context, transFunc XaLocalFunc) (r
 	xa := XaFromReq(c)
 	branchID := xa.NewBranchID()
 	xaBranch := xa.Gid + "-" + branchID
-	db := common.DbAlone(xc.Conf)
+	db := common.SdbAlone(xc.Conf)
 	defer func() { db.Close() }()
-	_, err := common.DbExec(db, fmt.Sprintf("XA start '%s'", xaBranch))
+	_, err := common.SdbExec(db, fmt.Sprintf("XA start '%s'", xaBranch))
 	e2p(err)
 	err = transFunc(db, xa)
 	e2p(err)
@@ -103,9 +103,9 @@ func (xc *XaClient) XaLocalTransaction(c *gin.Context, transFunc XaLocalFunc) (r
 	if !strings.Contains(resp.String(), "SUCCESS") {
 		e2p(fmt.Errorf("unknown server response: %s", resp.String()))
 	}
-	_, err = common.DbExec(db, fmt.Sprintf("XA end '%s'", xaBranch))
+	_, err = common.SdbExec(db, fmt.Sprintf("XA end '%s'", xaBranch))
 	e2p(err)
-	_, err = common.DbExec(db, fmt.Sprintf("XA prepare '%s'", xaBranch))
+	_, err = common.SdbExec(db, fmt.Sprintf("XA prepare '%s'", xaBranch))
 	e2p(err)
 	return nil
 }
