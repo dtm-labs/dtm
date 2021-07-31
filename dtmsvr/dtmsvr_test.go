@@ -20,9 +20,9 @@ var app *gin.Engine
 func TestMain(m *testing.M) {
 	TransProcessedTestChan = make(chan string, 1)
 	common.InitConfig(common.GetProjectDir(), &config)
-	config.Mysql["database"] = dbName
-	PopulateMysql(false)
-	examples.PopulateMysql(false)
+	config.DB["database"] = dbName
+	PopulateDB(false)
+	examples.PopulateDB(false)
 	// 启动组件
 	go StartSvr()
 	app = examples.BaseAppStartup()
@@ -130,7 +130,7 @@ func transQuery(t *testing.T, gid string) {
 
 func TestSqlDB(t *testing.T) {
 	asserts := assert.New(t)
-	db := common.DbGet(config.Mysql)
+	db := common.DbGet(config.DB)
 	transInfo := &dtmcli.TransInfo{
 		TransType:  "saga",
 		Gid:        "gid2",

@@ -18,7 +18,7 @@ var p2e = common.P2E
 var e2p = common.E2P
 
 func dbGet() *common.DB {
-	return common.DbGet(config.Mysql)
+	return common.DbGet(config.DB)
 }
 func writeTransLog(gid string, action string, status string, branch string, detail string) {
 	// if detail == "" {

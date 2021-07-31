@@ -21,7 +21,8 @@ func StartSvr() {
 	time.Sleep(100 * time.Millisecond)
 }
 
-// PopulateMysql setup mysql data
-func PopulateMysql(skipDrop bool) {
-	examples.RunSQLScript(config.Mysql, common.GetCurrentCodeDir()+"/dtmsvr.sql", skipDrop)
+// PopulateDB setup mysql data
+func PopulateDB(skipDrop bool) {
+	file := fmt.Sprintf("%s/dtmsvr.%s.sql", common.GetCurrentCodeDir(), config.DB["driver"])
+	examples.RunSQLScript(config.DB, file, skipDrop)
 }

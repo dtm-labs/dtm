@@ -33,16 +33,16 @@ type UserAccountTrading struct {
 func (u *UserAccountTrading) TableName() string { return "user_account_trading" }
 
 func dbGet() *common.DB {
-	return common.DbGet(config.Mysql)
+	return common.DbGet(config.DB)
 }
 
 // XaSetup 挂载http的api，创建XaClient
 func XaSetup(app *gin.Engine) {
 	app.POST(BusiAPI+"/TransInXa", common.WrapHandler(xaTransIn))
 	app.POST(BusiAPI+"/TransOutXa", common.WrapHandler(xaTransOut))
-	config.Mysql["database"] = "dtm_busi"
+	config.DB["database"] = "dtm_busi"
 	var err error
-	XaClient, err = dtmcli.NewXaClient(DtmServer, config.Mysql, app, Busi+"/xa")
+	XaClient, err = dtmcli.NewXaClient(DtmServer, config.DB, app, Busi+"/xa")
 	e2p(err)
 }
 

@@ -1,6 +1,7 @@
 package examples
 
 import (
+	"fmt"
 	"io/ioutil"
 	"strings"
 
@@ -28,7 +29,8 @@ func RunSQLScript(mysql map[string]string, script string, skipDrop bool) {
 	}
 }
 
-// PopulateMysql populate example mysql data
-func PopulateMysql(skipDrop bool) {
-	RunSQLScript(config.Mysql, common.GetCurrentCodeDir()+"/examples.sql", skipDrop)
+// PopulateDB populate example mysql data
+func PopulateDB(skipDrop bool) {
+	file := fmt.Sprintf("%s/examples.%s.sql", common.GetCurrentCodeDir(), config.DB["driver"])
+	RunSQLScript(config.DB, file, skipDrop)
 }

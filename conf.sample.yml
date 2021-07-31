@@ -1,4 +1,5 @@
-Mysql:
+DB:
+  driver: 'mysql'
   host: 'localhost'
   user: 'root'
   password: ''

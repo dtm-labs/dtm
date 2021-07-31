@@ -7,18 +7,18 @@ import (
 )
 
 type testConfig struct {
-	Mysql map[string]string `yaml:"Mysql"`
+	DB map[string]string `yaml:"DB"`
 }
 
 var config = testConfig{}
 
 func init() {
 	InitConfig(GetProjectDir(), &config)
-	config.Mysql["database"] = ""
+	config.DB["database"] = ""
 }
 
 func TestDb(t *testing.T) {
-	db := DbGet(config.Mysql)
+	db := DbGet(config.DB)
 	err := func() (rerr error) {
 		defer P2E(&rerr)
 		dbr := db.NoMust().Exec("select a")
@@ -32,7 +32,7 @@ func TestDb(t *testing.T) {
 }
 
 func TestDbAlone(t *testing.T) {
-	db, con := DbAlone(config.Mysql)
+	db, con := DbAlone(config.DB)
 	dbr := db.Exec("select 1")
 	assert.Equal(t, nil, dbr.Error)
 	con.Close()

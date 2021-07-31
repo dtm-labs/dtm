@@ -21,7 +21,7 @@ func wait() {
 func main() {
 	onlyServer := len(os.Args) > 1 && os.Args[1] == "dtmsvr"
 	if !onlyServer { // 实际线上运行，只启动dtmsvr，不准备table相关的数据
-		dtmsvr.PopulateMysql(true)
+		dtmsvr.PopulateDB(true)
 	}
 	dtmsvr.StartSvr()              // 启动dtmsvr的api服务
 	go dtmsvr.CronExpiredTrans(-1) // 启动dtmsvr的定时过期查询
@@ -38,7 +38,7 @@ func main() {
 	}
 
 	// 下面是各类的例子
-	examples.PopulateMysql(true)
+	examples.PopulateDB(true)
 	app := examples.BaseAppStartup()
 	if os.Args[1] == "xa" { // 启动xa示例
 		examples.XaSetup(app)
