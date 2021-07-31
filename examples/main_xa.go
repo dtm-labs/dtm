@@ -13,26 +13,6 @@ import (
 // XaClient XA client connection
 var XaClient *dtmcli.XaClient = nil
 
-// UserAccount busi model
-type UserAccount struct {
-	common.ModelBase
-	UserID  int
-	Balance string
-}
-
-// TableName gorm table name
-func (u *UserAccount) TableName() string { return "dtm_busi.user_account" }
-
-// UserAccountTrading freeze user account table
-type UserAccountTrading struct {
-	common.ModelBase
-	UserID         int
-	TradingBalance string
-}
-
-// TableName gorm table name
-func (u *UserAccountTrading) TableName() string { return "dtm_busi.user_account_trading" }
-
 func dbGet() *common.DB {
 	return common.DbGet(config.DB)
 }

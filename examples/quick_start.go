@@ -8,7 +8,6 @@ import (
 	"github.com/sirupsen/logrus"
 	"github.com/yedf/dtm/common"
 	"github.com/yedf/dtm/dtmcli"
-	"gorm.io/gorm"
 )
 
 // 启动命令：go run app/main.go qs
@@ -44,13 +43,8 @@ func QsFireRequest() string {
 }
 
 func qsAdjustBalance(uid int, amount int) (interface{}, error) {
-	err := dbGet().Transaction(func(tx *gorm.DB) error {
-		return tx.Model(&UserAccount{}).Where("user_id = ?", uid).Update("balance", gorm.Expr("balance + ?", amount)).Error
-	})
-	if err != nil {
-		return nil, err
-	}
-	return M{"dtm_result": "SUCCESS"}, nil
+	_, err := common.SdbExec(sdbGet(), "update dtm_busi.user_account set balance = balance + ? where user_id = ?", amount, uid)
+	return M{"dtm_result": "SUCCESS"}, err
 }
 
 func qsAddRoute(app *gin.Engine) {
