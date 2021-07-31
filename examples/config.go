@@ -8,9 +8,6 @@ type exampleConfig struct {
 
 var config = exampleConfig{}
 
-var dbName = "dtm_busi"
-
 func init() {
 	common.InitConfig(common.GetProjectDir(), &config)
-	config.DB["database"] = dbName
 }

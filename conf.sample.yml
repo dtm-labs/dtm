@@ -4,5 +4,9 @@ DB:
   user: 'root'
   password: ''
   port: '3306'
-
+  # driver: 'postgres'
+  # host: 'localhost'
+  # user: 'postgres'
+  # password: 'mysecretpassword'
+  # port: '5432'
 TransCronInterval: 10 # 单位秒 当事务等待这个时间之后，还没有变化，则进行一轮重试处理，包括prepared中的任务和commited的任务

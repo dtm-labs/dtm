@@ -3,11 +3,15 @@ package common
 import (
 	"database/sql"
 	"fmt"
-	"regexp"
+	"strings"
 	"time"
 
+	_ "github.com/go-sql-driver/mysql"
+	// _ "github.com/lib/pq"
 	"github.com/sirupsen/logrus"
 	"gorm.io/driver/mysql"
+
+	// "gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )
 
@@ -97,22 +101,32 @@ func (op *tracePlugin) Initialize(db *gorm.DB) (err error) {
 // GetDsn get dsn from map config
 func GetDsn(conf map[string]string) string {
 	conf["host"] = MayReplaceLocalhost(conf["host"])
-	// logrus.Printf("is docker: %t IS_DOCKER_COMPOSE: %s and conf host: %s", IsDockerCompose(), os.Getenv("IS_DOCKER_COMPOSE"), conf["host"])
-	return fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?charset=utf8mb4&parseTime=true&loc=Local", conf["user"], conf["password"], conf["host"], conf["port"], conf["database"])
+	driver := conf["driver"]
+	dsn := MS{
+		"mysql": fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?charset=utf8mb4&parseTime=true&loc=Local",
+			conf["user"], conf["password"], conf["host"], conf["port"], conf["database"]),
+		"postgres": fmt.Sprintf("host=%s user=%s password=%s dbname='%s' port=%s sslmode=disable TimeZone=Asia/Shanghai",
+			conf["host"], conf["user"], conf["password"], conf["database"], conf["port"]),
+	}[driver]
+	PanicIf(dsn == "", fmt.Errorf("unknow driver: %s", driver))
+	return dsn
 }
 
-// ReplaceDsnPassword replace password for log output
-func ReplaceDsnPassword(dsn string) string {
-	reg := regexp.MustCompile(`:.*@`)
-	return reg.ReplaceAllString(dsn, ":****@")
+func getGormDialator(driver string, dsn string) gorm.Dialector {
+	if driver == "mysql" {
+		return mysql.Open(dsn)
+		// } else if driver == "postgres" {
+		// 	return postgres.Open(dsn)
+	}
+	panic(fmt.Errorf("unkown driver: %s", driver))
 }
 
 // DbGet get db connection for specified conf
 func DbGet(conf map[string]string) *DB {
 	dsn := GetDsn(conf)
 	if dbs[dsn] == nil {
-		logrus.Printf("connecting %s", ReplaceDsnPassword(dsn))
-		db1, err := gorm.Open(mysql.Open(dsn), &gorm.Config{
+		logrus.Printf("connecting %s", strings.Replace(dsn, conf["password"], "****", 1))
+		db1, err := gorm.Open(getGormDialator(conf["driver"], dsn), &gorm.Config{
 			SkipDefaultTransaction: true,
 		})
 		E2P(err)
@@ -132,28 +146,21 @@ func SQLDB2DB(sdb *sql.DB) *DB {
 	return &DB{DB: db}
 }
 
-// MyConn for xa alone connection
-type MyConn struct {
-	Conn *sql.DB
-	Dsn  string
-}
-
-// Close name is clear
-func (conn *MyConn) Close() {
-	logrus.Printf("closing alone mysql: %s", ReplaceDsnPassword(conn.Dsn))
-	conn.Conn.Close()
-}
-
 // DbAlone get a standalone db connection
-func DbAlone(conf map[string]string) (*DB, *MyConn) {
+func DbAlone(conf map[string]string) *sql.DB {
 	dsn := GetDsn(conf)
-	logrus.Printf("opening alone mysql: %s", ReplaceDsnPassword(dsn))
-	mdb, err := sql.Open("mysql", dsn)
+	logrus.Printf("opening alone %s: %s", conf["driver"], strings.Replace(dsn, conf["password"], "****", 1))
+	mdb, err := sql.Open(conf["driver"], dsn)
 	E2P(err)
-	gormDB, err := gorm.Open(mysql.New(mysql.Config{
-		Conn: mdb,
-	}), &gorm.Config{})
-	E2P(err)
-	gormDB.Use(&tracePlugin{})
-	return &DB{DB: gormDB}, &MyConn{Conn: mdb, Dsn: dsn}
+	return mdb
+}
+
+// DbExec use raw db to exec
+func DbExec(db *sql.DB, sql string, values ...interface{}) (affected int64, rerr error) {
+	r, rerr := db.Exec(sql, values...)
+	if rerr == nil {
+		affected, rerr = r.RowsAffected()
+	}
+	logrus.Printf("affected: %d error: %v for %s %v", affected, rerr, sql, values)
+	return
 }

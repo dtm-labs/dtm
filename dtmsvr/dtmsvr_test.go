@@ -20,7 +20,6 @@ var app *gin.Engine
 func TestMain(m *testing.M) {
 	TransProcessedTestChan = make(chan string, 1)
 	common.InitConfig(common.GetProjectDir(), &config)
-	config.DB["database"] = dbName
 	PopulateDB(false)
 	examples.PopulateDB(false)
 	// 启动组件

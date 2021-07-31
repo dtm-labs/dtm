@@ -12,6 +12,9 @@ import (
 )
 
 func TestXa(t *testing.T) {
+	if config.DB["driver"] != "mysql" {
+		return
+	}
 	xaLocalError(t)
 	xaNormal(t)
 	xaRollback(t)

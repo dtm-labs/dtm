@@ -1,6 +1,7 @@
 package dtmcli
 
 import (
+	"database/sql"
 	"fmt"
 	"net/url"
 	"strings"
@@ -20,7 +21,7 @@ var e2p = common.E2P
 type XaGlobalFunc func(xa *Xa) error
 
 // XaLocalFunc type of xa local function
-type XaLocalFunc func(db *common.DB, xa *Xa) error
+type XaLocalFunc func(db *sql.DB, xa *Xa) error
 
 // XaClient xa client
 type XaClient struct {
@@ -66,13 +67,15 @@ func NewXaClient(server string, mysqlConf map[string]string, app *gin.Engine, ca
 			return nil, err
 		}
 		common.MustUnmarshal(b, &req)
-		tx, my := common.DbAlone(xa.Conf)
-		defer my.Close()
+		db := common.DbAlone(xa.Conf)
+		defer db.Close()
 		branchID := req.Gid + "-" + req.BranchID
 		if req.Action == "commit" {
-			tx.Must().Exec(fmt.Sprintf("xa commit '%s'", branchID))
+			_, err := common.DbExec(db, fmt.Sprintf("xa commit '%s'", branchID))
+			e2p(err)
 		} else if req.Action == "rollback" {
-			tx.Must().Exec(fmt.Sprintf("xa rollback '%s'", branchID))
+			_, err := common.DbExec(db, fmt.Sprintf("xa rollback '%s'", branchID))
+			e2p(err)
 		} else {
 			panic(fmt.Errorf("unknown action: %s", req.Action))
 		}
@@ -87,10 +90,11 @@ func (xc *XaClient) XaLocalTransaction(c *gin.Context, transFunc XaLocalFunc) (r
 	xa := XaFromReq(c)
 	branchID := xa.NewBranchID()
 	xaBranch := xa.Gid + "-" + branchID
-	tx, my := common.DbAlone(xc.Conf)
-	defer func() { my.Close() }()
-	tx.Must().Exec(fmt.Sprintf("XA start '%s'", xaBranch))
-	err := transFunc(tx, xa)
+	db := common.DbAlone(xc.Conf)
+	defer func() { db.Close() }()
+	_, err := common.DbExec(db, fmt.Sprintf("XA start '%s'", xaBranch))
+	e2p(err)
+	err = transFunc(db, xa)
 	e2p(err)
 	resp, err := common.RestyClient.R().
 		SetBody(&M{"gid": xa.Gid, "branch_id": branchID, "trans_type": "xa", "status": "prepared", "url": xc.CallbackURL}).
@@ -99,8 +103,10 @@ func (xc *XaClient) XaLocalTransaction(c *gin.Context, transFunc XaLocalFunc) (r
 	if !strings.Contains(resp.String(), "SUCCESS") {
 		e2p(fmt.Errorf("unknown server response: %s", resp.String()))
 	}
-	tx.Must().Exec(fmt.Sprintf("XA end '%s'", xaBranch))
-	tx.Must().Exec(fmt.Sprintf("XA prepare '%s'", xaBranch))
+	_, err = common.DbExec(db, fmt.Sprintf("XA end '%s'", xaBranch))
+	e2p(err)
+	_, err = common.DbExec(db, fmt.Sprintf("XA prepare '%s'", xaBranch))
+	e2p(err)
 	return nil
 }
 

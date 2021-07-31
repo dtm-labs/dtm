@@ -5,16 +5,12 @@ import (
 	"io/ioutil"
 	"strings"
 
-	"github.com/sirupsen/logrus"
 	"github.com/yedf/dtm/common"
 )
 
 // RunSQLScript 1
-func RunSQLScript(mysql map[string]string, script string, skipDrop bool) {
-	conf := map[string]string{}
-	common.MustRemarshal(mysql, &conf)
-	conf["database"] = ""
-	db, con := common.DbAlone(conf)
+func RunSQLScript(conf map[string]string, script string, skipDrop bool) {
+	con := common.DbAlone(conf)
 	defer func() { con.Close() }()
 	content, err := ioutil.ReadFile(script)
 	e2p(err)
@@ -24,8 +20,8 @@ func RunSQLScript(mysql map[string]string, script string, skipDrop bool) {
 		if s == "" || skipDrop && strings.Contains(s, "drop") {
 			continue
 		}
-		logrus.Printf("executing: '%s'", s)
-		db.Must().Exec(s)
+		_, err = common.DbExec(con, s)
+		e2p(err)
 	}
 }
 

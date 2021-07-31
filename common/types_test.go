@@ -32,10 +32,10 @@ func TestDb(t *testing.T) {
 }
 
 func TestDbAlone(t *testing.T) {
-	db, con := DbAlone(config.DB)
-	dbr := db.Exec("select 1")
-	assert.Equal(t, nil, dbr.Error)
-	con.Close()
-	dbr = db.Exec("select 1")
-	assert.NotEqual(t, nil, dbr.Error)
+	db := DbAlone(config.DB)
+	_, err := DbExec(db, "select 1")
+	assert.Equal(t, nil, err)
+	db.Close()
+	_, err = DbExec(db, "select 1")
+	assert.NotEqual(t, nil, err)
 }

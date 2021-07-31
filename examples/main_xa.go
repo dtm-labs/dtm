@@ -1,6 +1,7 @@
 package examples
 
 import (
+	"database/sql"
 	"fmt"
 	"strings"
 
@@ -20,7 +21,7 @@ type UserAccount struct {
 }
 
 // TableName gorm table name
-func (u *UserAccount) TableName() string { return "user_account" }
+func (u *UserAccount) TableName() string { return "dtm_busi.user_account" }
 
 // UserAccountTrading freeze user account table
 type UserAccountTrading struct {
@@ -30,7 +31,7 @@ type UserAccountTrading struct {
 }
 
 // TableName gorm table name
-func (u *UserAccountTrading) TableName() string { return "user_account_trading" }
+func (u *UserAccountTrading) TableName() string { return "dtm_busi.user_account_trading" }
 
 func dbGet() *common.DB {
 	return common.DbGet(config.DB)
@@ -40,7 +41,6 @@ func dbGet() *common.DB {
 func XaSetup(app *gin.Engine) {
 	app.POST(BusiAPI+"/TransInXa", common.WrapHandler(xaTransIn))
 	app.POST(BusiAPI+"/TransOutXa", common.WrapHandler(xaTransOut))
-	config.DB["database"] = "dtm_busi"
 	var err error
 	XaClient, err = dtmcli.NewXaClient(DtmServer, config.DB, app, Busi+"/xa")
 	e2p(err)
@@ -63,13 +63,13 @@ func XaFireRequest() string {
 }
 
 func xaTransIn(c *gin.Context) (interface{}, error) {
-	err := XaClient.XaLocalTransaction(c, func(db *common.DB, xa *dtmcli.Xa) (rerr error) {
+	err := XaClient.XaLocalTransaction(c, func(db *sql.DB, xa *dtmcli.Xa) (rerr error) {
 		req := reqFrom(c)
 		if req.TransInResult == "FAILURE" {
 			return fmt.Errorf("tranIn FAILURE")
 		}
-		dbr := db.Exec("update user_account set balance=balance+? where user_id=?", req.Amount, 2)
-		return dbr.Error
+		_, rerr = common.DbExec(db, "update dtm_busi.user_account set balance=balance+? where user_id=?", req.Amount, 2)
+		return
 	})
 	if err != nil && strings.Contains(err.Error(), "FAILURE") {
 		return M{"dtm_result": "FAILURE"}, nil
@@ -79,13 +79,13 @@ func xaTransIn(c *gin.Context) (interface{}, error) {
 }
 
 func xaTransOut(c *gin.Context) (interface{}, error) {
-	err := XaClient.XaLocalTransaction(c, func(db *common.DB, xa *dtmcli.Xa) (rerr error) {
+	err := XaClient.XaLocalTransaction(c, func(db *sql.DB, xa *dtmcli.Xa) (rerr error) {
 		req := reqFrom(c)
 		if req.TransOutResult == "FAILURE" {
 			return fmt.Errorf("tranOut failed")
 		}
-		dbr := db.Exec("update user_account set balance=balance-? where user_id=?", req.Amount, 1)
-		return dbr.Error
+		_, rerr = common.DbExec(db, "update dtm_busi.user_account set balance=balance-? where user_id=?", req.Amount, 1)
+		return
 	})
 	e2p(err)
 	return M{"dtm_result": "SUCCESS"}, nil
@@ -93,9 +93,10 @@ func xaTransOut(c *gin.Context) (interface{}, error) {
 
 // ResetXaData 1
 func ResetXaData() {
+	if config.DB["driver"] != "mysql" {
+		return
+	}
 	db := dbGet()
-	db.Must().Exec("truncate user_account")
-	db.Must().Exec("insert into user_account (user_id, balance) values (1, 10000), (2, 10000)")
 	type XaRow struct {
 		Data string
 	}
