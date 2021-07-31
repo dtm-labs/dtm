@@ -1,9 +1,7 @@
-CREATE DATABASE IF NOT EXISTS `dtm` /*!40100 DEFAULT CHARACTER SET utf8mb4 */;
+CREATE DATABASE IF NOT EXISTS dtm /*!40100 DEFAULT CHARACTER SET utf8mb4 */;
 
-use dtm;
-
-drop table IF EXISTS trans_global;
-CREATE TABLE if not EXISTS `trans_global` (
+drop table IF EXISTS dtm.trans_global;
+CREATE TABLE if not EXISTS dtm.trans_global (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `gid` varchar(128) NOT NULL COMMENT '事务全局id',
   `trans_type` varchar(45) not null COMMENT '事务类型: saga | xa',
@@ -26,8 +24,8 @@ CREATE TABLE if not EXISTS `trans_global` (
   key `next_cron_time` (`next_cron_time`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
-drop table IF EXISTS trans_branch;
-CREATE TABLE IF NOT EXISTS `trans_branch` (
+drop table IF EXISTS dtm.trans_branch;
+CREATE TABLE IF NOT EXISTS dtm.trans_branch (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `gid` varchar(128) NOT NULL COMMENT '事务全局id',
   `url` varchar(128) NOT NULL COMMENT '动作关联的url',
@@ -45,8 +43,8 @@ CREATE TABLE IF NOT EXISTS `trans_branch` (
   KEY `update_time` (`update_time`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
-drop table IF EXISTS trans_log;
-CREATE TABLE IF NOT EXISTS `trans_log` (
+drop table IF EXISTS dtm.trans_log;
+CREATE TABLE IF NOT EXISTS dtm.trans_log (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `gid` varchar(128) NOT NULL COMMENT '事务全局id',
   `branch_id` varchar(128) DEFAULT NULL COMMENT '事务分支',
