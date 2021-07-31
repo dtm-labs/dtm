@@ -13,14 +13,6 @@ import (
 // XaClient XA client connection
 var XaClient *dtmcli.XaClient = nil
 
-func dbGet() *common.DB {
-	return common.DbGet(config.DB)
-}
-
-func sdbGet() *sql.DB {
-	return common.SdbGet(config.DB)
-}
-
 // XaSetup 挂载http的api，创建XaClient
 func XaSetup(app *gin.Engine) {
 	app.POST(BusiAPI+"/TransInXa", common.WrapHandler(xaTransIn))
@@ -73,20 +65,4 @@ func xaTransOut(c *gin.Context) (interface{}, error) {
 	})
 	e2p(err)
 	return M{"dtm_result": "SUCCESS"}, nil
-}
-
-// ResetXaData 1
-func ResetXaData() {
-	if config.DB["driver"] != "mysql" {
-		return
-	}
-	db := dbGet()
-	type XaRow struct {
-		Data string
-	}
-	xas := []XaRow{}
-	db.Must().Raw("xa recover").Scan(&xas)
-	for _, xa := range xas {
-		db.Must().Exec(fmt.Sprintf("xa rollback '%s'", xa.Data))
-	}
 }

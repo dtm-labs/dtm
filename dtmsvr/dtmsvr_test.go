@@ -17,6 +17,21 @@ var DtmServer = examples.DtmServer
 var Busi = examples.Busi
 var app *gin.Engine
 
+func resetXaData() {
+	if config.DB["driver"] != "mysql" {
+		return
+	}
+	db := dbGet()
+	type XaRow struct {
+		Data string
+	}
+	xas := []XaRow{}
+	db.Must().Raw("xa recover").Scan(&xas)
+	for _, xa := range xas {
+		db.Must().Exec(fmt.Sprintf("xa rollback '%s'", xa.Data))
+	}
+}
+
 func TestMain(m *testing.M) {
 	TransProcessedTestChan = make(chan string, 1)
 	common.InitConfig(common.GetProjectDir(), &config)
@@ -32,7 +47,7 @@ func TestMain(m *testing.M) {
 	examples.TccBarrierAddRoute(app)
 	examples.SagaBarrierAddRoute(app)
 
-	examples.ResetXaData()
+	resetXaData()
 	m.Run()
 }
 

@@ -1,6 +1,7 @@
 package examples
 
 import (
+	"database/sql"
 	"fmt"
 
 	"github.com/gin-gonic/gin"
@@ -51,4 +52,12 @@ func infoFromContext(c *gin.Context) *dtmcli.TransInfo {
 		BranchType: c.Query("branch_type"),
 	}
 	return &info
+}
+
+func dbGet() *common.DB {
+	return common.DbGet(config.DB)
+}
+
+func sdbGet() *sql.DB {
+	return common.SdbGet(config.DB)
 }
