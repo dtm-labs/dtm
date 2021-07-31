@@ -1,0 +1,9 @@
+version: '3.3'
+services:
+  postgres:
+    image: 'daocloud.io/library/postgres'
+    environment:
+      POSTGRES_PASSWORD: mysecretpassword
+
+    ports:
+      - '5432:5432'

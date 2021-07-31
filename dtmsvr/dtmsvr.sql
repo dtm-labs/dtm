@@ -38,7 +38,7 @@ CREATE TABLE IF NOT EXISTS dtm.trans_branch (
   `create_time` datetime DEFAULT NULL,
   `update_time` datetime DEFAULT NULL,
   PRIMARY KEY (`id`),
-  UNIQUE KEY `gid` (`gid`,`branch_id`, `branch_type`),
+  UNIQUE KEY `gid_uniq` (`gid`,`branch_id`, `branch_type`),
   KEY `create_time` (`create_time`),
   KEY `update_time` (`update_time`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
