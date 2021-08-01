@@ -18,6 +18,21 @@ func MustGenGid(server string) string {
 	return res["gid"]
 }
 
+// IsFailure 如果err非空，或者ret是http的响应且包含FAILURE，那么返回true。此时认为业务调用失败
+func IsFailure(res interface{}, err error) bool {
+	resp, ok := res.(*resty.Response)
+	return err != nil || ok && strings.Contains(resp.String(), "FAILURE")
+}
+
+// PanicIfFailure 如果err非空，或者ret是http的响应且包含FAILURE，那么Panic。此时认为业务调用失败
+func PanicIfFailure(res interface{}, err error) {
+	resp, ok := res.(*resty.Response)
+	failure := err != nil || ok && strings.Contains(resp.String(), "FAILURE")
+	if failure {
+		panic(fmt.Errorf("dtm failure ret: %v err %v", res, err))
+	}
+}
+
 // CheckDtmResponse check the response of dtm, if not ok ,generate error
 func CheckDtmResponse(resp *resty.Response, err error) error {
 	if err != nil {

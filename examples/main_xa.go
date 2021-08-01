@@ -40,11 +40,10 @@ func XaFireRequest() string {
 
 func xaTransIn(c *gin.Context) (interface{}, error) {
 	err := XaClient.XaLocalTransaction(c, func(db *sql.DB, xa *dtmcli.Xa) (rerr error) {
-		req := reqFrom(c)
-		if req.TransInResult == "FAILURE" {
+		if reqFrom(c).TransInResult == "FAILURE" {
 			return fmt.Errorf("tranIn FAILURE")
 		}
-		_, rerr = common.SdbExec(db, "update dtm_busi.user_account set balance=balance+? where user_id=?", req.Amount, 2)
+		_, rerr = common.SdbExec(db, "update dtm_busi.user_account set balance=balance+? where user_id=?", reqFrom(c).Amount, 2)
 		return
 	})
 	if err != nil && strings.Contains(err.Error(), "FAILURE") {
@@ -56,11 +55,10 @@ func xaTransIn(c *gin.Context) (interface{}, error) {
 
 func xaTransOut(c *gin.Context) (interface{}, error) {
 	err := XaClient.XaLocalTransaction(c, func(db *sql.DB, xa *dtmcli.Xa) (rerr error) {
-		req := reqFrom(c)
-		if req.TransOutResult == "FAILURE" {
+		if reqFrom(c).TransOutResult == "FAILURE" {
 			return fmt.Errorf("tranOut failed")
 		}
-		_, rerr = common.SdbExec(db, "update dtm_busi.user_account set balance=balance-? where user_id=?", req.Amount, 1)
+		_, rerr = common.SdbExec(db, "update dtm_busi.user_account set balance=balance-? where user_id=?", reqFrom(c).Amount, 1)
 		return
 	})
 	e2p(err)

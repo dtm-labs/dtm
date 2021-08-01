@@ -14,15 +14,14 @@ import (
 func TccBarrierFireRequest() string {
 	logrus.Printf("tcc transaction begin")
 	gid := dtmcli.MustGenGid(DtmServer)
-	err := dtmcli.TccGlobalTransaction(DtmServer, gid, func(tcc *dtmcli.Tcc) (rerr error) {
-		res1, rerr := tcc.CallBranch(&TransReq{Amount: 30}, Busi+"/TccBTransOutTry", Busi+"/TccBTransOutConfirm", Busi+"/TccBTransOutCancel")
-		common.CheckRestySuccess(res1, rerr)
-		res2, rerr := tcc.CallBranch(&TransReq{Amount: 30}, Busi+"/TccBTransInTry", Busi+"/TccBTransInConfirm", Busi+"/TccBTransInCancel")
-		common.CheckRestySuccess(res1, rerr)
-		logrus.Printf("tcc returns: %s, %s", res1.String(), res2.String())
-		return
+	ret, err := dtmcli.TccGlobalTransaction(DtmServer, gid, func(tcc *dtmcli.Tcc) (interface{}, error) {
+		resp, err := tcc.CallBranch(&TransReq{Amount: 30}, Busi+"/TccBTransOutTry", Busi+"/TccBTransOutConfirm", Busi+"/TccBTransOutCancel")
+		if dtmcli.IsFailure(resp, err) {
+			return resp, err
+		}
+		return tcc.CallBranch(&TransReq{Amount: 30}, Busi+"/TccBTransInTry", Busi+"/TccBTransInConfirm", Busi+"/TccBTransInCancel")
 	})
-	e2p(err)
+	dtmcli.PanicIfFailure(ret, err)
 	return gid
 }
 

@@ -38,10 +38,15 @@ func GenTransReq(amount int, outFailed bool, inFailed bool) *TransReq {
 }
 
 func reqFrom(c *gin.Context) *TransReq {
-	req := TransReq{}
-	err := c.BindJSON(&req)
-	e2p(err)
-	return &req
+	v, ok := c.Get("trans_req")
+	if !ok {
+		req := TransReq{}
+		err := c.BindJSON(&req)
+		e2p(err)
+		c.Set("trans_req", &req)
+		v = &req
+	}
+	return v.(*TransReq)
 }
 
 func infoFromContext(c *gin.Context) *dtmcli.TransInfo {

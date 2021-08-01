@@ -205,6 +205,11 @@ func (f *formatter) Format(entry *logrus.Entry) ([]byte, error) {
 	return b.Bytes(), nil
 }
 
+// RedLogf 采用红色打印错误类信息
+func RedLogf(fmt string, args ...interface{}) {
+	logrus.Errorf("\x1b[31m\n"+fmt+"\x1b[0m\n", args...)
+}
+
 // InitConfig init config
 func InitConfig(dir string, config interface{}) {
 	logrus.SetFormatter(&formatter{})

@@ -162,7 +162,7 @@ func SdbExec(db *sql.DB, sql string, values ...interface{}) (affected int64, rer
 		affected, rerr = r.RowsAffected()
 		logrus.Printf("affected: %d for %s %v", affected, sql, values)
 	} else {
-		logrus.Printf("\x1b[31m\nexec error: %v for %s %v\x1b[0m\n", rerr, sql, values)
+		RedLogf("exec error: %v for %s %v", rerr, sql, values)
 	}
 	return
 }
@@ -174,7 +174,7 @@ func StxExec(tx *sql.Tx, sql string, values ...interface{}) (affected int64, rer
 		affected, rerr = r.RowsAffected()
 		logrus.Printf("affected: %d for %s %v", affected, sql, values)
 	} else {
-		logrus.Printf("\x1b[31m\nexec error: %v for %s %v\x1b[0m\n", rerr, sql, values)
+		RedLogf("exec error: %v for %s %v", rerr, sql, values)
 	}
 	return
 }

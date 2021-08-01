@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/sirupsen/logrus"
+	"github.com/yedf/dtm/common"
 )
 
 // CronTransOnce cron expired trans. use expireIn as expire time
@@ -53,7 +54,7 @@ func lockOneTrans(expireIn time.Duration) *TransGlobal {
 
 func handlePanic() {
 	if err := recover(); err != nil {
-		logrus.Errorf("\x1b[31m\n----panic %s handlered\x1b[0m\n%s", err.(error).Error(), string(debug.Stack()))
+		common.RedLogf("----panic %s handlered\n%s", err.(error).Error(), string(debug.Stack()))
 	}
 }
 
