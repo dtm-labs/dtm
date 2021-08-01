@@ -139,7 +139,9 @@ func WrapHandler(fn func(*gin.Context) (interface{}, error)) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		r, err := fn(c)
 		var b = []byte{}
-		if err == nil {
+		if resp, ok := r.(*resty.Response); ok { // 如果是response，则取出body直接处理
+			b = resp.Body()
+		} else if err == nil {
 			b, err = json.Marshal(r)
 		}
 		if err != nil {

@@ -13,9 +13,7 @@ func TccSetup(app *gin.Engine) {
 		tcc, err := dtmcli.TccFromReq(c)
 		e2p(err)
 		logrus.Printf("TransInTccParent ")
-		_, rerr := tcc.CallBranch(&TransReq{Amount: reqFrom(c).Amount}, Busi+"/TransIn", Busi+"/TransInConfirm", Busi+"/TransInRevert")
-		e2p(rerr)
-		return M{"dtm_result": "SUCCESS"}, nil
+		return tcc.CallBranch(&TransReq{Amount: reqFrom(c).Amount}, Busi+"/TransIn", Busi+"/TransInConfirm", Busi+"/TransInRevert")
 	}))
 }
 

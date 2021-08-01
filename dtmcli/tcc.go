@@ -83,7 +83,7 @@ func (t *Tcc) CallBranch(body interface{}, tryURL string, confirmURL string, can
 	if IsFailure(resp, err) {
 		return resp, err
 	}
-	resp, err = common.RestyClient.R().
+	return common.RestyClient.R().
 		SetBody(body).
 		SetQueryParams(common.MS{
 			"dtm":         t.Dtm,
@@ -93,5 +93,4 @@ func (t *Tcc) CallBranch(body interface{}, tryURL string, confirmURL string, can
 			"branch_type": "try",
 		}).
 		Post(tryURL)
-	return resp, err
 }
