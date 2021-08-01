@@ -4,11 +4,9 @@ import (
 	"database/sql"
 	"fmt"
 	"net/url"
-	"strings"
 
 	"github.com/gin-gonic/gin"
 	"github.com/go-resty/resty/v2"
-	"github.com/sirupsen/logrus"
 	"github.com/yedf/dtm/common"
 )
 
@@ -18,10 +16,10 @@ type M = map[string]interface{}
 var e2p = common.E2P
 
 // XaGlobalFunc type of xa global function
-type XaGlobalFunc func(xa *Xa) error
+type XaGlobalFunc func(xa *Xa) (interface{}, error)
 
 // XaLocalFunc type of xa local function
-type XaLocalFunc func(db *sql.DB, xa *Xa) error
+type XaLocalFunc func(db *sql.DB, xa *Xa) (interface{}, error)
 
 // XaClient xa client
 type XaClient struct {
@@ -71,82 +69,89 @@ func NewXaClient(server string, mysqlConf map[string]string, app *gin.Engine, ca
 		defer db.Close()
 		branchID := req.Gid + "-" + req.BranchID
 		if req.Action == "commit" {
-			_, err := common.SdbExec(db, fmt.Sprintf("xa commit '%s'", branchID))
-			e2p(err)
+			_, err = common.SdbExec(db, fmt.Sprintf("xa commit '%s'", branchID))
 		} else if req.Action == "rollback" {
-			_, err := common.SdbExec(db, fmt.Sprintf("xa rollback '%s'", branchID))
-			e2p(err)
+			_, err = common.SdbExec(db, fmt.Sprintf("xa rollback '%s'", branchID))
 		} else {
 			panic(fmt.Errorf("unknown action: %s", req.Action))
 		}
-		return M{"dtm_result": "SUCCESS"}, nil
+		return M{"dtm_result": "SUCCESS"}, err
 	}))
 	return xa, nil
 }
 
 // XaLocalTransaction start a xa local transaction
-func (xc *XaClient) XaLocalTransaction(c *gin.Context, transFunc XaLocalFunc) (rerr error) {
-	defer common.P2E(&rerr)
+func (xc *XaClient) XaLocalTransaction(c *gin.Context, xaFunc XaLocalFunc) (ret interface{}, rerr error) {
 	xa := XaFromReq(c)
 	branchID := xa.NewBranchID()
 	xaBranch := xa.Gid + "-" + branchID
 	db := common.SdbAlone(xc.Conf)
 	defer func() { db.Close() }()
-	_, err := common.SdbExec(db, fmt.Sprintf("XA start '%s'", xaBranch))
-	e2p(err)
-	err = transFunc(db, xa)
-	e2p(err)
-	resp, err := common.RestyClient.R().
+	defer func() {
+		var x interface{}
+		_, err := common.SdbExec(db, fmt.Sprintf("XA end '%s'", xaBranch))
+		if err != nil {
+			common.RedLogf("sql db exec error: %v", err)
+		}
+		if x = recover(); x != nil || IsFailure(ret, rerr) {
+		} else {
+			_, err = common.SdbExec(db, fmt.Sprintf("XA prepare '%s'", xaBranch))
+		}
+		if err != nil {
+			common.RedLogf("sql db exec error: %v", err)
+		}
+		if x != nil {
+			panic(x)
+		}
+	}()
+	_, rerr = common.SdbExec(db, fmt.Sprintf("XA start '%s'", xaBranch))
+	if rerr != nil {
+		return
+	}
+	ret, rerr = xaFunc(db, xa)
+	if IsFailure(ret, rerr) {
+		return
+	}
+	ret, rerr = common.RestyClient.R().
 		SetBody(&M{"gid": xa.Gid, "branch_id": branchID, "trans_type": "xa", "status": "prepared", "url": xc.CallbackURL}).
 		Post(xc.Server + "/registerXaBranch")
-	e2p(err)
-	if !strings.Contains(resp.String(), "SUCCESS") {
-		e2p(fmt.Errorf("unknown server response: %s", resp.String()))
-	}
-	_, err = common.SdbExec(db, fmt.Sprintf("XA end '%s'", xaBranch))
-	e2p(err)
-	_, err = common.SdbExec(db, fmt.Sprintf("XA prepare '%s'", xaBranch))
-	e2p(err)
-	return nil
+	return
 }
 
 // XaGlobalTransaction start a xa global transaction
-func (xc *XaClient) XaGlobalTransaction(gid string, transFunc XaGlobalFunc) error {
+func (xc *XaClient) XaGlobalTransaction(gid string, xaFunc XaGlobalFunc) (ret interface{}, rerr error) {
 	xa := Xa{IDGenerator: IDGenerator{}, Gid: gid}
 	data := &M{
 		"gid":        gid,
 		"trans_type": "xa",
 	}
+	resp, err := common.RestyClient.R().SetBody(data).Post(xc.Server + "/prepare")
+	if IsFailure(resp, err) {
+		return resp, err
+	}
+	// 小概率情况下，prepare成功了，但是由于网络状况导致上面Failure，那么不执行下面defer的内容，等待超时后再回滚标记事务失败，也没有问题
 	defer func() {
-		x := recover()
+		var x interface{}
+		if x = recover(); x != nil || IsFailure(ret, rerr) {
+			resp, err = common.RestyClient.R().SetBody(data).Post(xc.Server + "/abort")
+		} else {
+			resp, err = common.RestyClient.R().SetBody(data).Post(xc.Server + "/submit")
+		}
+		if IsFailure(resp, err) {
+			common.RedLogf("submitting or abort global transaction error: %v resp: %s", err, resp.String())
+		}
 		if x != nil {
-			r, err := common.RestyClient.R().SetBody(data).Post(xc.Server + "/abort")
-			if !strings.Contains(r.String(), "SUCCESS") {
-				logrus.Errorf("abort xa error: resp: %s err: %v", r.String(), err)
-			}
+			panic(x)
 		}
 	}()
-	resp, err := common.RestyClient.R().SetBody(data).Post(xc.Server + "/prepare")
-	rerr := CheckDtmResponse(resp, err)
-	if rerr != nil {
-		return rerr
-	}
-	rerr = transFunc(&xa)
-	if rerr != nil {
-		return rerr
-	}
-	resp, err = common.RestyClient.R().SetBody(data).Post(xc.Server + "/submit")
-	rerr = CheckDtmResponse(resp, err)
-	if rerr != nil {
-		return rerr
-	}
-	return nil
+	ret, rerr = xaFunc(&xa)
+	return
 }
 
 // CallBranch call a xa branch
 func (x *Xa) CallBranch(body interface{}, url string) (*resty.Response, error) {
 	branchID := x.NewBranchID()
-	resp, err := common.RestyClient.R().
+	return common.RestyClient.R().
 		SetBody(body).
 		SetQueryParams(common.MS{
 			"gid":         x.Gid,
@@ -155,8 +160,4 @@ func (x *Xa) CallBranch(body interface{}, url string) (*resty.Response, error) {
 			"branch_type": "action",
 		}).
 		Post(url)
-	if strings.Contains(resp.String(), "FAILURE") {
-		return resp, fmt.Errorf("FAILURE result: %s err: %v", resp.String(), err)
-	}
-	return resp, err
 }

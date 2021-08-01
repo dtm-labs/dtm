@@ -4,9 +4,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
-	"github.com/yedf/dtm/common"
 	"github.com/yedf/dtm/dtmcli"
 	"github.com/yedf/dtm/examples"
 )
@@ -15,29 +13,30 @@ func TestXa(t *testing.T) {
 	if config.DB["driver"] != "mysql" {
 		return
 	}
-	xaLocalError(t)
+	// xaLocalError(t)
 	xaNormal(t)
-	xaRollback(t)
+	// xaRollback(t)
 }
 
 func xaLocalError(t *testing.T) {
-	err := examples.XaClient.XaGlobalTransaction("xaLocalError", func(xa *dtmcli.Xa) error {
-		return fmt.Errorf("an error")
+	_, err := examples.XaClient.XaGlobalTransaction("xaLocalError", func(xa *dtmcli.Xa) (interface{}, error) {
+		return nil, fmt.Errorf("an error")
 	})
 	assert.Error(t, err, fmt.Errorf("an error"))
 }
+
 func xaNormal(t *testing.T) {
 	xc := examples.XaClient
 	gid := "xaNormal"
-	err := xc.XaGlobalTransaction(gid, func(xa *dtmcli.Xa) error {
+	res, err := xc.XaGlobalTransaction(gid, func(xa *dtmcli.Xa) (interface{}, error) {
 		req := examples.GenTransReq(30, false, false)
 		resp, err := xa.CallBranch(req, examples.Busi+"/TransOutXa")
-		common.CheckRestySuccess(resp, err)
-		resp, err = xa.CallBranch(req, examples.Busi+"/TransInXa")
-		common.CheckRestySuccess(resp, err)
-		return nil
+		if dtmcli.IsFailure(resp, err) {
+			return resp, err
+		}
+		return xa.CallBranch(req, examples.Busi+"/TransInXa")
 	})
-	e2p(err)
+	dtmcli.PanicIfFailure(res, err)
 	WaitTransProcessed(gid)
 	assert.Equal(t, []string{"prepared", "succeed", "prepared", "succeed"}, getBranchesStatus(gid))
 }
@@ -45,17 +44,15 @@ func xaNormal(t *testing.T) {
 func xaRollback(t *testing.T) {
 	xc := examples.XaClient
 	gid := "xaRollback"
-	err := xc.XaGlobalTransaction(gid, func(xa *dtmcli.Xa) error {
+	res, err := xc.XaGlobalTransaction(gid, func(xa *dtmcli.Xa) (interface{}, error) {
 		req := &examples.TransReq{Amount: 30, TransInResult: "FAILURE"}
 		resp, err := xa.CallBranch(req, examples.Busi+"/TransOutXa")
-		common.CheckRestySuccess(resp, err)
-		resp, err = xa.CallBranch(req, examples.Busi+"/TransInXa")
-		common.CheckRestySuccess(resp, err)
-		return nil
+		if dtmcli.IsFailure(resp, err) {
+			return resp, err
+		}
+		return xa.CallBranch(req, examples.Busi+"/TransInXa")
 	})
-	if err != nil {
-		logrus.Errorf("global transaction failed, so rollback")
-	}
+	assert.True(t, dtmcli.IsFailure(res, err))
 	WaitTransProcessed(gid)
 	assert.Equal(t, []string{"succeed", "prepared"}, getBranchesStatus(gid))
 	assert.Equal(t, "failed", getTransStatus(gid))

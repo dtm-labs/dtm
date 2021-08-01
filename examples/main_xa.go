@@ -2,8 +2,6 @@ package examples
 
 import (
 	"database/sql"
-	"fmt"
-	"strings"
 
 	"github.com/gin-gonic/gin"
 	"github.com/yedf/dtm/common"
@@ -25,42 +23,34 @@ func XaSetup(app *gin.Engine) {
 // XaFireRequest 注册全局XA事务，调用XA的分支
 func XaFireRequest() string {
 	gid := dtmcli.MustGenGid(DtmServer)
-	err := XaClient.XaGlobalTransaction(gid, func(xa *dtmcli.Xa) (rerr error) {
-		defer common.P2E(&rerr)
+	res, err := XaClient.XaGlobalTransaction(gid, func(xa *dtmcli.Xa) (interface{}, error) {
 		req := &TransReq{Amount: 30}
 		resp, err := xa.CallBranch(req, Busi+"/TransOutXa")
-		common.CheckRestySuccess(resp, err)
-		resp, err = xa.CallBranch(req, Busi+"/TransInXa")
-		common.CheckRestySuccess(resp, err)
-		return nil
+		if dtmcli.IsFailure(resp, err) {
+			return resp, err
+		}
+		return xa.CallBranch(req, Busi+"/TransInXa")
 	})
-	e2p(err)
+	dtmcli.PanicIfFailure(res, err)
 	return gid
 }
 
 func xaTransIn(c *gin.Context) (interface{}, error) {
-	err := XaClient.XaLocalTransaction(c, func(db *sql.DB, xa *dtmcli.Xa) (rerr error) {
+	return XaClient.XaLocalTransaction(c, func(db *sql.DB, xa *dtmcli.Xa) (interface{}, error) {
 		if reqFrom(c).TransInResult == "FAILURE" {
-			return fmt.Errorf("tranIn FAILURE")
+			return M{"dtm_result": "FAILURE"}, nil
 		}
-		_, rerr = common.SdbExec(db, "update dtm_busi.user_account set balance=balance+? where user_id=?", reqFrom(c).Amount, 2)
-		return
+		_, err := common.SdbExec(db, "update dtm_busi.user_account set balance=balance+? where user_id=?", reqFrom(c).Amount, 2)
+		return M{"dtm_result": "SUCCESS"}, err
 	})
-	if err != nil && strings.Contains(err.Error(), "FAILURE") {
-		return M{"dtm_result": "FAILURE"}, nil
-	}
-	e2p(err)
-	return M{"dtm_result": "SUCCESS"}, nil
 }
 
 func xaTransOut(c *gin.Context) (interface{}, error) {
-	err := XaClient.XaLocalTransaction(c, func(db *sql.DB, xa *dtmcli.Xa) (rerr error) {
+	return XaClient.XaLocalTransaction(c, func(db *sql.DB, xa *dtmcli.Xa) (interface{}, error) {
 		if reqFrom(c).TransOutResult == "FAILURE" {
-			return fmt.Errorf("tranOut failed")
+			return M{"dtm_result": "FAILURE"}, nil
 		}
-		_, rerr = common.SdbExec(db, "update dtm_busi.user_account set balance=balance-? where user_id=?", reqFrom(c).Amount, 1)
-		return
+		_, err := common.SdbExec(db, "update dtm_busi.user_account set balance=balance-? where user_id=?", reqFrom(c).Amount, 1)
+		return M{"dtm_result": "SUCCESS"}, err
 	})
-	e2p(err)
-	return M{"dtm_result": "SUCCESS"}, nil
 }
