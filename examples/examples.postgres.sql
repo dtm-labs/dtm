@@ -17,7 +17,7 @@ create index if not exists create_idx on dtm_busi.user_account(create_time);
 -- SQLINES LICENSE FOR EVALUATION USE ONLY
 create index if not exists update_idx on dtm_busi.user_account(update_time);
 
-TRUNCATE dtm_busi.user_account
+TRUNCATE dtm_busi.user_account;
 insert into dtm_busi.user_account (user_id, balance) values (1, 10000), (2, 10000);
 
 drop table if exists dtm_busi.user_account_trading;
@@ -40,12 +40,12 @@ TRUNCATE dtm_busi.user_account_trading;
 insert into dtm_busi.user_account_trading (user_id, trading_balance) values (1, 0), (2, 0);
 
 
-drop table if exists dtm_busi.barrier;
+drop table if exists dtm_barrier.barrier;
 -- SQLINES LICENSE FOR EVALUATION USE ONLY
-create sequence if not exists dtm_busi.barrier_seq;
+create sequence if not exists dtm_barrier.barrier_seq;
 
-create table if not exists dtm_busi.barrier(
-  id int PRIMARY KEY DEFAULT NEXTVAL ('dtm_busi.barrier_seq'),
+create table if not exists dtm_barrier.barrier(
+  id int PRIMARY KEY DEFAULT NEXTVAL ('dtm_barrier.barrier_seq'),
   trans_type varchar(45) default '' ,
   gid varchar(128) default'',
   branch_id varchar(128) default '',
@@ -57,6 +57,6 @@ create table if not exists dtm_busi.barrier(
   UNIQUE (gid, branch_id, branch_type)
 );
 -- SQLINES LICENSE FOR EVALUATION USE ONLY
-create index if not exists create_idx on dtm_busi.barrier(create_time);
+create index if not exists create_idx on dtm_barrier.barrier(create_time);
 -- SQLINES LICENSE FOR EVALUATION USE ONLY
-create index if not exists update_idx on dtm_busi.barrier(update_time);
+create index if not exists update_idx on dtm_barrier.barrier(update_time);
