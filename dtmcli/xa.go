@@ -21,6 +21,9 @@ type XaGlobalFunc func(xa *Xa) (interface{}, error)
 // XaLocalFunc type of xa local function
 type XaLocalFunc func(db *sql.DB, xa *Xa) (interface{}, error)
 
+// XaRegisterCallback type of xa register callback handler
+type XaRegisterCallback func(path string, xa *XaClient)
+
 // XaClient xa client
 type XaClient struct {
 	Server      string
@@ -43,7 +46,7 @@ func XaFromReq(c *gin.Context) *Xa {
 }
 
 // NewXaClient construct a xa client
-func NewXaClient(server string, mysqlConf map[string]string, app *gin.Engine, callbackURL string) (*XaClient, error) {
+func NewXaClient(server string, mysqlConf map[string]string, callbackURL string, register XaRegisterCallback) (*XaClient, error) {
 	xa := &XaClient{
 		Server:      server,
 		Conf:        mysqlConf,
@@ -53,31 +56,18 @@ func NewXaClient(server string, mysqlConf map[string]string, app *gin.Engine, ca
 	if err != nil {
 		return nil, err
 	}
-	app.POST(u.Path, common.WrapHandler(func(c *gin.Context) (interface{}, error) {
-		type CallbackReq struct {
-			Gid      string `json:"gid"`
-			BranchID string `json:"branch_id"`
-			Action   string `json:"action"`
-		}
-		req := CallbackReq{}
-		b, err := c.GetRawData()
-		if err != nil {
-			return nil, err
-		}
-		common.MustUnmarshal(b, &req)
-		db := common.SdbAlone(xa.Conf)
-		defer db.Close()
-		branchID := req.Gid + "-" + req.BranchID
-		if req.Action == "commit" {
-			_, err = common.SdbExec(db, fmt.Sprintf("xa commit '%s'", branchID))
-		} else if req.Action == "rollback" {
-			_, err = common.SdbExec(db, fmt.Sprintf("xa rollback '%s'", branchID))
-		} else {
-			panic(fmt.Errorf("unknown action: %s", req.Action))
-		}
-		return M{"dtm_result": "SUCCESS"}, err
-	}))
+	register(u.Path, xa)
 	return xa, nil
+}
+
+// HandleCallback 处理commit/rollback的回调
+func (xc *XaClient) HandleCallback(gid string, branchID string, action string) (interface{}, error) {
+	db := common.SdbAlone(xc.Conf)
+	defer db.Close()
+	xaID := gid + "-" + branchID
+	_, err := common.SdbExec(db, fmt.Sprintf("xa %s '%s'", action, xaID))
+	return M{"dtm_result": "SUCCESS"}, err
+
 }
 
 // XaLocalTransaction start a xa local transaction

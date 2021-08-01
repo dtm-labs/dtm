@@ -16,7 +16,11 @@ func XaSetup(app *gin.Engine) {
 	app.POST(BusiAPI+"/TransInXa", common.WrapHandler(xaTransIn))
 	app.POST(BusiAPI+"/TransOutXa", common.WrapHandler(xaTransOut))
 	var err error
-	XaClient, err = dtmcli.NewXaClient(DtmServer, config.DB, app, Busi+"/xa")
+	XaClient, err = dtmcli.NewXaClient(DtmServer, config.DB, Busi+"/xa", func(path string, xa *dtmcli.XaClient) {
+		app.POST(path, common.WrapHandler(func(c *gin.Context) (interface{}, error) {
+			return xa.HandleCallback(c.Query("gid"), c.Query("branch_id"), c.Query("action"))
+		}))
+	})
 	e2p(err)
 }
 
@@ -24,12 +28,11 @@ func XaSetup(app *gin.Engine) {
 func XaFireRequest() string {
 	gid := dtmcli.MustGenGid(DtmServer)
 	res, err := XaClient.XaGlobalTransaction(gid, func(xa *dtmcli.Xa) (interface{}, error) {
-		req := &TransReq{Amount: 30}
-		resp, err := xa.CallBranch(req, Busi+"/TransOutXa")
+		resp, err := xa.CallBranch(&TransReq{Amount: 30}, Busi+"/TransOutXa")
 		if dtmcli.IsFailure(resp, err) {
 			return resp, err
 		}
-		return xa.CallBranch(req, Busi+"/TransInXa")
+		return xa.CallBranch(&TransReq{Amount: 30}, Busi+"/TransInXa")
 	})
 	dtmcli.PanicIfFailure(res, err)
 	return gid

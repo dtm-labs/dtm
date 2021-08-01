@@ -13,9 +13,9 @@ func TestXa(t *testing.T) {
 	if config.DB["driver"] != "mysql" {
 		return
 	}
-	// xaLocalError(t)
+	xaLocalError(t)
 	xaNormal(t)
-	// xaRollback(t)
+	xaRollback(t)
 }
 
 func xaLocalError(t *testing.T) {
