@@ -149,8 +149,5 @@ func (x *Xa) CallBranch(body interface{}, url string) (*resty.Response, error) {
 			"branch_type": "action",
 		}).
 		Post(url)
-	if IsFailure(resp, nil) {
-		err = ErrUserFailure
-	}
-	return resp, err
+	return resp, CheckUserResponse(resp, err)
 }

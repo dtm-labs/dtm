@@ -34,6 +34,18 @@ func PanicIfFailure(res interface{}, err error) {
 	}
 }
 
+// CheckUserResponse 检查Response，返回错误
+func CheckUserResponse(resp *resty.Response, err error) error {
+	if err == nil && resp != nil {
+		if resp.IsError() {
+			return errors.New(resp.String())
+		} else if strings.Contains(resp.String(), "FAILURE") {
+			return ErrUserFailure
+		}
+	}
+	return err
+}
+
 // CheckDtmResponse check the response of dtm, if not ok ,generate error
 func CheckDtmResponse(resp *resty.Response, err error) error {
 	if err != nil {
@@ -120,3 +132,6 @@ func callDtmSimple(dtm string, body interface{}, operation string) error {
 
 // ErrUserFailure 表示用户返回失败，要求回滚
 var ErrUserFailure = errors.New("user return FAILURE")
+
+// ErrDtmFailure 表示用户返回失败，要求回滚
+var ErrDtmFailure = errors.New("dtm return FAILURE")
