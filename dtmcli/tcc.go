@@ -34,9 +34,8 @@ func TccGlobalTransaction(dtm string, gid string, tccFunc TccGlobalFunc) (rerr e
 	// 小概率情况下，prepare成功了，但是由于网络状况导致上面Failure，那么不执行下面defer的内容，等待超时后再回滚标记事务失败，也没有问题
 	defer func() {
 		x := recover()
-		var err error
 		operation := common.If(x == nil && rerr == nil, "submit", "abort").(string)
-		err = tcc.CallDtm(data, operation)
+		err := tcc.CallDtm(data, operation)
 		if rerr == nil {
 			rerr = err
 		}
