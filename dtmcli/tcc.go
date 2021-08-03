@@ -22,21 +22,22 @@ type TccGlobalFunc func(tcc *Tcc) (*resty.Response, error)
 // dtm dtm服务器地址
 // gid 全局事务id
 // tccFunc tcc事务函数，里面会定义全局事务的分支
-func TccGlobalTransaction(dtm string, gid string, tccFunc TccGlobalFunc) (ret interface{}, rerr error) {
+func TccGlobalTransaction(dtm string, gid string, tccFunc TccGlobalFunc) (status TransStatus, rerr error) {
 	data := &M{
 		"gid":        gid,
 		"trans_type": "tcc",
 	}
 	tcc := &Tcc{Dtm: dtm, Gid: gid}
-	resp, err := CallDtm(dtm, data, "prepare", &TransOptions{})
-	if err != nil {
-		return resp, err
+	status, rerr = CallDtm(dtm, data, "prepare", &TransOptions{})
+	if rerr != nil {
+		return status, rerr
 	}
 	// 小概率情况下，prepare成功了，但是由于网络状况导致上面Failure，那么不执行下面defer的内容，等待超时后再回滚标记事务失败，也没有问题
 	defer func() {
 		x := recover()
+		var err error
 		operation := common.If(x == nil && rerr == nil, "submit", "abort").(string)
-		resp, err = CallDtm(dtm, data, operation, &TransOptions{})
+		status, err = CallDtm(dtm, data, operation, &TransOptions{})
 		if rerr == nil {
 			rerr = err
 		}
@@ -44,8 +45,8 @@ func TccGlobalTransaction(dtm string, gid string, tccFunc TccGlobalFunc) (ret in
 			panic(x)
 		}
 	}()
-	ret, rerr = tccFunc(tcc)
-	rerr = CheckResult(ret, rerr)
+	resp, rerr := tccFunc(tcc)
+	rerr = CheckResponse(resp, rerr)
 	return
 }
 
