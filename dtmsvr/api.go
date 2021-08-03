@@ -41,8 +41,7 @@ func submit(c *gin.Context) (interface{}, error) {
 	}
 	t.Status = "submitted"
 	t.saveNew(db)
-	go t.Process(db)
-	return dtmcli.ResultSuccess, nil
+	return t.Process(db, c.Query("wait_result") == "true" || c.Query("wait_result") == "1"), nil
 }
 
 func abort(c *gin.Context) (interface{}, error) {
@@ -52,8 +51,7 @@ func abort(c *gin.Context) (interface{}, error) {
 	if t.TransType != "xa" && t.TransType != "tcc" || dbt.Status != "prepared" && dbt.Status != "aborting" {
 		return M{"dtm_result": "FAILURE", "message": fmt.Sprintf("trans type: %s current status %s, cannot abort", dbt.TransType, dbt.Status)}, nil
 	}
-	go dbt.Process(db)
-	return dtmcli.ResultSuccess, nil
+	return dbt.Process(db, c.Query("wait_result") == "true" || c.Query("wait_result") == "1"), nil
 }
 
 func registerXaBranch(c *gin.Context) (interface{}, error) {

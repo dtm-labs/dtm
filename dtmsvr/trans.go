@@ -7,6 +7,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
 	"github.com/yedf/dtm/common"
+	"github.com/yedf/dtm/dtmcli"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 )
@@ -110,8 +111,24 @@ func (t *TransGlobal) getProcessor() transProcessor {
 }
 
 // Process process global transaction once
-func (t *TransGlobal) Process(db *common.DB) {
-	defer handlePanic()
+func (t *TransGlobal) Process(db *common.DB, waitResult bool) common.M {
+	if !waitResult {
+		go t.processInner(db)
+		return dtmcli.ResultSuccess
+	}
+	submitting := t.Status == "submitted"
+	err := t.processInner(db)
+	if err != nil {
+		return common.M{"dtm_result": "FAILURE", "message": err.Error()}
+	}
+	if submitting && t.Status != "succeed" {
+		return common.M{"dtm_result": "FAILURE", "message": "trans failed by user"}
+	}
+	return dtmcli.ResultSuccess
+}
+
+func (t *TransGlobal) processInner(db *common.DB) (rerr error) {
+	defer handlePanic(&rerr)
 	defer func() {
 		if TransProcessedTestChan != nil {
 			logrus.Printf("processed: %s", t.Gid)
@@ -126,6 +143,7 @@ func (t *TransGlobal) Process(db *common.DB) {
 	branches := []TransBranch{}
 	db.Must().Where("gid=?", t.Gid).Order("id asc").Find(&branches)
 	t.getProcessor().ProcessOnce(db, branches)
+	return
 }
 
 func (t *TransGlobal) getBranchParams(branch *TransBranch) common.MS {

@@ -1,6 +1,7 @@
 package dtmsvr
 
 import (
+	"fmt"
 	"math"
 	"math/rand"
 	"runtime/debug"
@@ -12,7 +13,7 @@ import (
 
 // CronTransOnce cron expired trans. use expireIn as expire time
 func CronTransOnce(expireIn time.Duration) bool {
-	defer handlePanic()
+	defer handlePanic(nil)
 	trans := lockOneTrans(expireIn)
 	if trans == nil {
 		return false
@@ -20,7 +21,7 @@ func CronTransOnce(expireIn time.Duration) bool {
 	if TransProcessedTestChan != nil {
 		defer WaitTransProcessed(trans.Gid)
 	}
-	trans.Process(dbGet())
+	trans.Process(dbGet(), true)
 	return true
 }
 
@@ -52,9 +53,12 @@ func lockOneTrans(expireIn time.Duration) *TransGlobal {
 	return &trans
 }
 
-func handlePanic() {
+func handlePanic(perr *error) {
 	if err := recover(); err != nil {
-		common.RedLogf("----panic %s handlered\n%s", err.(error).Error(), string(debug.Stack()))
+		common.RedLogf("----panic %v handlered\n%s", err, string(debug.Stack()))
+		if perr != nil {
+			*perr = fmt.Errorf("dtm panic: %v", err)
+		}
 	}
 }
 
