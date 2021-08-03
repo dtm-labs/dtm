@@ -69,7 +69,7 @@ func tccBarrierDisorder(t *testing.T) {
 			return res, err
 		}))
 		// 注册子事务
-		err := dtmcli.CallDtm(tcc.Dtm, M{
+		err := tcc.CallDtm(M{
 			"gid":        tcc.Gid,
 			"branch_id":  branchID,
 			"trans_type": "tcc",
@@ -78,7 +78,7 @@ func tccBarrierDisorder(t *testing.T) {
 			"try":        tryURL,
 			"confirm":    confirmURL,
 			"cancel":     cancelURL,
-		}, "registerTccBranch", &dtmcli.TransOptions{})
+		}, "registerTccBranch")
 		assert.Nil(t, err)
 		go func() {
 			logrus.Printf("sleeping to wait for tcc try timeout")

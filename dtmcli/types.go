@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/gin-gonic/gin"
 	"github.com/go-resty/resty/v2"
 	"github.com/yedf/dtm/common"
 )
@@ -61,23 +62,33 @@ func (g *IDGenerator) NewBranchID() string {
 	return g.parentID + fmt.Sprintf("%02d", g.branchID)
 }
 
-// TransOptions 提交/终止事务的选项
-type TransOptions struct {
-	// WaitResult 是否等待全局事务的最终结果
-	WaitResult bool
-}
-
 // TransResult dtm 返回的结果
 type TransResult struct {
 	DtmResult string `json:"dtm_result"`
 	Message   string
 }
 
+// TransBase 事务的基础类
+type TransBase struct {
+	IDGenerator
+	Dtm string
+	// WaitResult 是否等待全局事务的最终结果
+	WaitResult bool
+}
+
+// TransBaseFromReq construct xa info from request
+func TransBaseFromReq(c *gin.Context) *TransBase {
+	return &TransBase{
+		IDGenerator: IDGenerator{parentID: c.Query("branch_id")},
+		Dtm:         c.Query("dtm"),
+	}
+}
+
 // CallDtm 调用dtm服务器，返回事务的状态
-func CallDtm(dtm string, body interface{}, operation string, opt *TransOptions) error {
+func (tb *TransBase) CallDtm(body interface{}, operation string) error {
 	resp, err := common.RestyClient.R().SetQueryParams(common.MS{
-		"wait_result": common.If(opt.WaitResult, "1", "").(string),
-	}).SetResult(&TransResult{}).SetBody(body).Post(fmt.Sprintf("%s/%s", dtm, operation))
+		"wait_result": common.If(tb.WaitResult, "1", "").(string),
+	}).SetResult(&TransResult{}).SetBody(body).Post(fmt.Sprintf("%s/%s", tb.Dtm, operation))
 	if err != nil {
 		return err
 	}
@@ -86,10 +97,6 @@ func CallDtm(dtm string, body interface{}, operation string, opt *TransOptions) 
 		return errors.New("FAILURE: " + tr.Message)
 	}
 	return nil
-}
-
-func callDtmSimple(dtm string, body interface{}, operation string) error {
-	return CallDtm(dtm, body, operation, &TransOptions{})
 }
 
 // ErrFailure 表示返回失败，要求回滚

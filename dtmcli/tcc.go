@@ -10,9 +10,8 @@ import (
 
 // Tcc struct of tcc
 type Tcc struct {
-	IDGenerator
-	Dtm string
 	Gid string
+	TransBase
 }
 
 // TccGlobalFunc type of global tcc call
@@ -27,8 +26,8 @@ func TccGlobalTransaction(dtm string, gid string, tccFunc TccGlobalFunc) (rerr e
 		"gid":        gid,
 		"trans_type": "tcc",
 	}
-	tcc := &Tcc{Dtm: dtm, Gid: gid}
-	rerr = CallDtm(dtm, data, "prepare", &TransOptions{})
+	tcc := &Tcc{TransBase: TransBase{Dtm: dtm}, Gid: gid}
+	rerr = tcc.CallDtm(data, "prepare")
 	if rerr != nil {
 		return rerr
 	}
@@ -37,7 +36,7 @@ func TccGlobalTransaction(dtm string, gid string, tccFunc TccGlobalFunc) (rerr e
 		x := recover()
 		var err error
 		operation := common.If(x == nil && rerr == nil, "submit", "abort").(string)
-		err = CallDtm(dtm, data, operation, &TransOptions{})
+		err = tcc.CallDtm(data, operation)
 		if rerr == nil {
 			rerr = err
 		}
@@ -53,9 +52,8 @@ func TccGlobalTransaction(dtm string, gid string, tccFunc TccGlobalFunc) (rerr e
 // TccFromReq tcc from request info
 func TccFromReq(c *gin.Context) (*Tcc, error) {
 	tcc := &Tcc{
-		Dtm:         c.Query("dtm"),
-		Gid:         c.Query("gid"),
-		IDGenerator: IDGenerator{parentID: c.Query("branch_id")},
+		TransBase: *TransBaseFromReq(c),
+		Gid:       c.Query("gid"),
 	}
 	if tcc.Dtm == "" || tcc.Gid == "" {
 		return nil, fmt.Errorf("bad tcc info. dtm: %s, gid: %s", tcc.Dtm, tcc.Gid)
@@ -67,7 +65,7 @@ func TccFromReq(c *gin.Context) (*Tcc, error) {
 // 函数首先注册子事务的所有分支，成功后调用try分支，返回try分支的调用结果
 func (t *Tcc) CallBranch(body interface{}, tryURL string, confirmURL string, cancelURL string) (*resty.Response, error) {
 	branchID := t.NewBranchID()
-	err := CallDtm(t.Dtm, &M{
+	err := t.CallDtm(&M{
 		"gid":        t.Gid,
 		"branch_id":  branchID,
 		"trans_type": "tcc",
@@ -76,7 +74,7 @@ func (t *Tcc) CallBranch(body interface{}, tryURL string, confirmURL string, can
 		"try":        tryURL,
 		"confirm":    confirmURL,
 		"cancel":     cancelURL,
-	}, "registerTccBranch", &TransOptions{})
+	}, "registerTccBranch")
 	if err != nil {
 		return nil, err
 	}

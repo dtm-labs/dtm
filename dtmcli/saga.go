@@ -8,7 +8,7 @@ import (
 // Saga struct of saga
 type Saga struct {
 	SagaData
-	Server string
+	TransBase
 }
 
 // SagaData sage data
@@ -32,13 +32,15 @@ func NewSaga(server string, gid string) *Saga {
 			Gid:       gid,
 			TransType: "saga",
 		},
-		Server: server,
+		TransBase: TransBase{
+			Dtm: server,
+		},
 	}
 }
 
 // Add add a saga step
 func (s *Saga) Add(action string, compensate string, postData interface{}) *Saga {
-	logrus.Printf("saga %s Add %s %s %v", s.Gid, action, compensate, postData)
+	logrus.Printf("saga %s Add %s %s %v", s.SagaData.Gid, action, compensate, postData)
 	step := SagaStep{
 		Action:     action,
 		Compensate: compensate,
@@ -50,10 +52,5 @@ func (s *Saga) Add(action string, compensate string, postData interface{}) *Saga
 
 // Submit submit the saga trans
 func (s *Saga) Submit() error {
-	return s.SubmitExt(&TransOptions{})
-}
-
-// SubmitExt 高级submit，更多的选项和更详细的返回值
-func (s *Saga) SubmitExt(opt *TransOptions) error {
-	return CallDtm(s.Server, &s.SagaData, "submit", opt)
+	return s.CallDtm(&s.SagaData, "submit")
 }

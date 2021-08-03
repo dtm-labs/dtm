@@ -33,16 +33,13 @@ type XaClient struct {
 
 // Xa xa transaction
 type Xa struct {
-	IDGenerator
 	Gid string
+	TransBase
 }
 
 // XaFromReq construct xa info from request
 func XaFromReq(c *gin.Context) *Xa {
-	return &Xa{
-		Gid:         c.Query("gid"),
-		IDGenerator: IDGenerator{parentID: c.Query("branch_id")},
-	}
+	return &Xa{TransBase: *TransBaseFromReq(c), Gid: c.Query("gid")}
 }
 
 // NewXaClient construct a xa client
@@ -73,6 +70,7 @@ func (xc *XaClient) HandleCallback(gid string, branchID string, action string) (
 // XaLocalTransaction start a xa local transaction
 func (xc *XaClient) XaLocalTransaction(c *gin.Context, xaFunc XaLocalFunc) (ret interface{}, rerr error) {
 	xa := XaFromReq(c)
+	xa.Dtm = xc.Server
 	branchID := xa.NewBranchID()
 	xaBranch := xa.Gid + "-" + branchID
 	db := common.SdbAlone(xc.Conf)
@@ -99,18 +97,18 @@ func (xc *XaClient) XaLocalTransaction(c *gin.Context, xaFunc XaLocalFunc) (ret 
 	if rerr != nil {
 		return
 	}
-	rerr = CallDtm(xc.Server, &M{"gid": xa.Gid, "branch_id": branchID, "trans_type": "xa", "status": "prepared", "url": xc.CallbackURL}, "registerXaBranch", &TransOptions{})
+	rerr = xa.CallDtm(&M{"gid": xa.Gid, "branch_id": branchID, "trans_type": "xa", "status": "prepared", "url": xc.CallbackURL}, "registerXaBranch")
 	return
 }
 
 // XaGlobalTransaction start a xa global transaction
 func (xc *XaClient) XaGlobalTransaction(gid string, xaFunc XaGlobalFunc) (rerr error) {
-	xa := Xa{IDGenerator: IDGenerator{}, Gid: gid}
+	xa := Xa{TransBase: TransBase{IDGenerator: IDGenerator{}, Dtm: xc.Server}, Gid: gid}
 	data := &M{
 		"gid":        gid,
 		"trans_type": "xa",
 	}
-	rerr = CallDtm(xc.Server, data, "prepare", &TransOptions{})
+	rerr = xa.CallDtm(data, "prepare")
 	if rerr != nil {
 		return
 	}
@@ -119,7 +117,7 @@ func (xc *XaClient) XaGlobalTransaction(gid string, xaFunc XaGlobalFunc) (rerr e
 	defer func() {
 		x := recover()
 		operation := common.If(x != nil || rerr != nil, "abort", "submit").(string)
-		err := CallDtm(xc.Server, data, operation, &TransOptions{})
+		err := xa.CallDtm(data, operation)
 		if rerr == nil { // 如果用户函数没有返回错误，那么返回dtm的
 			rerr = err
 		}

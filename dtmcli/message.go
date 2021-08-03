@@ -8,7 +8,7 @@ import (
 // Msg reliable msg type
 type Msg struct {
 	MsgData
-	Server string
+	TransBase
 }
 
 // MsgData msg data
@@ -32,13 +32,15 @@ func NewMsg(server string, gid string) *Msg {
 			Gid:       gid,
 			TransType: "msg",
 		},
-		Server: server,
+		TransBase: TransBase{
+			Dtm: server,
+		},
 	}
 }
 
 // Add add a new step
 func (s *Msg) Add(action string, postData interface{}) *Msg {
-	logrus.Printf("msg %s Add %s %v", s.Gid, action, postData)
+	logrus.Printf("msg %s Add %s %v", s.MsgData.Gid, action, postData)
 	step := MsgStep{
 		Action: action,
 		Data:   common.MustMarshalString(postData),
@@ -50,15 +52,10 @@ func (s *Msg) Add(action string, postData interface{}) *Msg {
 // Prepare prepare the msg
 func (s *Msg) Prepare(queryPrepared string) error {
 	s.QueryPrepared = common.OrString(queryPrepared, s.QueryPrepared)
-	return callDtmSimple(s.Server, &s.MsgData, "prepare")
+	return s.CallDtm(&s.MsgData, "prepare")
 }
 
 // Submit submit the msg
 func (s *Msg) Submit() error {
-	return callDtmSimple(s.Server, &s.MsgData, "submit")
-}
-
-// SubmitExt 高级submit，更多的选项和更详细的返回值
-func (s *Msg) SubmitExt(opt *TransOptions) error {
-	return CallDtm(s.Server, &s.MsgData, "submit", opt)
+	return s.CallDtm(&s.MsgData, "submit")
 }
