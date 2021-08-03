@@ -28,14 +28,14 @@ func XaSetup(app *gin.Engine) {
 // XaFireRequest 注册全局XA事务，调用XA的分支
 func XaFireRequest() string {
 	gid := dtmcli.MustGenGid(DtmServer)
-	res, err := XaClient.XaGlobalTransaction(gid, func(xa *dtmcli.Xa) (*resty.Response, error) {
+	_, err := XaClient.XaGlobalTransaction(gid, func(xa *dtmcli.Xa) (*resty.Response, error) {
 		resp, err := xa.CallBranch(&TransReq{Amount: 30}, Busi+"/TransOutXa")
 		if dtmcli.IsFailure(resp, err) {
 			return resp, err
 		}
 		return xa.CallBranch(&TransReq{Amount: 30}, Busi+"/TransInXa")
 	})
-	dtmcli.PanicIfFailure(res, err)
+	e2p(err)
 	return gid
 }
 

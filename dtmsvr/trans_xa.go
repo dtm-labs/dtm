@@ -21,7 +21,7 @@ func (t *transXaProcessor) GenBranches() []TransBranch {
 func (t *transXaProcessor) ExecBranch(db *common.DB, branch *TransBranch) {
 	resp, err := common.RestyClient.R().SetQueryParams(common.MS{
 		"branch_id": branch.BranchID,
-		"action":    common.If(t.Status == "prepared", "rollback", "commit").(string),
+		"action":    common.If(t.Status == "prepared" || t.Status == "aborting", "rollback", "commit").(string),
 		"gid":       branch.Gid,
 	}).Post(branch.URL)
 	e2p(err)

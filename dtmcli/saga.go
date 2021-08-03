@@ -1,8 +1,6 @@
 package dtmcli
 
 import (
-	"fmt"
-
 	"github.com/sirupsen/logrus"
 	"github.com/yedf/dtm/common"
 )
@@ -52,7 +50,11 @@ func (s *Saga) Add(action string, compensate string, postData interface{}) *Saga
 
 // Submit submit the saga trans
 func (s *Saga) Submit() error {
-	logrus.Printf("committing %s body: %v", s.Gid, &s.SagaData)
-	resp, err := common.RestyClient.R().SetBody(&s.SagaData).Post(fmt.Sprintf("%s/submit", s.Server))
-	return CheckDtmResponse(resp, err)
+	_, err := s.SubmitExt(&TransOptions{})
+	return err
+}
+
+// SubmitExt 高级submit，更多的选项和更详细的返回值
+func (s *Saga) SubmitExt(opt *TransOptions) (TransStatus, error) {
+	return callDtm(s.Server, &s.SagaData, "submit", opt)
 }

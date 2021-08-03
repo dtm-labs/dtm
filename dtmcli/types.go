@@ -1,6 +1,7 @@
 package dtmcli
 
 import (
+	"errors"
 	"fmt"
 	"strings"
 
@@ -61,3 +62,61 @@ func (g *IDGenerator) NewBranchID() string {
 	g.branchID = g.branchID + 1
 	return g.parentID + fmt.Sprintf("%02d", g.branchID)
 }
+
+// TransStatus 全局事务状态，采用string
+type TransStatus string
+
+const (
+	// TransEmpty 空值
+	TransEmpty TransStatus = ""
+	// TransSubmitted 已提交给DTM
+	TransSubmitted TransStatus = "submitted"
+	// TransAborting 正在回滚中，有两种情况会出现，一是用户侧发起abort请求，而是发起submit同步请求，但是dtm进行回滚中出现错误
+	TransAborting TransStatus = "aborting"
+	// TransSucceed 事务已完成
+	TransSucceed TransStatus = "succeed"
+	// TransFailed 事务已回滚
+	TransFailed TransStatus = "failed"
+	// TransErrorPrepare prepare调用报错
+	TransErrorPrepare TransStatus = "error_parepare"
+	// TransErrorSubmit submit调用报错
+	TransErrorSubmit TransStatus = "error_submit"
+	// TransErrorAbort abort调用报错
+	TransErrorAbort TransStatus = "error_abort"
+)
+
+// TransOptions 提交/终止事务的选项
+type TransOptions struct {
+	// WaitResult 是否等待全局事务的最终结果
+	WaitResult bool
+}
+
+// TransResult dtm 返回的结果
+type TransResult struct {
+	DtmResult string `json:"dtm_result"`
+	Status    TransStatus
+	Message   string
+}
+
+func callDtm(dtm string, body interface{}, operation string, opt *TransOptions) (TransStatus, error) {
+	resp, err := common.RestyClient.R().SetQueryParams(common.MS{
+		"wait_result": common.If(opt.WaitResult, "1", "").(string),
+	}).SetResult(&TransResult{}).SetBody(body).Post(fmt.Sprintf("%s/%s", dtm, operation))
+	errStatus := TransStatus("error_" + operation)
+	if err != nil {
+		return errStatus, err
+	}
+	tr := resp.Result().(*TransResult)
+	if tr.DtmResult == "FAILURE" {
+		return errStatus, errors.New(tr.Message)
+	}
+	return tr.Status, nil
+}
+
+func callDtmSimple(dtm string, body interface{}, operation string) error {
+	_, err := callDtm(dtm, body, operation, &TransOptions{})
+	return err
+}
+
+// ErrUserFailure 表示用户返回失败，要求回滚
+var ErrUserFailure = errors.New("user return FAILURE")

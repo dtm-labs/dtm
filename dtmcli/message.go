@@ -1,8 +1,6 @@
 package dtmcli
 
 import (
-	"fmt"
-
 	"github.com/sirupsen/logrus"
 	"github.com/yedf/dtm/common"
 )
@@ -49,17 +47,18 @@ func (s *Msg) Add(action string, postData interface{}) *Msg {
 	return s
 }
 
-// Submit submit the msg
-func (s *Msg) Submit() error {
-	logrus.Printf("committing %s body: %v", s.Gid, &s.MsgData)
-	resp, err := common.RestyClient.R().SetBody(&s.MsgData).Post(fmt.Sprintf("%s/submit", s.Server))
-	return CheckDtmResponse(resp, err)
-}
-
 // Prepare prepare the msg
 func (s *Msg) Prepare(queryPrepared string) error {
 	s.QueryPrepared = common.OrString(queryPrepared, s.QueryPrepared)
-	logrus.Printf("preparing %s body: %v", s.Gid, &s.MsgData)
-	resp, err := common.RestyClient.R().SetBody(&s.MsgData).Post(fmt.Sprintf("%s/prepare", s.Server))
-	return CheckDtmResponse(resp, err)
+	return callDtmSimple(s.Server, &s.MsgData, "prepare")
+}
+
+// Submit submit the msg
+func (s *Msg) Submit() error {
+	return callDtmSimple(s.Server, &s.MsgData, "submit")
+}
+
+// SubmitExt 高级submit，更多的选项和更详细的返回值
+func (s *Msg) SubmitExt(opt *TransOptions) (TransStatus, error) {
+	return callDtm(s.Server, &s.MsgData, "submit", opt)
 }

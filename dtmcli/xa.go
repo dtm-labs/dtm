@@ -109,39 +109,38 @@ func (xc *XaClient) XaLocalTransaction(c *gin.Context, xaFunc XaLocalFunc) (ret 
 }
 
 // XaGlobalTransaction start a xa global transaction
-func (xc *XaClient) XaGlobalTransaction(gid string, xaFunc XaGlobalFunc) (ret interface{}, rerr error) {
+func (xc *XaClient) XaGlobalTransaction(gid string, xaFunc XaGlobalFunc) (status TransStatus, rerr error) {
 	xa := Xa{IDGenerator: IDGenerator{}, Gid: gid}
 	data := &M{
 		"gid":        gid,
 		"trans_type": "xa",
 	}
-	resp, err := common.RestyClient.R().SetBody(data).Post(xc.Server + "/prepare")
-	if IsFailure(resp, err) {
-		return resp, err
+	status, rerr = callDtm(xc.Server, data, "prepare", &TransOptions{})
+	if rerr != nil {
+		return
 	}
+	var resp *resty.Response
 	// 小概率情况下，prepare成功了，但是由于网络状况导致上面Failure，那么不执行下面defer的内容，等待超时后再回滚标记事务失败，也没有问题
 	defer func() {
-		var x interface{}
-		if x = recover(); x != nil || IsFailure(ret, rerr) {
-			resp, err = common.RestyClient.R().SetBody(data).Post(xc.Server + "/abort")
-		} else {
-			resp, err = common.RestyClient.R().SetBody(data).Post(xc.Server + "/submit")
-		}
-		if IsFailure(resp, err) {
-			common.RedLogf("submitting or abort global transaction error: %v resp: %s", err, resp.String())
+		x := recover()
+		operation := common.If(x != nil || IsFailure(resp, rerr), "abort", "submit").(string)
+		var err error
+		status, err = callDtm(xc.Server, data, operation, &TransOptions{})
+		if rerr == nil { // 如果用户函数没有返回错误，那么返回dtm的
+			rerr = err
 		}
 		if x != nil {
 			panic(x)
 		}
 	}()
-	ret, rerr = xaFunc(&xa)
+	resp, rerr = xaFunc(&xa)
 	return
 }
 
 // CallBranch call a xa branch
 func (x *Xa) CallBranch(body interface{}, url string) (*resty.Response, error) {
 	branchID := x.NewBranchID()
-	return common.RestyClient.R().
+	resp, err := common.RestyClient.R().
 		SetBody(body).
 		SetQueryParams(common.MS{
 			"gid":         x.Gid,
@@ -150,4 +149,8 @@ func (x *Xa) CallBranch(body interface{}, url string) (*resty.Response, error) {
 			"branch_type": "action",
 		}).
 		Post(url)
+	if IsFailure(resp, nil) {
+		err = ErrUserFailure
+	}
+	return resp, err
 }
