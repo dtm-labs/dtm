@@ -22,22 +22,22 @@ type TccGlobalFunc func(tcc *Tcc) (*resty.Response, error)
 // dtm dtm服务器地址
 // gid 全局事务id
 // tccFunc tcc事务函数，里面会定义全局事务的分支
-func TccGlobalTransaction(dtm string, gid string, tccFunc TccGlobalFunc) (status TransStatus, rerr error) {
+func TccGlobalTransaction(dtm string, gid string, tccFunc TccGlobalFunc) (rerr error) {
 	data := &M{
 		"gid":        gid,
 		"trans_type": "tcc",
 	}
 	tcc := &Tcc{Dtm: dtm, Gid: gid}
-	status, rerr = CallDtm(dtm, data, "prepare", &TransOptions{})
+	rerr = CallDtm(dtm, data, "prepare", &TransOptions{})
 	if rerr != nil {
-		return status, rerr
+		return rerr
 	}
 	// 小概率情况下，prepare成功了，但是由于网络状况导致上面Failure，那么不执行下面defer的内容，等待超时后再回滚标记事务失败，也没有问题
 	defer func() {
 		x := recover()
 		var err error
 		operation := common.If(x == nil && rerr == nil, "submit", "abort").(string)
-		status, err = CallDtm(dtm, data, operation, &TransOptions{})
+		err = CallDtm(dtm, data, operation, &TransOptions{})
 		if rerr == nil {
 			rerr = err
 		}
@@ -67,7 +67,7 @@ func TccFromReq(c *gin.Context) (*Tcc, error) {
 // 函数首先注册子事务的所有分支，成功后调用try分支，返回try分支的调用结果
 func (t *Tcc) CallBranch(body interface{}, tryURL string, confirmURL string, cancelURL string) (*resty.Response, error) {
 	branchID := t.NewBranchID()
-	_, err := CallDtm(t.Dtm, &M{
+	err := CallDtm(t.Dtm, &M{
 		"gid":        t.Gid,
 		"branch_id":  branchID,
 		"trans_type": "tcc",

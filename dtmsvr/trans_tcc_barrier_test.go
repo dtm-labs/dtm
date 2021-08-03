@@ -24,19 +24,19 @@ func TestTccBarrier(t *testing.T) {
 
 func tccBarrierRollback(t *testing.T) {
 	gid := "tccBarrierRollback"
-	resp, err := dtmcli.TccGlobalTransaction(DtmServer, gid, func(tcc *dtmcli.Tcc) (*resty.Response, error) {
-		resp, err := tcc.CallBranch(&examples.TransReq{Amount: 30}, Busi+"/TccBTransOutTry", Busi+"/TccBTransOutConfirm", Busi+"/TccBTransOutCancel")
-		assert.True(t, !dtmcli.IsFailure(resp, err))
+	err := dtmcli.TccGlobalTransaction(DtmServer, gid, func(tcc *dtmcli.Tcc) (*resty.Response, error) {
+		_, err := tcc.CallBranch(&examples.TransReq{Amount: 30}, Busi+"/TccBTransOutTry", Busi+"/TccBTransOutConfirm", Busi+"/TccBTransOutCancel")
+		assert.Nil(t, err)
 		return tcc.CallBranch(&examples.TransReq{Amount: 30, TransInResult: "FAILURE"}, Busi+"/TccBTransInTry", Busi+"/TccBTransInConfirm", Busi+"/TccBTransInCancel")
 	})
-	assert.True(t, dtmcli.IsFailure(resp, err))
+	assert.Error(t, err)
 	WaitTransProcessed(gid)
 	assert.Equal(t, "failed", getTransStatus(gid))
 }
 
 func tccBarrierNormal(t *testing.T) {
 	gid := "tccBarrierNormal"
-	_, err := dtmcli.TccGlobalTransaction(DtmServer, gid, func(tcc *dtmcli.Tcc) (*resty.Response, error) {
+	err := dtmcli.TccGlobalTransaction(DtmServer, gid, func(tcc *dtmcli.Tcc) (*resty.Response, error) {
 		_, err := tcc.CallBranch(&examples.TransReq{Amount: 30}, Busi+"/TccBTransOutTry", Busi+"/TccBTransOutConfirm", Busi+"/TccBTransOutCancel")
 		assert.Nil(t, err)
 		return tcc.CallBranch(&examples.TransReq{Amount: 30}, Busi+"/TccBTransInTry", Busi+"/TccBTransInConfirm", Busi+"/TccBTransInCancel")
@@ -50,7 +50,7 @@ func tccBarrierDisorder(t *testing.T) {
 	timeoutChan := make(chan string, 2)
 	finishedChan := make(chan string, 2)
 	gid := "tccBarrierDisorder"
-	_, err := dtmcli.TccGlobalTransaction(DtmServer, gid, func(tcc *dtmcli.Tcc) (*resty.Response, error) {
+	err := dtmcli.TccGlobalTransaction(DtmServer, gid, func(tcc *dtmcli.Tcc) (*resty.Response, error) {
 		body := &examples.TransReq{Amount: 30}
 		tryURL := Busi + "/TccBTransOutTry"
 		confirmURL := Busi + "/TccBTransOutConfirm"
@@ -69,7 +69,7 @@ func tccBarrierDisorder(t *testing.T) {
 			return res, err
 		}))
 		// 注册子事务
-		_, err := dtmcli.CallDtm(tcc.Dtm, M{
+		err := dtmcli.CallDtm(tcc.Dtm, M{
 			"gid":        tcc.Gid,
 			"branch_id":  branchID,
 			"trans_type": "tcc",

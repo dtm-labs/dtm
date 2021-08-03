@@ -50,11 +50,10 @@ func (s *Saga) Add(action string, compensate string, postData interface{}) *Saga
 
 // Submit submit the saga trans
 func (s *Saga) Submit() error {
-	_, err := s.SubmitExt(&TransOptions{})
-	return err
+	return s.SubmitExt(&TransOptions{})
 }
 
 // SubmitExt 高级submit，更多的选项和更详细的返回值
-func (s *Saga) SubmitExt(opt *TransOptions) (TransStatus, error) {
+func (s *Saga) SubmitExt(opt *TransOptions) error {
 	return CallDtm(s.Server, &s.SagaData, "submit", opt)
 }

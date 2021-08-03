@@ -19,7 +19,7 @@ func TestTcc(t *testing.T) {
 func tccNormal(t *testing.T) {
 	data := &examples.TransReq{Amount: 30}
 	gid := "tccNormal"
-	_, err := dtmcli.TccGlobalTransaction(examples.DtmServer, gid, func(tcc *dtmcli.Tcc) (*resty.Response, error) {
+	err := dtmcli.TccGlobalTransaction(examples.DtmServer, gid, func(tcc *dtmcli.Tcc) (*resty.Response, error) {
 		_, err := tcc.CallBranch(data, Busi+"/TransOut", Busi+"/TransOutConfirm", Busi+"/TransOutRevert")
 		assert.Nil(t, err)
 		return tcc.CallBranch(data, Busi+"/TransIn", Busi+"/TransInConfirm", Busi+"/TransInRevert")
@@ -30,7 +30,7 @@ func tccNormal(t *testing.T) {
 func tccRollback(t *testing.T) {
 	gid := "tccRollback"
 	data := &examples.TransReq{Amount: 30, TransInResult: "FAILURE"}
-	_, err := dtmcli.TccGlobalTransaction(examples.DtmServer, gid, func(tcc *dtmcli.Tcc) (*resty.Response, error) {
+	err := dtmcli.TccGlobalTransaction(examples.DtmServer, gid, func(tcc *dtmcli.Tcc) (*resty.Response, error) {
 		_, rerr := tcc.CallBranch(data, Busi+"/TransOut", Busi+"/TransOutConfirm", Busi+"/TransOutRevert")
 		assert.Nil(t, rerr)
 		examples.MainSwitch.TransOutRevertResult.SetOnce("PENDING")

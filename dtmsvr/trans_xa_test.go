@@ -21,7 +21,7 @@ func TestXa(t *testing.T) {
 
 func xaLocalError(t *testing.T) {
 	xc := examples.XaClient
-	_, err := xc.XaGlobalTransaction("xaLocalError", func(xa *dtmcli.Xa) (*resty.Response, error) {
+	err := xc.XaGlobalTransaction("xaLocalError", func(xa *dtmcli.Xa) (*resty.Response, error) {
 		return nil, fmt.Errorf("an error")
 	})
 	assert.Error(t, err, fmt.Errorf("an error"))
@@ -30,7 +30,7 @@ func xaLocalError(t *testing.T) {
 func xaNormal(t *testing.T) {
 	xc := examples.XaClient
 	gid := "xaNormal"
-	_, err := xc.XaGlobalTransaction(gid, func(xa *dtmcli.Xa) (*resty.Response, error) {
+	err := xc.XaGlobalTransaction(gid, func(xa *dtmcli.Xa) (*resty.Response, error) {
 		req := examples.GenTransReq(30, false, false)
 		resp, err := xa.CallBranch(req, examples.Busi+"/TransOutXa")
 		if err != nil {
@@ -46,7 +46,7 @@ func xaNormal(t *testing.T) {
 func xaRollback(t *testing.T) {
 	xc := examples.XaClient
 	gid := "xaRollback"
-	_, err := xc.XaGlobalTransaction(gid, func(xa *dtmcli.Xa) (*resty.Response, error) {
+	err := xc.XaGlobalTransaction(gid, func(xa *dtmcli.Xa) (*resty.Response, error) {
 		req := &examples.TransReq{Amount: 30, TransInResult: "FAILURE"}
 		resp, err := xa.CallBranch(req, examples.Busi+"/TransOutXa")
 		if err != nil {

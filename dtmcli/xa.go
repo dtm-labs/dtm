@@ -99,18 +99,18 @@ func (xc *XaClient) XaLocalTransaction(c *gin.Context, xaFunc XaLocalFunc) (ret 
 	if rerr != nil {
 		return
 	}
-	_, rerr = CallDtm(xc.Server, &M{"gid": xa.Gid, "branch_id": branchID, "trans_type": "xa", "status": "prepared", "url": xc.CallbackURL}, "registerXaBranch", &TransOptions{})
+	rerr = CallDtm(xc.Server, &M{"gid": xa.Gid, "branch_id": branchID, "trans_type": "xa", "status": "prepared", "url": xc.CallbackURL}, "registerXaBranch", &TransOptions{})
 	return
 }
 
 // XaGlobalTransaction start a xa global transaction
-func (xc *XaClient) XaGlobalTransaction(gid string, xaFunc XaGlobalFunc) (status TransStatus, rerr error) {
+func (xc *XaClient) XaGlobalTransaction(gid string, xaFunc XaGlobalFunc) (rerr error) {
 	xa := Xa{IDGenerator: IDGenerator{}, Gid: gid}
 	data := &M{
 		"gid":        gid,
 		"trans_type": "xa",
 	}
-	status, rerr = CallDtm(xc.Server, data, "prepare", &TransOptions{})
+	rerr = CallDtm(xc.Server, data, "prepare", &TransOptions{})
 	if rerr != nil {
 		return
 	}
@@ -118,9 +118,8 @@ func (xc *XaClient) XaGlobalTransaction(gid string, xaFunc XaGlobalFunc) (status
 	// 小概率情况下，prepare成功了，但是由于网络状况导致上面Failure，那么不执行下面defer的内容，等待超时后再回滚标记事务失败，也没有问题
 	defer func() {
 		x := recover()
-		operation := common.If(x != nil || IsFailure(resp, rerr), "abort", "submit").(string)
-		var err error
-		status, err = CallDtm(xc.Server, data, operation, &TransOptions{})
+		operation := common.If(x != nil || rerr != nil, "abort", "submit").(string)
+		err := CallDtm(xc.Server, data, operation, &TransOptions{})
 		if rerr == nil { // 如果用户函数没有返回错误，那么返回dtm的
 			rerr = err
 		}
@@ -129,6 +128,7 @@ func (xc *XaClient) XaGlobalTransaction(gid string, xaFunc XaGlobalFunc) (status
 		}
 	}()
 	resp, rerr = xaFunc(&xa)
+	rerr = CheckResponse(resp, rerr)
 	return
 }
 
