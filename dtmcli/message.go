@@ -60,5 +60,5 @@ func (s *Msg) Submit() error {
 
 // SubmitExt 高级submit，更多的选项和更详细的返回值
 func (s *Msg) SubmitExt(opt *TransOptions) (TransStatus, error) {
-	return callDtm(s.Server, &s.MsgData, "submit", opt)
+	return CallDtm(s.Server, &s.MsgData, "submit", opt)
 }

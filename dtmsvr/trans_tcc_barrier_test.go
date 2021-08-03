@@ -36,12 +36,12 @@ func tccBarrierRollback(t *testing.T) {
 
 func tccBarrierNormal(t *testing.T) {
 	gid := "tccBarrierNormal"
-	resp, err := dtmcli.TccGlobalTransaction(DtmServer, gid, func(tcc *dtmcli.Tcc) (*resty.Response, error) {
-		resp, err := tcc.CallBranch(&examples.TransReq{Amount: 30}, Busi+"/TccBTransOutTry", Busi+"/TccBTransOutConfirm", Busi+"/TccBTransOutCancel")
-		assert.True(t, !dtmcli.IsFailure(resp, err))
+	_, err := dtmcli.TccGlobalTransaction(DtmServer, gid, func(tcc *dtmcli.Tcc) (*resty.Response, error) {
+		_, err := tcc.CallBranch(&examples.TransReq{Amount: 30}, Busi+"/TccBTransOutTry", Busi+"/TccBTransOutConfirm", Busi+"/TccBTransOutCancel")
+		assert.Nil(t, err)
 		return tcc.CallBranch(&examples.TransReq{Amount: 30}, Busi+"/TccBTransInTry", Busi+"/TccBTransInConfirm", Busi+"/TccBTransInCancel")
 	})
-	assert.True(t, !dtmcli.IsFailure(resp, err))
+	assert.Nil(t, err)
 	WaitTransProcessed(gid)
 	assert.Equal(t, "succeed", getTransStatus(gid))
 }
@@ -69,23 +69,21 @@ func tccBarrierDisorder(t *testing.T) {
 			return res, err
 		}))
 		// 注册子事务
-		r, err := common.RestyClient.R().
-			SetBody(&M{
-				"gid":        tcc.Gid,
-				"branch_id":  branchID,
-				"trans_type": "tcc",
-				"status":     "prepared",
-				"data":       string(common.MustMarshal(body)),
-				"try":        tryURL,
-				"confirm":    confirmURL,
-				"cancel":     cancelURL,
-			}).
-			Post(tcc.Dtm + "/registerTccBranch")
-		assert.True(t, !dtmcli.IsFailure(r, err))
+		_, err := dtmcli.CallDtm(tcc.Dtm, M{
+			"gid":        tcc.Gid,
+			"branch_id":  branchID,
+			"trans_type": "tcc",
+			"status":     "prepared",
+			"data":       string(common.MustMarshal(body)),
+			"try":        tryURL,
+			"confirm":    confirmURL,
+			"cancel":     cancelURL,
+		}, "registerTccBranch", &dtmcli.TransOptions{})
+		assert.Nil(t, err)
 		go func() {
 			logrus.Printf("sleeping to wait for tcc try timeout")
 			<-timeoutChan
-			r, _ = common.RestyClient.R().
+			r, _ := common.RestyClient.R().
 				SetBody(body).
 				SetQueryParams(common.MS{
 					"dtm":         tcc.Dtm,

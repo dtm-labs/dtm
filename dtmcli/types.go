@@ -122,7 +122,7 @@ type TransResult struct {
 	Message   string
 }
 
-func callDtm(dtm string, body interface{}, operation string, opt *TransOptions) (TransStatus, error) {
+func CallDtm(dtm string, body interface{}, operation string, opt *TransOptions) (TransStatus, error) {
 	resp, err := common.RestyClient.R().SetQueryParams(common.MS{
 		"wait_result": common.If(opt.WaitResult, "1", "").(string),
 	}).SetResult(&TransResult{}).SetBody(body).Post(fmt.Sprintf("%s/%s", dtm, operation))
@@ -138,7 +138,7 @@ func callDtm(dtm string, body interface{}, operation string, opt *TransOptions) 
 }
 
 func callDtmSimple(dtm string, body interface{}, operation string) error {
-	_, err := callDtm(dtm, body, operation, &TransOptions{})
+	_, err := CallDtm(dtm, body, operation, &TransOptions{})
 	return err
 }
 

@@ -99,7 +99,7 @@ func (xc *XaClient) XaLocalTransaction(c *gin.Context, xaFunc XaLocalFunc) (ret 
 	if rerr != nil {
 		return
 	}
-	_, rerr = callDtm(xc.Server, &M{"gid": xa.Gid, "branch_id": branchID, "trans_type": "xa", "status": "prepared", "url": xc.CallbackURL}, "registerXaBranch", &TransOptions{})
+	_, rerr = CallDtm(xc.Server, &M{"gid": xa.Gid, "branch_id": branchID, "trans_type": "xa", "status": "prepared", "url": xc.CallbackURL}, "registerXaBranch", &TransOptions{})
 	return
 }
 
@@ -110,7 +110,7 @@ func (xc *XaClient) XaGlobalTransaction(gid string, xaFunc XaGlobalFunc) (status
 		"gid":        gid,
 		"trans_type": "xa",
 	}
-	status, rerr = callDtm(xc.Server, data, "prepare", &TransOptions{})
+	status, rerr = CallDtm(xc.Server, data, "prepare", &TransOptions{})
 	if rerr != nil {
 		return
 	}
@@ -120,7 +120,7 @@ func (xc *XaClient) XaGlobalTransaction(gid string, xaFunc XaGlobalFunc) (status
 		x := recover()
 		operation := common.If(x != nil || IsFailure(resp, rerr), "abort", "submit").(string)
 		var err error
-		status, err = callDtm(xc.Server, data, operation, &TransOptions{})
+		status, err = CallDtm(xc.Server, data, operation, &TransOptions{})
 		if rerr == nil { // 如果用户函数没有返回错误，那么返回dtm的
 			rerr = err
 		}

@@ -56,5 +56,5 @@ func (s *Saga) Submit() error {
 
 // SubmitExt 高级submit，更多的选项和更详细的返回值
 func (s *Saga) SubmitExt(opt *TransOptions) (TransStatus, error) {
-	return callDtm(s.Server, &s.SagaData, "submit", opt)
+	return CallDtm(s.Server, &s.SagaData, "submit", opt)
 }
