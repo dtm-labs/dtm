@@ -40,7 +40,7 @@ func CheckUserResponse(resp *resty.Response, err error) error {
 		if resp.IsError() {
 			return errors.New(resp.String())
 		} else if strings.Contains(resp.String(), "FAILURE") {
-			return ErrUserFailure
+			return ErrFailure
 		}
 	}
 	return err
@@ -130,8 +130,8 @@ func callDtmSimple(dtm string, body interface{}, operation string) error {
 	return err
 }
 
-// ErrUserFailure 表示用户返回失败，要求回滚
-var ErrUserFailure = errors.New("user return FAILURE")
+// ErrFailure 表示返回失败，要求回滚
+var ErrFailure = errors.New("transaction FAILURE")
 
-// ErrDtmFailure 表示用户返回失败，要求回滚
-var ErrDtmFailure = errors.New("dtm return FAILURE")
+// ResultSuccess 表示返回成功，可以进行下一步
+var ResultSuccess = common.M{"dtm_result": "SUCCESS"}

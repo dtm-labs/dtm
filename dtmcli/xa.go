@@ -66,7 +66,7 @@ func (xc *XaClient) HandleCallback(gid string, branchID string, action string) (
 	defer db.Close()
 	xaID := gid + "-" + branchID
 	_, err := common.SdbExec(db, fmt.Sprintf("xa %s '%s'", action, xaID))
-	return M{"dtm_result": "SUCCESS"}, err
+	return ResultSuccess, err
 
 }
 
@@ -78,17 +78,13 @@ func (xc *XaClient) XaLocalTransaction(c *gin.Context, xaFunc XaLocalFunc) (ret 
 	db := common.SdbAlone(xc.Conf)
 	defer func() { db.Close() }()
 	defer func() {
-		var x interface{}
+		x := recover()
 		_, err := common.SdbExec(db, fmt.Sprintf("XA end '%s'", xaBranch))
-		if err != nil {
-			common.RedLogf("sql db exec error: %v", err)
-		}
-		if x = recover(); x != nil || IsFailure(ret, rerr) {
-		} else {
+		if x == nil && rerr == nil && err == nil {
 			_, err = common.SdbExec(db, fmt.Sprintf("XA prepare '%s'", xaBranch))
 		}
-		if err != nil {
-			common.RedLogf("sql db exec error: %v", err)
+		if rerr == nil {
+			rerr = err
 		}
 		if x != nil {
 			panic(x)
@@ -99,12 +95,10 @@ func (xc *XaClient) XaLocalTransaction(c *gin.Context, xaFunc XaLocalFunc) (ret 
 		return
 	}
 	ret, rerr = xaFunc(db, xa)
-	if IsFailure(ret, rerr) {
+	if rerr != nil {
 		return
 	}
-	ret, rerr = common.RestyClient.R().
-		SetBody(&M{"gid": xa.Gid, "branch_id": branchID, "trans_type": "xa", "status": "prepared", "url": xc.CallbackURL}).
-		Post(xc.Server + "/registerXaBranch")
+	_, rerr = callDtm(xc.Server, &M{"gid": xa.Gid, "branch_id": branchID, "trans_type": "xa", "status": "prepared", "url": xc.CallbackURL}, "registerXaBranch", &TransOptions{})
 	return
 }
 

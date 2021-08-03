@@ -33,7 +33,7 @@ func xaNormal(t *testing.T) {
 	_, err := xc.XaGlobalTransaction(gid, func(xa *dtmcli.Xa) (*resty.Response, error) {
 		req := examples.GenTransReq(30, false, false)
 		resp, err := xa.CallBranch(req, examples.Busi+"/TransOutXa")
-		if dtmcli.IsFailure(resp, err) {
+		if err != nil {
 			return resp, err
 		}
 		return xa.CallBranch(req, examples.Busi+"/TransInXa")
@@ -49,13 +49,13 @@ func xaRollback(t *testing.T) {
 	_, err := xc.XaGlobalTransaction(gid, func(xa *dtmcli.Xa) (*resty.Response, error) {
 		req := &examples.TransReq{Amount: 30, TransInResult: "FAILURE"}
 		resp, err := xa.CallBranch(req, examples.Busi+"/TransOutXa")
-		if dtmcli.IsFailure(resp, err) {
+		if err != nil {
 			return resp, err
 		}
 		return xa.CallBranch(req, examples.Busi+"/TransInXa")
 	})
 	assert.Error(t, err)
 	WaitTransProcessed(gid)
-	assert.Equal(t, []string{"succeed", "prepared"}, getBranchesStatus(gid))
+	assert.Equal(t, []string{"succeed", "prepared", "succeed", "prepared"}, getBranchesStatus(gid))
 	assert.Equal(t, "failed", getTransStatus(gid))
 }
