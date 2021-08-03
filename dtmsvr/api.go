@@ -6,6 +6,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/yedf/dtm/common"
+	"github.com/yedf/dtm/dtmcli"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 )
@@ -28,7 +29,7 @@ func prepare(c *gin.Context) (interface{}, error) {
 	t := TransFromContext(c)
 	t.Status = "prepared"
 	t.saveNew(dbGet())
-	return M{"dtm_result": "SUCCESS"}, nil
+	return dtmcli.ResultSuccess, nil
 }
 
 func submit(c *gin.Context) (interface{}, error) {
@@ -41,7 +42,7 @@ func submit(c *gin.Context) (interface{}, error) {
 	t.Status = "submitted"
 	t.saveNew(db)
 	go t.Process(db)
-	return M{"dtm_result": "SUCCESS"}, nil
+	return dtmcli.ResultSuccess, nil
 }
 
 func abort(c *gin.Context) (interface{}, error) {
@@ -52,7 +53,7 @@ func abort(c *gin.Context) (interface{}, error) {
 		return M{"dtm_result": "FAILURE", "message": fmt.Sprintf("trans type: %s current status %s, cannot abort", dbt.TransType, dbt.Status)}, nil
 	}
 	go dbt.Process(db)
-	return M{"dtm_result": "SUCCESS"}, nil
+	return dtmcli.ResultSuccess, nil
 }
 
 func registerXaBranch(c *gin.Context) (interface{}, error) {
@@ -73,7 +74,7 @@ func registerXaBranch(c *gin.Context) (interface{}, error) {
 	e2p(err)
 	global := TransGlobal{Gid: branch.Gid}
 	global.touch(db, config.TransCronInterval)
-	return M{"dtm_result": "SUCCESS"}, nil
+	return dtmcli.ResultSuccess, nil
 }
 
 func registerTccBranch(c *gin.Context) (interface{}, error) {
@@ -104,7 +105,7 @@ func registerTccBranch(c *gin.Context) (interface{}, error) {
 	e2p(err)
 	global := TransGlobal{Gid: branch.Gid}
 	global.touch(dbGet(), config.TransCronInterval)
-	return M{"dtm_result": "SUCCESS"}, nil
+	return dtmcli.ResultSuccess, nil
 }
 
 func query(c *gin.Context) (interface{}, error) {

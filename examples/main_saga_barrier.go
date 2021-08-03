@@ -33,7 +33,7 @@ func SagaBarrierAddRoute(app *gin.Engine) {
 
 func sagaBarrierAdjustBalance(sdb *sql.Tx, uid int, amount int) (interface{}, error) {
 	_, err := common.StxExec(sdb, "update dtm_busi.user_account set balance = balance + ? where user_id = ?", amount, uid)
-	return common.MS{"dtm_result": "SUCCESS"}, err
+	return dtmcli.ResultSuccess, err
 
 }
 

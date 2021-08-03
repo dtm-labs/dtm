@@ -56,7 +56,7 @@ func adjustBalance(sdb *sql.Tx, uid int, amount int) (interface{}, error) {
 	if err == nil && affected == 0 {
 		return nil, fmt.Errorf("update 0 rows")
 	}
-	return common.MS{"dtm_result": "SUCCESS"}, err
+	return dtmcli.ResultSuccess, err
 }
 
 // TCC下，转入
