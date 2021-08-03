@@ -4,6 +4,7 @@ import (
 	"database/sql"
 
 	"github.com/gin-gonic/gin"
+	"github.com/go-resty/resty/v2"
 	"github.com/yedf/dtm/common"
 	"github.com/yedf/dtm/dtmcli"
 )
@@ -27,7 +28,7 @@ func XaSetup(app *gin.Engine) {
 // XaFireRequest 注册全局XA事务，调用XA的分支
 func XaFireRequest() string {
 	gid := dtmcli.MustGenGid(DtmServer)
-	res, err := XaClient.XaGlobalTransaction(gid, func(xa *dtmcli.Xa) (interface{}, error) {
+	res, err := XaClient.XaGlobalTransaction(gid, func(xa *dtmcli.Xa) (*resty.Response, error) {
 		resp, err := xa.CallBranch(&TransReq{Amount: 30}, Busi+"/TransOutXa")
 		if dtmcli.IsFailure(resp, err) {
 			return resp, err

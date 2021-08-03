@@ -4,6 +4,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/go-resty/resty/v2"
 	"github.com/stretchr/testify/assert"
 	"github.com/yedf/dtm/dtmcli"
 	"github.com/yedf/dtm/examples"
@@ -18,7 +19,7 @@ func TestTcc(t *testing.T) {
 func tccNormal(t *testing.T) {
 	data := &examples.TransReq{Amount: 30}
 	gid := "tccNormal"
-	ret, err := dtmcli.TccGlobalTransaction(examples.DtmServer, gid, func(tcc *dtmcli.Tcc) (interface{}, error) {
+	ret, err := dtmcli.TccGlobalTransaction(examples.DtmServer, gid, func(tcc *dtmcli.Tcc) (*resty.Response, error) {
 		resp, err := tcc.CallBranch(data, Busi+"/TransOut", Busi+"/TransOutConfirm", Busi+"/TransOutRevert")
 		if dtmcli.IsFailure(resp, err) {
 			return resp, err
@@ -31,7 +32,7 @@ func tccNormal(t *testing.T) {
 func tccRollback(t *testing.T) {
 	gid := "tccRollback"
 	data := &examples.TransReq{Amount: 30, TransInResult: "FAILURE"}
-	resp, err := dtmcli.TccGlobalTransaction(examples.DtmServer, gid, func(tcc *dtmcli.Tcc) (interface{}, error) {
+	resp, err := dtmcli.TccGlobalTransaction(examples.DtmServer, gid, func(tcc *dtmcli.Tcc) (*resty.Response, error) {
 		resp, rerr := tcc.CallBranch(data, Busi+"/TransOut", Busi+"/TransOutConfirm", Busi+"/TransOutRevert")
 		assert.True(t, !dtmcli.IsFailure(resp, rerr))
 		examples.MainSwitch.TransOutRevertResult.SetOnce("PENDING")

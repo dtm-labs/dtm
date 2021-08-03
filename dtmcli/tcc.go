@@ -16,7 +16,7 @@ type Tcc struct {
 }
 
 // TccGlobalFunc type of global tcc call
-type TccGlobalFunc func(tcc *Tcc) (interface{}, error)
+type TccGlobalFunc func(tcc *Tcc) (*resty.Response, error)
 
 // TccGlobalTransaction begin a tcc global transaction
 // dtm dtm服务器地址

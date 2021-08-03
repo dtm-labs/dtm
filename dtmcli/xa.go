@@ -16,7 +16,7 @@ type M = map[string]interface{}
 var e2p = common.E2P
 
 // XaGlobalFunc type of xa global function
-type XaGlobalFunc func(xa *Xa) (interface{}, error)
+type XaGlobalFunc func(xa *Xa) (*resty.Response, error)
 
 // XaLocalFunc type of xa local function
 type XaLocalFunc func(db *sql.DB, xa *Xa) (interface{}, error)
