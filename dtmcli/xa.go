@@ -95,6 +95,7 @@ func (xc *XaClient) XaLocalTransaction(c *gin.Context, xaFunc XaLocalFunc) (ret 
 		return
 	}
 	ret, rerr = xaFunc(db, xa)
+	rerr = CheckResult(ret, rerr)
 	if rerr != nil {
 		return
 	}
@@ -143,5 +144,5 @@ func (x *Xa) CallBranch(body interface{}, url string) (*resty.Response, error) {
 			"branch_type": "action",
 		}).
 		Post(url)
-	return resp, CheckUserResponse(resp, err)
+	return resp, CheckResponse(resp, err)
 }

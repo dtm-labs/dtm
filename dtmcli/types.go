@@ -34,14 +34,26 @@ func PanicIfFailure(res interface{}, err error) {
 	}
 }
 
-// CheckUserResponse 检查Response，返回错误
-func CheckUserResponse(resp *resty.Response, err error) error {
+// CheckResponse 检查Response，返回错误
+func CheckResponse(resp *resty.Response, err error) error {
 	if err == nil && resp != nil {
 		if resp.IsError() {
 			return errors.New(resp.String())
 		} else if strings.Contains(resp.String(), "FAILURE") {
 			return ErrFailure
 		}
+	}
+	return err
+}
+
+// CheckResult 检查Result，返回错误
+func CheckResult(res interface{}, err error) error {
+	resp, ok := res.(*resty.Response)
+	if ok {
+		return CheckResponse(resp, err)
+	}
+	if res != nil && strings.Contains(common.MustMarshalString(res), "FAILURE") {
+		return ErrFailure
 	}
 	return err
 }
@@ -135,3 +147,6 @@ var ErrFailure = errors.New("transaction FAILURE")
 
 // ResultSuccess 表示返回成功，可以进行下一步
 var ResultSuccess = common.M{"dtm_result": "SUCCESS"}
+
+// ResultFailure 表示返回失败，要求回滚
+var ResultFailure = common.M{"dtm_result": "FAILURE"}

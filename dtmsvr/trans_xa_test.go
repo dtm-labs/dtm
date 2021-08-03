@@ -56,6 +56,6 @@ func xaRollback(t *testing.T) {
 	})
 	assert.Error(t, err)
 	WaitTransProcessed(gid)
-	assert.Equal(t, []string{"succeed", "prepared", "succeed", "prepared"}, getBranchesStatus(gid))
+	assert.Equal(t, []string{"succeed", "prepared"}, getBranchesStatus(gid))
 	assert.Equal(t, "failed", getTransStatus(gid))
 }
