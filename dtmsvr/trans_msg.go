@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"github.com/yedf/dtm/common"
+	"github.com/yedf/dtm/dtmcli"
 )
 
 type transMsgProcessor struct {
@@ -18,7 +19,7 @@ func init() {
 func (t *transMsgProcessor) GenBranches() []TransBranch {
 	branches := []TransBranch{}
 	steps := []M{}
-	common.MustUnmarshalString(t.Data, &steps)
+	dtmcli.MustUnmarshalString(t.Data, &steps)
 	for _, step := range steps {
 		branches = append(branches, TransBranch{
 			Gid:        t.Gid,
@@ -33,7 +34,7 @@ func (t *transMsgProcessor) GenBranches() []TransBranch {
 }
 
 func (t *transMsgProcessor) ExecBranch(db *common.DB, branch *TransBranch) {
-	resp, err := common.RestyClient.R().SetBody(branch.Data).SetQueryParams(t.getBranchParams(branch)).Post(branch.URL)
+	resp, err := dtmcli.RestyClient.R().SetBody(branch.Data).SetQueryParams(t.getBranchParams(branch)).Post(branch.URL)
 	e2p(err)
 	body := resp.String()
 	if strings.Contains(body, "SUCCESS") {
@@ -48,7 +49,7 @@ func (t *TransGlobal) mayQueryPrepared(db *common.DB) {
 	if t.Status != "prepared" {
 		return
 	}
-	resp, err := common.RestyClient.R().SetQueryParam("gid", t.Gid).Get(t.QueryPrepared)
+	resp, err := dtmcli.RestyClient.R().SetQueryParam("gid", t.Gid).Get(t.QueryPrepared)
 	e2p(err)
 	body := resp.String()
 	if strings.Contains(body, "SUCCESS") {

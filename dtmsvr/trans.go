@@ -110,7 +110,7 @@ func (t *TransGlobal) getProcessor() transProcessor {
 }
 
 // Process process global transaction once
-func (t *TransGlobal) Process(db *common.DB, waitResult bool) common.M {
+func (t *TransGlobal) Process(db *common.DB, waitResult bool) dtmcli.M {
 	if !waitResult {
 		go t.processInner(db)
 		return dtmcli.ResultSuccess
@@ -118,10 +118,10 @@ func (t *TransGlobal) Process(db *common.DB, waitResult bool) common.M {
 	submitting := t.Status == "submitted"
 	err := t.processInner(db)
 	if err != nil {
-		return common.M{"dtm_result": "FAILURE", "message": err.Error()}
+		return dtmcli.M{"dtm_result": "FAILURE", "message": err.Error()}
 	}
 	if submitting && t.Status != "succeed" {
-		return common.M{"dtm_result": "FAILURE", "message": "trans failed by user"}
+		return dtmcli.M{"dtm_result": "FAILURE", "message": "trans failed by user"}
 	}
 	return dtmcli.ResultSuccess
 }
@@ -130,12 +130,12 @@ func (t *TransGlobal) processInner(db *common.DB) (rerr error) {
 	defer handlePanic(&rerr)
 	defer func() {
 		if TransProcessedTestChan != nil {
-			common.Logf("processed: %s", t.Gid)
+			dtmcli.Logf("processed: %s", t.Gid)
 			TransProcessedTestChan <- t.Gid
-			common.Logf("notified: %s", t.Gid)
+			dtmcli.Logf("notified: %s", t.Gid)
 		}
 	}()
-	common.Logf("processing: %s status: %s", t.Gid, t.Status)
+	dtmcli.Logf("processing: %s status: %s", t.Gid, t.Status)
 	if t.Status == "prepared" && t.TransType != "msg" {
 		t.changeStatus(db, "aborting")
 	}
@@ -145,8 +145,8 @@ func (t *TransGlobal) processInner(db *common.DB) (rerr error) {
 	return
 }
 
-func (t *TransGlobal) getBranchParams(branch *TransBranch) common.MS {
-	return common.MS{
+func (t *TransGlobal) getBranchParams(branch *TransBranch) dtmcli.MS {
+	return dtmcli.MS{
 		"gid":         t.Gid,
 		"trans_type":  t.TransType,
 		"branch_id":   branch.BranchID,
@@ -175,7 +175,7 @@ func (t *TransGlobal) saveNew(db *common.DB) {
 		if dbr.RowsAffected > 0 { // 如果这个是新事务，保存所有的分支
 			branches := t.getProcessor().GenBranches()
 			if len(branches) > 0 {
-				writeTransLog(t.Gid, "save branches", t.Status, "", common.MustMarshalString(branches))
+				writeTransLog(t.Gid, "save branches", t.Status, "", dtmcli.MustMarshalString(branches))
 				db.Must().Clauses(clause.OnConflict{
 					DoNothing: true,
 				}).Create(&branches)
@@ -193,13 +193,13 @@ func TransFromContext(c *gin.Context) *TransGlobal {
 	data := M{}
 	b, err := c.GetRawData()
 	e2p(err)
-	common.MustUnmarshal(b, &data)
-	common.Logf("creating trans in prepare")
+	dtmcli.MustUnmarshal(b, &data)
+	dtmcli.Logf("creating trans in prepare")
 	if data["steps"] != nil {
-		data["data"] = common.MustMarshalString(data["steps"])
+		data["data"] = dtmcli.MustMarshalString(data["steps"])
 	}
 	m := TransGlobal{}
-	common.MustRemarshal(data, &m)
+	dtmcli.MustRemarshal(data, &m)
 	return &m
 }
 

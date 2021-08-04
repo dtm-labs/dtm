@@ -6,6 +6,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/yedf/dtm/common"
+	"github.com/yedf/dtm/dtmcli"
 )
 
 const (
@@ -20,10 +21,10 @@ var Busi string = fmt.Sprintf("http://localhost:%d%s", BusiPort, BusiAPI)
 
 // BaseAppStartup base app startup
 func BaseAppStartup() *gin.Engine {
-	common.Logf("examples starting")
+	dtmcli.Logf("examples starting")
 	app := common.GetGinApp()
 	BaseAddRoute(app)
-	common.Logf("Starting busi at: %d", BusiPort)
+	dtmcli.Logf("Starting busi at: %d", BusiPort)
 	go app.Run(fmt.Sprintf(":%d", BusiPort))
 	time.Sleep(100 * time.Millisecond)
 	return app
@@ -61,8 +62,8 @@ var MainSwitch mainSwitchType
 
 func handleGeneralBusiness(c *gin.Context, result1 string, result2 string, busi string) (interface{}, error) {
 	info := infoFromContext(c)
-	res := common.OrString(result1, result2, "SUCCESS")
-	common.Logf("%s %s result: %s", busi, info.String(), res)
+	res := dtmcli.OrString(result1, result2, "SUCCESS")
+	dtmcli.Logf("%s %s result: %s", busi, info.String(), res)
 	return M{"dtm_result": res}, nil
 
 }
@@ -88,7 +89,7 @@ func BaseAddRoute(app *gin.Engine) {
 		return handleGeneralBusiness(c, MainSwitch.TransOutRevertResult.Fetch(), "", "TransOutRevert")
 	}))
 	app.GET(BusiAPI+"/CanSubmit", common.WrapHandler(func(c *gin.Context) (interface{}, error) {
-		common.Logf("%s CanSubmit", c.Query("gid"))
-		return common.OrString(MainSwitch.CanSubmitResult.Fetch(), "SUCCESS"), nil
+		dtmcli.Logf("%s CanSubmit", c.Query("gid"))
+		return dtmcli.OrString(MainSwitch.CanSubmitResult.Fetch(), "SUCCESS"), nil
 	}))
 }

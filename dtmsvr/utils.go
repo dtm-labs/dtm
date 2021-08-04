@@ -14,8 +14,8 @@ import (
 // M a short name
 type M = map[string]interface{}
 
-var p2e = common.P2E
-var e2p = common.E2P
+var p2e = dtmcli.P2E
+var e2p = dtmcli.E2P
 
 func dbGet() *common.DB {
 	return common.DbGet(config.DB)
@@ -69,7 +69,7 @@ func getOneHexIP() string {
 				ns := strings.Split(ip, ".")
 				r := []byte{}
 				for _, n := range ns {
-					r = append(r, byte(common.MustAtoi(n)))
+					r = append(r, byte(dtmcli.MustAtoi(n)))
 				}
 				return hex.EncodeToString(r)
 			}

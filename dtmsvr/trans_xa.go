@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"github.com/yedf/dtm/common"
+	"github.com/yedf/dtm/dtmcli"
 )
 
 type transXaProcessor struct {
@@ -19,9 +20,9 @@ func (t *transXaProcessor) GenBranches() []TransBranch {
 	return []TransBranch{}
 }
 func (t *transXaProcessor) ExecBranch(db *common.DB, branch *TransBranch) {
-	resp, err := common.RestyClient.R().SetQueryParams(common.MS{
+	resp, err := dtmcli.RestyClient.R().SetQueryParams(dtmcli.MS{
 		"branch_id": branch.BranchID,
-		"action":    common.If(t.Status == "prepared" || t.Status == "aborting", "rollback", "commit").(string),
+		"action":    dtmcli.If(t.Status == "prepared" || t.Status == "aborting", "rollback", "commit").(string),
 		"gid":       branch.Gid,
 	}).Post(branch.URL)
 	e2p(err)
@@ -38,11 +39,11 @@ func (t *transXaProcessor) ProcessOnce(db *common.DB, branches []TransBranch) {
 	if t.Status == "succeed" {
 		return
 	}
-	currentType := common.If(t.Status == "submitted", "commit", "rollback").(string)
+	currentType := dtmcli.If(t.Status == "submitted", "commit", "rollback").(string)
 	for _, branch := range branches {
 		if branch.BranchType == currentType && branch.Status != "succeed" {
 			t.ExecBranch(db, &branch)
 		}
 	}
-	t.changeStatus(db, common.If(t.Status == "submitted", "succeed", "failed").(string))
+	t.changeStatus(db, dtmcli.If(t.Status == "submitted", "succeed", "failed").(string))
 }

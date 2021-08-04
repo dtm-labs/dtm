@@ -12,7 +12,7 @@ import (
 
 // TccBarrierFireRequest 1
 func TccBarrierFireRequest() string {
-	common.Logf("tcc transaction begin")
+	dtmcli.Logf("tcc transaction begin")
 	gid := dtmcli.MustGenGid(DtmServer)
 	err := dtmcli.TccGlobalTransaction(DtmServer, gid, func(tcc *dtmcli.Tcc) (*resty.Response, error) {
 		resp, err := tcc.CallBranch(&TransReq{Amount: 30}, Busi+"/TccBTransOutTry", Busi+"/TccBTransOutConfirm", Busi+"/TccBTransOutCancel")
@@ -33,24 +33,24 @@ func TccBarrierAddRoute(app *gin.Engine) {
 	app.POST(BusiAPI+"/TccBTransOutTry", common.WrapHandler(tccBarrierTransOutTry))
 	app.POST(BusiAPI+"/TccBTransOutConfirm", common.WrapHandler(tccBarrierTransOutConfirm))
 	app.POST(BusiAPI+"/TccBTransOutCancel", common.WrapHandler(TccBarrierTransOutCancel))
-	common.Logf("examples listening at %d", BusiPort)
+	dtmcli.Logf("examples listening at %d", BusiPort)
 }
 
 const transInUID = 1
 const transOutUID = 2
 
 func adjustTrading(sdb *sql.Tx, uid int, amount int) (interface{}, error) {
-	affected, err := common.StxExec(sdb, "update dtm_busi.user_account_trading set trading_balance=trading_balance + ? where user_id=? and trading_balance + ? + (select balance from dtm_busi.user_account where id=?) >= 0", amount, uid, amount, uid)
+	affected, err := dtmcli.StxExec(sdb, "update dtm_busi.user_account_trading set trading_balance=trading_balance + ? where user_id=? and trading_balance + ? + (select balance from dtm_busi.user_account where id=?) >= 0", amount, uid, amount, uid)
 	if err == nil && affected == 0 {
 		return nil, fmt.Errorf("update error, maybe balance not enough")
 	}
-	return common.MS{"dtm_server": "SUCCESS"}, nil
+	return dtmcli.MS{"dtm_server": "SUCCESS"}, nil
 }
 
 func adjustBalance(sdb *sql.Tx, uid int, amount int) (interface{}, error) {
-	affected, err := common.StxExec(sdb, "update dtm_busi.user_account_trading set trading_balance = trading_balance + ? where user_id=?;", -amount, uid)
+	affected, err := dtmcli.StxExec(sdb, "update dtm_busi.user_account_trading set trading_balance = trading_balance + ? where user_id=?;", -amount, uid)
 	if err == nil && affected == 1 {
-		affected, err = common.StxExec(sdb, "update dtm_busi.user_account set balance=balance+? where user_id=?", amount, uid)
+		affected, err = dtmcli.StxExec(sdb, "update dtm_busi.user_account set balance=balance+? where user_id=?", amount, uid)
 	}
 	if err == nil && affected == 0 {
 		return nil, fmt.Errorf("update 0 rows")

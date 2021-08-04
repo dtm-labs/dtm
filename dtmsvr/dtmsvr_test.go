@@ -42,7 +42,7 @@ func resetXaData() {
 
 func TestMain(m *testing.M) {
 	TransProcessedTestChan = make(chan string, 1)
-	common.InitConfig(common.GetProjectDir(), &config)
+	common.InitConfig(dtmcli.GetProjectDir(), &config)
 	PopulateDB(false)
 	examples.PopulateDB(false)
 	// 启动组件
@@ -63,7 +63,7 @@ func TestCover(t *testing.T) {
 	db := dbGet()
 	db.NoMust()
 	CronTransOnce(0)
-	err := common.CatchP(func() {
+	err := dtmcli.CatchP(func() {
 		checkAffected(db.DB)
 	})
 	assert.Error(t, err)
@@ -73,16 +73,16 @@ func TestCover(t *testing.T) {
 }
 
 func TestType(t *testing.T) {
-	err := common.CatchP(func() {
+	err := dtmcli.CatchP(func() {
 		dtmcli.MustGenGid("http://localhost:8080/api/no")
 	})
 	assert.Error(t, err)
-	err = common.CatchP(func() {
-		resp, err := common.RestyClient.R().SetBody(common.M{
+	err = dtmcli.CatchP(func() {
+		resp, err := dtmcli.RestyClient.R().SetBody(dtmcli.M{
 			"gid":        "1",
 			"trans_type": "msg",
 		}).Get("http://localhost:8080/api/dtmsvr/abort")
-		common.CheckRestySuccess(resp, err)
+		dtmcli.CheckRestySuccess(resp, err)
 	})
 	assert.Error(t, err)
 }
@@ -111,7 +111,7 @@ func assertSucceed(t *testing.T, gid string) {
 }
 
 func genMsg(gid string) *dtmcli.Msg {
-	common.Logf("beginning a msg test ---------------- %s", gid)
+	dtmcli.Logf("beginning a msg test ---------------- %s", gid)
 	msg := dtmcli.NewMsg(examples.DtmServer, gid)
 	msg.QueryPrepared = examples.Busi + "/CanSubmit"
 	req := examples.GenTransReq(30, false, false)
@@ -121,7 +121,7 @@ func genMsg(gid string) *dtmcli.Msg {
 }
 
 func genSaga(gid string, outFailed bool, inFailed bool) *dtmcli.Saga {
-	common.Logf("beginning a saga test ---------------- %s", gid)
+	dtmcli.Logf("beginning a saga test ---------------- %s", gid)
 	saga := dtmcli.NewSaga(examples.DtmServer, gid)
 	req := examples.GenTransReq(30, outFailed, inFailed)
 	saga.Add(examples.Busi+"/TransOut", examples.Busi+"/TransOutRevert", &req)
@@ -130,22 +130,22 @@ func genSaga(gid string, outFailed bool, inFailed bool) *dtmcli.Saga {
 }
 
 func transQuery(t *testing.T, gid string) {
-	resp, err := common.RestyClient.R().SetQueryParam("gid", gid).Get(examples.DtmServer + "/query")
+	resp, err := dtmcli.RestyClient.R().SetQueryParam("gid", gid).Get(examples.DtmServer + "/query")
 	e2p(err)
 	m := M{}
 	assert.Equal(t, resp.StatusCode(), 200)
-	common.MustUnmarshalString(resp.String(), &m)
+	dtmcli.MustUnmarshalString(resp.String(), &m)
 	assert.NotEqual(t, nil, m["transaction"])
 	assert.Equal(t, 4, len(m["branches"].([]interface{})))
 
-	resp, err = common.RestyClient.R().SetQueryParam("gid", "").Get(examples.DtmServer + "/query")
+	resp, err = dtmcli.RestyClient.R().SetQueryParam("gid", "").Get(examples.DtmServer + "/query")
 	e2p(err)
 	assert.Equal(t, resp.StatusCode(), 500)
 
-	resp, err = common.RestyClient.R().SetQueryParam("gid", "1").Get(examples.DtmServer + "/query")
+	resp, err = dtmcli.RestyClient.R().SetQueryParam("gid", "1").Get(examples.DtmServer + "/query")
 	e2p(err)
 	assert.Equal(t, resp.StatusCode(), 200)
-	common.MustUnmarshalString(resp.String(), &m)
+	dtmcli.MustUnmarshalString(resp.String(), &m)
 	assert.Equal(t, nil, m["transaction"])
 	assert.Equal(t, 0, len(m["branches"].([]interface{})))
 }
@@ -161,7 +161,7 @@ func TestSqlDB(t *testing.T) {
 	}
 	db.Must().Exec("insert ignore into dtm_barrier.barrier(trans_type, gid, branch_id, branch_type, reason) values('saga', 'gid1', 'branch_id1', 'action', 'saga')")
 	_, err := dtmcli.ThroughBarrierCall(db.ToSQLDB(), transInfo, func(db *sql.Tx) (interface{}, error) {
-		common.Logf("rollback gid2")
+		dtmcli.Logf("rollback gid2")
 		return nil, fmt.Errorf("gid2 error")
 	})
 	asserts.Error(err, fmt.Errorf("gid2 error"))
@@ -169,17 +169,17 @@ func TestSqlDB(t *testing.T) {
 	asserts.Equal(dbr.RowsAffected, int64(1))
 	dbr = db.Model(&BarrierModel{}).Where("gid=?", "gid2").Find(&[]BarrierModel{})
 	asserts.Equal(dbr.RowsAffected, int64(0))
-	gid2Res := common.M{"result": "first"}
+	gid2Res := dtmcli.M{"result": "first"}
 	_, err = dtmcli.ThroughBarrierCall(db.ToSQLDB(), transInfo, func(db *sql.Tx) (interface{}, error) {
-		common.Logf("submit gid2")
+		dtmcli.Logf("submit gid2")
 		return gid2Res, nil
 	})
 	asserts.Nil(err)
 	dbr = db.Model(&BarrierModel{}).Where("gid=?", "gid2").Find(&[]BarrierModel{})
 	asserts.Equal(dbr.RowsAffected, int64(1))
 	newResult, err := dtmcli.ThroughBarrierCall(db.ToSQLDB(), transInfo, func(db *sql.Tx) (interface{}, error) {
-		common.Logf("submit gid2")
-		return common.MS{"result": "ignored"}, nil
+		dtmcli.Logf("submit gid2")
+		return dtmcli.MS{"result": "ignored"}, nil
 	})
 	asserts.Equal(newResult, gid2Res)
 }

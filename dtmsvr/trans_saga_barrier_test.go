@@ -4,7 +4,6 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"github.com/yedf/dtm/common"
 	"github.com/yedf/dtm/dtmcli"
 	"github.com/yedf/dtm/examples"
 )
@@ -20,7 +19,7 @@ func sagaBarrierNormal(t *testing.T) {
 	saga := dtmcli.NewSaga(DtmServer, "sagaBarrierNormal").
 		Add(Busi+"/SagaBTransOut", Busi+"/SagaBTransOutCompensate", req).
 		Add(Busi+"/SagaBTransIn", Busi+"/SagaBTransInCompensate", req)
-	common.Logf("busi trans submit")
+	dtmcli.Logf("busi trans submit")
 	err := saga.Submit()
 	e2p(err)
 	WaitTransProcessed(saga.Gid)
@@ -31,7 +30,7 @@ func sagaBarrierRollback(t *testing.T) {
 	saga := dtmcli.NewSaga(DtmServer, "sagaBarrierRollback").
 		Add(Busi+"/SagaBTransOut", Busi+"/SagaBTransOutCompensate", &examples.TransReq{Amount: 30}).
 		Add(Busi+"/SagaBTransIn", Busi+"/SagaBTransInCompensate", &examples.TransReq{Amount: 30, TransInResult: "FAILURE"})
-	common.Logf("busi trans submit")
+	dtmcli.Logf("busi trans submit")
 	err := saga.Submit()
 	e2p(err)
 	WaitTransProcessed(saga.Gid)

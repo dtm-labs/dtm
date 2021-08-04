@@ -1,6 +1,9 @@
 package examples
 
-import "github.com/yedf/dtm/common"
+import (
+	"github.com/yedf/dtm/common"
+	"github.com/yedf/dtm/dtmcli"
+)
 
 type exampleConfig struct {
 	DB map[string]string `yaml:"DB"`
@@ -9,5 +12,5 @@ type exampleConfig struct {
 var config = exampleConfig{}
 
 func init() {
-	common.InitConfig(common.GetProjectDir(), &config)
+	common.InitConfig(dtmcli.GetProjectDir(), &config)
 }

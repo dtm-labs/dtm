@@ -5,12 +5,12 @@ import (
 	"io/ioutil"
 	"strings"
 
-	"github.com/yedf/dtm/common"
+	"github.com/yedf/dtm/dtmcli"
 )
 
 // RunSQLScript 1
 func RunSQLScript(conf map[string]string, script string, skipDrop bool) {
-	con := common.SdbAlone(conf)
+	con := dtmcli.SdbAlone(conf)
 	defer func() { con.Close() }()
 	content, err := ioutil.ReadFile(script)
 	e2p(err)
@@ -20,13 +20,13 @@ func RunSQLScript(conf map[string]string, script string, skipDrop bool) {
 		if s == "" || skipDrop && strings.Contains(s, "drop") {
 			continue
 		}
-		_, err = common.SdbExec(con, s)
+		_, err = dtmcli.SdbExec(con, s)
 		e2p(err)
 	}
 }
 
 // PopulateDB populate example mysql data
 func PopulateDB(skipDrop bool) {
-	file := fmt.Sprintf("%s/examples.%s.sql", common.GetCurrentCodeDir(), config.DB["driver"])
+	file := fmt.Sprintf("%s/examples.%s.sql", dtmcli.GetCurrentCodeDir(), config.DB["driver"])
 	RunSQLScript(config.DB, file, skipDrop)
 }

@@ -7,7 +7,7 @@ import (
 	"runtime/debug"
 	"time"
 
-	"github.com/yedf/dtm/common"
+	"github.com/yedf/dtm/dtmcli"
 )
 
 // CronTransOnce cron expired trans. use expireIn as expire time
@@ -54,7 +54,7 @@ func lockOneTrans(expireIn time.Duration) *TransGlobal {
 
 func handlePanic(perr *error) {
 	if err := recover(); err != nil {
-		common.LogRedf("----panic %v handlered\n%s", err, string(debug.Stack()))
+		dtmcli.LogRedf("----panic %v handlered\n%s", err, string(debug.Stack()))
 		if perr != nil {
 			*perr = fmt.Errorf("dtm panic: %v", err)
 		}
@@ -64,6 +64,6 @@ func handlePanic(perr *error) {
 func sleepCronTime() {
 	delta := math.Min(3, float64(config.TransCronInterval))
 	interval := time.Duration((float64(config.TransCronInterval) - rand.Float64()*delta) * float64(time.Second))
-	common.Logf("sleeping for %v", interval)
+	dtmcli.Logf("sleeping for %v", interval)
 	time.Sleep(interval)
 }

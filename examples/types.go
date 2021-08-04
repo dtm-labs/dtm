@@ -9,7 +9,7 @@ import (
 	"github.com/yedf/dtm/dtmcli"
 )
 
-var e2p = common.E2P
+var e2p = dtmcli.E2P
 
 // M alias
 type M = map[string]interface{}
@@ -32,8 +32,8 @@ func (t *TransReq) String() string {
 func GenTransReq(amount int, outFailed bool, inFailed bool) *TransReq {
 	return &TransReq{
 		Amount:         amount,
-		TransOutResult: common.If(outFailed, "FAILURE", "SUCCESS").(string),
-		TransInResult:  common.If(inFailed, "FAILURE", "SUCCESS").(string),
+		TransOutResult: dtmcli.If(outFailed, "FAILURE", "SUCCESS").(string),
+		TransInResult:  dtmcli.If(inFailed, "FAILURE", "SUCCESS").(string),
 	}
 }
 
@@ -64,5 +64,5 @@ func dbGet() *common.DB {
 }
 
 func sdbGet() *sql.DB {
-	return common.SdbGet(config.DB)
+	return dtmcli.SdbGet(config.DB)
 }

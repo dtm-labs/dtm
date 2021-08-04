@@ -21,7 +21,7 @@ var qsBusi = fmt.Sprintf("http://localhost:%d%s", qsBusiPort, qsBusiAPI)
 func QsStartSvr() {
 	app := common.GetGinApp()
 	qsAddRoute(app)
-	common.Logf("quick qs examples listening at %d", qsBusiPort)
+	dtmcli.Logf("quick qs examples listening at %d", qsBusiPort)
 	go app.Run(fmt.Sprintf(":%d", qsBusiPort))
 	time.Sleep(100 * time.Millisecond)
 }
@@ -42,7 +42,7 @@ func QsFireRequest() string {
 }
 
 func qsAdjustBalance(uid int, amount int) (interface{}, error) {
-	_, err := common.SdbExec(sdbGet(), "update dtm_busi.user_account set balance = balance + ? where user_id = ?", amount, uid)
+	_, err := dtmcli.SdbExec(sdbGet(), "update dtm_busi.user_account set balance = balance + ? where user_id = ?", amount, uid)
 	return dtmcli.ResultSuccess, err
 }
 

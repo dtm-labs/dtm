@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"github.com/yedf/dtm/common"
+	"github.com/yedf/dtm/dtmcli"
 )
 
 type transSagaProcessor struct {
@@ -18,7 +19,7 @@ func init() {
 func (t *transSagaProcessor) GenBranches() []TransBranch {
 	branches := []TransBranch{}
 	steps := []M{}
-	common.MustUnmarshalString(t.Data, &steps)
+	dtmcli.MustUnmarshalString(t.Data, &steps)
 	for i, step := range steps {
 		branch := fmt.Sprintf("%02d", i+1)
 		for _, branchType := range []string{"compensate", "action"} {
@@ -36,7 +37,7 @@ func (t *transSagaProcessor) GenBranches() []TransBranch {
 }
 
 func (t *transSagaProcessor) ExecBranch(db *common.DB, branch *TransBranch) {
-	resp, err := common.RestyClient.R().SetBody(branch.Data).SetQueryParams(t.getBranchParams(branch)).Post(branch.URL)
+	resp, err := dtmcli.RestyClient.R().SetBody(branch.Data).SetQueryParams(t.getBranchParams(branch)).Post(branch.URL)
 	e2p(err)
 	body := resp.String()
 	if strings.Contains(body, "SUCCESS") {

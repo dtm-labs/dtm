@@ -76,7 +76,7 @@ func registerXaBranch(c *gin.Context) (interface{}, error) {
 }
 
 func registerTccBranch(c *gin.Context) (interface{}, error) {
-	data := common.MS{}
+	data := dtmcli.MS{}
 	err := c.BindJSON(&data)
 	e2p(err)
 	branch := TransBranch{

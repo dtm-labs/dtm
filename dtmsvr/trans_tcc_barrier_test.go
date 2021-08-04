@@ -61,7 +61,7 @@ func tccBarrierDisorder(t *testing.T) {
 			res, err := examples.TccBarrierTransOutCancel(c)
 			if !sleeped {
 				sleeped = true
-				common.Logf("sleep before cancel return")
+				dtmcli.Logf("sleep before cancel return")
 				<-timeoutChan
 				finishedChan <- "1"
 			}
@@ -73,18 +73,18 @@ func tccBarrierDisorder(t *testing.T) {
 			"branch_id":  branchID,
 			"trans_type": "tcc",
 			"status":     "prepared",
-			"data":       string(common.MustMarshal(body)),
+			"data":       string(dtmcli.MustMarshal(body)),
 			"try":        tryURL,
 			"confirm":    confirmURL,
 			"cancel":     cancelURL,
 		}, "registerTccBranch")
 		assert.Nil(t, err)
 		go func() {
-			common.Logf("sleeping to wait for tcc try timeout")
+			dtmcli.Logf("sleeping to wait for tcc try timeout")
 			<-timeoutChan
-			r, _ := common.RestyClient.R().
+			r, _ := dtmcli.RestyClient.R().
 				SetBody(body).
-				SetQueryParams(common.MS{
+				SetQueryParams(dtmcli.MS{
 					"dtm":         tcc.Dtm,
 					"gid":         tcc.Gid,
 					"branch_id":   branchID,
@@ -95,10 +95,10 @@ func tccBarrierDisorder(t *testing.T) {
 			assert.True(t, strings.Contains(r.String(), "FAILURE"))
 			finishedChan <- "1"
 		}()
-		common.Logf("cron to timeout and then call cancel")
+		dtmcli.Logf("cron to timeout and then call cancel")
 		go CronTransOnce(60 * time.Second)
 		time.Sleep(100 * time.Millisecond)
-		common.Logf("cron to timeout and then call cancelled twice")
+		dtmcli.Logf("cron to timeout and then call cancelled twice")
 		CronTransOnce(60 * time.Second)
 		timeoutChan <- "wake"
 		timeoutChan <- "wake"

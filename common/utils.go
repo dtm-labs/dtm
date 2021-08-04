@@ -8,6 +8,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/go-resty/resty/v2"
+	"github.com/yedf/dtm/dtmcli"
 	yaml "gopkg.in/yaml.v2"
 )
 
@@ -19,19 +20,19 @@ func GetGinApp() *gin.Engine {
 		body := ""
 		if c.Request.Body != nil {
 			rb, err := c.GetRawData()
-			E2P(err)
+			dtmcli.E2P(err)
 			if len(rb) > 0 {
 				body = string(rb)
 				c.Request.Body = ioutil.NopCloser(bytes.NewBuffer(rb))
 			}
 		}
 		began := time.Now()
-		Logf("begin %s %s query: %s body: %s", c.Request.Method, c.FullPath(), c.Request.URL.RawQuery, body)
+		dtmcli.Logf("begin %s %s query: %s body: %s", c.Request.Method, c.FullPath(), c.Request.URL.RawQuery, body)
 		c.Next()
-		Logf("used %d ms %s %s query: %s body: %s", time.Since(began).Milliseconds(), c.Request.Method, c.FullPath(), c.Request.URL.RawQuery, body)
+		dtmcli.Logf("used %d ms %s %s query: %s body: %s", time.Since(began).Milliseconds(), c.Request.Method, c.FullPath(), c.Request.URL.RawQuery, body)
 
 	})
-	app.Any("/api/ping", func(c *gin.Context) { c.JSON(200, M{"msg": "pong"}) })
+	app.Any("/api/ping", func(c *gin.Context) { c.JSON(200, dtmcli.M{"msg": "pong"}) })
 	return app
 }
 
@@ -46,14 +47,14 @@ func WrapHandler(fn func(*gin.Context) (interface{}, error)) gin.HandlerFunc {
 			b, err = json.Marshal(r)
 		}
 		if err != nil {
-			Logf("status: 500, code: 500 message: %s", err.Error())
-			c.JSON(500, M{"code": 500, "message": err.Error()})
+			dtmcli.Logf("status: 500, code: 500 message: %s", err.Error())
+			c.JSON(500, dtmcli.M{"code": 500, "message": err.Error()})
 		} else {
-			Logf("status: 200, content: %s", string(b))
+			dtmcli.Logf("status: 200, content: %s", string(b))
 			c.Status(200)
 			c.Writer.Header().Add("Content-Type", "application/json")
 			_, err = c.Writer.Write(b)
-			E2P(err)
+			dtmcli.E2P(err)
 		}
 	}
 }
@@ -64,8 +65,8 @@ func InitConfig(dir string, config interface{}) {
 	if err != nil {
 		cont, err = ioutil.ReadFile(dir + "/conf.sample.yml")
 	}
-	Logf("cont is: \n%s", string(cont))
-	E2P(err)
+	dtmcli.Logf("cont is: \n%s", string(cont))
+	dtmcli.E2P(err)
 	err = yaml.Unmarshal(cont, config)
-	E2P(err)
+	dtmcli.E2P(err)
 }

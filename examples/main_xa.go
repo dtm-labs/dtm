@@ -44,7 +44,7 @@ func xaTransIn(c *gin.Context) (interface{}, error) {
 		if reqFrom(c).TransInResult == "FAILURE" {
 			return dtmcli.ResultFailure, nil
 		}
-		_, err := common.SdbExec(db, "update dtm_busi.user_account set balance=balance+? where user_id=?", reqFrom(c).Amount, 2)
+		_, err := dtmcli.SdbExec(db, "update dtm_busi.user_account set balance=balance+? where user_id=?", reqFrom(c).Amount, 2)
 		return dtmcli.ResultSuccess, err
 	})
 }
@@ -54,7 +54,7 @@ func xaTransOut(c *gin.Context) (interface{}, error) {
 		if reqFrom(c).TransOutResult == "FAILURE" {
 			return dtmcli.ResultFailure, nil
 		}
-		_, err := common.SdbExec(db, "update dtm_busi.user_account set balance=balance-? where user_id=?", reqFrom(c).Amount, 1)
+		_, err := dtmcli.SdbExec(db, "update dtm_busi.user_account set balance=balance-? where user_id=?", reqFrom(c).Amount, 1)
 		return dtmcli.ResultSuccess, err
 	})
 }

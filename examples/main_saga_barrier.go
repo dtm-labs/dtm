@@ -10,12 +10,12 @@ import (
 
 // SagaBarrierFireRequest 1
 func SagaBarrierFireRequest() string {
-	common.Logf("a busi transaction begin")
+	dtmcli.Logf("a busi transaction begin")
 	req := &TransReq{Amount: 30}
 	saga := dtmcli.NewSaga(DtmServer, dtmcli.MustGenGid(DtmServer)).
 		Add(Busi+"/SagaBTransOut", Busi+"/SagaBTransOutCompensate", req).
 		Add(Busi+"/SagaBTransIn", Busi+"/SagaBTransInCompensate", req)
-	common.Logf("busi trans submit")
+	dtmcli.Logf("busi trans submit")
 	err := saga.Submit()
 	e2p(err)
 	return saga.Gid
@@ -27,11 +27,11 @@ func SagaBarrierAddRoute(app *gin.Engine) {
 	app.POST(BusiAPI+"/SagaBTransInCompensate", common.WrapHandler(sagaBarrierTransInCompensate))
 	app.POST(BusiAPI+"/SagaBTransOut", common.WrapHandler(sagaBarrierTransOut))
 	app.POST(BusiAPI+"/SagaBTransOutCompensate", common.WrapHandler(sagaBarrierTransOutCompensate))
-	common.Logf("examples listening at %d", BusiPort)
+	dtmcli.Logf("examples listening at %d", BusiPort)
 }
 
 func sagaBarrierAdjustBalance(sdb *sql.Tx, uid int, amount int) (interface{}, error) {
-	_, err := common.StxExec(sdb, "update dtm_busi.user_account set balance = balance + ? where user_id = ?", amount, uid)
+	_, err := dtmcli.StxExec(sdb, "update dtm_busi.user_account set balance = balance + ? where user_id = ?", amount, uid)
 	return dtmcli.ResultSuccess, err
 
 }
