@@ -40,7 +40,7 @@ func XaFireRequest() string {
 }
 
 func xaTransIn(c *gin.Context) (interface{}, error) {
-	return XaClient.XaLocalTransaction(c, func(db *sql.DB, xa *dtmcli.Xa) (interface{}, error) {
+	return XaClient.XaLocalTransaction(c.Request.URL.Query(), func(db *sql.DB, xa *dtmcli.Xa) (interface{}, error) {
 		if reqFrom(c).TransInResult == "FAILURE" {
 			return dtmcli.ResultFailure, nil
 		}
@@ -50,7 +50,7 @@ func xaTransIn(c *gin.Context) (interface{}, error) {
 }
 
 func xaTransOut(c *gin.Context) (interface{}, error) {
-	return XaClient.XaLocalTransaction(c, func(db *sql.DB, xa *dtmcli.Xa) (interface{}, error) {
+	return XaClient.XaLocalTransaction(c.Request.URL.Query(), func(db *sql.DB, xa *dtmcli.Xa) (interface{}, error) {
 		if reqFrom(c).TransOutResult == "FAILURE" {
 			return dtmcli.ResultFailure, nil
 		}

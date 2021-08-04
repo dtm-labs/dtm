@@ -41,13 +41,13 @@ func sagaBarrierTransIn(c *gin.Context) (interface{}, error) {
 	if req.TransInResult != "" {
 		return req.TransInResult, nil
 	}
-	return dtmcli.ThroughBarrierCall(sdbGet(), dtmcli.MustGetTrans(c), func(sdb *sql.Tx) (interface{}, error) {
+	return dtmcli.ThroughBarrierCall(sdbGet(), MustGetTrans(c), func(sdb *sql.Tx) (interface{}, error) {
 		return sagaBarrierAdjustBalance(sdb, 1, req.Amount)
 	})
 }
 
 func sagaBarrierTransInCompensate(c *gin.Context) (interface{}, error) {
-	return dtmcli.ThroughBarrierCall(sdbGet(), dtmcli.MustGetTrans(c), func(sdb *sql.Tx) (interface{}, error) {
+	return dtmcli.ThroughBarrierCall(sdbGet(), MustGetTrans(c), func(sdb *sql.Tx) (interface{}, error) {
 		return sagaBarrierAdjustBalance(sdb, 1, -reqFrom(c).Amount)
 	})
 }
@@ -57,13 +57,13 @@ func sagaBarrierTransOut(c *gin.Context) (interface{}, error) {
 	if req.TransInResult != "" {
 		return req.TransInResult, nil
 	}
-	return dtmcli.ThroughBarrierCall(sdbGet(), dtmcli.MustGetTrans(c), func(sdb *sql.Tx) (interface{}, error) {
+	return dtmcli.ThroughBarrierCall(sdbGet(), MustGetTrans(c), func(sdb *sql.Tx) (interface{}, error) {
 		return sagaBarrierAdjustBalance(sdb, 2, -req.Amount)
 	})
 }
 
 func sagaBarrierTransOutCompensate(c *gin.Context) (interface{}, error) {
-	return dtmcli.ThroughBarrierCall(sdbGet(), dtmcli.MustGetTrans(c), func(sdb *sql.Tx) (interface{}, error) {
+	return dtmcli.ThroughBarrierCall(sdbGet(), MustGetTrans(c), func(sdb *sql.Tx) (interface{}, error) {
 		return sagaBarrierAdjustBalance(sdb, 2, reqFrom(c).Amount)
 	})
 }

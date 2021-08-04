@@ -4,9 +4,9 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"net/url"
 	"strings"
 
-	"github.com/gin-gonic/gin"
 	"github.com/go-resty/resty/v2"
 )
 
@@ -146,11 +146,11 @@ type TransBase struct {
 	WaitResult bool
 }
 
-// TransBaseFromReq construct xa info from request
-func TransBaseFromReq(c *gin.Context) *TransBase {
+// TransBaseFromQuery construct transaction info from request
+func TransBaseFromQuery(qs url.Values) *TransBase {
 	return &TransBase{
-		IDGenerator: IDGenerator{parentID: c.Query("branch_id")},
-		Dtm:         c.Query("dtm"),
+		IDGenerator: IDGenerator{parentID: qs.Get("branch_id")},
+		Dtm:         qs.Get("dtm"),
 	}
 }
 

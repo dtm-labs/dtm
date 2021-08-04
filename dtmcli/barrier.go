@@ -6,8 +6,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/url"
-
-	"github.com/gin-gonic/gin"
 )
 
 // BusiFunc type for busi func
@@ -23,13 +21,6 @@ type TransInfo struct {
 
 func (t *TransInfo) String() string {
 	return fmt.Sprintf("transInfo: %s %s %s %s", t.TransType, t.Gid, t.BranchID, t.BranchType)
-}
-
-// MustGetTrans construct transaction info from request
-func MustGetTrans(c *gin.Context) *TransInfo {
-	ti, err := TransInfoFromQuery(c.Request.URL.Query())
-	e2p(err)
-	return ti
 }
 
 // TransInfoFromQuery construct transaction info from request

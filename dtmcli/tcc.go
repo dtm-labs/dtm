@@ -2,8 +2,8 @@ package dtmcli
 
 import (
 	"fmt"
+	"net/url"
 
-	"github.com/gin-gonic/gin"
 	"github.com/go-resty/resty/v2"
 )
 
@@ -47,14 +47,14 @@ func TccGlobalTransaction(dtm string, gid string, tccFunc TccGlobalFunc) (rerr e
 	return
 }
 
-// TccFromReq tcc from request info
-func TccFromReq(c *gin.Context) (*Tcc, error) {
+// TccFromQuery tcc from request info
+func TccFromQuery(qs url.Values) (*Tcc, error) {
 	tcc := &Tcc{
-		TransBase: *TransBaseFromReq(c),
-		Gid:       c.Query("gid"),
+		TransBase: *TransBaseFromQuery(qs),
+		Gid:       qs.Get("gid"),
 	}
 	if tcc.Dtm == "" || tcc.Gid == "" {
-		return nil, fmt.Errorf("bad tcc info. dtm: %s, gid: %s", tcc.Dtm, tcc.Gid)
+		return nil, fmt.Errorf("bad tcc info. dtm: %s, gid: %s parentID: %s", tcc.Dtm, tcc.Gid, tcc.parentID)
 	}
 	return tcc, nil
 }

@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"net/url"
 
-	"github.com/gin-gonic/gin"
 	"github.com/go-resty/resty/v2"
 )
 
@@ -33,9 +32,13 @@ type Xa struct {
 	TransBase
 }
 
-// XaFromReq construct xa info from request
-func XaFromReq(c *gin.Context) *Xa {
-	return &Xa{TransBase: *TransBaseFromReq(c), Gid: c.Query("gid")}
+// XaFromQuery construct xa info from request
+func XaFromQuery(qs url.Values) (*Xa, error) {
+	xa := &Xa{TransBase: *TransBaseFromQuery(qs), Gid: qs.Get("gid")}
+	if xa.Gid == "" || xa.parentID == "" {
+		return nil, fmt.Errorf("bad xa info: gid: %s parentid: %s", xa.Gid, xa.parentID)
+	}
+	return xa, nil
 }
 
 // NewXaClient construct a xa client
@@ -64,8 +67,11 @@ func (xc *XaClient) HandleCallback(gid string, branchID string, action string) (
 }
 
 // XaLocalTransaction start a xa local transaction
-func (xc *XaClient) XaLocalTransaction(c *gin.Context, xaFunc XaLocalFunc) (ret interface{}, rerr error) {
-	xa := XaFromReq(c)
+func (xc *XaClient) XaLocalTransaction(qs url.Values, xaFunc XaLocalFunc) (ret interface{}, rerr error) {
+	xa, rerr := XaFromQuery(qs)
+	if rerr != nil {
+		return
+	}
 	xa.Dtm = xc.Server
 	branchID := xa.NewBranchID()
 	xaBranch := xa.Gid + "-" + branchID
