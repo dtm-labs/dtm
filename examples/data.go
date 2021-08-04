@@ -5,12 +5,14 @@ import (
 	"io/ioutil"
 	"strings"
 
+	"github.com/yedf/dtm/common"
 	"github.com/yedf/dtm/dtmcli"
 )
 
 // RunSQLScript 1
 func RunSQLScript(conf map[string]string, script string, skipDrop bool) {
-	con := dtmcli.SdbAlone(conf)
+	con, err := dtmcli.SdbAlone(conf)
+	e2p(err)
 	defer func() { con.Close() }()
 	content, err := ioutil.ReadFile(script)
 	e2p(err)
@@ -27,6 +29,6 @@ func RunSQLScript(conf map[string]string, script string, skipDrop bool) {
 
 // PopulateDB populate example mysql data
 func PopulateDB(skipDrop bool) {
-	file := fmt.Sprintf("%s/examples.%s.sql", dtmcli.GetCurrentCodeDir(), config.DB["driver"])
+	file := fmt.Sprintf("%s/examples.%s.sql", common.GetCurrentCodeDir(), config.DB["driver"])
 	RunSQLScript(config.DB, file, skipDrop)
 }

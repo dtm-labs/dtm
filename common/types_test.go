@@ -3,7 +3,7 @@ package common
 import (
 	"testing"
 
-	"github.com/go-playground/assert/v2"
+	"github.com/stretchr/testify/assert"
 	"github.com/yedf/dtm/dtmcli"
 )
 
@@ -14,8 +14,7 @@ type testConfig struct {
 var config = testConfig{}
 
 func init() {
-	InitConfig(dtmcli.GetProjectDir(), &config)
-	config.DB["database"] = ""
+	InitConfig(&config)
 }
 
 func TestDb(t *testing.T) {
@@ -31,8 +30,9 @@ func TestDb(t *testing.T) {
 }
 
 func TestDbAlone(t *testing.T) {
-	db := dtmcli.SdbAlone(config.DB)
-	_, err := dtmcli.SdbExec(db, "select 1")
+	db, err := dtmcli.SdbAlone(config.DB)
+	assert.Nil(t, err)
+	_, err = dtmcli.SdbExec(db, "select 1")
 	assert.Equal(t, nil, err)
 	db.Close()
 	_, err = dtmcli.SdbExec(db, "select 1")

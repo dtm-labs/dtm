@@ -4,6 +4,9 @@ import (
 	"bytes"
 	"encoding/json"
 	"io/ioutil"
+	"os"
+	"path/filepath"
+	"runtime"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -59,14 +62,36 @@ func WrapHandler(fn func(*gin.Context) (interface{}, error)) gin.HandlerFunc {
 	}
 }
 
+// MustGetwd must version of os.Getwd
+func MustGetwd() string {
+	wd, err := os.Getwd()
+	dtmcli.E2P(err)
+	return wd
+}
+
+// GetCurrentCodeDir 获取当前源代码的目录，主要用于测试时，查找相关文件
+func GetCurrentCodeDir() string {
+	_, file, _, _ := runtime.Caller(1)
+	return filepath.Dir(file)
+}
+
 // InitConfig init config
-func InitConfig(dir string, config interface{}) {
-	cont, err := ioutil.ReadFile(dir + "/conf.yml")
-	if err != nil {
-		cont, err = ioutil.ReadFile(dir + "/conf.sample.yml")
+func InitConfig(config interface{}) {
+	cont := []byte{}
+	for d := MustGetwd(); d != ""; d = filepath.Dir(d) {
+		cont1, err := ioutil.ReadFile(d + "/conf.yml")
+		if err != nil {
+			cont1, err = ioutil.ReadFile(d + "/conf.sample.yml")
+		}
+		if cont1 != nil {
+			cont = cont1
+			break
+		}
+	}
+	if cont == nil {
+		dtmcli.LogFatalf("no config file conf.yml/conf.sample.yml found in current and parent path: %s", MustGetwd())
 	}
 	dtmcli.Logf("cont is: \n%s", string(cont))
-	dtmcli.E2P(err)
-	err = yaml.Unmarshal(cont, config)
-	dtmcli.E2P(err)
+	err := yaml.Unmarshal(cont, config)
+	dtmcli.FatalIfError(err)
 }

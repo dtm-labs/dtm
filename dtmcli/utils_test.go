@@ -65,11 +65,6 @@ func TestSome(t *testing.T) {
 		MustAtoi("abc")
 	})
 	assert.Error(t, err)
-	wd := MustGetwd()
-	assert.NotEqual(t, "", wd)
-
-	dir1 := GetCurrentCodeDir()
-	assert.Equal(t, true, strings.HasSuffix(dir1, "dtmcli"))
 
 	func1 := GetFuncName()
 	assert.Equal(t, true, strings.HasSuffix(func1, "TestSome"))

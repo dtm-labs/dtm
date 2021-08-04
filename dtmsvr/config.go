@@ -2,7 +2,6 @@ package dtmsvr
 
 import (
 	"github.com/yedf/dtm/common"
-	"github.com/yedf/dtm/dtmcli"
 )
 
 type dtmsvrConfig struct {
@@ -14,9 +13,6 @@ var config = &dtmsvrConfig{
 	TransCronInterval: 10,
 }
 
-var dbName = "dtm"
-
 func init() {
-	common.InitConfig(dtmcli.GetProjectDir(), &config)
-	config.DB["database"] = ""
+	common.InitConfig(&config)
 }

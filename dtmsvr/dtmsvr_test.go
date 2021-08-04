@@ -42,7 +42,7 @@ func resetXaData() {
 
 func TestMain(m *testing.M) {
 	TransProcessedTestChan = make(chan string, 1)
-	common.InitConfig(dtmcli.GetProjectDir(), &config)
+	common.InitConfig(&config)
 	PopulateDB(false)
 	examples.PopulateDB(false)
 	// 启动组件
@@ -70,21 +70,6 @@ func TestCover(t *testing.T) {
 
 	CronExpiredTrans(1)
 	go sleepCronTime()
-}
-
-func TestType(t *testing.T) {
-	err := dtmcli.CatchP(func() {
-		dtmcli.MustGenGid("http://localhost:8080/api/no")
-	})
-	assert.Error(t, err)
-	err = dtmcli.CatchP(func() {
-		resp, err := dtmcli.RestyClient.R().SetBody(dtmcli.M{
-			"gid":        "1",
-			"trans_type": "msg",
-		}).Get("http://localhost:8080/api/dtmsvr/abort")
-		dtmcli.CheckRestySuccess(resp, err)
-	})
-	assert.Error(t, err)
 }
 
 func getTransStatus(gid string) string {

@@ -1,12 +1,12 @@
 package dtmcli
 
 import (
+	"database/sql"
 	"encoding/json"
 	"errors"
 	"fmt"
 	"os"
 	"path"
-	"path/filepath"
 	"runtime"
 	"strconv"
 	"strings"
@@ -126,6 +126,21 @@ func LogRedf(fmt string, args ...interface{}) {
 	Logf("\x1b[31m\n"+fmt+"\x1b[0m\n", args...)
 }
 
+// LogFatalf 采用红色打印错误类信息， 并退出
+func LogFatalf(fmt string, args ...interface{}) {
+	Logf("\x1b[31m\n"+fmt+"\x1b[0m\n", args...)
+	os.Exit(1)
+}
+
+// FatalIfError 采用红色打印错误类信息， 并退出
+func FatalIfError(err error) {
+	if err == nil {
+		return
+	}
+	Logf("\x1b[31m\nFatal error: %v\x1b[0m\n", err)
+	os.Exit(1)
+}
+
 // RestyClient the resty object
 var RestyClient = resty.New()
 
@@ -145,35 +160,6 @@ func init() {
 	})
 }
 
-// CheckRestySuccess panic if error or resp not success
-func CheckRestySuccess(resp *resty.Response, err error) {
-	E2P(err)
-	if !strings.Contains(resp.String(), "SUCCESS") {
-		panic(fmt.Errorf("resty response not success: %s", resp.String()))
-	}
-}
-
-// MustGetwd must version of os.Getwd
-func MustGetwd() string {
-	wd, err := os.Getwd()
-	E2P(err)
-	return wd
-}
-
-// GetCurrentCodeDir name is clear
-func GetCurrentCodeDir() string {
-	_, file, _, _ := runtime.Caller(1)
-	return filepath.Dir(file)
-}
-
-// GetProjectDir name is clear
-func GetProjectDir() string {
-	_, file, _, _ := runtime.Caller(1)
-	for ; !strings.HasSuffix(file, "/dtm"); file = filepath.Dir(file) {
-	}
-	return file
-}
-
 // GetFuncName get current call func name
 func GetFuncName() string {
 	pc, _, _, _ := runtime.Caller(1)
@@ -186,4 +172,94 @@ func MayReplaceLocalhost(host string) string {
 		return strings.Replace(host, "localhost", "host.docker.internal", 1)
 	}
 	return host
+}
+
+var sqlDbs = map[string]*sql.DB{}
+
+// SdbGet get pooled sql.DB
+func SdbGet(conf map[string]string) (*sql.DB, error) {
+	dsn := GetDsn(conf)
+	if sqlDbs[dsn] == nil {
+		db, err := SdbAlone(conf)
+		if err != nil {
+			return nil, err
+		}
+		sqlDbs[dsn] = db
+	}
+	return sqlDbs[dsn], nil
+}
+
+// SdbAlone get a standalone db connection
+func SdbAlone(conf map[string]string) (*sql.DB, error) {
+	dsn := GetDsn(conf)
+	Logf("opening alone %s: %s", conf["driver"], strings.Replace(dsn, conf["password"], "****", 1))
+	return sql.Open(conf["driver"], dsn)
+}
+
+// SdbExec use raw db to exec
+func SdbExec(db *sql.DB, sql string, values ...interface{}) (affected int64, rerr error) {
+	r, rerr := db.Exec(sql, values...)
+	if rerr == nil {
+		affected, rerr = r.RowsAffected()
+		Logf("affected: %d for %s %v", affected, sql, values)
+	} else {
+		LogRedf("exec error: %v for %s %v", rerr, sql, values)
+	}
+	return
+}
+
+// StxExec use raw tx to exec
+func StxExec(tx *sql.Tx, sql string, values ...interface{}) (affected int64, rerr error) {
+	r, rerr := tx.Exec(sql, values...)
+	if rerr == nil {
+		affected, rerr = r.RowsAffected()
+		Logf("affected: %d for %s %v", affected, sql, values)
+	} else {
+		LogRedf("exec error: %v for %s %v", rerr, sql, values)
+	}
+	return
+}
+
+// StxQueryRow use raw tx to query row
+func StxQueryRow(tx *sql.Tx, query string, args ...interface{}) *sql.Row {
+	Logf("querying: "+query, args...)
+	return tx.QueryRow(query, args...)
+}
+
+// GetDsn get dsn from map config
+func GetDsn(conf map[string]string) string {
+	conf["host"] = MayReplaceLocalhost(conf["host"])
+	driver := conf["driver"]
+	dsn := MS{
+		"mysql": fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?charset=utf8mb4&parseTime=true&loc=Local",
+			conf["user"], conf["password"], conf["host"], conf["port"], conf["database"]),
+		"postgres": fmt.Sprintf("host=%s user=%s password=%s dbname='%s' port=%s sslmode=disable TimeZone=Asia/Shanghai",
+			conf["host"], conf["user"], conf["password"], conf["database"], conf["port"]),
+	}[driver]
+	PanicIf(dsn == "", fmt.Errorf("unknow driver: %s", driver))
+	return dsn
+}
+
+// CheckResponse 检查Response，返回错误
+func CheckResponse(resp *resty.Response, err error) error {
+	if err == nil && resp != nil {
+		if resp.IsError() {
+			return errors.New(resp.String())
+		} else if strings.Contains(resp.String(), "FAILURE") {
+			return ErrFailure
+		}
+	}
+	return err
+}
+
+// CheckResult 检查Result，返回错误
+func CheckResult(res interface{}, err error) error {
+	resp, ok := res.(*resty.Response)
+	if ok {
+		return CheckResponse(resp, err)
+	}
+	if res != nil && strings.Contains(MustMarshalString(res), "FAILURE") {
+		return ErrFailure
+	}
+	return err
 }

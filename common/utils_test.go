@@ -30,3 +30,12 @@ func TestGin(t *testing.T) {
 	assert.Equal(t, "1", getResultString("/api/sample", nil))
 	assert.Equal(t, "{\"code\":500,\"message\":\"err1\"}", getResultString("/api/error", strings.NewReader("{}")))
 }
+
+func TestFuncs(t *testing.T) {
+	wd := MustGetwd()
+	assert.NotEqual(t, "", wd)
+
+	dir1 := GetCurrentCodeDir()
+	assert.Equal(t, true, strings.HasSuffix(dir1, "common"))
+
+}

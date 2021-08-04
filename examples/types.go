@@ -64,7 +64,9 @@ func dbGet() *common.DB {
 }
 
 func sdbGet() *sql.DB {
-	return dtmcli.SdbGet(config.DB)
+	db, err := dtmcli.SdbGet(config.DB)
+	e2p(err)
+	return db
 }
 
 // MustGetTrans construct transaction info from request

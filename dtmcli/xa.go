@@ -8,8 +8,6 @@ import (
 	"github.com/go-resty/resty/v2"
 )
 
-var e2p = E2P
-
 // XaGlobalFunc type of xa global function
 type XaGlobalFunc func(xa *Xa) (*resty.Response, error)
 
@@ -58,10 +56,13 @@ func NewXaClient(server string, mysqlConf map[string]string, callbackURL string,
 
 // HandleCallback 处理commit/rollback的回调
 func (xc *XaClient) HandleCallback(gid string, branchID string, action string) (interface{}, error) {
-	db := SdbAlone(xc.Conf)
+	db, err := SdbAlone(xc.Conf)
+	if err != nil {
+		return nil, err
+	}
 	defer db.Close()
 	xaID := gid + "-" + branchID
-	_, err := SdbExec(db, fmt.Sprintf("xa %s '%s'", action, xaID))
+	_, err = SdbExec(db, fmt.Sprintf("xa %s '%s'", action, xaID))
 	return ResultSuccess, err
 
 }
@@ -75,7 +76,10 @@ func (xc *XaClient) XaLocalTransaction(qs url.Values, xaFunc XaLocalFunc) (ret i
 	xa.Dtm = xc.Server
 	branchID := xa.NewBranchID()
 	xaBranch := xa.Gid + "-" + branchID
-	db := SdbAlone(xc.Conf)
+	db, rerr := SdbAlone(xc.Conf)
+	if rerr != nil {
+		return
+	}
 	defer func() { db.Close() }()
 	defer func() {
 		x := recover()

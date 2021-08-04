@@ -17,7 +17,12 @@ func TestTypes(t *testing.T) {
 		idGen := IDGenerator{branchID: 99}
 		idGen.NewBranchID()
 	})
+	err = CatchP(func() {
+		MustGenGid("http://localhost:8080/api/no")
+	})
+	assert.Error(t, err)
 	assert.Error(t, err)
 	_, err = TransInfoFromQuery(url.Values{})
 	assert.Error(t, err)
+
 }
