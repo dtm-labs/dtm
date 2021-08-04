@@ -1,9 +1,5 @@
 package dtmcli
 
-import (
-	"github.com/yedf/dtm/common"
-)
-
 // Saga struct of saga
 type Saga struct {
 	SagaData
@@ -39,11 +35,11 @@ func NewSaga(server string, gid string) *Saga {
 
 // Add add a saga step
 func (s *Saga) Add(action string, compensate string, postData interface{}) *Saga {
-	common.Logf("saga %s Add %s %s %v", s.SagaData.Gid, action, compensate, postData)
+	Logf("saga %s Add %s %s %v", s.SagaData.Gid, action, compensate, postData)
 	step := SagaStep{
 		Action:     action,
 		Compensate: compensate,
-		Data:       common.MustMarshalString(postData),
+		Data:       MustMarshalString(postData),
 	}
 	s.Steps = append(s.Steps, step)
 	return s

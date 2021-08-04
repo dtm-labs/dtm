@@ -8,7 +8,6 @@ import (
 	"net/url"
 
 	"github.com/gin-gonic/gin"
-	"github.com/yedf/dtm/common"
 )
 
 // BusiFunc type for busi func
@@ -47,20 +46,11 @@ func TransInfoFromQuery(qs url.Values) (*TransInfo, error) {
 	return ti, nil
 }
 
-// BarrierModel barrier model for gorm
-type BarrierModel struct {
-	common.ModelBase
-	TransInfo
-}
-
-// TableName gorm table name
-func (BarrierModel) TableName() string { return "dtm_barrier.barrier" }
-
 func insertBarrier(tx *sql.Tx, transType string, gid string, branchID string, branchType string, reason string) (int64, error) {
 	if branchType == "" {
 		return 0, nil
 	}
-	return common.StxExec(tx, "insert ignore into dtm_barrier.barrier(trans_type, gid, branch_id, branch_type, reason) values(?,?,?,?,?)", transType, gid, branchID, branchType, reason)
+	return StxExec(tx, "insert ignore into dtm_barrier.barrier(trans_type, gid, branch_id, branch_type, reason) values(?,?,?,?,?)", transType, gid, branchID, branchType, reason)
 }
 
 // ThroughBarrierCall 子事务屏障，详细介绍见 https://zhuanlan.zhihu.com/p/388444465
@@ -78,7 +68,7 @@ func ThroughBarrierCall(db *sql.DB, transInfo *TransInfo, busiCall BusiFunc) (re
 		return
 	}
 	defer func() {
-		common.Logf("result is %v error is %v", res, rerr)
+		Logf("result is %v error is %v", res, rerr)
 		if x := recover(); x != nil {
 			tx.Rollback()
 			panic(x)
@@ -95,13 +85,13 @@ func ThroughBarrierCall(db *sql.DB, transInfo *TransInfo, busiCall BusiFunc) (re
 	}[ti.BranchType]
 	originAffected, _ := insertBarrier(tx, ti.TransType, ti.Gid, ti.BranchID, originType, ti.BranchType)
 	currentAffected, rerr := insertBarrier(tx, ti.TransType, ti.Gid, ti.BranchID, ti.BranchType, ti.BranchType)
-	common.Logf("originAffected: %d currentAffected: %d", originAffected, currentAffected)
+	Logf("originAffected: %d currentAffected: %d", originAffected, currentAffected)
 	if (ti.BranchType == "cancel" || ti.BranchType == "compensate") && originAffected > 0 { // 这个是空补偿，返回成功
 		res = ResultSuccess
 		return
 	} else if currentAffected == 0 { // 插入不成功
 		var result sql.NullString
-		err := common.StxQueryRow(tx, "select result from dtm_barrier.barrier where trans_type=? and gid=? and branch_id=? and branch_type=? and reason=?",
+		err := StxQueryRow(tx, "select result from dtm_barrier.barrier where trans_type=? and gid=? and branch_id=? and branch_type=? and reason=?",
 			ti.TransType, ti.Gid, ti.BranchID, ti.BranchType, ti.BranchType).Scan(&result)
 		if err == sql.ErrNoRows { // 这个是悬挂操作，返回失败，AP收到这个返回，会尽快回滚
 			res = ResultFailure
@@ -121,8 +111,8 @@ func ThroughBarrierCall(db *sql.DB, transInfo *TransInfo, busiCall BusiFunc) (re
 	}
 	res, rerr = busiCall(tx)
 	if rerr == nil { // 正确返回了，需要将结果保存到数据库
-		sval := common.MustMarshalString(res)
-		_, rerr = common.StxExec(tx, "update dtm_barrier.barrier set result=? where trans_type=? and gid=? and branch_id=? and branch_type=?", sval,
+		sval := MustMarshalString(res)
+		_, rerr = StxExec(tx, "update dtm_barrier.barrier set result=? where trans_type=? and gid=? and branch_id=? and branch_type=?", sval,
 			ti.TransType, ti.Gid, ti.BranchID, ti.BranchType)
 	}
 	return

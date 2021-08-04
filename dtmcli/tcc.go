@@ -5,7 +5,6 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/go-resty/resty/v2"
-	"github.com/yedf/dtm/common"
 )
 
 // Tcc struct of tcc
@@ -34,7 +33,7 @@ func TccGlobalTransaction(dtm string, gid string, tccFunc TccGlobalFunc) (rerr e
 	// 小概率情况下，prepare成功了，但是由于网络状况导致上面Failure，那么不执行下面defer的内容，等待超时后再回滚标记事务失败，也没有问题
 	defer func() {
 		x := recover()
-		operation := common.If(x == nil && rerr == nil, "submit", "abort").(string)
+		operation := If(x == nil && rerr == nil, "submit", "abort").(string)
 		err := tcc.CallDtm(data, operation)
 		if rerr == nil {
 			rerr = err
@@ -69,7 +68,7 @@ func (t *Tcc) CallBranch(body interface{}, tryURL string, confirmURL string, can
 		"branch_id":  branchID,
 		"trans_type": "tcc",
 		"status":     "prepared",
-		"data":       string(common.MustMarshal(body)),
+		"data":       string(MustMarshal(body)),
 		"try":        tryURL,
 		"confirm":    confirmURL,
 		"cancel":     cancelURL,
@@ -77,9 +76,9 @@ func (t *Tcc) CallBranch(body interface{}, tryURL string, confirmURL string, can
 	if err != nil {
 		return nil, err
 	}
-	resp, err := common.RestyClient.R().
+	resp, err := RestyClient.R().
 		SetBody(body).
-		SetQueryParams(common.MS{
+		SetQueryParams(MS{
 			"dtm":         t.Dtm,
 			"gid":         t.Gid,
 			"branch_id":   branchID,

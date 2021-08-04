@@ -16,6 +16,15 @@ var DtmServer = examples.DtmServer
 var Busi = examples.Busi
 var app *gin.Engine
 
+// BarrierModel barrier model for gorm
+type BarrierModel struct {
+	common.ModelBase
+	dtmcli.TransInfo
+}
+
+// TableName gorm table name
+func (BarrierModel) TableName() string { return "dtm_barrier.barrier" }
+
 func resetXaData() {
 	if config.DB["driver"] != "mysql" {
 		return
@@ -156,9 +165,9 @@ func TestSqlDB(t *testing.T) {
 		return nil, fmt.Errorf("gid2 error")
 	})
 	asserts.Error(err, fmt.Errorf("gid2 error"))
-	dbr := db.Model(&dtmcli.BarrierModel{}).Where("gid=?", "gid1").Find(&[]dtmcli.BarrierModel{})
+	dbr := db.Model(&BarrierModel{}).Where("gid=?", "gid1").Find(&[]BarrierModel{})
 	asserts.Equal(dbr.RowsAffected, int64(1))
-	dbr = db.Model(&dtmcli.BarrierModel{}).Where("gid=?", "gid2").Find(&[]dtmcli.BarrierModel{})
+	dbr = db.Model(&BarrierModel{}).Where("gid=?", "gid2").Find(&[]BarrierModel{})
 	asserts.Equal(dbr.RowsAffected, int64(0))
 	gid2Res := common.M{"result": "first"}
 	_, err = dtmcli.ThroughBarrierCall(db.ToSQLDB(), transInfo, func(db *sql.Tx) (interface{}, error) {
@@ -166,7 +175,7 @@ func TestSqlDB(t *testing.T) {
 		return gid2Res, nil
 	})
 	asserts.Nil(err)
-	dbr = db.Model(&dtmcli.BarrierModel{}).Where("gid=?", "gid2").Find(&[]dtmcli.BarrierModel{})
+	dbr = db.Model(&BarrierModel{}).Where("gid=?", "gid2").Find(&[]BarrierModel{})
 	asserts.Equal(dbr.RowsAffected, int64(1))
 	newResult, err := dtmcli.ThroughBarrierCall(db.ToSQLDB(), transInfo, func(db *sql.Tx) (interface{}, error) {
 		common.Logf("submit gid2")

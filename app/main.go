@@ -4,7 +4,7 @@ import (
 	"os"
 	"time"
 
-	"github.com/sirupsen/logrus"
+	"github.com/yedf/dtm/dtmcli"
 	"github.com/yedf/dtm/dtmsvr"
 	"github.com/yedf/dtm/examples"
 )
@@ -68,7 +68,7 @@ func main() {
 		examples.TccBarrierAddRoute(app)
 		examples.TccBarrierFireRequest()
 	} else {
-		logrus.Fatalf("unknown arg: %s", os.Args[1])
+		dtmcli.LogRedf("unknown arg: %s", os.Args[1])
 	}
 	wait()
 }

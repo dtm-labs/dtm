@@ -1,9 +1,5 @@
 package dtmcli
 
-import (
-	"github.com/yedf/dtm/common"
-)
-
 // Msg reliable msg type
 type Msg struct {
 	MsgData
@@ -39,10 +35,10 @@ func NewMsg(server string, gid string) *Msg {
 
 // Add add a new step
 func (s *Msg) Add(action string, postData interface{}) *Msg {
-	common.Logf("msg %s Add %s %v", s.MsgData.Gid, action, postData)
+	Logf("msg %s Add %s %v", s.MsgData.Gid, action, postData)
 	step := MsgStep{
 		Action: action,
-		Data:   common.MustMarshalString(postData),
+		Data:   MustMarshalString(postData),
 	}
 	s.Steps = append(s.Steps, step)
 	return s
@@ -50,7 +46,7 @@ func (s *Msg) Add(action string, postData interface{}) *Msg {
 
 // Prepare prepare the msg
 func (s *Msg) Prepare(queryPrepared string) error {
-	s.QueryPrepared = common.OrString(queryPrepared, s.QueryPrepared)
+	s.QueryPrepared = OrString(queryPrepared, s.QueryPrepared)
 	return s.CallDtm(&s.MsgData, "prepare")
 }
 

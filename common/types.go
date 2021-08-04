@@ -7,6 +7,8 @@ import (
 	"time"
 
 	_ "github.com/go-sql-driver/mysql"
+	"github.com/yedf/dtm/dtmcli"
+
 	// _ "github.com/lib/pq"
 
 	"gorm.io/driver/mysql"
@@ -14,12 +16,6 @@ import (
 	// "gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )
-
-// M a short name
-type M = map[string]interface{}
-
-// MS a short name
-type MS = map[string]string
 
 // ModelBase model base for gorm to provide base fields
 type ModelBase struct {
@@ -38,7 +34,6 @@ func getGormDialator(driver string, dsn string) gorm.Dialector {
 }
 
 var dbs = map[string]*DB{}
-var sqlDbs = map[string]*sql.DB{}
 
 // DB provide more func over gorm.DB
 type DB struct {
@@ -60,7 +55,7 @@ func (m *DB) NoMust() *DB {
 // ToSQLDB get the sql.DB
 func (m *DB) ToSQLDB() *sql.DB {
 	d, err := m.DB.DB()
-	E2P(err)
+	dtmcli.E2P(err)
 	return d
 }
 
@@ -78,7 +73,7 @@ func (op *tracePlugin) Initialize(db *gorm.DB) (err error) {
 	after := func(db *gorm.DB) {
 		_ts, _ := db.InstanceGet("ivy.startTime")
 		sql := db.Dialector.Explain(db.Statement.SQL.String(), db.Statement.Vars...)
-		Logf("used: %d ms affected: %d sql is: %s", time.Since(_ts.(time.Time)).Milliseconds(), db.RowsAffected, sql)
+		dtmcli.Logf("used: %d ms affected: %d sql is: %s", time.Since(_ts.(time.Time)).Milliseconds(), db.RowsAffected, sql)
 		if v, ok := db.InstanceGet("ivy.must"); ok && v.(bool) {
 			if db.Error != nil && db.Error != gorm.ErrRecordNotFound {
 				panic(db.Error)
@@ -89,7 +84,7 @@ func (op *tracePlugin) Initialize(db *gorm.DB) (err error) {
 	beforeName := "cb_before"
 	afterName := "cb_after"
 
-	Logf("installing db plugin: %s", op.Name())
+	dtmcli.Logf("installing db plugin: %s", op.Name())
 	// 开始前
 	_ = db.Callback().Create().Before("gorm:before_create").Register(beforeName, before)
 	_ = db.Callback().Query().Before("gorm:query").Register(beforeName, before)
@@ -108,79 +103,17 @@ func (op *tracePlugin) Initialize(db *gorm.DB) (err error) {
 	return
 }
 
-// GetDsn get dsn from map config
-func GetDsn(conf map[string]string) string {
-	conf["host"] = MayReplaceLocalhost(conf["host"])
-	driver := conf["driver"]
-	dsn := MS{
-		"mysql": fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?charset=utf8mb4&parseTime=true&loc=Local",
-			conf["user"], conf["password"], conf["host"], conf["port"], conf["database"]),
-		"postgres": fmt.Sprintf("host=%s user=%s password=%s dbname='%s' port=%s sslmode=disable TimeZone=Asia/Shanghai",
-			conf["host"], conf["user"], conf["password"], conf["database"], conf["port"]),
-	}[driver]
-	PanicIf(dsn == "", fmt.Errorf("unknow driver: %s", driver))
-	return dsn
-}
-
 // DbGet get db connection for specified conf
 func DbGet(conf map[string]string) *DB {
-	dsn := GetDsn(conf)
+	dsn := dtmcli.GetDsn(conf)
 	if dbs[dsn] == nil {
-		Logf("connecting %s", strings.Replace(dsn, conf["password"], "****", 1))
+		dtmcli.Logf("connecting %s", strings.Replace(dsn, conf["password"], "****", 1))
 		db1, err := gorm.Open(getGormDialator(conf["driver"], dsn), &gorm.Config{
 			SkipDefaultTransaction: true,
 		})
-		E2P(err)
+		dtmcli.E2P(err)
 		db1.Use(&tracePlugin{})
 		dbs[dsn] = &DB{DB: db1}
 	}
 	return dbs[dsn]
-}
-
-// SdbGet get pooled sql.DB
-func SdbGet(conf map[string]string) *sql.DB {
-	dsn := GetDsn(conf)
-	if sqlDbs[dsn] == nil {
-		sqlDbs[dsn] = SdbAlone(conf)
-	}
-	return sqlDbs[dsn]
-}
-
-// SdbAlone get a standalone db connection
-func SdbAlone(conf map[string]string) *sql.DB {
-	dsn := GetDsn(conf)
-	Logf("opening alone %s: %s", conf["driver"], strings.Replace(dsn, conf["password"], "****", 1))
-	mdb, err := sql.Open(conf["driver"], dsn)
-	E2P(err)
-	return mdb
-}
-
-// SdbExec use raw db to exec
-func SdbExec(db *sql.DB, sql string, values ...interface{}) (affected int64, rerr error) {
-	r, rerr := db.Exec(sql, values...)
-	if rerr == nil {
-		affected, rerr = r.RowsAffected()
-		Logf("affected: %d for %s %v", affected, sql, values)
-	} else {
-		LogRedf("exec error: %v for %s %v", rerr, sql, values)
-	}
-	return
-}
-
-// StxExec use raw tx to exec
-func StxExec(tx *sql.Tx, sql string, values ...interface{}) (affected int64, rerr error) {
-	r, rerr := tx.Exec(sql, values...)
-	if rerr == nil {
-		affected, rerr = r.RowsAffected()
-		Logf("affected: %d for %s %v", affected, sql, values)
-	} else {
-		LogRedf("exec error: %v for %s %v", rerr, sql, values)
-	}
-	return
-}
-
-// StxQueryRow use raw tx to query row
-func StxQueryRow(tx *sql.Tx, query string, args ...interface{}) *sql.Row {
-	Logf("querying: "+query, args...)
-	return tx.QueryRow(query, args...)
 }

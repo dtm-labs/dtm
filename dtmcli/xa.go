@@ -7,13 +7,9 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/go-resty/resty/v2"
-	"github.com/yedf/dtm/common"
 )
 
-// M alias
-type M = map[string]interface{}
-
-var e2p = common.E2P
+var e2p = E2P
 
 // XaGlobalFunc type of xa global function
 type XaGlobalFunc func(xa *Xa) (*resty.Response, error)
@@ -59,10 +55,10 @@ func NewXaClient(server string, mysqlConf map[string]string, callbackURL string,
 
 // HandleCallback 处理commit/rollback的回调
 func (xc *XaClient) HandleCallback(gid string, branchID string, action string) (interface{}, error) {
-	db := common.SdbAlone(xc.Conf)
+	db := SdbAlone(xc.Conf)
 	defer db.Close()
 	xaID := gid + "-" + branchID
-	_, err := common.SdbExec(db, fmt.Sprintf("xa %s '%s'", action, xaID))
+	_, err := SdbExec(db, fmt.Sprintf("xa %s '%s'", action, xaID))
 	return ResultSuccess, err
 
 }
@@ -73,13 +69,13 @@ func (xc *XaClient) XaLocalTransaction(c *gin.Context, xaFunc XaLocalFunc) (ret 
 	xa.Dtm = xc.Server
 	branchID := xa.NewBranchID()
 	xaBranch := xa.Gid + "-" + branchID
-	db := common.SdbAlone(xc.Conf)
+	db := SdbAlone(xc.Conf)
 	defer func() { db.Close() }()
 	defer func() {
 		x := recover()
-		_, err := common.SdbExec(db, fmt.Sprintf("XA end '%s'", xaBranch))
+		_, err := SdbExec(db, fmt.Sprintf("XA end '%s'", xaBranch))
 		if x == nil && rerr == nil && err == nil {
-			_, err = common.SdbExec(db, fmt.Sprintf("XA prepare '%s'", xaBranch))
+			_, err = SdbExec(db, fmt.Sprintf("XA prepare '%s'", xaBranch))
 		}
 		if rerr == nil {
 			rerr = err
@@ -88,7 +84,7 @@ func (xc *XaClient) XaLocalTransaction(c *gin.Context, xaFunc XaLocalFunc) (ret 
 			panic(x)
 		}
 	}()
-	_, rerr = common.SdbExec(db, fmt.Sprintf("XA start '%s'", xaBranch))
+	_, rerr = SdbExec(db, fmt.Sprintf("XA start '%s'", xaBranch))
 	if rerr != nil {
 		return
 	}
@@ -116,7 +112,7 @@ func (xc *XaClient) XaGlobalTransaction(gid string, xaFunc XaGlobalFunc) (rerr e
 	// 小概率情况下，prepare成功了，但是由于网络状况导致上面Failure，那么不执行下面defer的内容，等待超时后再回滚标记事务失败，也没有问题
 	defer func() {
 		x := recover()
-		operation := common.If(x != nil || rerr != nil, "abort", "submit").(string)
+		operation := If(x != nil || rerr != nil, "abort", "submit").(string)
 		err := xa.CallDtm(data, operation)
 		if rerr == nil { // 如果用户函数没有返回错误，那么返回dtm的
 			rerr = err
@@ -133,9 +129,9 @@ func (xc *XaClient) XaGlobalTransaction(gid string, xaFunc XaGlobalFunc) (rerr e
 // CallBranch call a xa branch
 func (x *Xa) CallBranch(body interface{}, url string) (*resty.Response, error) {
 	branchID := x.NewBranchID()
-	resp, err := common.RestyClient.R().
+	resp, err := RestyClient.R().
 		SetBody(body).
-		SetQueryParams(common.MS{
+		SetQueryParams(MS{
 			"gid":         x.Gid,
 			"branch_id":   branchID,
 			"trans_type":  "xa",

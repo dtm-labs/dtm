@@ -7,8 +7,8 @@ import (
 	"strings"
 
 	"github.com/bwmarrin/snowflake"
-	"github.com/sirupsen/logrus"
 	"github.com/yedf/dtm/common"
+	"github.com/yedf/dtm/dtmcli"
 )
 
 // M a short name
@@ -38,13 +38,13 @@ var TransProcessedTestChan chan string = nil
 
 // WaitTransProcessed only for test usage. wait for transaction processed once
 func WaitTransProcessed(gid string) {
-	common.Logf("waiting for gid %s", gid)
+	dtmcli.Logf("waiting for gid %s", gid)
 	id := <-TransProcessedTestChan
 	for id != gid {
-		logrus.Errorf("-------id %s not match gid %s", id, gid)
+		dtmcli.LogRedf("-------id %s not match gid %s", id, gid)
 		id = <-TransProcessedTestChan
 	}
-	common.Logf("finish for gid %s", gid)
+	dtmcli.Logf("finish for gid %s", gid)
 }
 
 var gNode *snowflake.Node = nil
