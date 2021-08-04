@@ -2,6 +2,7 @@ package examples
 
 import (
 	"github.com/gin-gonic/gin"
+	"github.com/go-resty/resty/v2"
 	"github.com/sirupsen/logrus"
 	"github.com/yedf/dtm/common"
 	"github.com/yedf/dtm/dtmcli"
@@ -20,14 +21,14 @@ func TccSetup(app *gin.Engine) {
 // TccFireRequestNested 1
 func TccFireRequestNested() string {
 	gid := dtmcli.MustGenGid(DtmServer)
-	ret, err := dtmcli.TccGlobalTransaction(DtmServer, gid, func(tcc *dtmcli.Tcc) (interface{}, error) {
+	err := dtmcli.TccGlobalTransaction(DtmServer, gid, func(tcc *dtmcli.Tcc) (*resty.Response, error) {
 		resp, err := tcc.CallBranch(&TransReq{Amount: 30}, Busi+"/TransOut", Busi+"/TransOutConfirm", Busi+"/TransOutRevert")
-		if dtmcli.IsFailure(resp, err) {
+		if err != nil {
 			return resp, err
 		}
 		return tcc.CallBranch(&TransReq{Amount: 30}, Busi+"/TransInTccParent", Busi+"/TransInConfirm", Busi+"/TransInRevert")
 	})
-	dtmcli.PanicIfFailure(ret, err)
+	e2p(err)
 	return gid
 }
 
@@ -35,13 +36,13 @@ func TccFireRequestNested() string {
 func TccFireRequest() string {
 	logrus.Printf("tcc simple transaction begin")
 	gid := dtmcli.MustGenGid(DtmServer)
-	ret, err := dtmcli.TccGlobalTransaction(DtmServer, gid, func(tcc *dtmcli.Tcc) (interface{}, error) {
+	err := dtmcli.TccGlobalTransaction(DtmServer, gid, func(tcc *dtmcli.Tcc) (*resty.Response, error) {
 		resp, err := tcc.CallBranch(&TransReq{Amount: 30}, Busi+"/TransOut", Busi+"/TransOutConfirm", Busi+"/TransOutRevert")
-		if dtmcli.IsFailure(resp, err) {
+		if err != nil {
 			return resp, err
 		}
 		return tcc.CallBranch(&TransReq{Amount: 30}, Busi+"/TransIn", Busi+"/TransInConfirm", Busi+"/TransInRevert")
 	})
-	dtmcli.PanicIfFailure(ret, err)
+	e2p(err)
 	return gid
 }

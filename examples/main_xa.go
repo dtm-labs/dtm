@@ -4,6 +4,7 @@ import (
 	"database/sql"
 
 	"github.com/gin-gonic/gin"
+	"github.com/go-resty/resty/v2"
 	"github.com/yedf/dtm/common"
 	"github.com/yedf/dtm/dtmcli"
 )
@@ -27,33 +28,33 @@ func XaSetup(app *gin.Engine) {
 // XaFireRequest 注册全局XA事务，调用XA的分支
 func XaFireRequest() string {
 	gid := dtmcli.MustGenGid(DtmServer)
-	res, err := XaClient.XaGlobalTransaction(gid, func(xa *dtmcli.Xa) (interface{}, error) {
+	err := XaClient.XaGlobalTransaction(gid, func(xa *dtmcli.Xa) (*resty.Response, error) {
 		resp, err := xa.CallBranch(&TransReq{Amount: 30}, Busi+"/TransOutXa")
-		if dtmcli.IsFailure(resp, err) {
+		if err != nil {
 			return resp, err
 		}
 		return xa.CallBranch(&TransReq{Amount: 30}, Busi+"/TransInXa")
 	})
-	dtmcli.PanicIfFailure(res, err)
+	e2p(err)
 	return gid
 }
 
 func xaTransIn(c *gin.Context) (interface{}, error) {
 	return XaClient.XaLocalTransaction(c, func(db *sql.DB, xa *dtmcli.Xa) (interface{}, error) {
 		if reqFrom(c).TransInResult == "FAILURE" {
-			return M{"dtm_result": "FAILURE"}, nil
+			return dtmcli.ResultFailure, nil
 		}
 		_, err := common.SdbExec(db, "update dtm_busi.user_account set balance=balance+? where user_id=?", reqFrom(c).Amount, 2)
-		return M{"dtm_result": "SUCCESS"}, err
+		return dtmcli.ResultSuccess, err
 	})
 }
 
 func xaTransOut(c *gin.Context) (interface{}, error) {
 	return XaClient.XaLocalTransaction(c, func(db *sql.DB, xa *dtmcli.Xa) (interface{}, error) {
 		if reqFrom(c).TransOutResult == "FAILURE" {
-			return M{"dtm_result": "FAILURE"}, nil
+			return dtmcli.ResultFailure, nil
 		}
 		_, err := common.SdbExec(db, "update dtm_busi.user_account set balance=balance-? where user_id=?", reqFrom(c).Amount, 1)
-		return M{"dtm_result": "SUCCESS"}, err
+		return dtmcli.ResultSuccess, err
 	})
 }

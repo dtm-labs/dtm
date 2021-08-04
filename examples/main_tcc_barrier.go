@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/gin-gonic/gin"
+	"github.com/go-resty/resty/v2"
 	"github.com/sirupsen/logrus"
 	"github.com/yedf/dtm/common"
 	"github.com/yedf/dtm/dtmcli"
@@ -14,14 +15,14 @@ import (
 func TccBarrierFireRequest() string {
 	logrus.Printf("tcc transaction begin")
 	gid := dtmcli.MustGenGid(DtmServer)
-	ret, err := dtmcli.TccGlobalTransaction(DtmServer, gid, func(tcc *dtmcli.Tcc) (interface{}, error) {
+	err := dtmcli.TccGlobalTransaction(DtmServer, gid, func(tcc *dtmcli.Tcc) (*resty.Response, error) {
 		resp, err := tcc.CallBranch(&TransReq{Amount: 30}, Busi+"/TccBTransOutTry", Busi+"/TccBTransOutConfirm", Busi+"/TccBTransOutCancel")
-		if dtmcli.IsFailure(resp, err) {
+		if err != nil {
 			return resp, err
 		}
 		return tcc.CallBranch(&TransReq{Amount: 30}, Busi+"/TccBTransInTry", Busi+"/TccBTransInConfirm", Busi+"/TccBTransInCancel")
 	})
-	dtmcli.PanicIfFailure(ret, err)
+	e2p(err)
 	return gid
 }
 
@@ -55,7 +56,7 @@ func adjustBalance(sdb *sql.Tx, uid int, amount int) (interface{}, error) {
 	if err == nil && affected == 0 {
 		return nil, fmt.Errorf("update 0 rows")
 	}
-	return common.MS{"dtm_result": "SUCCESS"}, err
+	return dtmcli.ResultSuccess, err
 }
 
 // TCC下，转入

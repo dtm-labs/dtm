@@ -98,14 +98,14 @@ func ThroughBarrierCall(db *sql.DB, transInfo *TransInfo, busiCall BusiFunc) (re
 	currentAffected, rerr := insertBarrier(tx, ti.TransType, ti.Gid, ti.BranchID, ti.BranchType, ti.BranchType)
 	logrus.Printf("originAffected: %d currentAffected: %d", originAffected, currentAffected)
 	if (ti.BranchType == "cancel" || ti.BranchType == "compensate") && originAffected > 0 { // 这个是空补偿，返回成功
-		res = common.MS{"dtm_result": "SUCCESS"}
+		res = ResultSuccess
 		return
 	} else if currentAffected == 0 { // 插入不成功
 		var result sql.NullString
 		err := common.StxQueryRow(tx, "select result from dtm_barrier.barrier where trans_type=? and gid=? and branch_id=? and branch_type=? and reason=?",
 			ti.TransType, ti.Gid, ti.BranchID, ti.BranchType, ti.BranchType).Scan(&result)
 		if err == sql.ErrNoRows { // 这个是悬挂操作，返回失败，AP收到这个返回，会尽快回滚
-			res = common.MS{"dtm_result": "FAILURE"}
+			res = ResultFailure
 			return
 		}
 		if err != nil {
@@ -117,7 +117,7 @@ func ThroughBarrierCall(db *sql.DB, transInfo *TransInfo, busiCall BusiFunc) (re
 			return
 		}
 		// 数据库里没有上次的结果，属于重复空补偿，直接返回成功
-		res = common.MS{"dtm_result": "SUCCESS"}
+		res = ResultSuccess
 		return
 	}
 	res, rerr = busiCall(tx)

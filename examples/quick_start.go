@@ -44,7 +44,7 @@ func QsFireRequest() string {
 
 func qsAdjustBalance(uid int, amount int) (interface{}, error) {
 	_, err := common.SdbExec(sdbGet(), "update dtm_busi.user_account set balance = balance + ? where user_id = ?", amount, uid)
-	return M{"dtm_result": "SUCCESS"}, err
+	return dtmcli.ResultSuccess, err
 }
 
 func qsAddRoute(app *gin.Engine) {

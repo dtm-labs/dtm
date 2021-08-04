@@ -1,8 +1,6 @@
 package dtmcli
 
 import (
-	"fmt"
-
 	"github.com/sirupsen/logrus"
 	"github.com/yedf/dtm/common"
 )
@@ -10,7 +8,7 @@ import (
 // Saga struct of saga
 type Saga struct {
 	SagaData
-	Server string
+	TransBase
 }
 
 // SagaData sage data
@@ -34,13 +32,15 @@ func NewSaga(server string, gid string) *Saga {
 			Gid:       gid,
 			TransType: "saga",
 		},
-		Server: server,
+		TransBase: TransBase{
+			Dtm: server,
+		},
 	}
 }
 
 // Add add a saga step
 func (s *Saga) Add(action string, compensate string, postData interface{}) *Saga {
-	logrus.Printf("saga %s Add %s %s %v", s.Gid, action, compensate, postData)
+	logrus.Printf("saga %s Add %s %s %v", s.SagaData.Gid, action, compensate, postData)
 	step := SagaStep{
 		Action:     action,
 		Compensate: compensate,
@@ -52,7 +52,5 @@ func (s *Saga) Add(action string, compensate string, postData interface{}) *Saga
 
 // Submit submit the saga trans
 func (s *Saga) Submit() error {
-	logrus.Printf("committing %s body: %v", s.Gid, &s.SagaData)
-	resp, err := common.RestyClient.R().SetBody(&s.SagaData).Post(fmt.Sprintf("%s/submit", s.Server))
-	return CheckDtmResponse(resp, err)
+	return s.CallDtm(&s.SagaData, "submit")
 }

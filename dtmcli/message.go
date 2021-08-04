@@ -1,8 +1,6 @@
 package dtmcli
 
 import (
-	"fmt"
-
 	"github.com/sirupsen/logrus"
 	"github.com/yedf/dtm/common"
 )
@@ -10,7 +8,7 @@ import (
 // Msg reliable msg type
 type Msg struct {
 	MsgData
-	Server string
+	TransBase
 }
 
 // MsgData msg data
@@ -34,13 +32,15 @@ func NewMsg(server string, gid string) *Msg {
 			Gid:       gid,
 			TransType: "msg",
 		},
-		Server: server,
+		TransBase: TransBase{
+			Dtm: server,
+		},
 	}
 }
 
 // Add add a new step
 func (s *Msg) Add(action string, postData interface{}) *Msg {
-	logrus.Printf("msg %s Add %s %v", s.Gid, action, postData)
+	logrus.Printf("msg %s Add %s %v", s.MsgData.Gid, action, postData)
 	step := MsgStep{
 		Action: action,
 		Data:   common.MustMarshalString(postData),
@@ -49,17 +49,13 @@ func (s *Msg) Add(action string, postData interface{}) *Msg {
 	return s
 }
 
-// Submit submit the msg
-func (s *Msg) Submit() error {
-	logrus.Printf("committing %s body: %v", s.Gid, &s.MsgData)
-	resp, err := common.RestyClient.R().SetBody(&s.MsgData).Post(fmt.Sprintf("%s/submit", s.Server))
-	return CheckDtmResponse(resp, err)
-}
-
 // Prepare prepare the msg
 func (s *Msg) Prepare(queryPrepared string) error {
 	s.QueryPrepared = common.OrString(queryPrepared, s.QueryPrepared)
-	logrus.Printf("preparing %s body: %v", s.Gid, &s.MsgData)
-	resp, err := common.RestyClient.R().SetBody(&s.MsgData).Post(fmt.Sprintf("%s/prepare", s.Server))
-	return CheckDtmResponse(resp, err)
+	return s.CallDtm(&s.MsgData, "prepare")
+}
+
+// Submit submit the msg
+func (s *Msg) Submit() error {
+	return s.CallDtm(&s.MsgData, "submit")
 }

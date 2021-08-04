@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
+	"github.com/go-resty/resty/v2"
 	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
 	"github.com/yedf/dtm/common"
@@ -23,24 +24,24 @@ func TestTccBarrier(t *testing.T) {
 
 func tccBarrierRollback(t *testing.T) {
 	gid := "tccBarrierRollback"
-	resp, err := dtmcli.TccGlobalTransaction(DtmServer, gid, func(tcc *dtmcli.Tcc) (interface{}, error) {
-		resp, err := tcc.CallBranch(&examples.TransReq{Amount: 30}, Busi+"/TccBTransOutTry", Busi+"/TccBTransOutConfirm", Busi+"/TccBTransOutCancel")
-		assert.True(t, !dtmcli.IsFailure(resp, err))
+	err := dtmcli.TccGlobalTransaction(DtmServer, gid, func(tcc *dtmcli.Tcc) (*resty.Response, error) {
+		_, err := tcc.CallBranch(&examples.TransReq{Amount: 30}, Busi+"/TccBTransOutTry", Busi+"/TccBTransOutConfirm", Busi+"/TccBTransOutCancel")
+		assert.Nil(t, err)
 		return tcc.CallBranch(&examples.TransReq{Amount: 30, TransInResult: "FAILURE"}, Busi+"/TccBTransInTry", Busi+"/TccBTransInConfirm", Busi+"/TccBTransInCancel")
 	})
-	assert.True(t, dtmcli.IsFailure(resp, err))
+	assert.Error(t, err)
 	WaitTransProcessed(gid)
 	assert.Equal(t, "failed", getTransStatus(gid))
 }
 
 func tccBarrierNormal(t *testing.T) {
 	gid := "tccBarrierNormal"
-	resp, err := dtmcli.TccGlobalTransaction(DtmServer, gid, func(tcc *dtmcli.Tcc) (interface{}, error) {
-		resp, err := tcc.CallBranch(&examples.TransReq{Amount: 30}, Busi+"/TccBTransOutTry", Busi+"/TccBTransOutConfirm", Busi+"/TccBTransOutCancel")
-		assert.True(t, !dtmcli.IsFailure(resp, err))
+	err := dtmcli.TccGlobalTransaction(DtmServer, gid, func(tcc *dtmcli.Tcc) (*resty.Response, error) {
+		_, err := tcc.CallBranch(&examples.TransReq{Amount: 30}, Busi+"/TccBTransOutTry", Busi+"/TccBTransOutConfirm", Busi+"/TccBTransOutCancel")
+		assert.Nil(t, err)
 		return tcc.CallBranch(&examples.TransReq{Amount: 30}, Busi+"/TccBTransInTry", Busi+"/TccBTransInConfirm", Busi+"/TccBTransInCancel")
 	})
-	assert.True(t, !dtmcli.IsFailure(resp, err))
+	assert.Nil(t, err)
 	WaitTransProcessed(gid)
 	assert.Equal(t, "succeed", getTransStatus(gid))
 }
@@ -49,7 +50,7 @@ func tccBarrierDisorder(t *testing.T) {
 	timeoutChan := make(chan string, 2)
 	finishedChan := make(chan string, 2)
 	gid := "tccBarrierDisorder"
-	_, err := dtmcli.TccGlobalTransaction(DtmServer, gid, func(tcc *dtmcli.Tcc) (interface{}, error) {
+	err := dtmcli.TccGlobalTransaction(DtmServer, gid, func(tcc *dtmcli.Tcc) (*resty.Response, error) {
 		body := &examples.TransReq{Amount: 30}
 		tryURL := Busi + "/TccBTransOutTry"
 		confirmURL := Busi + "/TccBTransOutConfirm"
@@ -68,23 +69,21 @@ func tccBarrierDisorder(t *testing.T) {
 			return res, err
 		}))
 		// 注册子事务
-		r, err := common.RestyClient.R().
-			SetBody(&M{
-				"gid":        tcc.Gid,
-				"branch_id":  branchID,
-				"trans_type": "tcc",
-				"status":     "prepared",
-				"data":       string(common.MustMarshal(body)),
-				"try":        tryURL,
-				"confirm":    confirmURL,
-				"cancel":     cancelURL,
-			}).
-			Post(tcc.Dtm + "/registerTccBranch")
-		assert.True(t, !dtmcli.IsFailure(r, err))
+		err := tcc.CallDtm(M{
+			"gid":        tcc.Gid,
+			"branch_id":  branchID,
+			"trans_type": "tcc",
+			"status":     "prepared",
+			"data":       string(common.MustMarshal(body)),
+			"try":        tryURL,
+			"confirm":    confirmURL,
+			"cancel":     cancelURL,
+		}, "registerTccBranch")
+		assert.Nil(t, err)
 		go func() {
 			logrus.Printf("sleeping to wait for tcc try timeout")
 			<-timeoutChan
-			r, _ = common.RestyClient.R().
+			r, _ := common.RestyClient.R().
 				SetBody(body).
 				SetQueryParams(common.MS{
 					"dtm":         tcc.Dtm,
