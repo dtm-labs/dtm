@@ -5,7 +5,6 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
-	"github.com/sirupsen/logrus"
 	"github.com/yedf/dtm/common"
 	"github.com/yedf/dtm/dtmcli"
 	"gorm.io/gorm"
@@ -131,12 +130,12 @@ func (t *TransGlobal) processInner(db *common.DB) (rerr error) {
 	defer handlePanic(&rerr)
 	defer func() {
 		if TransProcessedTestChan != nil {
-			logrus.Printf("processed: %s", t.Gid)
+			common.Logf("processed: %s", t.Gid)
 			TransProcessedTestChan <- t.Gid
-			logrus.Printf("notified: %s", t.Gid)
+			common.Logf("notified: %s", t.Gid)
 		}
 	}()
-	logrus.Printf("processing: %s status: %s", t.Gid, t.Status)
+	common.Logf("processing: %s status: %s", t.Gid, t.Status)
 	if t.Status == "prepared" && t.TransType != "msg" {
 		t.changeStatus(db, "aborting")
 	}
@@ -195,7 +194,7 @@ func TransFromContext(c *gin.Context) *TransGlobal {
 	b, err := c.GetRawData()
 	e2p(err)
 	common.MustUnmarshal(b, &data)
-	logrus.Printf("creating trans in prepare")
+	common.Logf("creating trans in prepare")
 	if data["steps"] != nil {
 		data["data"] = common.MustMarshalString(data["steps"])
 	}

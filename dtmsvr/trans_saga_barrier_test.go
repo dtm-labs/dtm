@@ -3,8 +3,8 @@ package dtmsvr
 import (
 	"testing"
 
-	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
+	"github.com/yedf/dtm/common"
 	"github.com/yedf/dtm/dtmcli"
 	"github.com/yedf/dtm/examples"
 )
@@ -20,7 +20,7 @@ func sagaBarrierNormal(t *testing.T) {
 	saga := dtmcli.NewSaga(DtmServer, "sagaBarrierNormal").
 		Add(Busi+"/SagaBTransOut", Busi+"/SagaBTransOutCompensate", req).
 		Add(Busi+"/SagaBTransIn", Busi+"/SagaBTransInCompensate", req)
-	logrus.Printf("busi trans submit")
+	common.Logf("busi trans submit")
 	err := saga.Submit()
 	e2p(err)
 	WaitTransProcessed(saga.Gid)
@@ -31,7 +31,7 @@ func sagaBarrierRollback(t *testing.T) {
 	saga := dtmcli.NewSaga(DtmServer, "sagaBarrierRollback").
 		Add(Busi+"/SagaBTransOut", Busi+"/SagaBTransOutCompensate", &examples.TransReq{Amount: 30}).
 		Add(Busi+"/SagaBTransIn", Busi+"/SagaBTransInCompensate", &examples.TransReq{Amount: 30, TransInResult: "FAILURE"})
-	logrus.Printf("busi trans submit")
+	common.Logf("busi trans submit")
 	err := saga.Submit()
 	e2p(err)
 	WaitTransProcessed(saga.Gid)

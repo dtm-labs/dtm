@@ -1,7 +1,6 @@
 package dtmcli
 
 import (
-	"github.com/sirupsen/logrus"
 	"github.com/yedf/dtm/common"
 )
 
@@ -40,7 +39,7 @@ func NewMsg(server string, gid string) *Msg {
 
 // Add add a new step
 func (s *Msg) Add(action string, postData interface{}) *Msg {
-	logrus.Printf("msg %s Add %s %v", s.MsgData.Gid, action, postData)
+	common.Logf("msg %s Add %s %v", s.MsgData.Gid, action, postData)
 	step := MsgStep{
 		Action: action,
 		Data:   common.MustMarshalString(postData),

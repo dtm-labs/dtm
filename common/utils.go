@@ -125,9 +125,9 @@ func GetGinApp() *gin.Engine {
 			}
 		}
 		began := time.Now()
-		logrus.Printf("begin %s %s query: %s body: %s", c.Request.Method, c.FullPath(), c.Request.URL.RawQuery, body)
+		Logf("begin %s %s query: %s body: %s", c.Request.Method, c.FullPath(), c.Request.URL.RawQuery, body)
 		c.Next()
-		logrus.Printf("used %d ms %s %s query: %s body: %s", time.Since(began).Milliseconds(), c.Request.Method, c.FullPath(), c.Request.URL.RawQuery, body)
+		Logf("used %d ms %s %s query: %s body: %s", time.Since(began).Milliseconds(), c.Request.Method, c.FullPath(), c.Request.URL.RawQuery, body)
 
 	})
 	app.Any("/api/ping", func(c *gin.Context) { c.JSON(200, M{"msg": "pong"}) })
@@ -145,10 +145,10 @@ func WrapHandler(fn func(*gin.Context) (interface{}, error)) gin.HandlerFunc {
 			b, err = json.Marshal(r)
 		}
 		if err != nil {
-			logrus.Printf("status: 500, code: 500 message: %s", err.Error())
+			Logf("status: 500, code: 500 message: %s", err.Error())
 			c.JSON(500, M{"code": 500, "message": err.Error()})
 		} else {
-			logrus.Printf("status: 200, content: %s", string(b))
+			Logf("status: 200, content: %s", string(b))
 			c.Status(200)
 			c.Writer.Header().Add("Content-Type", "application/json")
 			_, err = c.Writer.Write(b)
@@ -166,12 +166,12 @@ func init() {
 	// RestyClient.SetRetryWaitTime(1 * time.Second)
 	RestyClient.OnBeforeRequest(func(c *resty.Client, r *resty.Request) error {
 		r.URL = MayReplaceLocalhost(r.URL)
-		logrus.Printf("requesting: %s %s %v %v", r.Method, r.URL, r.Body, r.QueryParam)
+		Logf("requesting: %s %s %v %v", r.Method, r.URL, r.Body, r.QueryParam)
 		return nil
 	})
 	RestyClient.OnAfterResponse(func(c *resty.Client, resp *resty.Response) error {
 		r := resp.Request
-		logrus.Printf("requested: %s %s %s", r.Method, r.URL, resp.String())
+		Logf("requested: %s %s %s", r.Method, r.URL, resp.String())
 		return nil
 	})
 }
@@ -184,15 +184,9 @@ func CheckRestySuccess(resp *resty.Response, err error) {
 	}
 }
 
-// formatter 自定义formatter
-type formatter struct{}
-
-// Format 进行格式化
-func (f *formatter) Format(entry *logrus.Entry) ([]byte, error) {
-	var b *bytes.Buffer = &bytes.Buffer{}
-	if entry.Buffer != nil {
-		b = entry.Buffer
-	}
+// Logf 输出日志
+func Logf(format string, args ...interface{}) {
+	msg := fmt.Sprintf(format, args...)
 	n := time.Now()
 	ts := fmt.Sprintf("%d-%02d-%02d %02d:%02d:%02d.%03d", n.Year(), n.Month(), n.Day(), n.Hour(), n.Minute(), n.Second(), n.Nanosecond()/1000000)
 	var file string
@@ -203,23 +197,21 @@ func (f *formatter) Format(entry *logrus.Entry) ([]byte, error) {
 			break
 		}
 	}
-	b.WriteString(fmt.Sprintf("%s %s:%d %s\n", ts, path.Base(file), line, entry.Message))
-	return b.Bytes(), nil
+	fmt.Printf("%s %s:%d %s\n", ts, path.Base(file), line, msg)
 }
 
-// RedLogf 采用红色打印错误类信息
-func RedLogf(fmt string, args ...interface{}) {
+// LogRedf 采用红色打印错误类信息
+func LogRedf(fmt string, args ...interface{}) {
 	logrus.Errorf("\x1b[31m\n"+fmt+"\x1b[0m\n", args...)
 }
 
 // InitConfig init config
 func InitConfig(dir string, config interface{}) {
-	logrus.SetFormatter(&formatter{})
 	cont, err := ioutil.ReadFile(dir + "/conf.yml")
 	if err != nil {
 		cont, err = ioutil.ReadFile(dir + "/conf.sample.yml")
 	}
-	logrus.Printf("cont is: \n%s", string(cont))
+	Logf("cont is: \n%s", string(cont))
 	E2P(err)
 	err = yaml.Unmarshal(cont, config)
 	E2P(err)

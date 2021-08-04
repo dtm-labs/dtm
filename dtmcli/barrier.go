@@ -8,7 +8,6 @@ import (
 	"net/url"
 
 	"github.com/gin-gonic/gin"
-	"github.com/sirupsen/logrus"
 	"github.com/yedf/dtm/common"
 )
 
@@ -79,7 +78,7 @@ func ThroughBarrierCall(db *sql.DB, transInfo *TransInfo, busiCall BusiFunc) (re
 		return
 	}
 	defer func() {
-		logrus.Printf("result is %v error is %v", res, rerr)
+		common.Logf("result is %v error is %v", res, rerr)
 		if x := recover(); x != nil {
 			tx.Rollback()
 			panic(x)
@@ -96,7 +95,7 @@ func ThroughBarrierCall(db *sql.DB, transInfo *TransInfo, busiCall BusiFunc) (re
 	}[ti.BranchType]
 	originAffected, _ := insertBarrier(tx, ti.TransType, ti.Gid, ti.BranchID, originType, ti.BranchType)
 	currentAffected, rerr := insertBarrier(tx, ti.TransType, ti.Gid, ti.BranchID, ti.BranchType, ti.BranchType)
-	logrus.Printf("originAffected: %d currentAffected: %d", originAffected, currentAffected)
+	common.Logf("originAffected: %d currentAffected: %d", originAffected, currentAffected)
 	if (ti.BranchType == "cancel" || ti.BranchType == "compensate") && originAffected > 0 { // 这个是空补偿，返回成功
 		res = ResultSuccess
 		return

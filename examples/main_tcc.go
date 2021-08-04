@@ -3,7 +3,6 @@ package examples
 import (
 	"github.com/gin-gonic/gin"
 	"github.com/go-resty/resty/v2"
-	"github.com/sirupsen/logrus"
 	"github.com/yedf/dtm/common"
 	"github.com/yedf/dtm/dtmcli"
 )
@@ -13,7 +12,7 @@ func TccSetup(app *gin.Engine) {
 	app.POST(BusiAPI+"/TransInTccParent", common.WrapHandler(func(c *gin.Context) (interface{}, error) {
 		tcc, err := dtmcli.TccFromReq(c)
 		e2p(err)
-		logrus.Printf("TransInTccParent ")
+		common.Logf("TransInTccParent ")
 		return tcc.CallBranch(&TransReq{Amount: reqFrom(c).Amount}, Busi+"/TransIn", Busi+"/TransInConfirm", Busi+"/TransInRevert")
 	}))
 }
@@ -34,7 +33,7 @@ func TccFireRequestNested() string {
 
 // TccFireRequest 1
 func TccFireRequest() string {
-	logrus.Printf("tcc simple transaction begin")
+	common.Logf("tcc simple transaction begin")
 	gid := dtmcli.MustGenGid(DtmServer)
 	err := dtmcli.TccGlobalTransaction(DtmServer, gid, func(tcc *dtmcli.Tcc) (*resty.Response, error) {
 		resp, err := tcc.CallBranch(&TransReq{Amount: 30}, Busi+"/TransOut", Busi+"/TransOutConfirm", Busi+"/TransOutRevert")

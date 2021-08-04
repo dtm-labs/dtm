@@ -6,14 +6,13 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/go-resty/resty/v2"
-	"github.com/sirupsen/logrus"
 	"github.com/yedf/dtm/common"
 	"github.com/yedf/dtm/dtmcli"
 )
 
 // TccBarrierFireRequest 1
 func TccBarrierFireRequest() string {
-	logrus.Printf("tcc transaction begin")
+	common.Logf("tcc transaction begin")
 	gid := dtmcli.MustGenGid(DtmServer)
 	err := dtmcli.TccGlobalTransaction(DtmServer, gid, func(tcc *dtmcli.Tcc) (*resty.Response, error) {
 		resp, err := tcc.CallBranch(&TransReq{Amount: 30}, Busi+"/TccBTransOutTry", Busi+"/TccBTransOutConfirm", Busi+"/TccBTransOutCancel")
@@ -34,7 +33,7 @@ func TccBarrierAddRoute(app *gin.Engine) {
 	app.POST(BusiAPI+"/TccBTransOutTry", common.WrapHandler(tccBarrierTransOutTry))
 	app.POST(BusiAPI+"/TccBTransOutConfirm", common.WrapHandler(tccBarrierTransOutConfirm))
 	app.POST(BusiAPI+"/TccBTransOutCancel", common.WrapHandler(TccBarrierTransOutCancel))
-	logrus.Printf("examples listening at %d", BusiPort)
+	common.Logf("examples listening at %d", BusiPort)
 }
 
 const transInUID = 1

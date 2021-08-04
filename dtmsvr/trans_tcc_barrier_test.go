@@ -8,7 +8,6 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/go-resty/resty/v2"
-	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
 	"github.com/yedf/dtm/common"
 	"github.com/yedf/dtm/dtmcli"
@@ -62,7 +61,7 @@ func tccBarrierDisorder(t *testing.T) {
 			res, err := examples.TccBarrierTransOutCancel(c)
 			if !sleeped {
 				sleeped = true
-				logrus.Printf("sleep before cancel return")
+				common.Logf("sleep before cancel return")
 				<-timeoutChan
 				finishedChan <- "1"
 			}
@@ -81,7 +80,7 @@ func tccBarrierDisorder(t *testing.T) {
 		}, "registerTccBranch")
 		assert.Nil(t, err)
 		go func() {
-			logrus.Printf("sleeping to wait for tcc try timeout")
+			common.Logf("sleeping to wait for tcc try timeout")
 			<-timeoutChan
 			r, _ := common.RestyClient.R().
 				SetBody(body).
@@ -96,10 +95,10 @@ func tccBarrierDisorder(t *testing.T) {
 			assert.True(t, strings.Contains(r.String(), "FAILURE"))
 			finishedChan <- "1"
 		}()
-		logrus.Printf("cron to timeout and then call cancel")
+		common.Logf("cron to timeout and then call cancel")
 		go CronTransOnce(60 * time.Second)
 		time.Sleep(100 * time.Millisecond)
-		logrus.Printf("cron to timeout and then call cancelled twice")
+		common.Logf("cron to timeout and then call cancelled twice")
 		CronTransOnce(60 * time.Second)
 		timeoutChan <- "wake"
 		timeoutChan <- "wake"

@@ -5,7 +5,6 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
-	"github.com/sirupsen/logrus"
 	"github.com/yedf/dtm/common"
 	"github.com/yedf/dtm/dtmcli"
 )
@@ -22,7 +21,7 @@ var qsBusi = fmt.Sprintf("http://localhost:%d%s", qsBusiPort, qsBusiAPI)
 func QsStartSvr() {
 	app := common.GetGinApp()
 	qsAddRoute(app)
-	logrus.Printf("quick qs examples listening at %d", qsBusiPort)
+	common.Logf("quick qs examples listening at %d", qsBusiPort)
 	go app.Run(fmt.Sprintf(":%d", qsBusiPort))
 	time.Sleep(100 * time.Millisecond)
 }

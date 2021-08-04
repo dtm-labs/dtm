@@ -38,13 +38,13 @@ var TransProcessedTestChan chan string = nil
 
 // WaitTransProcessed only for test usage. wait for transaction processed once
 func WaitTransProcessed(gid string) {
-	logrus.Printf("waiting for gid %s", gid)
+	common.Logf("waiting for gid %s", gid)
 	id := <-TransProcessedTestChan
 	for id != gid {
 		logrus.Errorf("-------id %s not match gid %s", id, gid)
 		id = <-TransProcessedTestChan
 	}
-	logrus.Printf("finish for gid %s", gid)
+	common.Logf("finish for gid %s", gid)
 }
 
 var gNode *snowflake.Node = nil

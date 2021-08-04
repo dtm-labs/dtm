@@ -6,7 +6,6 @@ import (
 	"testing"
 
 	"github.com/gin-gonic/gin"
-	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
 	"github.com/yedf/dtm/common"
 	"github.com/yedf/dtm/dtmcli"
@@ -103,7 +102,7 @@ func assertSucceed(t *testing.T, gid string) {
 }
 
 func genMsg(gid string) *dtmcli.Msg {
-	logrus.Printf("beginning a msg test ---------------- %s", gid)
+	common.Logf("beginning a msg test ---------------- %s", gid)
 	msg := dtmcli.NewMsg(examples.DtmServer, gid)
 	msg.QueryPrepared = examples.Busi + "/CanSubmit"
 	req := examples.GenTransReq(30, false, false)
@@ -113,7 +112,7 @@ func genMsg(gid string) *dtmcli.Msg {
 }
 
 func genSaga(gid string, outFailed bool, inFailed bool) *dtmcli.Saga {
-	logrus.Printf("beginning a saga test ---------------- %s", gid)
+	common.Logf("beginning a saga test ---------------- %s", gid)
 	saga := dtmcli.NewSaga(examples.DtmServer, gid)
 	req := examples.GenTransReq(30, outFailed, inFailed)
 	saga.Add(examples.Busi+"/TransOut", examples.Busi+"/TransOutRevert", &req)
@@ -153,7 +152,7 @@ func TestSqlDB(t *testing.T) {
 	}
 	db.Must().Exec("insert ignore into dtm_barrier.barrier(trans_type, gid, branch_id, branch_type, reason) values('saga', 'gid1', 'branch_id1', 'action', 'saga')")
 	_, err := dtmcli.ThroughBarrierCall(db.ToSQLDB(), transInfo, func(db *sql.Tx) (interface{}, error) {
-		logrus.Printf("rollback gid2")
+		common.Logf("rollback gid2")
 		return nil, fmt.Errorf("gid2 error")
 	})
 	asserts.Error(err, fmt.Errorf("gid2 error"))
@@ -163,14 +162,14 @@ func TestSqlDB(t *testing.T) {
 	asserts.Equal(dbr.RowsAffected, int64(0))
 	gid2Res := common.M{"result": "first"}
 	_, err = dtmcli.ThroughBarrierCall(db.ToSQLDB(), transInfo, func(db *sql.Tx) (interface{}, error) {
-		logrus.Printf("submit gid2")
+		common.Logf("submit gid2")
 		return gid2Res, nil
 	})
 	asserts.Nil(err)
 	dbr = db.Model(&dtmcli.BarrierModel{}).Where("gid=?", "gid2").Find(&[]dtmcli.BarrierModel{})
 	asserts.Equal(dbr.RowsAffected, int64(1))
 	newResult, err := dtmcli.ThroughBarrierCall(db.ToSQLDB(), transInfo, func(db *sql.Tx) (interface{}, error) {
-		logrus.Printf("submit gid2")
+		common.Logf("submit gid2")
 		return common.MS{"result": "ignored"}, nil
 	})
 	asserts.Equal(newResult, gid2Res)

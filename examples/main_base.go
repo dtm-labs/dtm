@@ -5,7 +5,6 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
-	"github.com/sirupsen/logrus"
 	"github.com/yedf/dtm/common"
 )
 
@@ -21,10 +20,10 @@ var Busi string = fmt.Sprintf("http://localhost:%d%s", BusiPort, BusiAPI)
 
 // BaseAppStartup base app startup
 func BaseAppStartup() *gin.Engine {
-	logrus.Printf("examples starting")
+	common.Logf("examples starting")
 	app := common.GetGinApp()
 	BaseAddRoute(app)
-	logrus.Printf("Starting busi at: %d", BusiPort)
+	common.Logf("Starting busi at: %d", BusiPort)
 	go app.Run(fmt.Sprintf(":%d", BusiPort))
 	time.Sleep(100 * time.Millisecond)
 	return app
@@ -63,7 +62,7 @@ var MainSwitch mainSwitchType
 func handleGeneralBusiness(c *gin.Context, result1 string, result2 string, busi string) (interface{}, error) {
 	info := infoFromContext(c)
 	res := common.OrString(result1, result2, "SUCCESS")
-	logrus.Printf("%s %s result: %s", busi, info.String(), res)
+	common.Logf("%s %s result: %s", busi, info.String(), res)
 	return M{"dtm_result": res}, nil
 
 }
@@ -89,7 +88,7 @@ func BaseAddRoute(app *gin.Engine) {
 		return handleGeneralBusiness(c, MainSwitch.TransOutRevertResult.Fetch(), "", "TransOutRevert")
 	}))
 	app.GET(BusiAPI+"/CanSubmit", common.WrapHandler(func(c *gin.Context) (interface{}, error) {
-		logrus.Printf("%s CanSubmit", c.Query("gid"))
+		common.Logf("%s CanSubmit", c.Query("gid"))
 		return common.OrString(MainSwitch.CanSubmitResult.Fetch(), "SUCCESS"), nil
 	}))
 }

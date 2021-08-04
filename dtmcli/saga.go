@@ -1,7 +1,6 @@
 package dtmcli
 
 import (
-	"github.com/sirupsen/logrus"
 	"github.com/yedf/dtm/common"
 )
 
@@ -40,7 +39,7 @@ func NewSaga(server string, gid string) *Saga {
 
 // Add add a saga step
 func (s *Saga) Add(action string, compensate string, postData interface{}) *Saga {
-	logrus.Printf("saga %s Add %s %s %v", s.SagaData.Gid, action, compensate, postData)
+	common.Logf("saga %s Add %s %s %v", s.SagaData.Gid, action, compensate, postData)
 	step := SagaStep{
 		Action:     action,
 		Compensate: compensate,

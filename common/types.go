@@ -8,7 +8,7 @@ import (
 
 	_ "github.com/go-sql-driver/mysql"
 	// _ "github.com/lib/pq"
-	"github.com/sirupsen/logrus"
+
 	"gorm.io/driver/mysql"
 
 	// "gorm.io/driver/postgres"
@@ -78,7 +78,7 @@ func (op *tracePlugin) Initialize(db *gorm.DB) (err error) {
 	after := func(db *gorm.DB) {
 		_ts, _ := db.InstanceGet("ivy.startTime")
 		sql := db.Dialector.Explain(db.Statement.SQL.String(), db.Statement.Vars...)
-		logrus.Printf("used: %d ms affected: %d sql is: %s", time.Since(_ts.(time.Time)).Milliseconds(), db.RowsAffected, sql)
+		Logf("used: %d ms affected: %d sql is: %s", time.Since(_ts.(time.Time)).Milliseconds(), db.RowsAffected, sql)
 		if v, ok := db.InstanceGet("ivy.must"); ok && v.(bool) {
 			if db.Error != nil && db.Error != gorm.ErrRecordNotFound {
 				panic(db.Error)
@@ -89,7 +89,7 @@ func (op *tracePlugin) Initialize(db *gorm.DB) (err error) {
 	beforeName := "cb_before"
 	afterName := "cb_after"
 
-	logrus.Printf("installing db plugin: %s", op.Name())
+	Logf("installing db plugin: %s", op.Name())
 	// 开始前
 	_ = db.Callback().Create().Before("gorm:before_create").Register(beforeName, before)
 	_ = db.Callback().Query().Before("gorm:query").Register(beforeName, before)
@@ -126,7 +126,7 @@ func GetDsn(conf map[string]string) string {
 func DbGet(conf map[string]string) *DB {
 	dsn := GetDsn(conf)
 	if dbs[dsn] == nil {
-		logrus.Printf("connecting %s", strings.Replace(dsn, conf["password"], "****", 1))
+		Logf("connecting %s", strings.Replace(dsn, conf["password"], "****", 1))
 		db1, err := gorm.Open(getGormDialator(conf["driver"], dsn), &gorm.Config{
 			SkipDefaultTransaction: true,
 		})
@@ -149,7 +149,7 @@ func SdbGet(conf map[string]string) *sql.DB {
 // SdbAlone get a standalone db connection
 func SdbAlone(conf map[string]string) *sql.DB {
 	dsn := GetDsn(conf)
-	logrus.Printf("opening alone %s: %s", conf["driver"], strings.Replace(dsn, conf["password"], "****", 1))
+	Logf("opening alone %s: %s", conf["driver"], strings.Replace(dsn, conf["password"], "****", 1))
 	mdb, err := sql.Open(conf["driver"], dsn)
 	E2P(err)
 	return mdb
@@ -160,9 +160,9 @@ func SdbExec(db *sql.DB, sql string, values ...interface{}) (affected int64, rer
 	r, rerr := db.Exec(sql, values...)
 	if rerr == nil {
 		affected, rerr = r.RowsAffected()
-		logrus.Printf("affected: %d for %s %v", affected, sql, values)
+		Logf("affected: %d for %s %v", affected, sql, values)
 	} else {
-		RedLogf("exec error: %v for %s %v", rerr, sql, values)
+		LogRedf("exec error: %v for %s %v", rerr, sql, values)
 	}
 	return
 }
@@ -172,15 +172,15 @@ func StxExec(tx *sql.Tx, sql string, values ...interface{}) (affected int64, rer
 	r, rerr := tx.Exec(sql, values...)
 	if rerr == nil {
 		affected, rerr = r.RowsAffected()
-		logrus.Printf("affected: %d for %s %v", affected, sql, values)
+		Logf("affected: %d for %s %v", affected, sql, values)
 	} else {
-		RedLogf("exec error: %v for %s %v", rerr, sql, values)
+		LogRedf("exec error: %v for %s %v", rerr, sql, values)
 	}
 	return
 }
 
 // StxQueryRow use raw tx to query row
 func StxQueryRow(tx *sql.Tx, query string, args ...interface{}) *sql.Row {
-	logrus.Printf("querying: "+query, args...)
+	Logf("querying: "+query, args...)
 	return tx.QueryRow(query, args...)
 }
