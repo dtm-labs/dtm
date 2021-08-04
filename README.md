@@ -23,7 +23,7 @@ DTM is the first golang open source distributed transaction project. It elegantl
 * Simple to use
   + The interface is simple, developers no longer worry about suspension, null compensation, idempotence, etc., and the framework layer takes care of them.
 * Multi language supported
-  + It is suitable for companies with multi-language stacks. The protocol supports http. Convenient to use in various languages ​​such as go, python, php, nodejs, ruby.
+  + It is suitable for companies with multi-language stacks. The protocol supports http. Convenient to use in various languages ​​such as go, python, php, nodejs, ruby, c#.
 * Easy to deploy, easy to expand
   + Only rely on mysql, easy to deploy, easy to expand horizontally
 * Multiple distributed transaction protocol supported
