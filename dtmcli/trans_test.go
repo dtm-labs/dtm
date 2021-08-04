@@ -19,6 +19,6 @@ func TestQuery(t *testing.T) {
 }
 
 func TestXa(t *testing.T) {
-	_, err := NewXaClient("http://localhost:8080", MS{}, "badurl", nil)
+	_, err := NewXaClient("http://localhost:8080", MS{}, ":::::", nil)
 	assert.Error(t, err)
 }

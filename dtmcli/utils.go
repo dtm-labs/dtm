@@ -144,7 +144,7 @@ func LogIfFatalf(condition bool, fmt string, args ...interface{}) {
 
 // FatalIfError 采用红色打印错误类信息， 并退出
 func FatalIfError(err error) {
-	LogIfFatalf(err == nil, "Fatal error: %v", err)
+	LogIfFatalf(err != nil, "Fatal error: %v", err)
 }
 
 // RestyClient the resty object
