@@ -88,9 +88,7 @@ func InitConfig(config interface{}) {
 			break
 		}
 	}
-	if cont == nil {
-		dtmcli.LogFatalf("no config file conf.yml/conf.sample.yml found in current and parent path: %s", MustGetwd())
-	}
+	dtmcli.LogIfFatalf(cont == nil, "no config file conf.yml/conf.sample.yml found in current and parent path: %s", MustGetwd())
 	dtmcli.Logf("cont is: \n%s", string(cont))
 	err := yaml.Unmarshal(cont, config)
 	dtmcli.FatalIfError(err)

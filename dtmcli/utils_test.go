@@ -2,6 +2,7 @@ package dtmcli
 
 import (
 	"errors"
+	"fmt"
 	"os"
 	"strings"
 	"testing"
@@ -75,4 +76,16 @@ func TestSome(t *testing.T) {
 	os.Setenv("IS_DOCKER_COMPOSE", "")
 	s2 := MayReplaceLocalhost("http://localhost")
 	assert.Equal(t, "http://localhost", s2)
+}
+
+func TestFatal(t *testing.T) {
+	old := FatalExitFunc
+	defer func() {
+		FatalExitFunc = old
+	}()
+	FatalExitFunc = func() { panic(fmt.Errorf("fatal")) }
+	err := CatchP(func() {
+		LogIfFatalf(true, "")
+	})
+	assert.Error(t, err, fmt.Errorf("fatal"))
 }

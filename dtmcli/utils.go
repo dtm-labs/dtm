@@ -126,19 +126,25 @@ func LogRedf(fmt string, args ...interface{}) {
 	Logf("\x1b[31m\n"+fmt+"\x1b[0m\n", args...)
 }
 
+// FatalExitFunc Fatal退出函数，测试时被替换
+var FatalExitFunc = func() { os.Exit(1) }
+
 // LogFatalf 采用红色打印错误类信息， 并退出
 func LogFatalf(fmt string, args ...interface{}) {
 	Logf("\x1b[31m\n"+fmt+"\x1b[0m\n", args...)
-	os.Exit(1)
+	FatalExitFunc()
+}
+
+// LogIfFatalf 采用红色打印错误类信息， 并退出
+func LogIfFatalf(condition bool, fmt string, args ...interface{}) {
+	if condition {
+		LogFatalf(fmt, args...)
+	}
 }
 
 // FatalIfError 采用红色打印错误类信息， 并退出
 func FatalIfError(err error) {
-	if err == nil {
-		return
-	}
-	Logf("\x1b[31m\nFatal error: %v\x1b[0m\n", err)
-	os.Exit(1)
+	LogIfFatalf(err == nil, "Fatal error: %v", err)
 }
 
 // RestyClient the resty object
