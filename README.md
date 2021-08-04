@@ -40,7 +40,7 @@ The following is a comparison of the main features of dtm and seata:
 
 | Features | DTM | SEATA | Remarks |
 |:-----:|:----:|:----:|:----:|
-| Supported languages| <span style="color:green">Golang, python, php and others</span> | <span style="color:orange">Java</span> |dtm can easily support a new language|
+| Supported languages| <span style="color:green">Golang, python, php, c# and others</span> | <span style="color:orange">Java</span> |dtm can easily support a new language|
 |Exception Handling| <span style="color:green">[Sub-transaction barrier automatic processing](./doc/barrier-en.md)</span>|<span style="color:orange">Manual processing</span> | dtm solves idempotence, suspension, and null compensation|
 | TCC| <span style="color:green">✓</span>|<span style="color:green">✓</span>||
 | XA|<span style="color:green">✓</span>|<span style="color:green">✓</span>||
