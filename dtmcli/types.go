@@ -86,9 +86,12 @@ func TransBaseFromReq(c *gin.Context) *TransBase {
 
 // CallDtm 调用dtm服务器，返回事务的状态
 func (tb *TransBase) CallDtm(body interface{}, operation string) error {
-	resp, err := common.RestyClient.R().SetQueryParams(common.MS{
-		"wait_result": common.If(tb.WaitResult, "1", "").(string),
-	}).SetResult(&TransResult{}).SetBody(body).Post(fmt.Sprintf("%s/%s", tb.Dtm, operation))
+	params := common.MS{}
+	if tb.WaitResult {
+		params["wait_result"] = "1"
+	}
+	resp, err := common.RestyClient.R().SetQueryParams(params).
+		SetResult(&TransResult{}).SetBody(body).Post(fmt.Sprintf("%s/%s", tb.Dtm, operation))
 	if err != nil {
 		return err
 	}
