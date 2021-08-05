@@ -133,7 +133,7 @@ var DtmConfig = dtmConfigType{}
 func init() {
 	DtmConfig.TransCronInterval = int64(dtmcli.MustAtoi(dtmcli.OrString(os.Getenv("TRANS_CRON_INTERVAL"), "10")))
 	DtmConfig.DB = map[string]string{
-		"driver":   os.Getenv("DB_DRIVER"),
+		"driver":   dtmcli.OrString(os.Getenv("DB_DRIVER"), "mysql"),
 		"host":     os.Getenv("DB_HOST"),
 		"port":     dtmcli.OrString(os.Getenv("DB_PORT"), "3306"),
 		"user":     os.Getenv("DB_USER"),
