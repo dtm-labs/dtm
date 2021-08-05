@@ -150,12 +150,11 @@ func init() {
 			break
 		}
 	}
-	if cont != nil {
+	if cont != nil && len(cont) != 0 {
 		dtmcli.Logf("cont is: \n%s", string(cont))
 		err := yaml.Unmarshal(cont, &DtmConfig)
 		dtmcli.FatalIfError(err)
 	}
 	dtmcli.LogIfFatalf(DtmConfig.DB["driver"] == "" || DtmConfig.DB["user"] == "",
-		"dtm config error: %v. check you env, and conf.yml/conf.sample.yml in current and parent path: %s", DtmConfig, MustGetwd())
-	dtmcli.Logf("after fatalIf")
+		"dtm配置错误. 请访问 http://dtm.pub 查看部署运维环节. check you env, and conf.yml/conf.sample.yml in current and parent path: %s. config is: \n%v", MustGetwd(), DtmConfig)
 }
