@@ -11,8 +11,9 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/go-resty/resty/v2"
+	"gopkg.in/yaml.v2"
+
 	"github.com/yedf/dtm/dtmcli"
-	yaml "gopkg.in/yaml.v2"
 )
 
 // GetGinApp init and return gin
@@ -43,7 +44,7 @@ func GetGinApp() *gin.Engine {
 func WrapHandler(fn func(*gin.Context) (interface{}, error)) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		r, err := fn(c)
-		var b = []byte{}
+		var b []byte
 		if resp, ok := r.(*resty.Response); ok { // 如果是response，则取出body直接处理
 			b = resp.Body()
 		} else if err == nil {
@@ -77,7 +78,7 @@ func GetCurrentCodeDir() string {
 
 // InitConfig init config
 func InitConfig(config interface{}) {
-	cont := []byte{}
+	var cont []byte
 	for d := MustGetwd(); d != ""; d = filepath.Dir(d) {
 		cont1, err := ioutil.ReadFile(d + "/conf.yml")
 		if err != nil {
@@ -89,7 +90,7 @@ func InitConfig(config interface{}) {
 		}
 	}
 	dtmcli.LogIfFatalf(cont == nil, "no config file conf.yml/conf.sample.yml found in current and parent path: %s", MustGetwd())
-	dtmcli.Logf("cont is: \n%s", string(cont))
+	// dtmcli.Logf("cont is: \n%s", string(cont))
 	err := yaml.Unmarshal(cont, config)
 	dtmcli.FatalIfError(err)
 }

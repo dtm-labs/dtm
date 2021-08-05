@@ -9,11 +9,14 @@ import (
 	"github.com/yedf/dtm/examples"
 )
 
-var dtmsvrPort = 8080
+// var dtmsvrPort = 8080
 
 // StartSvr StartSvr
-func StartSvr() {
+func StartSvr(dtmsvrPort int) {
 	dtmcli.Logf("start dtmsvr")
+	if dtmsvrPort == 0 {
+		dtmsvrPort = 8080
+	}
 	app := common.GetGinApp()
 	addRoute(app)
 	dtmcli.Logf("dtmsvr listen at: %d", dtmsvrPort)
