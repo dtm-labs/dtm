@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
+
 	"github.com/yedf/dtm/common"
 	"github.com/yedf/dtm/dtmcli"
 )
@@ -12,15 +13,18 @@ import (
 const (
 	// BusiAPI busi api prefix
 	BusiAPI = "/api/busi"
-	// BusiPort busi server port
-	BusiPort = 8081
 )
 
 // Busi busi service url prefix
-var Busi string = fmt.Sprintf("http://localhost:%d%s", BusiPort, BusiAPI)
+var (
+	BusiPort int
+	Busi     string
+)
 
 // BaseAppStartup base app startup
-func BaseAppStartup() *gin.Engine {
+func BaseAppStartup(port int) *gin.Engine {
+	BusiPort = port
+	Busi = fmt.Sprintf("http://localhost:%d%s", BusiPort, BusiAPI)
 	dtmcli.Logf("examples starting")
 	app := common.GetGinApp()
 	BaseAddRoute(app)

@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
+
 	"github.com/yedf/dtm/common"
 	"github.com/yedf/dtm/dtmcli"
 )
@@ -13,12 +14,16 @@ import (
 
 // 事务参与者的服务地址
 const qsBusiAPI = "/api/busi_start"
-const qsBusiPort = 8082
 
-var qsBusi = fmt.Sprintf("http://localhost:%d%s", qsBusiPort, qsBusiAPI)
+var (
+	qsBusiPort int
+	qsBusi     string
+)
 
 // QsStartSvr 1
-func QsStartSvr() {
+func QsStartSvr(port int) {
+	qsBusiPort = port
+	qsBusi = fmt.Sprintf("http://localhost:%d%s", qsBusiPort, qsBusiAPI)
 	app := common.GetGinApp()
 	qsAddRoute(app)
 	dtmcli.Logf("quick qs examples listening at %d", qsBusiPort)
