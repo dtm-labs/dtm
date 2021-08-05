@@ -9,6 +9,8 @@ import (
 	"github.com/yedf/dtm/dtmcli"
 )
 
+var config = common.DtmConfig
+
 // RunSQLScript 1
 func RunSQLScript(conf map[string]string, script string, skipDrop bool) {
 	con, err := dtmcli.SdbAlone(conf)
@@ -30,5 +32,7 @@ func RunSQLScript(conf map[string]string, script string, skipDrop bool) {
 // PopulateDB populate example mysql data
 func PopulateDB(skipDrop bool) {
 	file := fmt.Sprintf("%s/examples.%s.sql", common.GetCurrentCodeDir(), config.DB["driver"])
+	RunSQLScript(config.DB, file, skipDrop)
+	file = fmt.Sprintf("%s/../dtmcli/barrier.%s.sql", common.GetCurrentCodeDir(), config.DB["driver"])
 	RunSQLScript(config.DB, file, skipDrop)
 }

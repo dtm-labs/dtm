@@ -12,7 +12,6 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/go-resty/resty/v2"
 	"github.com/yedf/dtm/dtmcli"
-	yaml "gopkg.in/yaml.v2"
 )
 
 // GetGinApp init and return gin
@@ -73,23 +72,4 @@ func MustGetwd() string {
 func GetCurrentCodeDir() string {
 	_, file, _, _ := runtime.Caller(1)
 	return filepath.Dir(file)
-}
-
-// InitConfig init config
-func InitConfig(config interface{}) {
-	cont := []byte{}
-	for d := MustGetwd(); d != ""; d = filepath.Dir(d) {
-		cont1, err := ioutil.ReadFile(d + "/conf.yml")
-		if err != nil {
-			cont1, err = ioutil.ReadFile(d + "/conf.sample.yml")
-		}
-		if cont1 != nil {
-			cont = cont1
-			break
-		}
-	}
-	dtmcli.LogIfFatalf(cont == nil, "no config file conf.yml/conf.sample.yml found in current and parent path: %s", MustGetwd())
-	dtmcli.Logf("cont is: \n%s", string(cont))
-	err := yaml.Unmarshal(cont, config)
-	dtmcli.FatalIfError(err)
 }
