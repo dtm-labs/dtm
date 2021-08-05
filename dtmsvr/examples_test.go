@@ -13,6 +13,7 @@ func TestExamples(t *testing.T) {
 	assertSucceed(t, examples.MsgFireRequest())
 	assertSucceed(t, examples.SagaBarrierFireRequest())
 	assertSucceed(t, examples.SagaFireRequest())
+	assertSucceed(t, examples.SagaWaitFireRequest())
 	assertSucceed(t, examples.TccBarrierFireRequest())
 	assertSucceed(t, examples.TccFireRequest())
 	assertSucceed(t, examples.TccFireRequestNested())

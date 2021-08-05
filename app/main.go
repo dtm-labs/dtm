@@ -54,6 +54,7 @@ func main() {
 		examples.MsgFireRequest()
 	} else if os.Args[1] == "all" { // 运行所有示例
 		examples.SagaSetup(app)
+		examples.SagaWaitSetup(app)
 		examples.TccSetup(app)
 		examples.XaSetup(app)
 		examples.MsgSetup(app)
