@@ -135,7 +135,7 @@ func init() {
 	DtmConfig.DB = map[string]string{
 		"driver":   os.Getenv("DB_DRIVER"),
 		"host":     os.Getenv("DB_HOST"),
-		"port":     os.Getenv("DB_PORT"),
+		"port":     dtmcli.OrString(os.Getenv("DB_PORT"), "3306"),
 		"user":     os.Getenv("DB_USER"),
 		"password": os.Getenv("DB_PASSWORD"),
 	}
