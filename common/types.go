@@ -140,7 +140,7 @@ func init() {
 		"password": os.Getenv("DB_PASSWORD"),
 	}
 	cont := []byte{}
-	for d := MustGetwd(); d != ""; d = filepath.Dir(d) {
+	for d := MustGetwd(); d != "" && d != "/"; d = filepath.Dir(d) {
 		cont1, err := ioutil.ReadFile(d + "/conf.yml")
 		if err != nil {
 			cont1, err = ioutil.ReadFile(d + "/conf.sample.yml")
@@ -156,5 +156,6 @@ func init() {
 		dtmcli.FatalIfError(err)
 	}
 	dtmcli.LogIfFatalf(DtmConfig.DB["driver"] == "" || DtmConfig.DB["user"] == "",
-		"dtm config error: %v. check you env, and conf.yml/conf.sample.yml found in current and parent path: %s", DtmConfig, MustGetwd())
+		"dtm config error: %v. check you env, and conf.yml/conf.sample.yml in current and parent path: %s", DtmConfig, MustGetwd())
+	dtmcli.Logf("after fatalIf")
 }
