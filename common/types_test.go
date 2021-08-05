@@ -7,18 +7,8 @@ import (
 	"github.com/yedf/dtm/dtmcli"
 )
 
-type testConfig struct {
-	DB map[string]string `yaml:"DB"`
-}
-
-var config = testConfig{}
-
-func init() {
-	InitConfig(&config)
-}
-
 func TestDb(t *testing.T) {
-	db := DbGet(config.DB)
+	db := DbGet(DtmConfig.DB)
 	err := func() (rerr error) {
 		defer dtmcli.P2E(&rerr)
 		dbr := db.NoMust().Exec("select a")
@@ -30,7 +20,7 @@ func TestDb(t *testing.T) {
 }
 
 func TestDbAlone(t *testing.T) {
-	db, err := dtmcli.SdbAlone(config.DB)
+	db, err := dtmcli.SdbAlone(DtmConfig.DB)
 	assert.Nil(t, err)
 	_, err = dtmcli.SdbExec(db, "select 1")
 	assert.Equal(t, nil, err)

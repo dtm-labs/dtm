@@ -3,11 +3,15 @@ package common
 import (
 	"database/sql"
 	"fmt"
+	"io/ioutil"
+	"os"
+	"path/filepath"
 	"strings"
 	"time"
 
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/yedf/dtm/dtmcli"
+	"gopkg.in/yaml.v2"
 
 	// _ "github.com/lib/pq"
 
@@ -116,4 +120,41 @@ func DbGet(conf map[string]string) *DB {
 		dbs[dsn] = &DB{DB: db1}
 	}
 	return dbs[dsn]
+}
+
+type dtmConfigType struct {
+	TransCronInterval int64             `yaml:"TransCronInterval"` // 单位秒 当事务等待这个时间之后，还没有变化，则进行一轮处理，包括prepared中的任务和committed的任务
+	DB                map[string]string `yaml:"DB"`
+}
+
+// DtmConfig 配置
+var DtmConfig = dtmConfigType{}
+
+func init() {
+	DtmConfig.TransCronInterval = int64(dtmcli.MustAtoi(dtmcli.OrString(os.Getenv("TRANS_CRON_INTERVAL"), "10")))
+	DtmConfig.DB = map[string]string{
+		"driver":   os.Getenv("DB_DRIVER"),
+		"host":     os.Getenv("DB_HOST"),
+		"port":     os.Getenv("DB_PORT"),
+		"user":     os.Getenv("DB_USER"),
+		"password": os.Getenv("DB_PASSWORD"),
+	}
+	cont := []byte{}
+	for d := MustGetwd(); d != ""; d = filepath.Dir(d) {
+		cont1, err := ioutil.ReadFile(d + "/conf.yml")
+		if err != nil {
+			cont1, err = ioutil.ReadFile(d + "/conf.sample.yml")
+		}
+		if cont1 != nil {
+			cont = cont1
+			break
+		}
+	}
+	if cont != nil {
+		dtmcli.Logf("cont is: \n%s", string(cont))
+		err := yaml.Unmarshal(cont, &DtmConfig)
+		dtmcli.FatalIfError(err)
+	}
+	dtmcli.LogIfFatalf(DtmConfig.DB["driver"] == "" || DtmConfig.DB["user"] == "",
+		"dtm config error: %v. check you env, and conf.yml/conf.sample.yml found in current and parent path: %s", DtmConfig, MustGetwd())
 }

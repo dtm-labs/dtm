@@ -42,7 +42,6 @@ func resetXaData() {
 
 func TestMain(m *testing.M) {
 	TransProcessedTestChan = make(chan string, 1)
-	common.InitConfig(&config)
 	PopulateDB(false)
 	examples.PopulateDB(false)
 	// 启动组件
