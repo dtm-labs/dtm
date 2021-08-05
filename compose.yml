@@ -3,7 +3,7 @@ services:
   api:
     build: .
     environment:
-      IS_DOCKER_COMPOSE: '1'
+      IS_DOCKER: '1'
     ports:
       - '8080:8080'
     volumes:
