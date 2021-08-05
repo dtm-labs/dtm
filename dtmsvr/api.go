@@ -12,7 +12,6 @@ import (
 )
 
 func addRoute(engine *gin.Engine) {
-	engine.GET("/api/ping", common.WrapHandler(func(c *gin.Context) (interface{}, error) { return "OK", nil }))
 	engine.POST("/api/dtmsvr/prepare", common.WrapHandler(prepare))
 	engine.POST("/api/dtmsvr/submit", common.WrapHandler(submit))
 	engine.POST("/api/dtmsvr/registerXaBranch", common.WrapHandler(registerXaBranch))
