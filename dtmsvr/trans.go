@@ -5,10 +5,11 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
-	"github.com/yedf/dtm/common"
-	"github.com/yedf/dtm/dtmcli"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
+
+	"github.com/yedf/dtm/common"
+	"github.com/yedf/dtm/dtmcli"
 )
 
 // TransGlobal global transaction
@@ -47,6 +48,7 @@ func (t *TransGlobal) changeStatus(db *common.DB, status string) *gorm.DB {
 	writeTransLog(t.Gid, "change status", status, "", "")
 	old := t.Status
 	t.Status = status
+	var config = common.GetDBConfig()
 	updates := t.setNextCron(config.TransCronInterval)
 	updates = append(updates, "status")
 	now := time.Now()
@@ -167,6 +169,7 @@ func (t *TransGlobal) saveNew(db *common.DB) {
 	}
 	err := db.Transaction(func(db1 *gorm.DB) error {
 		db := &common.DB{DB: db1}
+		var config = common.GetDBConfig()
 		updates := t.setNextCron(config.TransCronInterval)
 		writeTransLog(t.Gid, "create trans", t.Status, "", t.Data)
 		dbr := db.Must().Clauses(clause.OnConflict{

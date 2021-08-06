@@ -27,6 +27,7 @@ func (t *transXaProcessor) ExecBranch(db *common.DB, branch *TransBranch) {
 	}).Post(branch.URL)
 	e2p(err)
 	body := resp.String()
+	var config = common.GetDBConfig()
 	if strings.Contains(body, "SUCCESS") {
 		t.touch(db, config.TransCronInterval)
 		branch.changeStatus(db, "succeed")

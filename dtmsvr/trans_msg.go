@@ -39,6 +39,7 @@ func (t *transMsgProcessor) ExecBranch(db *common.DB, branch *TransBranch) {
 	body := resp.String()
 	if strings.Contains(body, "SUCCESS") {
 		branch.changeStatus(db, "succeed")
+		var config = common.GetDBConfig()
 		t.touch(db, config.TransCronInterval)
 	} else {
 		panic(fmt.Errorf("unknown response: %s, will be retried", body))

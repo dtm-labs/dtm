@@ -5,6 +5,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/go-resty/resty/v2"
+
 	"github.com/yedf/dtm/common"
 	"github.com/yedf/dtm/dtmcli"
 )
@@ -14,6 +15,7 @@ var XaClient *dtmcli.XaClient = nil
 
 // XaSetup 挂载http的api，创建XaClient
 func XaSetup(app *gin.Engine) {
+	var config = common.GetDBConfig()
 	app.POST(BusiAPI+"/TransInXa", common.WrapHandler(xaTransIn))
 	app.POST(BusiAPI+"/TransOutXa", common.WrapHandler(xaTransOut))
 	var err error

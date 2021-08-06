@@ -24,6 +24,7 @@ func (t *transTccProcessor) ExecBranch(db *common.DB, branch *TransBranch) {
 	resp, err := dtmcli.RestyClient.R().SetBody(branch.Data).SetHeader("Content-type", "application/json").SetQueryParams(t.getBranchParams(branch)).Post(branch.URL)
 	e2p(err)
 	body := resp.String()
+	var config = common.GetDBConfig()
 	if strings.Contains(body, "SUCCESS") {
 		t.touch(db, config.TransCronInterval)
 		branch.changeStatus(db, "succeed")

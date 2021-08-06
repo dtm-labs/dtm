@@ -7,6 +7,7 @@ import (
 	"runtime/debug"
 	"time"
 
+	"github.com/yedf/dtm/common"
 	"github.com/yedf/dtm/dtmcli"
 )
 
@@ -74,6 +75,7 @@ func handlePanic(perr *error) {
 }
 
 func sleepCronTime() {
+	var config = common.GetDBConfig()
 	delta := math.Min(3, float64(config.TransCronInterval))
 	interval := time.Duration((float64(config.TransCronInterval) - rand.Float64()*delta) * float64(time.Second))
 	dtmcli.Logf("sleeping for %v", interval)

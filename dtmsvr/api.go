@@ -5,10 +5,11 @@ import (
 	"fmt"
 
 	"github.com/gin-gonic/gin"
-	"github.com/yedf/dtm/common"
-	"github.com/yedf/dtm/dtmcli"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
+
+	"github.com/yedf/dtm/common"
+	"github.com/yedf/dtm/dtmcli"
 )
 
 func addRoute(engine *gin.Engine) {
@@ -71,6 +72,7 @@ func registerXaBranch(c *gin.Context) (interface{}, error) {
 	}).Create(branches)
 	e2p(err)
 	global := TransGlobal{Gid: branch.Gid}
+	var config = common.GetDBConfig()
 	global.touch(db, config.TransCronInterval)
 	return dtmcli.ResultSuccess, nil
 }
@@ -102,6 +104,7 @@ func registerTccBranch(c *gin.Context) (interface{}, error) {
 	}).Create(branches)
 	e2p(err)
 	global := TransGlobal{Gid: branch.Gid}
+	var config = common.GetDBConfig()
 	global.touch(dbGet(), config.TransCronInterval)
 	return dtmcli.ResultSuccess, nil
 }

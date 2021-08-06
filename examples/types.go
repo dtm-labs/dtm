@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/gin-gonic/gin"
+
 	"github.com/yedf/dtm/common"
 	"github.com/yedf/dtm/dtmcli"
 )
@@ -60,10 +61,12 @@ func infoFromContext(c *gin.Context) *dtmcli.TransInfo {
 }
 
 func dbGet() *common.DB {
+	var config = common.GetDBConfig()
 	return common.DbGet(config.DB)
 }
 
 func sdbGet() *sql.DB {
+	var config = common.GetDBConfig()
 	db, err := dtmcli.SdbGet(config.DB)
 	e2p(err)
 	return db

@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/bwmarrin/snowflake"
+
 	"github.com/yedf/dtm/common"
 	"github.com/yedf/dtm/dtmcli"
 )
@@ -17,9 +18,10 @@ type M = map[string]interface{}
 var p2e = dtmcli.P2E
 var e2p = dtmcli.E2P
 
-var config = common.DtmConfig
+// var config = common.DtmConfig
 
 func dbGet() *common.DB {
+	config := common.GetDBConfig()
 	return common.DbGet(config.DB)
 }
 func writeTransLog(gid string, action string, status string, branch string, detail string) {

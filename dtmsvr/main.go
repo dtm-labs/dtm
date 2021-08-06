@@ -55,6 +55,7 @@ func StopSvr() {
 
 // PopulateDB setup mysql data
 func PopulateDB(skipDrop bool) {
+	var config = common.GetDBConfig()
 	file := fmt.Sprintf("%s/dtmsvr.%s.sql", common.GetCurrentCodeDir(), config.DB["driver"])
 	examples.RunSQLScript(config.DB, file, skipDrop)
 }
