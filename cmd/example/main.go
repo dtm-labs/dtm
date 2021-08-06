@@ -36,11 +36,12 @@ func startServer() {
 	dtmsvr.StartSvr(port)          // 启动dtmsvr的api服务
 	go dtmsvr.CronExpiredTrans(-1) // 启动dtmsvr的定时过期查询
 
+	examples.PopulateDB(true)
+
 	if tutorial == "quick_start" || tutorial == "qs" {
 		examples.QsStartSvr(examplePort)
 		examples.QsFireRequest()
 	} else {
-		examples.PopulateDB(true)
 		app := examples.BaseAppStartup(examplePort)
 		switch tutorial {
 		case "xa":
