@@ -19,10 +19,10 @@ func main() {
 		select {
 		case <-reload:
 		case sg := <-stop:
-			// 仿 nginx 使用 HUP 信号重载配置
 			if sg == syscall.SIGHUP {
 				startServer()
 			} else {
+				dtmsvr.StopSvr()
 				return
 			}
 		}
@@ -35,7 +35,6 @@ func startServer() {
 	}
 	dtmsvr.StartSvr(port)          // 启动dtmsvr的api服务
 	go dtmsvr.CronExpiredTrans(-1) // 启动dtmsvr的定时过期查询
-
 	examples.PopulateDB(true)
 
 	if tutorial == "quick_start" || tutorial == "qs" {

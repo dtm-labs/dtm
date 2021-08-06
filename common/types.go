@@ -10,8 +10,9 @@ import (
 	"time"
 
 	_ "github.com/go-sql-driver/mysql"
-	"github.com/yedf/dtm/dtmcli"
 	"gopkg.in/yaml.v2"
+
+	"github.com/yedf/dtm/dtmcli"
 
 	// _ "github.com/lib/pq"
 
@@ -139,7 +140,7 @@ func init() {
 		"user":     os.Getenv("DB_USER"),
 		"password": os.Getenv("DB_PASSWORD"),
 	}
-	cont := []byte{}
+	var cont []byte
 	for d := MustGetwd(); d != "" && d != "/"; d = filepath.Dir(d) {
 		cont1, err := ioutil.ReadFile(d + "/conf.yml")
 		if err != nil {
@@ -151,7 +152,7 @@ func init() {
 		}
 	}
 	if cont != nil && len(cont) != 0 {
-		dtmcli.Logf("cont is: \n%s", string(cont))
+		// dtmcli.Logf("cont is: \n%s", string(cont))
 		err := yaml.Unmarshal(cont, &DtmConfig)
 		dtmcli.FatalIfError(err)
 	}

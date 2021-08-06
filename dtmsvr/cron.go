@@ -10,6 +10,8 @@ import (
 	"github.com/yedf/dtm/dtmcli"
 )
 
+var stopChan = make(chan bool, 0)
+
 // CronTransOnce cron expired trans. use expireIn as expire time
 func CronTransOnce(expireIn time.Duration) bool {
 	defer handlePanic(nil)
@@ -26,12 +28,22 @@ func CronTransOnce(expireIn time.Duration) bool {
 
 // CronExpiredTrans cron expired trans, num == -1 indicate for ever
 func CronExpiredTrans(num int) {
-	for i := 0; i < num || num == -1; i++ {
-		hasTrans := CronTransOnce(time.Duration(0))
-		if !hasTrans && num != 1 {
-			sleepCronTime()
+	for {
+		select {
+		case <-stopChan:
+			close(stopChan)
+			return
+		default:
+			hasTrans := CronTransOnce(time.Duration(0))
+			if !hasTrans && num != 1 {
+				sleepCronTime()
+			}
 		}
 	}
+}
+
+func stopCron() {
+	stopChan <- true
 }
 
 func lockOneTrans(expireIn time.Duration) *TransGlobal {
