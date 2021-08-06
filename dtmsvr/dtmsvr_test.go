@@ -27,6 +27,7 @@ type BarrierModel struct {
 func (BarrierModel) TableName() string { return "dtm_barrier.barrier" }
 
 func resetXaData() {
+	var config = common.GetDBConfig()
 	if config.DB["driver"] != "mysql" {
 		return
 	}
@@ -137,6 +138,7 @@ func transQuery(t *testing.T, gid string) {
 
 func TestSqlDB(t *testing.T) {
 	asserts := assert.New(t)
+	var config = common.GetDBConfig()
 	db := common.DbGet(config.DB)
 	transInfo := &dtmcli.TransInfo{
 		TransType:  "saga",

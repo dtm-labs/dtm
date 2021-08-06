@@ -6,11 +6,14 @@ import (
 
 	"github.com/go-resty/resty/v2"
 	"github.com/stretchr/testify/assert"
+
+	"github.com/yedf/dtm/common"
 	"github.com/yedf/dtm/dtmcli"
 	"github.com/yedf/dtm/examples"
 )
 
 func TestXa(t *testing.T) {
+	var config = common.GetDBConfig()
 	if config.DB["driver"] != "mysql" {
 		return
 	}

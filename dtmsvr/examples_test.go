@@ -8,7 +8,7 @@ import (
 
 func TestExamples(t *testing.T) {
 	// for coverage
-	examples.QsStartSvr()
+	examples.QsStartSvr(8080)
 	assertSucceed(t, examples.QsFireRequest())
 	assertSucceed(t, examples.MsgFireRequest())
 	assertSucceed(t, examples.SagaBarrierFireRequest())

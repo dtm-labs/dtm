@@ -4,11 +4,13 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+
 	"github.com/yedf/dtm/dtmcli"
 )
 
 func TestDb(t *testing.T) {
-	db := DbGet(DtmConfig.DB)
+	var config = GetDBConfig()
+	db := DbGet(config.DB)
 	err := func() (rerr error) {
 		defer dtmcli.P2E(&rerr)
 		dbr := db.NoMust().Exec("select a")
@@ -20,7 +22,8 @@ func TestDb(t *testing.T) {
 }
 
 func TestDbAlone(t *testing.T) {
-	db, err := dtmcli.SdbAlone(DtmConfig.DB)
+	var config = GetDBConfig()
+	db, err := dtmcli.SdbAlone(config.DB)
 	assert.Nil(t, err)
 	_, err = dtmcli.SdbExec(db, "select 1")
 	assert.Equal(t, nil, err)
