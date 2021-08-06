@@ -3,3 +3,5 @@ conf.yml
 */**/main
 main
 vendor
+.idea
+build
