@@ -162,9 +162,6 @@ func (t *TransGlobal) setNextCron(expireIn int64) []string {
 }
 
 func (t *TransGlobal) saveNew(db *common.DB) {
-	if t.Gid == "" {
-		t.Gid = GenGid()
-	}
 	err := db.Transaction(func(db1 *gorm.DB) error {
 		db := &common.DB{DB: db1}
 		updates := t.setNextCron(config.TransCronInterval)

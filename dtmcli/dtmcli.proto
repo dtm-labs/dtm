@@ -1,0 +1,26 @@
+syntax = "proto3";
+
+option go_package = "github.com/yedf/dtm/dtmcli";
+
+package dtmcli;
+
+// The dtm service definition.
+service Dtm {
+  rpc Call(DtmRequest) returns (DtmReply) {}
+}
+
+// The request message containing the user's name.
+message DtmRequest {
+  string Gid = 1;
+  string TransType = 2;
+  string QueryPrepared = 3;
+  string Method = 4;
+  map<string, string> Extra = 5;
+  bytes AppData = 6;
+}
+
+// The response message containing the greetings
+message DtmReply {
+  string DtmResult = 1;
+  string DtmMessage = 2;
+}
