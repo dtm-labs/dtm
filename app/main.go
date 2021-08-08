@@ -30,6 +30,8 @@ func main() {
 		wait()
 	}
 
+	examples.PopulateDB(true)
+
 	// quick_start 比较独立，单独作为一个例子运行，方便新人上手
 	if len(os.Args) > 1 && (os.Args[1] == "quick_start" || os.Args[1] == "qs") {
 		examples.QsStartSvr()
@@ -38,7 +40,6 @@ func main() {
 	}
 
 	// 下面是各类的例子
-	examples.PopulateDB(true)
 	app := examples.BaseAppStartup()
 	if os.Args[1] == "xa" { // 启动xa示例
 		examples.XaSetup(app)
