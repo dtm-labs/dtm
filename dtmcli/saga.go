@@ -8,9 +8,8 @@ type Saga struct {
 
 // SagaData sage data
 type SagaData struct {
-	Gid       string     `json:"gid"`
-	TransType string     `json:"trans_type"`
-	Steps     []SagaStep `json:"steps"`
+	TransData
+	Steps []SagaStep `json:"steps"`
 }
 
 // SagaStep one step of saga
@@ -23,10 +22,10 @@ type SagaStep struct {
 // NewSaga create a saga
 func NewSaga(server string, gid string) *Saga {
 	return &Saga{
-		SagaData: SagaData{
+		SagaData: SagaData{TransData: TransData{
 			Gid:       gid,
 			TransType: "saga",
-		},
+		}},
 		TransBase: TransBase{
 			Dtm: server,
 		},

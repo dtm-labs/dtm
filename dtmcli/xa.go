@@ -26,13 +26,13 @@ type XaClient struct {
 
 // Xa xa transaction
 type Xa struct {
-	Gid string
+	TransData
 	TransBase
 }
 
 // XaFromQuery construct xa info from request
 func XaFromQuery(qs url.Values) (*Xa, error) {
-	xa := &Xa{TransBase: *TransBaseFromQuery(qs), Gid: qs.Get("gid")}
+	xa := &Xa{TransBase: *TransBaseFromQuery(qs), TransData: TransData{Gid: qs.Get("gid"), TransType: "xa"}}
 	if xa.Gid == "" || xa.parentID == "" {
 		return nil, fmt.Errorf("bad xa info: gid: %s parentid: %s", xa.Gid, xa.parentID)
 	}
@@ -109,12 +109,8 @@ func (xc *XaClient) XaLocalTransaction(qs url.Values, xaFunc XaLocalFunc) (ret i
 
 // XaGlobalTransaction start a xa global transaction
 func (xc *XaClient) XaGlobalTransaction(gid string, xaFunc XaGlobalFunc) (rerr error) {
-	xa := Xa{TransBase: TransBase{IDGenerator: IDGenerator{}, Dtm: xc.Server}, Gid: gid}
-	data := &M{
-		"gid":        gid,
-		"trans_type": "xa",
-	}
-	rerr = xa.CallDtm(data, "prepare")
+	xa := Xa{TransBase: TransBase{IDGenerator: IDGenerator{}, Dtm: xc.Server}, TransData: TransData{Gid: gid, TransType: "xa"}}
+	rerr = xa.CallDtm(&xa.TransData, "prepare")
 	if rerr != nil {
 		return
 	}
@@ -123,7 +119,7 @@ func (xc *XaClient) XaGlobalTransaction(gid string, xaFunc XaGlobalFunc) (rerr e
 	defer func() {
 		x := recover()
 		operation := If(x != nil || rerr != nil, "abort", "submit").(string)
-		err := xa.CallDtm(data, operation)
+		err := xa.CallDtm(&xa.TransData, operation)
 		if rerr == nil { // 如果用户函数没有返回错误，那么返回dtm的
 			rerr = err
 		}

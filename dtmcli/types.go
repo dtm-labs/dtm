@@ -46,6 +46,12 @@ type TransResult struct {
 	Message   string
 }
 
+// TransData 每个全局事务都有的数据
+type TransData struct {
+	Gid       string `json:"gid"`
+	TransType string `json:"trans_type"`
+}
+
 // TransBase 事务的基础类
 type TransBase struct {
 	IDGenerator

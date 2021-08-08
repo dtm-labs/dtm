@@ -8,8 +8,7 @@ type Msg struct {
 
 // MsgData msg data
 type MsgData struct {
-	Gid           string    `json:"gid"`
-	TransType     string    `json:"trans_type"`
+	TransData
 	Steps         []MsgStep `json:"steps"`
 	QueryPrepared string    `json:"query_prepared"`
 }
@@ -23,10 +22,10 @@ type MsgStep struct {
 // NewMsg create new msg
 func NewMsg(server string, gid string) *Msg {
 	return &Msg{
-		MsgData: MsgData{
+		MsgData: MsgData{TransData: TransData{
 			Gid:       gid,
 			TransType: "msg",
-		},
+		}},
 		TransBase: TransBase{
 			Dtm: server,
 		},
