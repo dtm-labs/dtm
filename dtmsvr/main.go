@@ -2,7 +2,6 @@ package dtmsvr
 
 import (
 	"fmt"
-	"log"
 	"net"
 	"time"
 
@@ -13,7 +12,7 @@ import (
 )
 
 var dtmsvrPort = 8080
-var dtmsvrGrpcPort = 50051
+var dtmsvrGrpcPort = 50081
 
 // StartSvr StartSvr
 func StartSvr() {
@@ -24,16 +23,13 @@ func StartSvr() {
 	go app.Run(fmt.Sprintf(":%d", dtmsvrPort))
 
 	lis, err := net.Listen("tcp", fmt.Sprintf(":%d", dtmsvrGrpcPort))
-	if err != nil {
-		log.Fatalf("failed to listen: %v", err)
-	}
+	dtmcli.FatalIfError(err)
 	s := grpc.NewServer()
-	dtmcli.RegisterDtmServer(s, &server{})
-	log.Printf("server listening at %v", lis.Addr())
+	dtmcli.RegisterDtmServer(s, &dtmServer{})
+	dtmcli.Logf("grpc listening at %v", lis.Addr())
 	go func() {
-		if err := s.Serve(lis); err != nil {
-			log.Fatalf("failed to serve: %v", err)
-		}
+		err := s.Serve(lis)
+		dtmcli.FatalIfError(err)
 	}()
 
 	time.Sleep(100 * time.Millisecond)

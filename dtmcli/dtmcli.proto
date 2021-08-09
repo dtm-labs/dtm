@@ -9,6 +9,13 @@ service Dtm {
   rpc Call(DtmRequest) returns (DtmReply) {}
 }
 
+message DtmTransInfo {
+  string Gid = 1;
+  string TransType = 2;
+  string BranchID = 3;
+  string Dtm = 4;
+}
+
 // The request message containing the user's name.
 message DtmRequest {
   string Gid = 1;

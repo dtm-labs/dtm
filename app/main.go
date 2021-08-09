@@ -53,6 +53,9 @@ func main() {
 	} else if os.Args[1] == "msg" { // 启动msg示例
 		examples.MsgSetup(app)
 		examples.MsgFireRequest()
+	} else if os.Args[1] == "msg_pb" { // 启动msg示例
+		examples.MsgPbSetup(app)
+		examples.MsgPbFireRequest()
 	} else if os.Args[1] == "all" { // 运行所有示例
 		examples.SagaSetup(app)
 		examples.SagaWaitSetup(app)

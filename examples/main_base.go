@@ -7,6 +7,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/yedf/dtm/common"
 	"github.com/yedf/dtm/dtmcli"
+	grpc "google.golang.org/grpc"
 )
 
 const (
@@ -14,10 +15,15 @@ const (
 	BusiAPI = "/api/busi"
 	// BusiPort busi server port
 	BusiPort = 8081
+	// BusiPbPort busi server port
+	BusiPbPort = 50081
 )
 
 // Busi busi service url prefix
 var Busi string = fmt.Sprintf("http://localhost:%d%s", BusiPort, BusiAPI)
+
+// DtmClient grpc client for dtm
+var DtmClient dtmcli.DtmClient = nil
 
 // BaseAppStartup base app startup
 func BaseAppStartup() *gin.Engine {
@@ -26,6 +32,12 @@ func BaseAppStartup() *gin.Engine {
 	BaseAddRoute(app)
 	dtmcli.Logf("Starting busi at: %d", BusiPort)
 	go app.Run(fmt.Sprintf(":%d", BusiPort))
+
+	conn, err := grpc.Dial(DtmGrpcServer, grpc.WithInsecure(), grpc.WithBlock())
+	dtmcli.FatalIfError(err)
+	DtmClient = dtmcli.NewDtmClient(conn)
+	dtmcli.Logf("dtm client inited")
+
 	time.Sleep(100 * time.Millisecond)
 	return app
 }

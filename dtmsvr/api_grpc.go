@@ -7,13 +7,13 @@ import (
 	pb "github.com/yedf/dtm/dtmcli"
 )
 
-// server is used to implement helloworld.GreeterServer.
-type server struct {
+// dtmServer is used to implement helloworld.GreeterServer.
+type dtmServer struct {
 	pb.UnimplementedDtmServer
 }
 
 // SayHello implements helloworld.GreeterServer
-func (s *server) Call(ctx context.Context, in *pb.DtmRequest) (*pb.DtmReply, error) {
+func (s *dtmServer) Call(ctx context.Context, in *pb.DtmRequest) (*pb.DtmReply, error) {
 	log.Printf("Received: %v", in)
-	return &pb.DtmReply{}, nil
+	return &pb.DtmReply{DtmResult: "SUCCESS", DtmMessage: "ok"}, nil
 }
