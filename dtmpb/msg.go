@@ -1,14 +1,16 @@
-package dtmcli
+package dtmpb
+
+import "github.com/yedf/dtm/dtmcli"
 
 // MsgGrpc reliable msg type
 type MsgGrpc struct {
 	MsgDataGrpc
-	TransBase
+	dtmcli.TransBase
 }
 
 // MsgDataGrpc msg data
 type MsgDataGrpc struct {
-	TransData
+	dtmcli.TransData
 	Steps         []MsgStepGrpc `json:"steps"`
 	QueryPrepared string        `json:"query_prepared"`
 }
@@ -22,11 +24,11 @@ type MsgStepGrpc struct {
 // NewMsgGrpc create new msg
 func NewMsgGrpc(server string, gid string) *MsgGrpc {
 	return &MsgGrpc{
-		MsgDataGrpc: MsgDataGrpc{TransData: TransData{
+		MsgDataGrpc: MsgDataGrpc{TransData: dtmcli.TransData{
 			Gid:       gid,
 			TransType: "msg",
 		}},
-		TransBase: TransBase{
+		TransBase: dtmcli.TransBase{
 			Dtm: server,
 		},
 	}
@@ -34,10 +36,10 @@ func NewMsgGrpc(server string, gid string) *MsgGrpc {
 
 // Add add a new step
 func (s *MsgGrpc) Add(action string, postData interface{}) *MsgGrpc {
-	Logf("msg %s Add %s %v", s.MsgDataGrpc.Gid, action, postData)
+	dtmcli.Logf("msg %s Add %s %v", s.MsgDataGrpc.Gid, action, postData)
 	step := MsgStepGrpc{
 		Action: action,
-		Data:   MustMarshalString(postData),
+		Data:   dtmcli.MustMarshalString(postData),
 	}
 	s.Steps = append(s.Steps, step)
 	return s

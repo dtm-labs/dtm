@@ -7,6 +7,8 @@ import (
 
 	"github.com/yedf/dtm/common"
 	"github.com/yedf/dtm/dtmcli"
+	"github.com/yedf/dtm/dtmpb"
+
 	"github.com/yedf/dtm/examples"
 	"google.golang.org/grpc"
 )
@@ -25,7 +27,7 @@ func StartSvr() {
 	lis, err := net.Listen("tcp", fmt.Sprintf(":%d", dtmsvrGrpcPort))
 	dtmcli.FatalIfError(err)
 	s := grpc.NewServer(grpc.UnaryInterceptor(dtmcli.GrpcServerLog))
-	dtmcli.RegisterDtmServer(s, &dtmServer{})
+	dtmpb.RegisterDtmServer(s, &dtmServer{})
 	dtmcli.Logf("grpc listening at %v", lis.Addr())
 	go func() {
 		err := s.Serve(lis)

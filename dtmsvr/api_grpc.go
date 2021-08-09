@@ -6,7 +6,7 @@ import (
 	"strings"
 
 	"github.com/yedf/dtm/dtmcli"
-	pb "github.com/yedf/dtm/dtmcli"
+	pb "github.com/yedf/dtm/dtmpb"
 	"google.golang.org/grpc"
 )
 
@@ -28,8 +28,8 @@ func dynamicCallPb(ctx context.Context, in *pb.DtmRequest, pbAddr string, data [
 	method := "/" + strings.Join(fs[1:], "/")
 	conn, err := grpc.Dial(grpcAddr, grpc.WithInsecure(), grpc.WithBlock(), grpc.WithUnaryInterceptor(dtmcli.GrpcClientLog))
 	dtmcli.FatalIfError(err)
-	reply := &dtmcli.BusiReply{}
-	err = conn.Invoke(ctx, method, &dtmcli.BusiRequest{Info: &dtmcli.DtmTransInfo{Gid: in.Gid}}, reply)
+	reply := &pb.BusiReply{}
+	err = conn.Invoke(ctx, method, &pb.BusiRequest{Info: &pb.DtmTransInfo{Gid: in.Gid}}, reply)
 	dtmcli.FatalIfError(err)
 	return err
 }

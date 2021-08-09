@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-option go_package = "github.com/yedf/dtm/dtmcli";
+option go_package = "github.com/yedf/dtm/dtmpb";
 
 package dtmcli;
 

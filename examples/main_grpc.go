@@ -4,7 +4,7 @@ import (
 	"context"
 	"log"
 
-	dtmcli "github.com/yedf/dtm/dtmcli"
+	dtmpb "github.com/yedf/dtm/dtmpb"
 )
 
 // busiServer is used to implement helloworld.GreeterServer.
@@ -13,7 +13,7 @@ type busiServer struct {
 }
 
 // SayHello implements helloworld.GreeterServer
-func (s *busiServer) Call(ctx context.Context, in *dtmcli.BusiRequest) (*dtmcli.BusiReply, error) {
+func (s *busiServer) Call(ctx context.Context, in *dtmpb.BusiRequest) (*dtmpb.BusiReply, error) {
 	log.Printf("busiServer received: %v", in)
-	return &dtmcli.BusiReply{DtmResult: "SUCCESS", DtmMessage: "ok"}, nil
+	return &dtmpb.BusiReply{DtmResult: "SUCCESS", DtmMessage: "ok"}, nil
 }

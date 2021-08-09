@@ -5,6 +5,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/yedf/dtm/dtmcli"
+	dtmpb "github.com/yedf/dtm/dtmpb"
 )
 
 // MsgPbSetup 1
@@ -15,7 +16,7 @@ func MsgPbSetup(app *gin.Engine) {
 // MsgPbFireRequest 1
 func MsgPbFireRequest() string {
 	dtmcli.Logf("MsgPbFireRequest")
-	reply, err := DtmClient.Call(context.Background(), &dtmcli.DtmRequest{
+	reply, err := DtmClient.Call(context.Background(), &dtmpb.DtmRequest{
 		Gid:       "pb_test",
 		TransType: "msg",
 		Method:    "submit",

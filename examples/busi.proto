@@ -3,7 +3,7 @@ syntax = "proto3";
 package examples;
 
 option go_package = "github.com/yedf/dtm/examples";
-import "dtmcli/dtmcli.proto";
+import "dtmpb/dtmpb.proto";
 
 // The dtm service definition.
 service Busi {
