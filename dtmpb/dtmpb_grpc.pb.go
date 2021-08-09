@@ -7,6 +7,7 @@ import (
 	grpc "google.golang.org/grpc"
 	codes "google.golang.org/grpc/codes"
 	status "google.golang.org/grpc/status"
+	emptypb "google.golang.org/protobuf/types/known/emptypb"
 )
 
 // This is a compile-time assertion to ensure that this generated file
@@ -18,8 +19,7 @@ const _ = grpc.SupportPackageIsVersion7
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type DtmClient interface {
-	Call(ctx context.Context, in *DtmRequest, opts ...grpc.CallOption) (*DtmReply, error)
-	Submit(ctx context.Context, in *DtmRequest, opts ...grpc.CallOption) (*DtmReply, error)
+	Submit(ctx context.Context, in *DtmRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
 }
 
 type dtmClient struct {
@@ -30,18 +30,9 @@ func NewDtmClient(cc grpc.ClientConnInterface) DtmClient {
 	return &dtmClient{cc}
 }
 
-func (c *dtmClient) Call(ctx context.Context, in *DtmRequest, opts ...grpc.CallOption) (*DtmReply, error) {
-	out := new(DtmReply)
-	err := c.cc.Invoke(ctx, "/dtmcli.Dtm/Call", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *dtmClient) Submit(ctx context.Context, in *DtmRequest, opts ...grpc.CallOption) (*DtmReply, error) {
-	out := new(DtmReply)
-	err := c.cc.Invoke(ctx, "/dtmcli.Dtm/Submit", in, out, opts...)
+func (c *dtmClient) Submit(ctx context.Context, in *DtmRequest, opts ...grpc.CallOption) (*emptypb.Empty, error) {
+	out := new(emptypb.Empty)
+	err := c.cc.Invoke(ctx, "/dtmpb.Dtm/Submit", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -52,8 +43,7 @@ func (c *dtmClient) Submit(ctx context.Context, in *DtmRequest, opts ...grpc.Cal
 // All implementations must embed UnimplementedDtmServer
 // for forward compatibility
 type DtmServer interface {
-	Call(context.Context, *DtmRequest) (*DtmReply, error)
-	Submit(context.Context, *DtmRequest) (*DtmReply, error)
+	Submit(context.Context, *DtmRequest) (*emptypb.Empty, error)
 	mustEmbedUnimplementedDtmServer()
 }
 
@@ -61,10 +51,7 @@ type DtmServer interface {
 type UnimplementedDtmServer struct {
 }
 
-func (UnimplementedDtmServer) Call(context.Context, *DtmRequest) (*DtmReply, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method Call not implemented")
-}
-func (UnimplementedDtmServer) Submit(context.Context, *DtmRequest) (*DtmReply, error) {
+func (UnimplementedDtmServer) Submit(context.Context, *DtmRequest) (*emptypb.Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Submit not implemented")
 }
 func (UnimplementedDtmServer) mustEmbedUnimplementedDtmServer() {}
@@ -80,24 +67,6 @@ func RegisterDtmServer(s grpc.ServiceRegistrar, srv DtmServer) {
 	s.RegisterService(&Dtm_ServiceDesc, srv)
 }
 
-func _Dtm_Call_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(DtmRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(DtmServer).Call(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/dtmcli.Dtm/Call",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(DtmServer).Call(ctx, req.(*DtmRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
 func _Dtm_Submit_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(DtmRequest)
 	if err := dec(in); err != nil {
@@ -108,7 +77,7 @@ func _Dtm_Submit_Handler(srv interface{}, ctx context.Context, dec func(interfac
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/dtmcli.Dtm/Submit",
+		FullMethod: "/dtmpb.Dtm/Submit",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(DtmServer).Submit(ctx, req.(*DtmRequest))
@@ -120,13 +89,9 @@ func _Dtm_Submit_Handler(srv interface{}, ctx context.Context, dec func(interfac
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
 var Dtm_ServiceDesc = grpc.ServiceDesc{
-	ServiceName: "dtmcli.Dtm",
+	ServiceName: "dtmpb.Dtm",
 	HandlerType: (*DtmServer)(nil),
 	Methods: []grpc.MethodDesc{
-		{
-			MethodName: "Call",
-			Handler:    _Dtm_Call_Handler,
-		},
 		{
 			MethodName: "Submit",
 			Handler:    _Dtm_Submit_Handler,

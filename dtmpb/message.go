@@ -8,27 +8,14 @@ import (
 
 // MsgGrpc reliable msg type
 type MsgGrpc struct {
-	MsgDataGrpc
+	dtmcli.MsgData
 	dtmcli.TransBase
-}
-
-// MsgDataGrpc msg data
-type MsgDataGrpc struct {
-	dtmcli.TransData
-	Steps         []MsgStepGrpc `json:"steps"`
-	QueryPrepared string        `json:"query_prepared"`
-}
-
-// MsgStepGrpc struct of one step msg
-type MsgStepGrpc struct {
-	Action string `json:"action"`
-	Data   string `json:"data"`
 }
 
 // NewMsgGrpc create new msg
 func NewMsgGrpc(server string, gid string) *MsgGrpc {
 	return &MsgGrpc{
-		MsgDataGrpc: MsgDataGrpc{TransData: dtmcli.TransData{
+		MsgData: dtmcli.MsgData{TransData: dtmcli.TransData{
 			Gid:       gid,
 			TransType: "msg",
 		}},
@@ -40,8 +27,7 @@ func NewMsgGrpc(server string, gid string) *MsgGrpc {
 
 // Add add a new step
 func (s *MsgGrpc) Add(action string, data []byte) *MsgGrpc {
-	dtmcli.Logf("msg %s Add %s %v", s.MsgDataGrpc.Gid, action, string(data))
-	step := MsgStepGrpc{
+	step := dtmcli.MsgStep{
 		Action: action,
 		Data:   string(data),
 	}

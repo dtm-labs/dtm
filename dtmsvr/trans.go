@@ -10,6 +10,9 @@ import (
 	"github.com/yedf/dtm/common"
 	"github.com/yedf/dtm/dtmcli"
 	"github.com/yedf/dtm/dtmpb"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
+	"google.golang.org/protobuf/types/known/emptypb"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 )
@@ -159,7 +162,6 @@ func (t *TransGlobal) getBranchResult(branch *TransBranch) string {
 	if t.Protocol == "grpc" {
 		server, method := dtmpb.GetServerAndMethod(branch.URL)
 		conn := dtmpb.MustGetGrpcConn(server)
-		reply := dtmpb.BusiReply{}
 		err := conn.Invoke(context.Background(), method, &dtmpb.BusiRequest{
 			Info: &dtmpb.DtmTransInfo{
 				Gid:        t.Gid,
@@ -168,9 +170,13 @@ func (t *TransGlobal) getBranchResult(branch *TransBranch) string {
 				BranchType: branch.BranchType,
 			},
 			AppData: []byte(branch.Data),
-		}, &reply)
-		e2p(err)
-		return reply.DtmResult
+		}, &emptypb.Empty{})
+		if err == nil {
+			return "SUCCESS"
+		} else if status.Code(err) == codes.Aborted {
+			return "FAILURE"
+		}
+		return err.Error()
 	}
 	resp, err := dtmcli.RestyClient.R().SetBody(branch.Data).
 		SetQueryParams(dtmcli.MS{

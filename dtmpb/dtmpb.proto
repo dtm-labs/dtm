@@ -1,13 +1,13 @@
 syntax = "proto3";
 
 option go_package = "github.com/yedf/dtm/dtmpb";
+import "google/protobuf/empty.proto";
 
-package dtmcli;
+package dtmpb;
 
 // The dtm service definition.
 service Dtm {
-  rpc Call(DtmRequest) returns (DtmReply) {}
-  rpc Submit(DtmRequest) returns (DtmReply) {}
+  rpc Submit(DtmRequest) returns (google.protobuf.Empty) {}
 
 }
 
@@ -37,7 +37,7 @@ message DtmReply {
 
 // The request message containing the user's name.
 message BusiRequest {
-  dtmcli.DtmTransInfo info = 1;
+  DtmTransInfo info = 1;
   map<string, string> Extra = 2;
   bytes AppData = 3;
 }
