@@ -2,6 +2,7 @@ package examples
 
 import (
 	"fmt"
+	"net"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -16,11 +17,14 @@ const (
 	// BusiPort busi server port
 	BusiPort = 8081
 	// BusiPbPort busi server port
-	BusiPbPort = 50081
+	BusiPbPort = 60081
 )
 
 // Busi busi service url prefix
 var Busi string = fmt.Sprintf("http://localhost:%d%s", BusiPort, BusiAPI)
+
+// BusiPb busi service grpc address
+var BusiPb string = fmt.Sprintf("localhost:%d", BusiPbPort)
 
 // DtmClient grpc client for dtm
 var DtmClient dtmcli.DtmClient = nil
@@ -33,10 +37,20 @@ func BaseAppStartup() *gin.Engine {
 	dtmcli.Logf("Starting busi at: %d", BusiPort)
 	go app.Run(fmt.Sprintf(":%d", BusiPort))
 
-	conn, err := grpc.Dial(DtmGrpcServer, grpc.WithInsecure(), grpc.WithBlock())
+	conn, err := grpc.Dial(DtmGrpcServer, grpc.WithInsecure(), grpc.WithBlock(), grpc.WithUnaryInterceptor(dtmcli.GrpcClientLog))
 	dtmcli.FatalIfError(err)
 	DtmClient = dtmcli.NewDtmClient(conn)
 	dtmcli.Logf("dtm client inited")
+
+	lis, err := net.Listen("tcp", fmt.Sprintf(":%d", BusiPbPort))
+	dtmcli.FatalIfError(err)
+	s := grpc.NewServer(grpc.UnaryInterceptor(dtmcli.GrpcServerLog))
+	RegisterBusiServer(s, &busiServer{})
+	dtmcli.Logf("busi grpc listening at %v", lis.Addr())
+	go func() {
+		err := s.Serve(lis)
+		dtmcli.FatalIfError(err)
+	}()
 
 	time.Sleep(100 * time.Millisecond)
 	return app

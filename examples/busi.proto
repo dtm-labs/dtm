@@ -7,21 +7,11 @@ import "dtmcli/dtmcli.proto";
 
 // The dtm service definition.
 service Busi {
-  rpc TransIn(BusiRequest) returns (BusiReply) {}
-  rpc TransOut(BusiRequest) returns (BusiReply) {}
-  rpc TransInRevert(BusiRequest) returns (BusiReply) {}
-  rpc TransOutRevert(BusiRequest) returns (BusiReply) {}
+  rpc Call(dtmcli.BusiRequest) returns (dtmcli.BusiReply) {}
+
+  rpc TransIn(dtmcli.BusiRequest) returns (dtmcli.BusiReply) {}
+  rpc TransOut(dtmcli.BusiRequest) returns (dtmcli.BusiReply) {}
+  rpc TransInRevert(dtmcli.BusiRequest) returns (dtmcli.BusiReply) {}
+  rpc TransOutRevert(dtmcli.BusiRequest) returns (dtmcli.BusiReply) {}
 }
 
-// The request message containing the user's name.
-message BusiRequest {
-  dtmcli.DtmTransInfo info = 1;
-  map<string, string> Extra = 2;
-  bytes AppData = 3;
-}
-
-// The response message containing the greetings
-message BusiReply {
-  string DtmResult = 1;
-  string DtmMessage = 2;
-}
