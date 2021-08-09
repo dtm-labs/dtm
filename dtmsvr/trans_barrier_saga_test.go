@@ -8,7 +8,7 @@ import (
 	"github.com/yedf/dtm/examples"
 )
 
-func TestSagaBarrier(t *testing.T) {
+func TestBarrierSaga(t *testing.T) {
 
 	sagaBarrierNormal(t)
 	sagaBarrierRollback(t)

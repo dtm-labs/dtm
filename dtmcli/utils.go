@@ -105,9 +105,6 @@ func MustRemarshal(from interface{}, to interface{}) {
 	E2P(err)
 }
 
-// LogFunc log function type
-type LogFunc func(format string, args ...interface{})
-
 // Logf 输出日志
 func Logf(format string, args ...interface{}) {
 	msg := fmt.Sprintf(format, args...)

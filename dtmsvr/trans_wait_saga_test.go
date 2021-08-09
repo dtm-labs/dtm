@@ -8,7 +8,7 @@ import (
 	"github.com/yedf/dtm/examples"
 )
 
-func TestSagaWait(t *testing.T) {
+func TestWaitSaga(t *testing.T) {
 
 	sagaNormalWait(t)
 	sagaCommittedPendingWait(t)

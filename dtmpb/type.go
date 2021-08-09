@@ -2,6 +2,7 @@ package dtmpb
 
 import (
 	context "context"
+	"fmt"
 	"strings"
 
 	"github.com/yedf/dtm/dtmcli"
@@ -47,8 +48,12 @@ func GetServerAndMethod(grpcURL string) (string, string) {
 func GrpcServerLog(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (interface{}, error) {
 	dtmcli.Logf("grpc server handling: %s %v", info.FullMethod, req)
 	m, err := handler(ctx, req)
-	log := dtmcli.If(err != nil, dtmcli.LogRedf, dtmcli.Logf).(dtmcli.LogFunc)
-	log("grpc server handled: %s %v result: %v err: %v", info.FullMethod, req, m, err)
+	res := fmt.Sprintf("grpc server handled: %s %v result: %v err: %v", info.FullMethod, req, m, err)
+	if err != nil {
+		dtmcli.LogRedf("%s", res)
+	} else {
+		dtmcli.Logf("%s", res)
+	}
 	return m, err
 }
 
@@ -56,7 +61,11 @@ func GrpcServerLog(ctx context.Context, req interface{}, info *grpc.UnaryServerI
 func GrpcClientLog(ctx context.Context, method string, req, reply interface{}, cc *grpc.ClientConn, invoker grpc.UnaryInvoker, opts ...grpc.CallOption) error {
 	dtmcli.Logf("grpc client calling: %s%s %v", cc.Target(), method, req)
 	err := invoker(ctx, method, req, reply, cc, opts...)
-	log := dtmcli.If(err != nil, dtmcli.LogRedf, dtmcli.Logf).(dtmcli.LogFunc)
-	log("grpc client called: %s%s %v result: %v err: %v", cc.Target(), method, req, reply, err)
+	res := fmt.Sprintf("grpc client called: %s%s %v result: %v err: %v", cc.Target(), method, req, reply, err)
+	if err != nil {
+		dtmcli.LogRedf("%s", res)
+	} else {
+		dtmcli.Logf("%s", res)
+	}
 	return err
 }

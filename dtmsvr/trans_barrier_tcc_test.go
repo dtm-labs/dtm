@@ -14,7 +14,7 @@ import (
 	"github.com/yedf/dtm/examples"
 )
 
-func TestTccBarrier(t *testing.T) {
+func TestBarrierTcc(t *testing.T) {
 	tccBarrierDisorder(t)
 	tccBarrierNormal(t)
 	tccBarrierRollback(t)
