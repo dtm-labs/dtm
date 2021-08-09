@@ -26,7 +26,7 @@ func StartSvr() {
 
 	lis, err := net.Listen("tcp", fmt.Sprintf(":%d", dtmsvrGrpcPort))
 	dtmcli.FatalIfError(err)
-	s := grpc.NewServer(grpc.UnaryInterceptor(dtmcli.GrpcServerLog))
+	s := grpc.NewServer(grpc.UnaryInterceptor(dtmpb.GrpcServerLog))
 	dtmpb.RegisterDtmServer(s, &dtmServer{})
 	dtmcli.Logf("grpc listening at %v", lis.Addr())
 	go func() {

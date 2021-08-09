@@ -38,14 +38,14 @@ func BaseAppStartup() *gin.Engine {
 	dtmcli.Logf("Starting busi at: %d", BusiPort)
 	go app.Run(fmt.Sprintf(":%d", BusiPort))
 
-	conn, err := grpc.Dial(DtmGrpcServer, grpc.WithInsecure(), grpc.WithBlock(), grpc.WithUnaryInterceptor(dtmcli.GrpcClientLog))
+	conn, err := grpc.Dial(DtmGrpcServer, grpc.WithInsecure(), grpc.WithBlock(), grpc.WithUnaryInterceptor(dtmpb.GrpcClientLog))
 	dtmcli.FatalIfError(err)
 	DtmClient = dtmpb.NewDtmClient(conn)
 	dtmcli.Logf("dtm client inited")
 
 	lis, err := net.Listen("tcp", fmt.Sprintf(":%d", BusiPbPort))
 	dtmcli.FatalIfError(err)
-	s := grpc.NewServer(grpc.UnaryInterceptor(dtmcli.GrpcServerLog))
+	s := grpc.NewServer(grpc.UnaryInterceptor(dtmpb.GrpcServerLog))
 	RegisterBusiServer(s, &busiServer{})
 	dtmcli.Logf("busi grpc listening at %v", lis.Addr())
 	go func() {

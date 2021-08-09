@@ -1,7 +1,6 @@
 package dtmcli
 
 import (
-	"context"
 	"database/sql"
 	"encoding/json"
 	"errors"
@@ -14,7 +13,6 @@ import (
 	"time"
 
 	"github.com/go-resty/resty/v2"
-	grpc "google.golang.org/grpc"
 )
 
 // P2E panic to error
@@ -106,6 +104,9 @@ func MustRemarshal(from interface{}, to interface{}) {
 	err = json.Unmarshal(b, to)
 	E2P(err)
 }
+
+// LogFunc log function type
+type LogFunc func(format string, args ...interface{})
 
 // Logf 输出日志
 func Logf(format string, args ...interface{}) {
@@ -269,21 +270,5 @@ func CheckResult(res interface{}, err error) error {
 	if res != nil && strings.Contains(MustMarshalString(res), "FAILURE") {
 		return ErrFailure
 	}
-	return err
-}
-
-// GrpcServerLog 打印grpc服务端的日志
-func GrpcServerLog(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (interface{}, error) {
-	Logf("grpc server handling: %s %v", info.FullMethod, req)
-	m, err := handler(ctx, req)
-	Logf("grpc server handled: %s %v result: %v err: %v", info.FullMethod, req, m, err)
-	return m, err
-}
-
-// GrpcClientLog 打印grpc服务端的日志
-func GrpcClientLog(ctx context.Context, method string, req, reply interface{}, cc *grpc.ClientConn, invoker grpc.UnaryInvoker, opts ...grpc.CallOption) error {
-	Logf("grpc client calling: %s%s %v", cc.Target(), method, req)
-	err := invoker(ctx, method, req, reply, cc, opts...)
-	Logf("grpc client called: %s%s %v result: %v err: %v", cc.Target(), method, req, reply, err)
 	return err
 }
