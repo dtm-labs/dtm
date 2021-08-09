@@ -109,7 +109,7 @@ func MustRemarshal(from interface{}, to interface{}) {
 func Logf(format string, args ...interface{}) {
 	msg := fmt.Sprintf(format, args...)
 	n := time.Now()
-	ts := fmt.Sprintf("%d-%02d-%02d %02d:%02d:%02d.%03d", n.Year(), n.Month(), n.Day(), n.Hour(), n.Minute(), n.Second(), n.Nanosecond()/1000000)
+	ts := fmt.Sprintf("%s.%03d", n.Format("2006-01-02 15:04:05"), n.Nanosecond()/1000000)
 	var file string
 	var line int
 	for i := 1; ; i++ {
