@@ -22,8 +22,7 @@ func (s *dtmServer) Call(ctx context.Context, in *pb.DtmRequest) (*pb.DtmReply, 
 }
 
 func (s *dtmServer) Submit(ctx context.Context, in *pb.DtmRequest) (*pb.DtmReply, error) {
-	log.Printf("dtmServer Received: %v", in)
-	dynamicCallPb(ctx, in, in.Extra["BusiFunc"], []byte(in.Data))
+	svcSubmit(TransFromDtmRequest(in), in.WaitResult)
 	return &pb.DtmReply{DtmResult: "SUCCESS", DtmMessage: "ok"}, nil
 }
 

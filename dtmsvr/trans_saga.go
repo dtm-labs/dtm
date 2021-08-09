@@ -2,7 +2,6 @@ package dtmsvr
 
 import (
 	"fmt"
-	"strings"
 
 	"github.com/yedf/dtm/common"
 	"github.com/yedf/dtm/dtmcli"
@@ -36,21 +35,6 @@ func (t *transSagaProcessor) GenBranches() []TransBranch {
 	return branches
 }
 
-func (t *transSagaProcessor) ExecBranch(db *common.DB, branch *TransBranch) {
-	resp, err := dtmcli.RestyClient.R().SetBody(branch.Data).SetQueryParams(t.getBranchParams(branch)).Post(branch.URL)
-	e2p(err)
-	body := resp.String()
-	if strings.Contains(body, "SUCCESS") {
-		t.touch(db, config.TransCronInterval)
-		branch.changeStatus(db, "succeed")
-	} else if branch.BranchType == "action" && strings.Contains(body, "FAILURE") {
-		t.touch(db, config.TransCronInterval)
-		branch.changeStatus(db, "failed")
-	} else {
-		panic(fmt.Errorf("unknown response: %s, will be retried", body))
-	}
-}
-
 func (t *transSagaProcessor) ProcessOnce(db *common.DB, branches []TransBranch) {
 	if t.Status == "failed" || t.Status == "succeed" {
 		return
@@ -63,7 +47,7 @@ func (t *transSagaProcessor) ProcessOnce(db *common.DB, branches []TransBranch) 
 		}
 		// 找到了一个非succeed的action
 		if branch.Status == "prepared" {
-			t.ExecBranch(db, branch)
+			t.execBranch(db, branch)
 		}
 		if branch.Status != "succeed" {
 			break
@@ -81,7 +65,7 @@ func (t *transSagaProcessor) ProcessOnce(db *common.DB, branches []TransBranch) 
 		if branch.BranchType != "compensate" || branch.Status != "prepared" {
 			continue
 		}
-		t.ExecBranch(db, branch)
+		t.execBranch(db, branch)
 	}
 	t.changeStatus(db, "failed")
 }

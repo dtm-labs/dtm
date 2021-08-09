@@ -1,7 +1,6 @@
 package dtmsvr
 
 import (
-	"fmt"
 	"strings"
 
 	"github.com/yedf/dtm/common"
@@ -33,18 +32,6 @@ func (t *transMsgProcessor) GenBranches() []TransBranch {
 	return branches
 }
 
-func (t *transMsgProcessor) ExecBranch(db *common.DB, branch *TransBranch) {
-	resp, err := dtmcli.RestyClient.R().SetBody(branch.Data).SetQueryParams(t.getBranchParams(branch)).Post(branch.URL)
-	e2p(err)
-	body := resp.String()
-	if strings.Contains(body, "SUCCESS") {
-		branch.changeStatus(db, "succeed")
-		t.touch(db, config.TransCronInterval)
-	} else {
-		panic(fmt.Errorf("unknown response: %s, will be retried", body))
-	}
-}
-
 func (t *TransGlobal) mayQueryPrepared(db *common.DB) {
 	if t.Status != "prepared" {
 		return
@@ -70,7 +57,7 @@ func (t *transMsgProcessor) ProcessOnce(db *common.DB, branches []TransBranch) {
 		if branch.BranchType != "action" || branch.Status != "prepared" {
 			continue
 		}
-		t.ExecBranch(db, branch)
+		t.execBranch(db, branch)
 		if branch.Status != "succeed" {
 			break
 		}

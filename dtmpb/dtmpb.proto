@@ -15,7 +15,8 @@ message DtmTransInfo {
   string Gid = 1;
   string TransType = 2;
   string BranchID = 3;
-  string Dtm = 4;
+  string BranchType = 4;
+  string Dtm = 5;
 }
 
 // The request message containing the user's name.
@@ -23,8 +24,9 @@ message DtmRequest {
   string Gid = 1;
   string TransType = 2;
   string QueryPrepared = 3;
-  map<string, string> Extra = 4;
-  string Data = 5;
+  bool WaitResult = 4;
+  map<string, string> Extra = 5;
+  string Data = 6;
 }
 
 // The response message containing the greetings

@@ -1,7 +1,9 @@
 package dtmsvr
 
 import (
+	"context"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -36,7 +38,6 @@ func (*TransGlobal) TableName() string {
 type transProcessor interface {
 	GenBranches() []TransBranch
 	ProcessOnce(db *common.DB, branches []TransBranch)
-	ExecBranch(db *common.DB, branch *TransBranch)
 }
 
 func (t *TransGlobal) touch(db *common.DB, interval int64) *gorm.DB {
@@ -147,20 +148,53 @@ func (t *TransGlobal) processInner(db *common.DB) (rerr error) {
 	return
 }
 
-func (t *TransGlobal) getBranchParams(branch *TransBranch) dtmcli.MS {
-	return dtmcli.MS{
-		"gid":         t.Gid,
-		"trans_type":  t.TransType,
-		"branch_id":   branch.BranchID,
-		"branch_type": branch.BranchType,
-	}
-}
-
 func (t *TransGlobal) setNextCron(expireIn int64) []string {
 	t.NextCronInterval = expireIn
 	next := time.Now().Add(time.Duration(t.NextCronInterval) * time.Second)
 	t.NextCronTime = &next
 	return []string{"next_cron_interval", "next_cron_time"}
+}
+
+func (t *TransGlobal) getBranchResult(branch *TransBranch) string {
+	if t.Protocol == "grpc" {
+		server, method := dtmpb.GetServerAndMethod(branch.URL)
+		conn := dtmpb.MustGetGrpcConn(server)
+		reply := dtmpb.BusiReply{}
+		err := conn.Invoke(context.Background(), method, &dtmpb.BusiRequest{
+			Info: &dtmpb.DtmTransInfo{
+				Gid:        t.Gid,
+				TransType:  t.TransType,
+				BranchID:   branch.BranchID,
+				BranchType: branch.BranchType,
+			},
+		}, &reply)
+		e2p(err)
+		return reply.DtmResult
+	}
+	resp, err := dtmcli.RestyClient.R().SetBody(branch.Data).
+		SetQueryParams(dtmcli.MS{
+			"gid":         t.Gid,
+			"trans_type":  t.TransType,
+			"branch_id":   branch.BranchID,
+			"branch_type": branch.BranchType,
+		}).
+		SetHeader("Content-type", "application/json").
+		Post(branch.URL)
+	e2p(err)
+	return resp.String()
+}
+
+func (t *TransGlobal) execBranch(db *common.DB, branch *TransBranch) {
+	body := t.getBranchResult(branch)
+	if strings.Contains(body, "SUCCESS") {
+		t.touch(db, config.TransCronInterval)
+		branch.changeStatus(db, "succeed")
+	} else if t.TransType == "saga" && branch.BranchType == "action" && strings.Contains(body, "FAILURE") {
+		t.touch(db, config.TransCronInterval)
+		branch.changeStatus(db, "failed")
+	} else {
+		panic(fmt.Errorf("unknown response: %s, will be retried", body))
+	}
 }
 
 func (t *TransGlobal) saveNew(db *common.DB) {
@@ -205,15 +239,13 @@ func TransFromContext(c *gin.Context) *TransGlobal {
 
 // TransFromDtmRequest TransFromContext
 func TransFromDtmRequest(c *dtmpb.DtmRequest) *TransGlobal {
-	m := TransGlobal{
+	return &TransGlobal{
 		Gid:           c.Gid,
 		TransType:     c.TransType,
 		QueryPrepared: c.QueryPrepared,
 		Data:          c.Data,
 		Protocol:      "grpc",
 	}
-	m.Protocol = "http"
-	return &m
 }
 
 // TransFromDb construct trans from db
