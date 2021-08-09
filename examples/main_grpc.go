@@ -2,8 +2,8 @@ package examples
 
 import (
 	"context"
-	"log"
 
+	"github.com/yedf/dtm/dtmcli"
 	dtmpb "github.com/yedf/dtm/dtmpb"
 )
 
@@ -12,8 +12,21 @@ type busiServer struct {
 	UnimplementedBusiServer
 }
 
-// SayHello implements helloworld.GreeterServer
 func (s *busiServer) Call(ctx context.Context, in *dtmpb.BusiRequest) (*dtmpb.BusiReply, error) {
-	log.Printf("busiServer received: %v", in)
+	dtmcli.Logf("busiServer %s received: %v", dtmcli.GetFuncName(), in)
+	return &dtmpb.BusiReply{DtmResult: "SUCCESS", DtmMessage: "ok"}, nil
+}
+
+func (s *busiServer) TransIn(ctx context.Context, in *dtmpb.BusiRequest) (*dtmpb.BusiReply, error) {
+	req := TransReq{}
+	dtmcli.MustUnmarshal(in.AppData, &req)
+	dtmcli.Logf("busiServer %s received: %v %v", dtmcli.GetFuncName(), in.Info, req)
+	return &dtmpb.BusiReply{DtmResult: "SUCCESS", DtmMessage: "ok"}, nil
+}
+
+func (s *busiServer) TransOut(ctx context.Context, in *dtmpb.BusiRequest) (*dtmpb.BusiReply, error) {
+	req := TransReq{}
+	dtmcli.MustUnmarshal(in.AppData, &req)
+	dtmcli.Logf("busiServer %s received: %v %v", dtmcli.GetFuncName(), in.Info, req)
 	return &dtmpb.BusiReply{DtmResult: "SUCCESS", DtmMessage: "ok"}, nil
 }

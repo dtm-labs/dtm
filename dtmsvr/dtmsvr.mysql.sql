@@ -4,10 +4,11 @@ drop table IF EXISTS dtm.trans_global;
 CREATE TABLE if not EXISTS dtm.trans_global (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `gid` varchar(128) NOT NULL COMMENT '事务全局id',
-  `trans_type` varchar(45) not null COMMENT '事务类型: saga | xa',
+  `trans_type` varchar(45) not null COMMENT '事务类型: saga | xa | tcc | msg',
   `data` TEXT COMMENT '事务携带的数据',
   `status` varchar(45) NOT NULL COMMENT '全局事务的状态 prepared | submitted | finished | rollbacked',
   `query_prepared` varchar(128) NOT NULL COMMENT 'prepared状态事务的查询api',
+  `protocol` varchar(45) not null comment '通信协议 http | grpc',
   `create_time` datetime DEFAULT NULL,
   `update_time` datetime DEFAULT NULL,
   `commit_time` datetime DEFAULT NULL,

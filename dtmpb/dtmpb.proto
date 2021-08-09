@@ -7,6 +7,8 @@ package dtmcli;
 // The dtm service definition.
 service Dtm {
   rpc Call(DtmRequest) returns (DtmReply) {}
+  rpc Submit(DtmRequest) returns (DtmReply) {}
+
 }
 
 message DtmTransInfo {
@@ -21,9 +23,8 @@ message DtmRequest {
   string Gid = 1;
   string TransType = 2;
   string QueryPrepared = 3;
-  string Method = 4;
-  map<string, string> Extra = 5;
-  bytes AppData = 6;
+  map<string, string> Extra = 4;
+  string Data = 5;
 }
 
 // The response message containing the greetings

@@ -15,10 +15,15 @@ type dtmServer struct {
 	pb.UnimplementedDtmServer
 }
 
-// SayHello implements helloworld.GreeterServer
 func (s *dtmServer) Call(ctx context.Context, in *pb.DtmRequest) (*pb.DtmReply, error) {
 	log.Printf("dtmServer Received: %v", in)
-	dynamicCallPb(ctx, in, in.Extra["BusiFunc"], in.AppData)
+	dynamicCallPb(ctx, in, in.Extra["BusiFunc"], []byte(in.Data))
+	return &pb.DtmReply{DtmResult: "SUCCESS", DtmMessage: "ok"}, nil
+}
+
+func (s *dtmServer) Submit(ctx context.Context, in *pb.DtmRequest) (*pb.DtmReply, error) {
+	log.Printf("dtmServer Received: %v", in)
+	dynamicCallPb(ctx, in, in.Extra["BusiFunc"], []byte(in.Data))
 	return &pb.DtmReply{DtmResult: "SUCCESS", DtmMessage: "ok"}, nil
 }
 

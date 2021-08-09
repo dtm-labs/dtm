@@ -7,6 +7,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/yedf/dtm/common"
 	"github.com/yedf/dtm/dtmcli"
+	"github.com/yedf/dtm/dtmpb"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 )
@@ -19,6 +20,7 @@ type TransGlobal struct {
 	Data             string `json:"data"`
 	Status           string `json:"status"`
 	QueryPrepared    string `json:"query_prepared"`
+	Protocol         string `json:"protocol"`
 	CommitTime       *time.Time
 	FinishTime       *time.Time
 	RollbackTime     *time.Time
@@ -197,6 +199,20 @@ func TransFromContext(c *gin.Context) *TransGlobal {
 	}
 	m := TransGlobal{}
 	dtmcli.MustRemarshal(data, &m)
+	m.Protocol = "http"
+	return &m
+}
+
+// TransFromDtmRequest TransFromContext
+func TransFromDtmRequest(c *dtmpb.DtmRequest) *TransGlobal {
+	m := TransGlobal{
+		Gid:           c.Gid,
+		TransType:     c.TransType,
+		QueryPrepared: c.QueryPrepared,
+		Data:          c.Data,
+		Protocol:      "grpc",
+	}
+	m.Protocol = "http"
 	return &m
 }
 

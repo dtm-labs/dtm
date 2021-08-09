@@ -1,6 +1,10 @@
 package dtmpb
 
-import "github.com/yedf/dtm/dtmcli"
+import (
+	"context"
+
+	"github.com/yedf/dtm/dtmcli"
+)
 
 // MsgGrpc reliable msg type
 type MsgGrpc struct {
@@ -35,11 +39,11 @@ func NewMsgGrpc(server string, gid string) *MsgGrpc {
 }
 
 // Add add a new step
-func (s *MsgGrpc) Add(action string, postData interface{}) *MsgGrpc {
-	dtmcli.Logf("msg %s Add %s %v", s.MsgDataGrpc.Gid, action, postData)
+func (s *MsgGrpc) Add(action string, data []byte) *MsgGrpc {
+	dtmcli.Logf("msg %s Add %s %v", s.MsgDataGrpc.Gid, action, string(data))
 	step := MsgStepGrpc{
 		Action: action,
-		Data:   dtmcli.MustMarshalString(postData),
+		Data:   string(data),
 	}
 	s.Steps = append(s.Steps, step)
 	return s
@@ -47,5 +51,10 @@ func (s *MsgGrpc) Add(action string, postData interface{}) *MsgGrpc {
 
 // Submit submit the msg
 func (s *MsgGrpc) Submit() error {
-	return s.CallDtm(&s.MsgDataGrpc, "submit")
+	_, err := MustGetDtmClient(s.Dtm).Submit(context.Background(), &DtmRequest{
+		Gid:       s.Gid,
+		TransType: s.TransType,
+		Data:      dtmcli.MustMarshalString(&s.Steps),
+	})
+	return err
 }

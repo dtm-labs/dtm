@@ -20,11 +20,7 @@ func (t *transXaProcessor) GenBranches() []TransBranch {
 	return []TransBranch{}
 }
 func (t *transXaProcessor) ExecBranch(db *common.DB, branch *TransBranch) {
-	resp, err := dtmcli.RestyClient.R().SetQueryParams(dtmcli.MS{
-		"branch_id": branch.BranchID,
-		"action":    dtmcli.If(t.Status == "prepared" || t.Status == "aborting", "rollback", "commit").(string),
-		"gid":       branch.Gid,
-	}).Post(branch.URL)
+	resp, err := dtmcli.RestyClient.R().SetQueryParams(t.getBranchParams(branch)).Post(branch.URL)
 	e2p(err)
 	body := resp.String()
 	if strings.Contains(body, "SUCCESS") {
