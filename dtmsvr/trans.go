@@ -167,6 +167,7 @@ func (t *TransGlobal) getBranchResult(branch *TransBranch) string {
 				BranchID:   branch.BranchID,
 				BranchType: branch.BranchType,
 			},
+			AppData: []byte(branch.Data),
 		}, &reply)
 		e2p(err)
 		return reply.DtmResult
