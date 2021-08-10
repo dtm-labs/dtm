@@ -2,9 +2,10 @@ package examples
 
 import (
 	"fmt"
-	"time"
+	"net/http"
 
 	"github.com/gin-gonic/gin"
+
 	"github.com/yedf/dtm/common"
 	"github.com/yedf/dtm/dtmcli"
 )
@@ -12,21 +13,32 @@ import (
 const (
 	// BusiAPI busi api prefix
 	BusiAPI = "/api/busi"
-	// BusiPort busi server port
-	BusiPort = 8081
 )
 
-// Busi busi service url prefix
-var Busi string = fmt.Sprintf("http://localhost:%d%s", BusiPort, BusiAPI)
+var (
+	BusiPort = 8081
+	Busi     string
+)
 
 // BaseAppStartup base app startup
-func BaseAppStartup() *gin.Engine {
+func BaseAppStartup(port int) *gin.Engine {
+	if port == 0 {
+		port = BusiPort
+	}
+	Busi = fmt.Sprintf("http://localhost:%d%s", port, BusiAPI)
 	dtmcli.Logf("examples starting")
 	app := common.GetGinApp()
 	BaseAddRoute(app)
-	dtmcli.Logf("Starting busi at: %d", BusiPort)
-	go app.Run(fmt.Sprintf(":%d", BusiPort))
-	time.Sleep(100 * time.Millisecond)
+	srv = &http.Server{
+		Addr:    fmt.Sprintf(":%d", port),
+		Handler: app,
+	}
+	go func() {
+		// service connections
+		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+			dtmcli.Logf("busi listen at: %d,err:%s", port, err)
+		}
+	}()
 	return app
 }
 

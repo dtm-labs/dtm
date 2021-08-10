@@ -1,10 +1,13 @@
 package examples
 
 import (
+	"context"
 	"fmt"
+	"net/http"
 	"time"
 
 	"github.com/gin-gonic/gin"
+
 	"github.com/yedf/dtm/common"
 	"github.com/yedf/dtm/dtmcli"
 )
@@ -13,17 +16,41 @@ import (
 
 // 事务参与者的服务地址
 const qsBusiAPI = "/api/busi_start"
-const qsBusiPort = 8082
 
-var qsBusi = fmt.Sprintf("http://localhost:%d%s", qsBusiPort, qsBusiAPI)
+var (
+	qsBusiPort = 8082
+	qsBusi     string
+	srv        *http.Server
+)
 
 // QsStartSvr 1
-func QsStartSvr() {
+func QsStartSvr(port int) {
+	if port == 0 {
+		port = qsBusiPort
+	}
+	qsBusi = fmt.Sprintf("http://localhost:%d%s", port, qsBusiAPI)
 	app := common.GetGinApp()
 	qsAddRoute(app)
-	dtmcli.Logf("quick qs examples listening at %d", qsBusiPort)
-	go app.Run(fmt.Sprintf(":%d", qsBusiPort))
-	time.Sleep(100 * time.Millisecond)
+	srv = &http.Server{
+		Addr:    fmt.Sprintf(":%d", port),
+		Handler: app,
+	}
+	go func() {
+		// service connections
+		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+			dtmcli.Logf("quick qs examples listening at: %d,err:%s", port, err)
+		}
+	}()
+}
+
+func StopExampleSvr() {
+	dtmcli.Logf("shutdown examples server...")
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+	if err := srv.Shutdown(ctx); err != nil {
+		dtmcli.LogFatalf("examples server shutdown:", err)
+	}
+	dtmcli.Logf("examples server exiting")
 }
 
 // QsFireRequest 1

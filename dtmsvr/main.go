@@ -1,7 +1,9 @@
 package dtmsvr
 
 import (
+	"context"
 	"fmt"
+	"net/http"
 	"time"
 
 	"github.com/yedf/dtm/common"
@@ -9,16 +11,40 @@ import (
 	"github.com/yedf/dtm/examples"
 )
 
-var dtmsvrPort = 8080
+var (
+	dtmsvrPort = 8080
+	srv        *http.Server
+)
 
 // StartSvr StartSvr
-func StartSvr() {
+func StartSvr(port int) {
 	dtmcli.Logf("start dtmsvr")
+	if port == 0 {
+		port = dtmsvrPort
+	}
 	app := common.GetGinApp()
 	addRoute(app)
-	dtmcli.Logf("dtmsvr listen at: %d", dtmsvrPort)
-	go app.Run(fmt.Sprintf(":%d", dtmsvrPort))
-	time.Sleep(100 * time.Millisecond)
+	srv = &http.Server{
+		Addr:    fmt.Sprintf(":%d", port),
+		Handler: app,
+	}
+	go func() {
+		// service connections
+		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+			dtmcli.Logf("dtmsvr listen at: %d,err:%s", port, err)
+		}
+	}()
+}
+
+func StopSvr() {
+	stopCron()
+	dtmcli.Logf("shutdown dtmsvr ...")
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+	if err := srv.Shutdown(ctx); err != nil {
+		dtmcli.LogFatalf("dtmsvr shutdown:", err)
+	}
+	dtmcli.Logf("dtmsvr exiting")
 }
 
 // PopulateDB setup mysql data

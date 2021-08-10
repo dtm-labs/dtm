@@ -1,8 +1,11 @@
 package main
 
 import (
+	"flag"
 	"os"
-	"time"
+	"os/signal"
+	"runtime"
+	"syscall"
 
 	"github.com/yedf/dtm/dtmcli"
 	"github.com/yedf/dtm/dtmsvr"
@@ -12,50 +15,88 @@ import (
 // M alias
 type M = map[string]interface{}
 
+var (
+	onlyServer          bool
+	tutorial            string
+	expectTutorialValue = false
+)
+
 func wait() {
+	reload := make(chan int, 1)
+	stop := make(chan os.Signal, 1)
+	signal.Notify(stop, syscall.SIGTERM, syscall.SIGINT, syscall.SIGHUP)
 	for {
-		time.Sleep(10000 * time.Second)
+		select {
+		case <-reload:
+		case sg := <-stop:
+			if sg == syscall.SIGHUP {
+			} else {
+				dtmsvr.StopSvr()
+				if len(tutorial) > 0 && expectTutorialValue {
+					examples.StopExampleSvr()
+				}
+				return
+			}
+		}
 	}
 }
 
+func init() {
+	flag.BoolVar(&onlyServer, "bare", false, "only run dtm server, skip create table")
+	flag.StringVar(&tutorial, "tutorial", "", "choose which example you want run, should be in [quick_start,qs,xa,saga,tcc,msg,all,saga_barrier,tcc_barrier]")
+}
+
 func main() {
-	onlyServer := len(os.Args) > 1 && os.Args[1] == "dtmsvr"
+	runtime.GOMAXPROCS(runtime.NumCPU())
+	if len(os.Args) > 1 {
+		dtmcli.LogRedf("os.Args[1] value: %+v", os.Args[1])
+		if os.Args[1] == "dtmsvr" {
+			onlyServer = true
+		} else {
+			tutorial = os.Args[1]
+		}
+	}
+	flag.Parse()
+	dtmcli.LogRedf("bare value: %+v", onlyServer)
+	dtmcli.LogRedf("tutorial value: %+v", tutorial)
 	if !onlyServer { // 实际线上运行，只启动dtmsvr，不准备table相关的数据
 		dtmsvr.PopulateDB(true)
 	}
-	dtmsvr.StartSvr()              // 启动dtmsvr的api服务
+	dtmsvr.StartSvr(0)             // 启动dtmsvr的api服务
 	go dtmsvr.CronExpiredTrans(-1) // 启动dtmsvr的定时过期查询
 
-	if onlyServer || len(os.Args) == 1 { // 没有参数，或者参数为dtmsvr，则不运行例子
+	if len(tutorial) == 0 { // 没有参数，或者参数为dtmsvr，则不运行例子
 		wait()
+		return
 	}
 
 	examples.PopulateDB(true)
 
 	// quick_start 比较独立，单独作为一个例子运行，方便新人上手
-	if len(os.Args) > 1 && (os.Args[1] == "quick_start" || os.Args[1] == "qs") {
-		examples.QsStartSvr()
+	if tutorial == "quick_start" || tutorial == "qs" {
+		examples.QsStartSvr(0)
 		examples.QsFireRequest()
 		wait()
+		return
 	}
-
+	expectTutorialValue = true
 	// 下面是各类的例子
-	app := examples.BaseAppStartup()
-	if os.Args[1] == "xa" { // 启动xa示例
+	app := examples.BaseAppStartup(0)
+	switch tutorial {
+	case "xa":
 		examples.XaSetup(app)
 		examples.XaFireRequest()
-	} else if os.Args[1] == "saga" { // 启动saga示例
+	case "saga":
 		examples.SagaSetup(app)
 		examples.SagaFireRequest()
-	} else if os.Args[1] == "tcc" { // 启动tcc示例
+	case "tcc":
 		examples.TccSetup(app)
 		examples.TccFireRequestNested()
-	} else if os.Args[1] == "msg" { // 启动msg示例
+	case "msg":
 		examples.MsgSetup(app)
 		examples.MsgFireRequest()
-	} else if os.Args[1] == "all" { // 运行所有示例
+	case "all":
 		examples.SagaSetup(app)
-		examples.SagaWaitSetup(app)
 		examples.TccSetup(app)
 		examples.XaSetup(app)
 		examples.MsgSetup(app)
@@ -63,14 +104,16 @@ func main() {
 		examples.TccFireRequestNested()
 		examples.XaFireRequest()
 		examples.MsgFireRequest()
-	} else if os.Args[1] == "saga_barrier" {
+	case "saga_barrier":
 		examples.SagaBarrierAddRoute(app)
 		examples.SagaBarrierFireRequest()
-	} else if os.Args[1] == "tcc_barrier" {
+	case "tcc_barrier":
 		examples.TccBarrierAddRoute(app)
 		examples.TccBarrierFireRequest()
-	} else {
-		dtmcli.LogRedf("unknown arg: %s", os.Args[1])
+	default:
+		expectTutorialValue = false
+		dtmcli.LogRedf("unknown tutorial value: %s", tutorial)
 	}
 	wait()
+	return
 }
