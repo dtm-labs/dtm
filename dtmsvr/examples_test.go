@@ -18,5 +18,5 @@ func TestExamples(t *testing.T) {
 	assertSucceed(t, examples.TccFireRequest())
 	assertSucceed(t, examples.TccFireRequestNested())
 	assertSucceed(t, examples.XaFireRequest())
-	assertSucceed(t, examples.MsgPbFireRequest())
+	assertSucceed(t, examples.MsgGrpcFireRequest())
 }

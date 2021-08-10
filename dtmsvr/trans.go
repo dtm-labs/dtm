@@ -9,7 +9,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/yedf/dtm/common"
 	"github.com/yedf/dtm/dtmcli"
-	"github.com/yedf/dtm/dtmpb"
+	"github.com/yedf/dtm/dtmgrpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/emptypb"
@@ -160,10 +160,10 @@ func (t *TransGlobal) setNextCron(expireIn int64) []string {
 
 func (t *TransGlobal) getBranchResult(branch *TransBranch) string {
 	if t.Protocol == "grpc" {
-		server, method := dtmpb.GetServerAndMethod(branch.URL)
-		conn := dtmpb.MustGetGrpcConn(server)
-		err := conn.Invoke(context.Background(), method, &dtmpb.BusiRequest{
-			Info: &dtmpb.DtmTransInfo{
+		server, method := dtmgrpc.GetServerAndMethod(branch.URL)
+		conn := dtmgrpc.MustGetGrpcConn(server)
+		err := conn.Invoke(context.Background(), method, &dtmgrpc.BusiRequest{
+			Info: &dtmgrpc.DtmTransInfo{
 				Gid:        t.Gid,
 				TransType:  t.TransType,
 				BranchID:   branch.BranchID,
@@ -245,7 +245,7 @@ func TransFromContext(c *gin.Context) *TransGlobal {
 }
 
 // TransFromDtmRequest TransFromContext
-func TransFromDtmRequest(c *dtmpb.DtmRequest) *TransGlobal {
+func TransFromDtmRequest(c *dtmgrpc.DtmRequest) *TransGlobal {
 	return &TransGlobal{
 		Gid:           c.Gid,
 		TransType:     c.TransType,

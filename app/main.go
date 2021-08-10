@@ -41,6 +41,7 @@ func main() {
 
 	// 下面是各类的例子
 	app := examples.BaseAppStartup()
+	examples.GrpcStartup()
 	if os.Args[1] == "xa" { // 启动xa示例
 		examples.XaSetup(app)
 		examples.XaFireRequest()
@@ -54,8 +55,8 @@ func main() {
 		examples.MsgSetup(app)
 		examples.MsgFireRequest()
 	} else if os.Args[1] == "msg_pb" { // 启动msg示例
-		examples.MsgPbSetup(app)
-		examples.MsgPbFireRequest()
+		examples.MsgGrpcSetup(app)
+		examples.MsgGrpcFireRequest()
 	} else if os.Args[1] == "all" { // 运行所有示例
 		examples.SagaSetup(app)
 		examples.SagaWaitSetup(app)

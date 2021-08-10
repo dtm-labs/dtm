@@ -1,9 +1,9 @@
 syntax = "proto3";
 
-option go_package = "github.com/yedf/dtm/dtmpb";
+option go_package = "github.com/yedf/dtm/dtmgrpc";
 import "google/protobuf/empty.proto";
 
-package dtmpb;
+package dtmgrpc;
 
 // The dtm service definition.
 service Dtm {

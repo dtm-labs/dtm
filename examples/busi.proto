@@ -3,14 +3,14 @@ syntax = "proto3";
 package examples;
 
 option go_package = "github.com/yedf/dtm/examples";
-import "dtmpb/dtmpb.proto";
+import "dtmgrpc/dtmgrpc.proto";
 import "google/protobuf/empty.proto";
 
 // The dtm service definition.
 service Busi {
-  rpc TransIn(dtmpb.BusiRequest) returns (google.protobuf.Empty) {}
-  rpc TransOut(dtmpb.BusiRequest) returns (google.protobuf.Empty) {}
-  rpc TransInRevert(dtmpb.BusiRequest) returns (google.protobuf.Empty) {}
-  rpc TransOutRevert(dtmpb.BusiRequest) returns (google.protobuf.Empty) {}
+  rpc TransIn(dtmgrpc.BusiRequest) returns (google.protobuf.Empty) {}
+  rpc TransOut(dtmgrpc.BusiRequest) returns (google.protobuf.Empty) {}
+  rpc TransInRevert(dtmgrpc.BusiRequest) returns (google.protobuf.Empty) {}
+  rpc TransOutRevert(dtmgrpc.BusiRequest) returns (google.protobuf.Empty) {}
 }
 

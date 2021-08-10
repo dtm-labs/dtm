@@ -1,4 +1,4 @@
-package dtmpb
+package dtmgrpc
 
 import (
 	"context"

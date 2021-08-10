@@ -7,7 +7,7 @@
 package examples
 
 import (
-	dtmpb "github.com/yedf/dtm/dtmpb"
+	dtmgrpc "github.com/yedf/dtm/dtmgrpc"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 	emptypb "google.golang.org/protobuf/types/known/emptypb"
@@ -51,14 +51,14 @@ var file_examples_busi_proto_rawDesc = []byte{
 }
 
 var file_examples_busi_proto_goTypes = []interface{}{
-	(*dtmpb.BusiRequest)(nil), // 0: dtmpb.BusiRequest
-	(*emptypb.Empty)(nil),     // 1: google.protobuf.Empty
+	(*dtmgrpc.BusiRequest)(nil), // 0: dtmgrpc.BusiRequest
+	(*emptypb.Empty)(nil),       // 1: google.protobuf.Empty
 }
 var file_examples_busi_proto_depIdxs = []int32{
-	0, // 0: examples.Busi.TransIn:input_type -> dtmpb.BusiRequest
-	0, // 1: examples.Busi.TransOut:input_type -> dtmpb.BusiRequest
-	0, // 2: examples.Busi.TransInRevert:input_type -> dtmpb.BusiRequest
-	0, // 3: examples.Busi.TransOutRevert:input_type -> dtmpb.BusiRequest
+	0, // 0: examples.Busi.TransIn:input_type -> dtmgrpc.BusiRequest
+	0, // 1: examples.Busi.TransOut:input_type -> dtmgrpc.BusiRequest
+	0, // 2: examples.Busi.TransInRevert:input_type -> dtmgrpc.BusiRequest
+	0, // 3: examples.Busi.TransOutRevert:input_type -> dtmgrpc.BusiRequest
 	1, // 4: examples.Busi.TransIn:output_type -> google.protobuf.Empty
 	1, // 5: examples.Busi.TransOut:output_type -> google.protobuf.Empty
 	1, // 6: examples.Busi.TransInRevert:output_type -> google.protobuf.Empty

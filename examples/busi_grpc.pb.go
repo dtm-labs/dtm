@@ -4,7 +4,7 @@ package examples
 
 import (
 	context "context"
-	dtmpb "github.com/yedf/dtm/dtmpb"
+	dtmgrpc "github.com/yedf/dtm/dtmgrpc"
 	grpc "google.golang.org/grpc"
 	codes "google.golang.org/grpc/codes"
 	status "google.golang.org/grpc/status"
@@ -20,10 +20,10 @@ const _ = grpc.SupportPackageIsVersion7
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type BusiClient interface {
-	TransIn(ctx context.Context, in *dtmpb.BusiRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
-	TransOut(ctx context.Context, in *dtmpb.BusiRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
-	TransInRevert(ctx context.Context, in *dtmpb.BusiRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
-	TransOutRevert(ctx context.Context, in *dtmpb.BusiRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
+	TransIn(ctx context.Context, in *dtmgrpc.BusiRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
+	TransOut(ctx context.Context, in *dtmgrpc.BusiRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
+	TransInRevert(ctx context.Context, in *dtmgrpc.BusiRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
+	TransOutRevert(ctx context.Context, in *dtmgrpc.BusiRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
 }
 
 type busiClient struct {
@@ -34,7 +34,7 @@ func NewBusiClient(cc grpc.ClientConnInterface) BusiClient {
 	return &busiClient{cc}
 }
 
-func (c *busiClient) TransIn(ctx context.Context, in *dtmpb.BusiRequest, opts ...grpc.CallOption) (*emptypb.Empty, error) {
+func (c *busiClient) TransIn(ctx context.Context, in *dtmgrpc.BusiRequest, opts ...grpc.CallOption) (*emptypb.Empty, error) {
 	out := new(emptypb.Empty)
 	err := c.cc.Invoke(ctx, "/examples.Busi/TransIn", in, out, opts...)
 	if err != nil {
@@ -43,7 +43,7 @@ func (c *busiClient) TransIn(ctx context.Context, in *dtmpb.BusiRequest, opts ..
 	return out, nil
 }
 
-func (c *busiClient) TransOut(ctx context.Context, in *dtmpb.BusiRequest, opts ...grpc.CallOption) (*emptypb.Empty, error) {
+func (c *busiClient) TransOut(ctx context.Context, in *dtmgrpc.BusiRequest, opts ...grpc.CallOption) (*emptypb.Empty, error) {
 	out := new(emptypb.Empty)
 	err := c.cc.Invoke(ctx, "/examples.Busi/TransOut", in, out, opts...)
 	if err != nil {
@@ -52,7 +52,7 @@ func (c *busiClient) TransOut(ctx context.Context, in *dtmpb.BusiRequest, opts .
 	return out, nil
 }
 
-func (c *busiClient) TransInRevert(ctx context.Context, in *dtmpb.BusiRequest, opts ...grpc.CallOption) (*emptypb.Empty, error) {
+func (c *busiClient) TransInRevert(ctx context.Context, in *dtmgrpc.BusiRequest, opts ...grpc.CallOption) (*emptypb.Empty, error) {
 	out := new(emptypb.Empty)
 	err := c.cc.Invoke(ctx, "/examples.Busi/TransInRevert", in, out, opts...)
 	if err != nil {
@@ -61,7 +61,7 @@ func (c *busiClient) TransInRevert(ctx context.Context, in *dtmpb.BusiRequest, o
 	return out, nil
 }
 
-func (c *busiClient) TransOutRevert(ctx context.Context, in *dtmpb.BusiRequest, opts ...grpc.CallOption) (*emptypb.Empty, error) {
+func (c *busiClient) TransOutRevert(ctx context.Context, in *dtmgrpc.BusiRequest, opts ...grpc.CallOption) (*emptypb.Empty, error) {
 	out := new(emptypb.Empty)
 	err := c.cc.Invoke(ctx, "/examples.Busi/TransOutRevert", in, out, opts...)
 	if err != nil {
@@ -74,10 +74,10 @@ func (c *busiClient) TransOutRevert(ctx context.Context, in *dtmpb.BusiRequest, 
 // All implementations must embed UnimplementedBusiServer
 // for forward compatibility
 type BusiServer interface {
-	TransIn(context.Context, *dtmpb.BusiRequest) (*emptypb.Empty, error)
-	TransOut(context.Context, *dtmpb.BusiRequest) (*emptypb.Empty, error)
-	TransInRevert(context.Context, *dtmpb.BusiRequest) (*emptypb.Empty, error)
-	TransOutRevert(context.Context, *dtmpb.BusiRequest) (*emptypb.Empty, error)
+	TransIn(context.Context, *dtmgrpc.BusiRequest) (*emptypb.Empty, error)
+	TransOut(context.Context, *dtmgrpc.BusiRequest) (*emptypb.Empty, error)
+	TransInRevert(context.Context, *dtmgrpc.BusiRequest) (*emptypb.Empty, error)
+	TransOutRevert(context.Context, *dtmgrpc.BusiRequest) (*emptypb.Empty, error)
 	mustEmbedUnimplementedBusiServer()
 }
 
@@ -85,16 +85,16 @@ type BusiServer interface {
 type UnimplementedBusiServer struct {
 }
 
-func (UnimplementedBusiServer) TransIn(context.Context, *dtmpb.BusiRequest) (*emptypb.Empty, error) {
+func (UnimplementedBusiServer) TransIn(context.Context, *dtmgrpc.BusiRequest) (*emptypb.Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method TransIn not implemented")
 }
-func (UnimplementedBusiServer) TransOut(context.Context, *dtmpb.BusiRequest) (*emptypb.Empty, error) {
+func (UnimplementedBusiServer) TransOut(context.Context, *dtmgrpc.BusiRequest) (*emptypb.Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method TransOut not implemented")
 }
-func (UnimplementedBusiServer) TransInRevert(context.Context, *dtmpb.BusiRequest) (*emptypb.Empty, error) {
+func (UnimplementedBusiServer) TransInRevert(context.Context, *dtmgrpc.BusiRequest) (*emptypb.Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method TransInRevert not implemented")
 }
-func (UnimplementedBusiServer) TransOutRevert(context.Context, *dtmpb.BusiRequest) (*emptypb.Empty, error) {
+func (UnimplementedBusiServer) TransOutRevert(context.Context, *dtmgrpc.BusiRequest) (*emptypb.Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method TransOutRevert not implemented")
 }
 func (UnimplementedBusiServer) mustEmbedUnimplementedBusiServer() {}
@@ -111,7 +111,7 @@ func RegisterBusiServer(s grpc.ServiceRegistrar, srv BusiServer) {
 }
 
 func _Busi_TransIn_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(dtmpb.BusiRequest)
+	in := new(dtmgrpc.BusiRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -123,13 +123,13 @@ func _Busi_TransIn_Handler(srv interface{}, ctx context.Context, dec func(interf
 		FullMethod: "/examples.Busi/TransIn",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(BusiServer).TransIn(ctx, req.(*dtmpb.BusiRequest))
+		return srv.(BusiServer).TransIn(ctx, req.(*dtmgrpc.BusiRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
 func _Busi_TransOut_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(dtmpb.BusiRequest)
+	in := new(dtmgrpc.BusiRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -141,13 +141,13 @@ func _Busi_TransOut_Handler(srv interface{}, ctx context.Context, dec func(inter
 		FullMethod: "/examples.Busi/TransOut",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(BusiServer).TransOut(ctx, req.(*dtmpb.BusiRequest))
+		return srv.(BusiServer).TransOut(ctx, req.(*dtmgrpc.BusiRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
 func _Busi_TransInRevert_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(dtmpb.BusiRequest)
+	in := new(dtmgrpc.BusiRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -159,13 +159,13 @@ func _Busi_TransInRevert_Handler(srv interface{}, ctx context.Context, dec func(
 		FullMethod: "/examples.Busi/TransInRevert",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(BusiServer).TransInRevert(ctx, req.(*dtmpb.BusiRequest))
+		return srv.(BusiServer).TransInRevert(ctx, req.(*dtmgrpc.BusiRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
 func _Busi_TransOutRevert_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(dtmpb.BusiRequest)
+	in := new(dtmgrpc.BusiRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -177,7 +177,7 @@ func _Busi_TransOutRevert_Handler(srv interface{}, ctx context.Context, dec func
 		FullMethod: "/examples.Busi/TransOutRevert",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(BusiServer).TransOutRevert(ctx, req.(*dtmpb.BusiRequest))
+		return srv.(BusiServer).TransOutRevert(ctx, req.(*dtmgrpc.BusiRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }

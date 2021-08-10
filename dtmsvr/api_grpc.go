@@ -3,7 +3,7 @@ package dtmsvr
 import (
 	"context"
 
-	pb "github.com/yedf/dtm/dtmpb"
+	pb "github.com/yedf/dtm/dtmgrpc"
 	"google.golang.org/protobuf/types/known/emptypb"
 )
 

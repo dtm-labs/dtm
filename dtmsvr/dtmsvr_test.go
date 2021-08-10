@@ -47,6 +47,7 @@ func TestMain(m *testing.M) {
 	// 启动组件
 	go StartSvr()
 	app = examples.BaseAppStartup()
+	examples.GrpcStartup()
 	examples.SagaSetup(app)
 	examples.TccSetup(app)
 	examples.XaSetup(app)
