@@ -37,13 +37,7 @@ func submit(c *gin.Context) (interface{}, error) {
 }
 
 func abort(c *gin.Context) (interface{}, error) {
-	db := dbGet()
-	t := TransFromContext(c)
-	dbt := TransFromDb(db, t.Gid)
-	if t.TransType != "xa" && t.TransType != "tcc" || dbt.Status != "prepared" && dbt.Status != "aborting" {
-		return M{"dtm_result": "FAILURE", "message": fmt.Sprintf("trans type: %s current status %s, cannot abort", dbt.TransType, dbt.Status)}, nil
-	}
-	return dbt.Process(db, c.Query("wait_result") == "true" || c.Query("wait_result") == "1"), nil
+	return svcAbort(TransFromContext(c), c.Query("wait_result") == "1")
 }
 
 func registerXaBranch(c *gin.Context) (interface{}, error) {
@@ -78,25 +72,7 @@ func registerTccBranch(c *gin.Context) (interface{}, error) {
 		Status:   "prepared",
 		Data:     data["data"],
 	}
-	db := dbGet()
-	dbt := TransFromDb(db, branch.Gid)
-	if dbt.Status != "prepared" {
-		return M{"dtm_result": "FAILURE", "message": fmt.Sprintf("current status: %s cannot register branch", dbt.Status)}, nil
-	}
-
-	branches := []TransBranch{branch, branch, branch}
-	for i, b := range []string{"cancel", "confirm", "try"} {
-		branches[i].BranchType = b
-		branches[i].URL = data[b]
-	}
-
-	db.Must().Clauses(clause.OnConflict{
-		DoNothing: true,
-	}).Create(branches)
-	e2p(err)
-	global := TransGlobal{Gid: branch.Gid}
-	global.touch(dbGet(), config.TransCronInterval)
-	return dtmcli.ResultSuccess, nil
+	return svcRegisterTccBranch(&branch, data)
 }
 
 func query(c *gin.Context) (interface{}, error) {

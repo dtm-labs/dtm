@@ -36,15 +36,14 @@ func TccGlobalTransaction(dtm string, gid string, tccFunc TccGlobalFunc) (rerr e
 		x := recover()
 		if x == nil && rerr == nil {
 			_, rerr = dc.Submit(context.Background(), dr)
-		} else {
-			_, err := dc.Abort(context.Background(), dr)
-			if rerr == nil {
-				rerr = err
-			}
-			if x != nil {
-				panic(x)
-			}
-
+			return
+		}
+		_, err := dc.Abort(context.Background(), dr)
+		if rerr == nil {
+			rerr = err
+		}
+		if x != nil {
+			panic(x)
 		}
 	}()
 	return tccFunc(tcc)
