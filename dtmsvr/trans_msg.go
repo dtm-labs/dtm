@@ -36,9 +36,7 @@ func (t *TransGlobal) mayQueryPrepared(db *common.DB) {
 	if t.Status != "prepared" {
 		return
 	}
-	resp, err := dtmcli.RestyClient.R().SetQueryParam("gid", t.Gid).Get(t.QueryPrepared)
-	e2p(err)
-	body := resp.String()
+	body := t.getURLResult(t.QueryPrepared, "", "", nil)
 	if strings.Contains(body, "SUCCESS") {
 		t.changeStatus(db, "submitted")
 	} else {

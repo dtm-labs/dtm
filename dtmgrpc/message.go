@@ -44,3 +44,15 @@ func (s *MsgGrpc) Submit() error {
 	})
 	return err
 }
+
+// Prepare prepare the msg
+func (s *MsgGrpc) Prepare(queryPrepared string) error {
+	s.QueryPrepared = dtmcli.OrString(queryPrepared, s.QueryPrepared)
+	_, err := MustGetDtmClient(s.Dtm).Prepare(context.Background(), &DtmRequest{
+		Gid:           s.Gid,
+		TransType:     s.TransType,
+		QueryPrepared: s.QueryPrepared,
+		Data:          dtmcli.MustMarshalString(&s.Steps),
+	})
+	return err
+}

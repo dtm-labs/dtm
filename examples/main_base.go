@@ -14,8 +14,8 @@ const (
 	BusiAPI = "/api/busi"
 	// BusiPort busi server port
 	BusiPort = 8081
-	// BusiPbPort busi server port
-	BusiPbPort = 60081
+	// BusiGrpcPort busi server port
+	BusiGrpcPort = 60081
 )
 
 // Busi busi service url prefix

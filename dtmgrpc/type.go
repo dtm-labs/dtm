@@ -7,6 +7,8 @@ import (
 
 	"github.com/yedf/dtm/dtmcli"
 	grpc "google.golang.org/grpc"
+	codes "google.golang.org/grpc/codes"
+	status "google.golang.org/grpc/status"
 )
 
 var clients = map[string]*grpc.ClientConn{}
@@ -68,4 +70,15 @@ func GrpcClientLog(ctx context.Context, method string, req, reply interface{}, c
 		dtmcli.Logf("%s", res)
 	}
 	return err
+}
+
+// Result2Error 将通用的result转成grpc的error
+func Result2Error(res interface{}, err error) error {
+	e := dtmcli.CheckResult(res, err)
+	if e == dtmcli.ErrFailure {
+		return status.New(codes.Aborted, fmt.Sprintf("failure: res: %v, err: %s", res, e.Error())).Err()
+	} else if e == dtmcli.ErrPending {
+		return status.New(codes.Unavailable, fmt.Sprintf("failure: res: %v, err: %s", res, e.Error())).Err()
+	}
+	return e
 }

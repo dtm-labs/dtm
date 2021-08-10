@@ -8,6 +8,7 @@ package dtmgrpc;
 // The dtm service definition.
 service Dtm {
   rpc Submit(DtmRequest) returns (google.protobuf.Empty) {}
+  rpc Prepare(DtmRequest) returns (google.protobuf.Empty) {}
 
 }
 

@@ -89,6 +89,9 @@ func (tb *TransBase) CallDtm(body interface{}, operation string) error {
 // ErrFailure 表示返回失败，要求回滚
 var ErrFailure = errors.New("transaction FAILURE")
 
+// ErrPending 表示暂时失败，要求重试
+var ErrPending = errors.New("transaction PENDING")
+
 // ResultSuccess 表示返回成功，可以进行下一步
 var ResultSuccess = M{"dtm_result": "SUCCESS"}
 

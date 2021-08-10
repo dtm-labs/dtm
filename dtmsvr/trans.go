@@ -158,18 +158,18 @@ func (t *TransGlobal) setNextCron(expireIn int64) []string {
 	return []string{"next_cron_interval", "next_cron_time"}
 }
 
-func (t *TransGlobal) getBranchResult(branch *TransBranch) string {
+func (t *TransGlobal) getURLResult(url string, branchID, branchType string, branchData []byte) string {
 	if t.Protocol == "grpc" {
-		server, method := dtmgrpc.GetServerAndMethod(branch.URL)
+		server, method := dtmgrpc.GetServerAndMethod(url)
 		conn := dtmgrpc.MustGetGrpcConn(server)
 		err := conn.Invoke(context.Background(), method, &dtmgrpc.BusiRequest{
 			Info: &dtmgrpc.DtmTransInfo{
 				Gid:        t.Gid,
 				TransType:  t.TransType,
-				BranchID:   branch.BranchID,
-				BranchType: branch.BranchType,
+				BranchID:   branchID,
+				BranchType: branchType,
 			},
-			AppData: []byte(branch.Data),
+			AppData: []byte(branchData),
 		}, &emptypb.Empty{})
 		if err == nil {
 			return "SUCCESS"
@@ -178,17 +178,21 @@ func (t *TransGlobal) getBranchResult(branch *TransBranch) string {
 		}
 		return err.Error()
 	}
-	resp, err := dtmcli.RestyClient.R().SetBody(branch.Data).
+	resp, err := dtmcli.RestyClient.R().SetBody(branchData).
 		SetQueryParams(dtmcli.MS{
 			"gid":         t.Gid,
 			"trans_type":  t.TransType,
-			"branch_id":   branch.BranchID,
-			"branch_type": branch.BranchType,
+			"branch_id":   branchID,
+			"branch_type": branchType,
 		}).
 		SetHeader("Content-type", "application/json").
-		Post(branch.URL)
+		Post(url)
 	e2p(err)
 	return resp.String()
+}
+
+func (t *TransGlobal) getBranchResult(branch *TransBranch) string {
+	return t.getURLResult(branch.URL, branch.BranchID, branch.BranchType, []byte(branch.Data))
 }
 
 func (t *TransGlobal) execBranch(db *common.DB, branch *TransBranch) {

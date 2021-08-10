@@ -13,8 +13,8 @@ import (
 	"google.golang.org/protobuf/types/known/emptypb"
 )
 
-// BusiPb busi service grpc address
-var BusiPb string = fmt.Sprintf("localhost:%d", BusiPbPort)
+// BusiGrpc busi service grpc address
+var BusiGrpc string = fmt.Sprintf("localhost:%d", BusiGrpcPort)
 
 // DtmClient grpc client for dtm
 var DtmClient dtmgrpc.DtmClient = nil
@@ -26,7 +26,7 @@ func GrpcStartup() {
 	DtmClient = dtmgrpc.NewDtmClient(conn)
 	dtmcli.Logf("dtm client inited")
 
-	lis, err := net.Listen("tcp", fmt.Sprintf(":%d", BusiPbPort))
+	lis, err := net.Listen("tcp", fmt.Sprintf(":%d", BusiGrpcPort))
 	dtmcli.FatalIfError(err)
 	s := grpc.NewServer(grpc.UnaryInterceptor(dtmgrpc.GrpcServerLog))
 	RegisterBusiServer(s, &busiServer{})
@@ -52,6 +52,11 @@ func handleGrpcBusiness(in *dtmgrpc.BusiRequest, result1 string, result2 string,
 // busiServer is used to implement helloworld.GreeterServer.
 type busiServer struct {
 	UnimplementedBusiServer
+}
+
+func (s *busiServer) CanSubmit(ctx context.Context, in *dtmgrpc.BusiRequest) (*emptypb.Empty, error) {
+	res := MainSwitch.CanSubmitResult.Fetch()
+	return &emptypb.Empty{}, dtmgrpc.Result2Error(res, nil)
 }
 
 func (s *busiServer) TransIn(ctx context.Context, in *dtmgrpc.BusiRequest) (*emptypb.Empty, error) {

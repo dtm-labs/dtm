@@ -15,8 +15,8 @@ func MsgGrpcSetup(app *gin.Engine) {
 func MsgGrpcFireRequest() string {
 	req := dtmcli.MustMarshal(&TransReq{Amount: 30})
 	msg := dtmgrpc.NewMsgGrpc(DtmGrpcServer, dtmcli.MustGenGid(DtmServer)).
-		Add(BusiPb+"/examples.Busi/TransOut", req).
-		Add(BusiPb+"/examples.Busi/TransIn", req)
+		Add(BusiGrpc+"/examples.Busi/TransOut", req).
+		Add(BusiGrpc+"/examples.Busi/TransIn", req)
 	err := msg.Submit()
 	e2p(err)
 	return msg.Gid

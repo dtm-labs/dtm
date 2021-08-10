@@ -1,6 +1,7 @@
 package dtmsvr
 
 import (
+	"fmt"
 	"testing"
 	"time"
 
@@ -25,10 +26,13 @@ func grpcMsgNormal(t *testing.T) {
 
 func grpcMsgPending(t *testing.T) {
 	msg := genGrpcMsg("grpc-msg-pending")
-	examples.MainSwitch.TransInResult.SetOnce("PENDING")
-	err := msg.Submit()
+	err := msg.Prepare(fmt.Sprintf("%s/examples.Busi/CanSubmit", examples.BusiGrpc))
 	assert.Nil(t, err)
-	WaitTransProcessed(msg.Gid)
+	examples.MainSwitch.CanSubmitResult.SetOnce("PENDING")
+	CronTransOnce(60 * time.Second)
+	assert.Equal(t, "prepared", getTransStatus(msg.Gid))
+	examples.MainSwitch.TransInResult.SetOnce("PENDING")
+	CronTransOnce(60 * time.Second)
 	assert.Equal(t, "submitted", getTransStatus(msg.Gid))
 	CronTransOnce(60 * time.Second)
 	assert.Equal(t, "succeed", getTransStatus(msg.Gid))
@@ -37,7 +41,7 @@ func grpcMsgPending(t *testing.T) {
 func genGrpcMsg(gid string) *dtmgrpc.MsgGrpc {
 	req := dtmcli.MustMarshal(&examples.TransReq{Amount: 30})
 	return dtmgrpc.NewMsgGrpc(examples.DtmGrpcServer, gid).
-		Add(examples.BusiPb+"/examples.Busi/TransOut", req).
-		Add(examples.BusiPb+"/examples.Busi/TransIn", req)
+		Add(examples.BusiGrpc+"/examples.Busi/TransOut", req).
+		Add(examples.BusiGrpc+"/examples.Busi/TransIn", req)
 
 }

@@ -1,6 +1,10 @@
 package dtmsvr
 
-import "fmt"
+import (
+	"fmt"
+
+	"github.com/yedf/dtm/dtmcli"
+)
 
 func svcSubmit(t *TransGlobal, waitResult bool) (interface{}, error) {
 	db := dbGet()
@@ -12,4 +16,10 @@ func svcSubmit(t *TransGlobal, waitResult bool) (interface{}, error) {
 	t.saveNew(db)
 	return t.Process(db, waitResult), nil
 
+}
+
+func svcPrepare(t *TransGlobal) (interface{}, error) {
+	t.Status = "prepared"
+	t.saveNew(dbGet())
+	return dtmcli.ResultSuccess, nil
 }

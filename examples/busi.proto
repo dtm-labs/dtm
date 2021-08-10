@@ -8,6 +8,7 @@ import "google/protobuf/empty.proto";
 
 // The dtm service definition.
 service Busi {
+  rpc CanSubmit(dtmgrpc.BusiRequest) returns (google.protobuf.Empty) {}
   rpc TransIn(dtmgrpc.BusiRequest) returns (google.protobuf.Empty) {}
   rpc TransOut(dtmgrpc.BusiRequest) returns (google.protobuf.Empty) {}
   rpc TransInRevert(dtmgrpc.BusiRequest) returns (google.protobuf.Empty) {}

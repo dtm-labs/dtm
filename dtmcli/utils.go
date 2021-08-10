@@ -264,8 +264,13 @@ func CheckResult(res interface{}, err error) error {
 	if ok {
 		return CheckResponse(resp, err)
 	}
-	if res != nil && strings.Contains(MustMarshalString(res), "FAILURE") {
-		return ErrFailure
+	if res != nil {
+		str := MustMarshalString(res)
+		if strings.Contains(str, "FAILURE") {
+			return ErrFailure
+		} else if strings.Contains(str, "PENDING") {
+			return ErrPending
+		}
 	}
 	return err
 }
