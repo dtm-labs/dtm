@@ -105,15 +105,6 @@ func genMsg(gid string) *dtmcli.Msg {
 	return msg
 }
 
-func genSaga(gid string, outFailed bool, inFailed bool) *dtmcli.Saga {
-	dtmcli.Logf("beginning a saga test ---------------- %s", gid)
-	saga := dtmcli.NewSaga(examples.DtmServer, gid)
-	req := examples.GenTransReq(30, outFailed, inFailed)
-	saga.Add(examples.Busi+"/TransOut", examples.Busi+"/TransOutRevert", &req)
-	saga.Add(examples.Busi+"/TransIn", examples.Busi+"/TransInRevert", &req)
-	return saga
-}
-
 func transQuery(t *testing.T, gid string) {
 	resp, err := dtmcli.RestyClient.R().SetQueryParam("gid", gid).Get(examples.DtmServer + "/query")
 	e2p(err)

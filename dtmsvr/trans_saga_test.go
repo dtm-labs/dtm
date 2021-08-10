@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/yedf/dtm/dtmcli"
 	"github.com/yedf/dtm/examples"
 )
 
@@ -44,4 +45,13 @@ func sagaRollback(t *testing.T) {
 	CronTransOnce(60 * time.Second)
 	assert.Equal(t, "failed", getTransStatus(saga.Gid))
 	assert.Equal(t, []string{"succeed", "succeed", "succeed", "failed"}, getBranchesStatus(saga.Gid))
+}
+
+func genSaga(gid string, outFailed bool, inFailed bool) *dtmcli.Saga {
+	dtmcli.Logf("beginning a saga test ---------------- %s", gid)
+	saga := dtmcli.NewSaga(examples.DtmServer, gid)
+	req := examples.GenTransReq(30, outFailed, inFailed)
+	saga.Add(examples.Busi+"/TransOut", examples.Busi+"/TransOutRevert", &req)
+	saga.Add(examples.Busi+"/TransIn", examples.Busi+"/TransInRevert", &req)
+	return saga
 }

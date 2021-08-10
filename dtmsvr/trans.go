@@ -160,6 +160,7 @@ func (t *TransGlobal) setNextCron(expireIn int64) []string {
 
 func (t *TransGlobal) getURLResult(url string, branchID, branchType string, branchData []byte) string {
 	if t.Protocol == "grpc" {
+		dtmcli.PanicIf(strings.HasPrefix(url, "http"), fmt.Errorf("bad url for grpc: %s", url))
 		server, method := dtmgrpc.GetServerAndMethod(url)
 		conn := dtmgrpc.MustGetGrpcConn(server)
 		err := conn.Invoke(context.Background(), method, &dtmgrpc.BusiRequest{
@@ -178,6 +179,7 @@ func (t *TransGlobal) getURLResult(url string, branchID, branchType string, bran
 		}
 		return err.Error()
 	}
+	dtmcli.PanicIf(!strings.HasPrefix(url, "http"), fmt.Errorf("bad url for http: %s", url))
 	resp, err := dtmcli.RestyClient.R().SetBody(branchData).
 		SetQueryParams(dtmcli.MS{
 			"gid":         t.Gid,
