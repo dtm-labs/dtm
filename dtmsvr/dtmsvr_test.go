@@ -7,6 +7,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/assert"
+
 	"github.com/yedf/dtm/common"
 	"github.com/yedf/dtm/dtmcli"
 	"github.com/yedf/dtm/examples"
@@ -45,8 +46,8 @@ func TestMain(m *testing.M) {
 	PopulateDB(false)
 	examples.PopulateDB(false)
 	// 启动组件
-	go StartSvr()
-	app = examples.BaseAppStartup()
+	go StartSvr(0)
+	app = examples.BaseAppStartup(0)
 	examples.SagaSetup(app)
 	examples.TccSetup(app)
 	examples.XaSetup(app)
