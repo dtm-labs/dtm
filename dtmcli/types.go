@@ -60,12 +60,17 @@ type TransBase struct {
 	WaitResult bool
 }
 
+// NewTransBase 1
+func NewTransBase(dtm string, parentID string) *TransBase {
+	return &TransBase{
+		IDGenerator: IDGenerator{parentID: parentID},
+		Dtm:         dtm,
+	}
+}
+
 // TransBaseFromQuery construct transaction info from request
 func TransBaseFromQuery(qs url.Values) *TransBase {
-	return &TransBase{
-		IDGenerator: IDGenerator{parentID: qs.Get("branch_id")},
-		Dtm:         qs.Get("dtm"),
-	}
+	return NewTransBase(qs.Get("dtm"), qs.Get("branch_id"))
 }
 
 // CallDtm 调用dtm服务器，返回事务的状态

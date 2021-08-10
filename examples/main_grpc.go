@@ -61,36 +61,36 @@ func (s *busiServer) CanSubmit(ctx context.Context, in *dtmgrpc.BusiRequest) (*e
 
 func (s *busiServer) TransIn(ctx context.Context, in *dtmgrpc.BusiRequest) (*emptypb.Empty, error) {
 	req := TransReq{}
-	dtmcli.MustUnmarshal(in.AppData, &req)
+	dtmcli.MustUnmarshal(in.BusiData, &req)
 	return &emptypb.Empty{}, handleGrpcBusiness(in, MainSwitch.TransInResult.Fetch(), req.TransInResult, dtmcli.GetFuncName())
 }
 
 func (s *busiServer) TransOut(ctx context.Context, in *dtmgrpc.BusiRequest) (*emptypb.Empty, error) {
 	req := TransReq{}
-	dtmcli.MustUnmarshal(in.AppData, &req)
+	dtmcli.MustUnmarshal(in.BusiData, &req)
 	return &emptypb.Empty{}, handleGrpcBusiness(in, MainSwitch.TransOutResult.Fetch(), req.TransOutResult, dtmcli.GetFuncName())
 }
 
 func (s *busiServer) TransInRevert(ctx context.Context, in *dtmgrpc.BusiRequest) (*emptypb.Empty, error) {
 	req := TransReq{}
-	dtmcli.MustUnmarshal(in.AppData, &req)
+	dtmcli.MustUnmarshal(in.BusiData, &req)
 	return &emptypb.Empty{}, handleGrpcBusiness(in, MainSwitch.TransInRevertResult.Fetch(), "", dtmcli.GetFuncName())
 }
 
 func (s *busiServer) TransOutRevert(ctx context.Context, in *dtmgrpc.BusiRequest) (*emptypb.Empty, error) {
 	req := TransReq{}
-	dtmcli.MustUnmarshal(in.AppData, &req)
+	dtmcli.MustUnmarshal(in.BusiData, &req)
 	return &emptypb.Empty{}, handleGrpcBusiness(in, MainSwitch.TransOutRevertResult.Fetch(), "", dtmcli.GetFuncName())
 }
 
 func (s *busiServer) TransInConfirm(ctx context.Context, in *dtmgrpc.BusiRequest) (*emptypb.Empty, error) {
 	req := TransReq{}
-	dtmcli.MustUnmarshal(in.AppData, &req)
+	dtmcli.MustUnmarshal(in.BusiData, &req)
 	return &emptypb.Empty{}, handleGrpcBusiness(in, MainSwitch.TransInConfirmResult.Fetch(), "", dtmcli.GetFuncName())
 }
 
 func (s *busiServer) TransOutConfirm(ctx context.Context, in *dtmgrpc.BusiRequest) (*emptypb.Empty, error) {
 	req := TransReq{}
-	dtmcli.MustUnmarshal(in.AppData, &req)
+	dtmcli.MustUnmarshal(in.BusiData, &req)
 	return &emptypb.Empty{}, handleGrpcBusiness(in, MainSwitch.TransOutConfirmResult.Fetch(), "", dtmcli.GetFuncName())
 }

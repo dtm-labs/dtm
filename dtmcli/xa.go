@@ -19,9 +19,9 @@ type XaRegisterCallback func(path string, xa *XaClient)
 
 // XaClient xa client
 type XaClient struct {
-	Server      string
-	Conf        map[string]string
-	CallbackURL string
+	Server    string
+	Conf      map[string]string
+	NotifyURL string
 }
 
 // Xa xa transaction
@@ -40,13 +40,13 @@ func XaFromQuery(qs url.Values) (*Xa, error) {
 }
 
 // NewXaClient construct a xa client
-func NewXaClient(server string, mysqlConf map[string]string, callbackURL string, register XaRegisterCallback) (*XaClient, error) {
+func NewXaClient(server string, mysqlConf map[string]string, notifyURL string, register XaRegisterCallback) (*XaClient, error) {
 	xa := &XaClient{
-		Server:      server,
-		Conf:        mysqlConf,
-		CallbackURL: callbackURL,
+		Server:    server,
+		Conf:      mysqlConf,
+		NotifyURL: notifyURL,
 	}
-	u, err := url.Parse(callbackURL)
+	u, err := url.Parse(notifyURL)
 	if err != nil {
 		return nil, err
 	}
@@ -103,7 +103,7 @@ func (xc *XaClient) XaLocalTransaction(qs url.Values, xaFunc XaLocalFunc) (ret i
 	if rerr != nil {
 		return
 	}
-	rerr = xa.CallDtm(&M{"gid": xa.Gid, "branch_id": branchID, "trans_type": "xa", "status": "prepared", "url": xc.CallbackURL}, "registerXaBranch")
+	rerr = xa.CallDtm(&M{"gid": xa.Gid, "branch_id": branchID, "trans_type": "xa", "url": xc.NotifyURL}, "registerXaBranch")
 	return
 }
 

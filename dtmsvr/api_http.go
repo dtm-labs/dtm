@@ -50,6 +50,7 @@ func registerXaBranch(c *gin.Context) (interface{}, error) {
 	branch := TransBranch{}
 	err := c.BindJSON(&branch)
 	e2p(err)
+	branch.Status = "prepared"
 	db := dbGet()
 	dbt := TransFromDb(db, branch.Gid)
 	if dbt.Status != "prepared" {
@@ -74,7 +75,7 @@ func registerTccBranch(c *gin.Context) (interface{}, error) {
 	branch := TransBranch{
 		Gid:      data["gid"],
 		BranchID: data["branch_id"],
-		Status:   data["status"],
+		Status:   "prepared",
 		Data:     data["data"],
 	}
 	db := dbGet()

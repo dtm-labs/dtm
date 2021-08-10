@@ -26,12 +26,12 @@ func NewSaga(server string, gid string) *SagaGrpc {
 }
 
 // Add add a saga step
-func (s *SagaGrpc) Add(action string, compensate string, appData []byte) *SagaGrpc {
-	dtmcli.Logf("saga %s Add %s %s %v", s.SagaData.Gid, action, compensate, string(appData))
+func (s *SagaGrpc) Add(action string, compensate string, busiData []byte) *SagaGrpc {
+	dtmcli.Logf("saga %s Add %s %s %v", s.SagaData.Gid, action, compensate, string(busiData))
 	step := dtmcli.SagaStep{
 		Action:     action,
 		Compensate: compensate,
-		Data:       string(appData),
+		Data:       string(busiData),
 	}
 	s.Steps = append(s.Steps, step)
 	return s

@@ -54,7 +54,7 @@ func lockOneTrans(expireIn time.Duration) *TransGlobal {
 
 func handlePanic(perr *error) {
 	if err := recover(); err != nil {
-		dtmcli.LogRedf("----panic %v handlered\n%s", err, string(debug.Stack()))
+		dtmcli.LogRedf("----recovered panic %v\n%s", err, string(debug.Stack()))
 		if perr != nil {
 			*perr = fmt.Errorf("dtm panic: %v", err)
 		}

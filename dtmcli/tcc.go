@@ -63,7 +63,6 @@ func (t *Tcc) CallBranch(body interface{}, tryURL string, confirmURL string, can
 		"gid":        t.Gid,
 		"branch_id":  branchID,
 		"trans_type": "tcc",
-		"status":     "prepared",
 		"data":       string(MustMarshal(body)),
 		"try":        tryURL,
 		"confirm":    confirmURL,

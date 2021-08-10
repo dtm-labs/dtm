@@ -164,13 +164,13 @@ func (t *TransGlobal) getURLResult(url string, branchID, branchType string, bran
 		server, method := dtmgrpc.GetServerAndMethod(url)
 		conn := dtmgrpc.MustGetGrpcConn(server)
 		err := conn.Invoke(context.Background(), method, &dtmgrpc.BusiRequest{
-			Info: &dtmgrpc.DtmTransInfo{
+			Info: &dtmgrpc.BranchInfo{
 				Gid:        t.Gid,
 				TransType:  t.TransType,
 				BranchID:   branchID,
 				BranchType: branchType,
 			},
-			AppData: []byte(branchData),
+			BusiData: []byte(branchData),
 		}, &emptypb.Empty{})
 		if err == nil {
 			return "SUCCESS"

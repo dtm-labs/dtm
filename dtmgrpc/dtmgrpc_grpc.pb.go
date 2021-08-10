@@ -21,6 +21,9 @@ const _ = grpc.SupportPackageIsVersion7
 type DtmClient interface {
 	Submit(ctx context.Context, in *DtmRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
 	Prepare(ctx context.Context, in *DtmRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
+	Abort(ctx context.Context, in *DtmRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
+	RegisterTccBranch(ctx context.Context, in *DtmTccBranchRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
+	RegisterXaBranch(ctx context.Context, in *DtmXaBranchRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
 }
 
 type dtmClient struct {
@@ -49,12 +52,42 @@ func (c *dtmClient) Prepare(ctx context.Context, in *DtmRequest, opts ...grpc.Ca
 	return out, nil
 }
 
+func (c *dtmClient) Abort(ctx context.Context, in *DtmRequest, opts ...grpc.CallOption) (*emptypb.Empty, error) {
+	out := new(emptypb.Empty)
+	err := c.cc.Invoke(ctx, "/dtmgrpc.Dtm/Abort", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *dtmClient) RegisterTccBranch(ctx context.Context, in *DtmTccBranchRequest, opts ...grpc.CallOption) (*emptypb.Empty, error) {
+	out := new(emptypb.Empty)
+	err := c.cc.Invoke(ctx, "/dtmgrpc.Dtm/RegisterTccBranch", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *dtmClient) RegisterXaBranch(ctx context.Context, in *DtmXaBranchRequest, opts ...grpc.CallOption) (*emptypb.Empty, error) {
+	out := new(emptypb.Empty)
+	err := c.cc.Invoke(ctx, "/dtmgrpc.Dtm/RegisterXaBranch", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // DtmServer is the server API for Dtm service.
 // All implementations must embed UnimplementedDtmServer
 // for forward compatibility
 type DtmServer interface {
 	Submit(context.Context, *DtmRequest) (*emptypb.Empty, error)
 	Prepare(context.Context, *DtmRequest) (*emptypb.Empty, error)
+	Abort(context.Context, *DtmRequest) (*emptypb.Empty, error)
+	RegisterTccBranch(context.Context, *DtmTccBranchRequest) (*emptypb.Empty, error)
+	RegisterXaBranch(context.Context, *DtmXaBranchRequest) (*emptypb.Empty, error)
 	mustEmbedUnimplementedDtmServer()
 }
 
@@ -67,6 +100,15 @@ func (UnimplementedDtmServer) Submit(context.Context, *DtmRequest) (*emptypb.Emp
 }
 func (UnimplementedDtmServer) Prepare(context.Context, *DtmRequest) (*emptypb.Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Prepare not implemented")
+}
+func (UnimplementedDtmServer) Abort(context.Context, *DtmRequest) (*emptypb.Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Abort not implemented")
+}
+func (UnimplementedDtmServer) RegisterTccBranch(context.Context, *DtmTccBranchRequest) (*emptypb.Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method RegisterTccBranch not implemented")
+}
+func (UnimplementedDtmServer) RegisterXaBranch(context.Context, *DtmXaBranchRequest) (*emptypb.Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method RegisterXaBranch not implemented")
 }
 func (UnimplementedDtmServer) mustEmbedUnimplementedDtmServer() {}
 
@@ -117,6 +159,60 @@ func _Dtm_Prepare_Handler(srv interface{}, ctx context.Context, dec func(interfa
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Dtm_Abort_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DtmRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(DtmServer).Abort(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/dtmgrpc.Dtm/Abort",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(DtmServer).Abort(ctx, req.(*DtmRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Dtm_RegisterTccBranch_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DtmTccBranchRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(DtmServer).RegisterTccBranch(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/dtmgrpc.Dtm/RegisterTccBranch",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(DtmServer).RegisterTccBranch(ctx, req.(*DtmTccBranchRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Dtm_RegisterXaBranch_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DtmXaBranchRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(DtmServer).RegisterXaBranch(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/dtmgrpc.Dtm/RegisterXaBranch",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(DtmServer).RegisterXaBranch(ctx, req.(*DtmXaBranchRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // Dtm_ServiceDesc is the grpc.ServiceDesc for Dtm service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -131,6 +227,18 @@ var Dtm_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "Prepare",
 			Handler:    _Dtm_Prepare_Handler,
+		},
+		{
+			MethodName: "Abort",
+			Handler:    _Dtm_Abort_Handler,
+		},
+		{
+			MethodName: "RegisterTccBranch",
+			Handler:    _Dtm_RegisterTccBranch_Handler,
+		},
+		{
+			MethodName: "RegisterXaBranch",
+			Handler:    _Dtm_RegisterXaBranch_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
