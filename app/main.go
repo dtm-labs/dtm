@@ -71,7 +71,7 @@ func main() {
 	}
 
 	examples.PopulateDB(true)
-
+	expectTutorialValue = true
 	// quick_start 比较独立，单独作为一个例子运行，方便新人上手
 	if tutorial == "quick_start" || tutorial == "qs" {
 		examples.QsStartSvr(0)
@@ -79,7 +79,6 @@ func main() {
 		wait()
 		return
 	}
-	expectTutorialValue = true
 	// 下面是各类的例子
 	app := examples.BaseAppStartup(0)
 	switch tutorial {
