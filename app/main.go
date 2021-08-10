@@ -54,7 +54,7 @@ func main() {
 	} else if os.Args[1] == "msg" { // 启动msg示例
 		examples.MsgSetup(app)
 		examples.MsgFireRequest()
-	} else if os.Args[1] == "msg_pb" { // 启动msg示例
+	} else if os.Args[1] == "msg_grpc" { // 启动msg示例
 		examples.MsgGrpcSetup(app)
 		examples.MsgGrpcFireRequest()
 	} else if os.Args[1] == "all" { // 运行所有示例
