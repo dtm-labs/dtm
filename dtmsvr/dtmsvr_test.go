@@ -48,10 +48,9 @@ func TestMain(m *testing.M) {
 	go StartSvr()
 	app = examples.BaseAppStartup()
 	examples.GrpcStartup()
-	examples.SagaSetup(app)
+	examples.XaGrpcSetup()
 	examples.TccSetup(app)
 	examples.XaSetup(app)
-	examples.MsgSetup(app)
 	examples.TccBarrierAddRoute(app)
 	examples.SagaBarrierAddRoute(app)
 

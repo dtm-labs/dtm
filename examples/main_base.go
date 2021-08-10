@@ -1,6 +1,7 @@
 package examples
 
 import (
+	"database/sql"
 	"fmt"
 	"time"
 
@@ -18,6 +19,10 @@ const (
 	BusiGrpcPort = 60081
 )
 
+type setupFunc func(*gin.Engine)
+
+var setupFuncs = map[string]setupFunc{}
+
 // Busi busi service url prefix
 var Busi string = fmt.Sprintf("http://localhost:%d%s", BusiPort, BusiAPI)
 
@@ -26,6 +31,10 @@ func BaseAppStartup() *gin.Engine {
 	dtmcli.Logf("examples starting")
 	app := common.GetGinApp()
 	BaseAddRoute(app)
+	for k, v := range setupFuncs {
+		dtmcli.Logf("initing %s", k)
+		v(app)
+	}
 	dtmcli.Logf("Starting busi at: %d", BusiPort)
 	go app.Run(fmt.Sprintf(":%d", BusiPort))
 
@@ -94,4 +103,23 @@ func BaseAddRoute(app *gin.Engine) {
 		dtmcli.Logf("%s CanSubmit", c.Query("gid"))
 		return dtmcli.OrString(MainSwitch.CanSubmitResult.Fetch(), "SUCCESS"), nil
 	}))
+	app.POST(BusiAPI+"/TransInXa", common.WrapHandler(func(c *gin.Context) (interface{}, error) {
+		return XaClient.XaLocalTransaction(c.Request.URL.Query(), func(db *sql.DB, xa *dtmcli.Xa) (interface{}, error) {
+			if reqFrom(c).TransInResult == "FAILURE" {
+				return dtmcli.ResultFailure, nil
+			}
+			_, err := dtmcli.SdbExec(db, "update dtm_busi.user_account set balance=balance+? where user_id=?", reqFrom(c).Amount, 2)
+			return dtmcli.ResultSuccess, err
+		})
+	}))
+	app.POST(BusiAPI+"/TransOutXa", common.WrapHandler(func(c *gin.Context) (interface{}, error) {
+		return XaClient.XaLocalTransaction(c.Request.URL.Query(), func(db *sql.DB, xa *dtmcli.Xa) (interface{}, error) {
+			if reqFrom(c).TransOutResult == "FAILURE" {
+				return dtmcli.ResultFailure, nil
+			}
+			_, err := dtmcli.SdbExec(db, "update dtm_busi.user_account set balance=balance-? where user_id=?", reqFrom(c).Amount, 1)
+			return dtmcli.ResultSuccess, err
+		})
+	}))
+
 }

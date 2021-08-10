@@ -1,25 +1,21 @@
 package dtmgrpc
 
 import (
+	"context"
 	"database/sql"
 	"fmt"
-	"net/url"
 
-	"github.com/go-resty/resty/v2"
 	"github.com/yedf/dtm/dtmcli"
 )
 
-// XaGlobalFunc type of xa global function
-type XaGlobalFunc func(xa *XaGrpc) (*resty.Response, error)
+// XaGrpcGlobalFunc type of xa global function
+type XaGrpcGlobalFunc func(xa *XaGrpc) error
 
-// XaLocalFunc type of xa local function
-type XaLocalFunc func(db *sql.DB, xa *XaGrpc) (interface{}, error)
+// XaGrpcLocalFunc type of xa local function
+type XaGrpcLocalFunc func(db *sql.DB, xa *XaGrpc) error
 
-// XaRegisterCallback type of xa register callback handler
-type XaRegisterCallback func(path string, xa *XaClient)
-
-// XaClient xa client
-type XaClient struct {
+// XaGrpcClient xa client
+type XaGrpcClient struct {
 	Server    string
 	Conf      map[string]string
 	NotifyURL string
@@ -31,11 +27,11 @@ type XaGrpc struct {
 	dtmcli.TransBase
 }
 
-// XaFromRequest construct xa info from request
-func XaFromRequest(br *BusiRequest) (*XaGrpc, error) {
+// XaGrpcFromRequest construct xa info from request
+func XaGrpcFromRequest(br *BusiRequest) (*XaGrpc, error) {
 	xa := &XaGrpc{
 		TransBase: *dtmcli.NewTransBase(br.Dtm, br.Info.BranchID),
-		TransData: dtmcli.TransData{Gid: br.Info.BranchID, TransType: br.Info.TransType},
+		TransData: dtmcli.TransData{Gid: br.Info.Gid, TransType: br.Info.TransType},
 	}
 	if xa.Gid == "" || br.Info.BranchID == "" {
 		return nil, fmt.Errorf("bad xa info: gid: %s parentid: %s", xa.Gid, br.Info.BranchID)
@@ -43,37 +39,32 @@ func XaFromRequest(br *BusiRequest) (*XaGrpc, error) {
 	return xa, nil
 }
 
-// NewXaClient construct a xa client
-func NewXaClient(server string, mysqlConf map[string]string, notifyURL string, register XaRegisterCallback) (*XaClient, error) {
-	xa := &XaClient{
+// NewXaGrpcClient construct a xa client
+func NewXaGrpcClient(server string, mysqlConf map[string]string, notifyURL string) *XaGrpcClient {
+	xa := &XaGrpcClient{
 		Server:    server,
 		Conf:      mysqlConf,
 		NotifyURL: notifyURL,
 	}
-	u, err := url.Parse(notifyURL)
-	if err != nil {
-		return nil, err
-	}
-	register(u.Path, xa)
-	return xa, nil
+	return xa
 }
 
 // HandleCallback 处理commit/rollback的回调
-func (xc *XaClient) HandleCallback(gid string, branchID string, action string) (interface{}, error) {
+func (xc *XaGrpcClient) HandleCallback(gid string, branchID string, action string) error {
 	db, err := dtmcli.SdbAlone(xc.Conf)
 	if err != nil {
-		return nil, err
+		return err
 	}
 	defer db.Close()
 	xaID := gid + "-" + branchID
 	_, err = dtmcli.SdbExec(db, fmt.Sprintf("xa %s '%s'", action, xaID))
-	return dtmcli.ResultSuccess, err
+	return err
 
 }
 
 // XaLocalTransaction start a xa local transaction
-func (xc *XaClient) XaLocalTransaction(br *BusiRequest, xaFunc XaLocalFunc) (ret interface{}, rerr error) {
-	xa, rerr := XaFromRequest(br)
+func (xc *XaGrpcClient) XaLocalTransaction(br *BusiRequest, xaFunc XaGrpcLocalFunc) (rerr error) {
+	xa, rerr := XaGrpcFromRequest(br)
 	if rerr != nil {
 		return
 	}
@@ -102,28 +93,42 @@ func (xc *XaClient) XaLocalTransaction(br *BusiRequest, xaFunc XaLocalFunc) (ret
 	if rerr != nil {
 		return
 	}
-	ret, rerr = xaFunc(db, xa)
-	rerr = dtmcli.CheckResult(ret, rerr)
+	rerr = xaFunc(db, xa)
 	if rerr != nil {
 		return
 	}
-	rerr = xa.CallDtm(&dtmcli.M{"gid": xa.Gid, "branch_id": branchID, "trans_type": "xa", "url": xc.NotifyURL}, "registerXaBranch")
+	_, rerr = MustGetDtmClient(xa.Dtm).RegisterXaBranch(context.Background(), &DtmXaBranchRequest{
+		Info: &BranchInfo{
+			Gid:       xa.Gid,
+			BranchID:  branchID,
+			TransType: xa.TransType,
+		},
+		BusiData: "",
+		Notify:   xc.NotifyURL,
+	})
 	return
 }
 
 // XaGlobalTransaction start a xa global transaction
-func (xc *XaClient) XaGlobalTransaction(gid string, xaFunc XaGlobalFunc) (rerr error) {
-	xa := XaGrpc{TransBase: dtmcli.TransBase{IDGenerator: dtmcli.IDGenerator{}, Dtm: xc.Server}, TransData: dtmcli.TransData{Gid: gid, TransType: "xa"}}
-	rerr = xa.CallDtm(&xa.TransData, "prepare")
+func (xc *XaGrpcClient) XaGlobalTransaction(gid string, xaFunc XaGrpcGlobalFunc) (rerr error) {
+	xa := XaGrpc{TransBase: dtmcli.TransBase{Dtm: xc.Server}, TransData: dtmcli.TransData{Gid: gid, TransType: "xa"}}
+	dc := MustGetDtmClient(xa.Dtm)
+	req := &DtmRequest{
+		Gid:       gid,
+		TransType: xa.TransType,
+	}
+	_, rerr = dc.Prepare(context.Background(), req)
 	if rerr != nil {
 		return
 	}
-	var resp *resty.Response
 	// 小概率情况下，prepare成功了，但是由于网络状况导致上面Failure，那么不执行下面defer的内容，等待超时后再回滚标记事务失败，也没有问题
 	defer func() {
 		x := recover()
-		operation := dtmcli.If(x != nil || rerr != nil, "abort", "submit").(string)
-		err := xa.CallDtm(&xa.TransData, operation)
+		if x == nil && rerr == nil {
+			_, rerr = dc.Submit(context.Background(), req)
+			return
+		}
+		_, err := dc.Abort(context.Background(), req)
 		if rerr == nil { // 如果用户函数没有返回错误，那么返回dtm的
 			rerr = err
 		}
@@ -131,22 +136,25 @@ func (xc *XaClient) XaGlobalTransaction(gid string, xaFunc XaGlobalFunc) (rerr e
 			panic(x)
 		}
 	}()
-	resp, rerr = xaFunc(&xa)
-	rerr = dtmcli.CheckResponse(resp, rerr)
+	rerr = xaFunc(&xa)
 	return
 }
 
 // CallBranch call a xa branch
-func (x *XaGrpc) CallBranch(body interface{}, url string) (*resty.Response, error) {
+func (x *XaGrpc) CallBranch(busiData []byte, url string) (*BusiReply, error) {
 	branchID := x.NewBranchID()
-	resp, err := dtmcli.RestyClient.R().
-		SetBody(body).
-		SetQueryParams(dtmcli.MS{
-			"gid":         x.Gid,
-			"branch_id":   branchID,
-			"trans_type":  "xa",
-			"branch_type": "action",
-		}).
-		Post(url)
-	return resp, dtmcli.CheckResponse(resp, err)
+	server, method := GetServerAndMethod(url)
+	reply := &BusiReply{}
+	err := MustGetGrpcConn(server).Invoke(context.Background(), method, &BusiRequest{
+		Info: &BranchInfo{
+			Gid:        x.Gid,
+			TransType:  x.TransType,
+			BranchID:   branchID,
+			BranchType: "",
+		},
+		Dtm:      x.Dtm,
+		BusiData: busiData,
+	}, reply)
+	return reply, err
+
 }

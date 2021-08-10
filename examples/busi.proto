@@ -15,5 +15,8 @@ service Busi {
   rpc TransOutRevert(dtmgrpc.BusiRequest) returns (google.protobuf.Empty) {}
   rpc TransInConfirm(dtmgrpc.BusiRequest) returns (google.protobuf.Empty) {}
   rpc TransOutConfirm(dtmgrpc.BusiRequest) returns (google.protobuf.Empty) {}
+  rpc XaNotify(dtmgrpc.BusiRequest) returns (google.protobuf.Empty) {}
+  rpc TransInXa(dtmgrpc.BusiRequest) returns (google.protobuf.Empty) {}
+  rpc TransOutXa(dtmgrpc.BusiRequest) returns (google.protobuf.Empty) {}
 }
 

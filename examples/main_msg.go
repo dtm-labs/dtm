@@ -1,13 +1,8 @@
 package examples
 
 import (
-	"github.com/gin-gonic/gin"
 	"github.com/yedf/dtm/dtmcli"
 )
-
-// MsgSetup 1
-func MsgSetup(app *gin.Engine) {
-}
 
 // MsgFireRequest 1
 func MsgFireRequest() string {

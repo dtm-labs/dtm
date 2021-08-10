@@ -2,6 +2,7 @@ package examples
 
 import (
 	"context"
+	"database/sql"
 	"fmt"
 	"net"
 
@@ -93,4 +94,28 @@ func (s *busiServer) TransOutConfirm(ctx context.Context, in *dtmgrpc.BusiReques
 	req := TransReq{}
 	dtmcli.MustUnmarshal(in.BusiData, &req)
 	return &emptypb.Empty{}, handleGrpcBusiness(in, MainSwitch.TransOutConfirmResult.Fetch(), "", dtmcli.GetFuncName())
+}
+
+func (s *busiServer) TransInXa(ctx context.Context, in *dtmgrpc.BusiRequest) (*emptypb.Empty, error) {
+	req := TransReq{}
+	dtmcli.MustUnmarshal(in.BusiData, &req)
+	return &emptypb.Empty{}, XaGrpcClient.XaLocalTransaction(in, func(db *sql.DB, xa *dtmgrpc.XaGrpc) error {
+		if req.TransInResult == "FAILURE" {
+			return status.New(codes.Aborted, "user return failure").Err()
+		}
+		_, err := dtmcli.SdbExec(db, "update dtm_busi.user_account set balance=balance+? where user_id=?", req.Amount, 2)
+		return err
+	})
+}
+
+func (s *busiServer) TransOutXa(ctx context.Context, in *dtmgrpc.BusiRequest) (*emptypb.Empty, error) {
+	req := TransReq{}
+	dtmcli.MustUnmarshal(in.BusiData, &req)
+	return &emptypb.Empty{}, XaGrpcClient.XaLocalTransaction(in, func(db *sql.DB, xa *dtmgrpc.XaGrpc) error {
+		if req.TransOutResult == "FAILURE" {
+			return status.New(codes.Aborted, "user return failure").Err()
+		}
+		_, err := dtmcli.SdbExec(db, "update dtm_busi.user_account set balance=balance-? where user_id=?", req.Amount, 1)
+		return err
+	})
 }

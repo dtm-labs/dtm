@@ -1,13 +1,8 @@
 package examples
 
 import (
-	"github.com/gin-gonic/gin"
 	"github.com/yedf/dtm/dtmcli"
 )
-
-// SagaWaitSetup 1
-func SagaWaitSetup(app *gin.Engine) {
-}
 
 // SagaWaitFireRequest 1
 func SagaWaitFireRequest() string {

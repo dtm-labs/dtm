@@ -54,3 +54,21 @@ func svcRegisterTccBranch(branch *TransBranch, data dtmcli.MS) (interface{}, err
 	global.touch(dbGet(), config.TransCronInterval)
 	return dtmcli.ResultSuccess, nil
 }
+
+func svcRegisterXaBranch(branch *TransBranch) (interface{}, error) {
+	branch.Status = "prepared"
+	db := dbGet()
+	dbt := TransFromDb(db, branch.Gid)
+	if dbt.Status != "prepared" {
+		return M{"dtm_result": "FAILURE", "message": fmt.Sprintf("current status: %s cannot register branch", dbt.Status)}, nil
+	}
+	branches := []TransBranch{*branch, *branch}
+	branches[0].BranchType = "rollback"
+	branches[1].BranchType = "commit"
+	db.Must().Clauses(clause.OnConflict{
+		DoNothing: true,
+	}).Create(branches)
+	global := TransGlobal{Gid: branch.Gid}
+	global.touch(db, config.TransCronInterval)
+	return dtmcli.ResultSuccess, nil
+}

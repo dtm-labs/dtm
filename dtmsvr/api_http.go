@@ -2,13 +2,11 @@ package dtmsvr
 
 import (
 	"errors"
-	"fmt"
 
 	"github.com/gin-gonic/gin"
 	"github.com/yedf/dtm/common"
 	"github.com/yedf/dtm/dtmcli"
 	"gorm.io/gorm"
-	"gorm.io/gorm/clause"
 )
 
 func addRoute(engine *gin.Engine) {
@@ -44,22 +42,7 @@ func registerXaBranch(c *gin.Context) (interface{}, error) {
 	branch := TransBranch{}
 	err := c.BindJSON(&branch)
 	e2p(err)
-	branch.Status = "prepared"
-	db := dbGet()
-	dbt := TransFromDb(db, branch.Gid)
-	if dbt.Status != "prepared" {
-		return M{"dtm_result": "FAILURE", "message": fmt.Sprintf("current status: %s cannot register branch", dbt.Status)}, nil
-	}
-	branches := []TransBranch{branch, branch}
-	branches[0].BranchType = "rollback"
-	branches[1].BranchType = "commit"
-	db.Must().Clauses(clause.OnConflict{
-		DoNothing: true,
-	}).Create(branches)
-	e2p(err)
-	global := TransGlobal{Gid: branch.Gid}
-	global.touch(db, config.TransCronInterval)
-	return dtmcli.ResultSuccess, nil
+	return svcRegisterXaBranch(&branch)
 }
 
 func registerTccBranch(c *gin.Context) (interface{}, error) {

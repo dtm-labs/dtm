@@ -42,3 +42,13 @@ func (s *dtmServer) RegisterTccBranch(ctx context.Context, in *pb.DtmTccBranchRe
 	})
 	return &emptypb.Empty{}, dtmgrpc.Result2Error(r, err)
 }
+
+func (s *dtmServer) RegisterXaBranch(ctx context.Context, in *pb.DtmXaBranchRequest) (*emptypb.Empty, error) {
+	r, err := svcRegisterXaBranch(&TransBranch{
+		Gid:      in.Info.Gid,
+		BranchID: in.Info.BranchID,
+		Status:   "prepared",
+		Data:     in.BusiData,
+	})
+	return &emptypb.Empty{}, dtmgrpc.Result2Error(r, err)
+}

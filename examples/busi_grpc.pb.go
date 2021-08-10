@@ -27,6 +27,9 @@ type BusiClient interface {
 	TransOutRevert(ctx context.Context, in *dtmgrpc.BusiRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
 	TransInConfirm(ctx context.Context, in *dtmgrpc.BusiRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
 	TransOutConfirm(ctx context.Context, in *dtmgrpc.BusiRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
+	XaNotify(ctx context.Context, in *dtmgrpc.BusiRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
+	TransInXa(ctx context.Context, in *dtmgrpc.BusiRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
+	TransOutXa(ctx context.Context, in *dtmgrpc.BusiRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
 }
 
 type busiClient struct {
@@ -100,6 +103,33 @@ func (c *busiClient) TransOutConfirm(ctx context.Context, in *dtmgrpc.BusiReques
 	return out, nil
 }
 
+func (c *busiClient) XaNotify(ctx context.Context, in *dtmgrpc.BusiRequest, opts ...grpc.CallOption) (*emptypb.Empty, error) {
+	out := new(emptypb.Empty)
+	err := c.cc.Invoke(ctx, "/examples.Busi/XaNotify", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *busiClient) TransInXa(ctx context.Context, in *dtmgrpc.BusiRequest, opts ...grpc.CallOption) (*emptypb.Empty, error) {
+	out := new(emptypb.Empty)
+	err := c.cc.Invoke(ctx, "/examples.Busi/TransInXa", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *busiClient) TransOutXa(ctx context.Context, in *dtmgrpc.BusiRequest, opts ...grpc.CallOption) (*emptypb.Empty, error) {
+	out := new(emptypb.Empty)
+	err := c.cc.Invoke(ctx, "/examples.Busi/TransOutXa", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // BusiServer is the server API for Busi service.
 // All implementations must embed UnimplementedBusiServer
 // for forward compatibility
@@ -111,6 +141,9 @@ type BusiServer interface {
 	TransOutRevert(context.Context, *dtmgrpc.BusiRequest) (*emptypb.Empty, error)
 	TransInConfirm(context.Context, *dtmgrpc.BusiRequest) (*emptypb.Empty, error)
 	TransOutConfirm(context.Context, *dtmgrpc.BusiRequest) (*emptypb.Empty, error)
+	XaNotify(context.Context, *dtmgrpc.BusiRequest) (*emptypb.Empty, error)
+	TransInXa(context.Context, *dtmgrpc.BusiRequest) (*emptypb.Empty, error)
+	TransOutXa(context.Context, *dtmgrpc.BusiRequest) (*emptypb.Empty, error)
 	mustEmbedUnimplementedBusiServer()
 }
 
@@ -138,6 +171,15 @@ func (UnimplementedBusiServer) TransInConfirm(context.Context, *dtmgrpc.BusiRequ
 }
 func (UnimplementedBusiServer) TransOutConfirm(context.Context, *dtmgrpc.BusiRequest) (*emptypb.Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method TransOutConfirm not implemented")
+}
+func (UnimplementedBusiServer) XaNotify(context.Context, *dtmgrpc.BusiRequest) (*emptypb.Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method XaNotify not implemented")
+}
+func (UnimplementedBusiServer) TransInXa(context.Context, *dtmgrpc.BusiRequest) (*emptypb.Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method TransInXa not implemented")
+}
+func (UnimplementedBusiServer) TransOutXa(context.Context, *dtmgrpc.BusiRequest) (*emptypb.Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method TransOutXa not implemented")
 }
 func (UnimplementedBusiServer) mustEmbedUnimplementedBusiServer() {}
 
@@ -278,6 +320,60 @@ func _Busi_TransOutConfirm_Handler(srv interface{}, ctx context.Context, dec fun
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Busi_XaNotify_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(dtmgrpc.BusiRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BusiServer).XaNotify(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/examples.Busi/XaNotify",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BusiServer).XaNotify(ctx, req.(*dtmgrpc.BusiRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Busi_TransInXa_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(dtmgrpc.BusiRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BusiServer).TransInXa(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/examples.Busi/TransInXa",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BusiServer).TransInXa(ctx, req.(*dtmgrpc.BusiRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Busi_TransOutXa_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(dtmgrpc.BusiRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BusiServer).TransOutXa(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/examples.Busi/TransOutXa",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BusiServer).TransOutXa(ctx, req.(*dtmgrpc.BusiRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // Busi_ServiceDesc is the grpc.ServiceDesc for Busi service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -312,6 +408,18 @@ var Busi_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "TransOutConfirm",
 			Handler:    _Busi_TransOutConfirm_Handler,
+		},
+		{
+			MethodName: "XaNotify",
+			Handler:    _Busi_XaNotify_Handler,
+		},
+		{
+			MethodName: "TransInXa",
+			Handler:    _Busi_TransInXa_Handler,
+		},
+		{
+			MethodName: "TransOutXa",
+			Handler:    _Busi_TransOutXa_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

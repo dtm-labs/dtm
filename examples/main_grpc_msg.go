@@ -1,15 +1,9 @@
 package examples
 
 import (
-	"github.com/gin-gonic/gin"
 	"github.com/yedf/dtm/dtmcli"
 	dtmgrpc "github.com/yedf/dtm/dtmgrpc"
 )
-
-// MsgGrpcSetup 1
-func MsgGrpcSetup(app *gin.Engine) {
-
-}
 
 // MsgGrpcFireRequest 1
 func MsgGrpcFireRequest() string {
