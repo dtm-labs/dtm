@@ -170,7 +170,7 @@ func (t *TransGlobal) getURLResult(url string, branchID, branchType string, bran
 				BranchID:   branchID,
 				BranchType: branchType,
 			},
-			BusiData: []byte(branchData),
+			BusiData: branchData,
 		}, &emptypb.Empty{})
 		if err == nil {
 			return "SUCCESS"
@@ -180,7 +180,7 @@ func (t *TransGlobal) getURLResult(url string, branchID, branchType string, bran
 		return err.Error()
 	}
 	dtmcli.PanicIf(!strings.HasPrefix(url, "http"), fmt.Errorf("bad url for http: %s", url))
-	resp, err := dtmcli.RestyClient.R().SetBody(branchData).
+	resp, err := dtmcli.RestyClient.R().SetBody(string(branchData)).
 		SetQueryParams(dtmcli.MS{
 			"gid":         t.Gid,
 			"trans_type":  t.TransType,
@@ -188,7 +188,7 @@ func (t *TransGlobal) getURLResult(url string, branchID, branchType string, bran
 			"branch_type": branchType,
 		}).
 		SetHeader("Content-type", "application/json").
-		Post(url)
+		Execute(dtmcli.If(branchData == nil, "GET", "POST").(string), url)
 	e2p(err)
 	return resp.String()
 }
