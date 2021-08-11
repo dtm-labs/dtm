@@ -2,13 +2,7 @@ package dtmcli
 
 // Msg reliable msg type
 type Msg struct {
-	MsgData
 	TransBase
-}
-
-// MsgData msg data
-type MsgData struct {
-	TransData
 	Steps         []MsgStep `json:"steps"`
 	QueryPrepared string    `json:"query_prepared"`
 }
@@ -22,19 +16,17 @@ type MsgStep struct {
 // NewMsg create new msg
 func NewMsg(server string, gid string) *Msg {
 	return &Msg{
-		MsgData: MsgData{TransData: TransData{
+		TransBase: TransBase{
 			Gid:       gid,
 			TransType: "msg",
-		}},
-		TransBase: TransBase{
-			Dtm: server,
+			Dtm:       server,
 		},
 	}
 }
 
 // Add add a new step
 func (s *Msg) Add(action string, postData interface{}) *Msg {
-	Logf("msg %s Add %s %v", s.MsgData.Gid, action, postData)
+	Logf("msg %s Add %s %v", s.Gid, action, postData)
 	step := MsgStep{
 		Action: action,
 		Data:   MustMarshalString(postData),
@@ -46,10 +38,10 @@ func (s *Msg) Add(action string, postData interface{}) *Msg {
 // Prepare prepare the msg
 func (s *Msg) Prepare(queryPrepared string) error {
 	s.QueryPrepared = OrString(queryPrepared, s.QueryPrepared)
-	return s.CallDtm(&s.MsgData, "prepare")
+	return s.CallDtm(s, "prepare")
 }
 
 // Submit submit the msg
 func (s *Msg) Submit() error {
-	return s.CallDtm(&s.MsgData, "submit")
+	return s.CallDtm(s, "submit")
 }

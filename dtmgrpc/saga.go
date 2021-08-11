@@ -8,26 +8,20 @@ import (
 
 // SagaGrpc struct of saga
 type SagaGrpc struct {
-	dtmcli.SagaData
 	dtmcli.TransBase
+	Steps []dtmcli.SagaStep `json:"steps"`
 }
 
 // NewSaga create a saga
 func NewSaga(server string, gid string) *SagaGrpc {
 	return &SagaGrpc{
-		SagaData: dtmcli.SagaData{TransData: dtmcli.TransData{
-			Gid:       gid,
-			TransType: "saga",
-		}},
-		TransBase: dtmcli.TransBase{
-			Dtm: server,
-		},
+		TransBase: *dtmcli.NewTransBase(gid, "saga", server, ""),
 	}
 }
 
 // Add add a saga step
 func (s *SagaGrpc) Add(action string, compensate string, busiData []byte) *SagaGrpc {
-	dtmcli.Logf("saga %s Add %s %s %v", s.SagaData.Gid, action, compensate, string(busiData))
+	dtmcli.Logf("saga %s Add %s %s %v", s.Gid, action, compensate, string(busiData))
 	step := dtmcli.SagaStep{
 		Action:     action,
 		Compensate: compensate,

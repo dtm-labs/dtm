@@ -8,20 +8,15 @@ import (
 
 // MsgGrpc reliable msg type
 type MsgGrpc struct {
-	dtmcli.MsgData
 	dtmcli.TransBase
+	Steps         []dtmcli.MsgStep `json:"steps"`
+	QueryPrepared string           `json:"query_prepared"`
 }
 
 // NewMsgGrpc create new msg
 func NewMsgGrpc(server string, gid string) *MsgGrpc {
 	return &MsgGrpc{
-		MsgData: dtmcli.MsgData{TransData: dtmcli.TransData{
-			Gid:       gid,
-			TransType: "msg",
-		}},
-		TransBase: dtmcli.TransBase{
-			Dtm: server,
-		},
+		TransBase: *dtmcli.NewTransBase(gid, "msg", server, ""),
 	}
 }
 

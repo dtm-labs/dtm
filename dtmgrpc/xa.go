@@ -23,15 +23,13 @@ type XaGrpcClient struct {
 
 // XaGrpc xa transaction
 type XaGrpc struct {
-	dtmcli.TransData
 	dtmcli.TransBase
 }
 
 // XaGrpcFromRequest construct xa info from request
 func XaGrpcFromRequest(br *BusiRequest) (*XaGrpc, error) {
 	xa := &XaGrpc{
-		TransBase: *dtmcli.NewTransBase(br.Dtm, br.Info.BranchID),
-		TransData: dtmcli.TransData{Gid: br.Info.Gid, TransType: br.Info.TransType},
+		TransBase: *dtmcli.NewTransBase(br.Info.Gid, br.Info.TransType, br.Dtm, br.Info.BranchID),
 	}
 	if xa.Gid == "" || br.Info.BranchID == "" {
 		return nil, fmt.Errorf("bad xa info: gid: %s parentid: %s", xa.Gid, br.Info.BranchID)
@@ -111,7 +109,7 @@ func (xc *XaGrpcClient) XaLocalTransaction(br *BusiRequest, xaFunc XaGrpcLocalFu
 
 // XaGlobalTransaction start a xa global transaction
 func (xc *XaGrpcClient) XaGlobalTransaction(gid string, xaFunc XaGrpcGlobalFunc) (rerr error) {
-	xa := XaGrpc{TransBase: dtmcli.TransBase{Dtm: xc.Server}, TransData: dtmcli.TransData{Gid: gid, TransType: "xa"}}
+	xa := XaGrpc{TransBase: *dtmcli.NewTransBase(gid, "xa", xc.Server, "")}
 	dc := MustGetDtmClient(xa.Dtm)
 	req := &DtmRequest{
 		Gid:       gid,

@@ -9,7 +9,6 @@ import (
 
 // TccGrpc struct of tcc
 type TccGrpc struct {
-	dtmcli.TransData
 	dtmcli.TransBase
 }
 
@@ -21,7 +20,7 @@ type TccGlobalFunc func(tcc *TccGrpc) error
 // gid 全局事务id
 // tccFunc tcc事务函数，里面会定义全局事务的分支
 func TccGlobalTransaction(dtm string, gid string, tccFunc TccGlobalFunc) (rerr error) {
-	tcc := &TccGrpc{TransBase: dtmcli.TransBase{Dtm: dtm}, TransData: dtmcli.TransData{Gid: gid, TransType: "tcc"}}
+	tcc := &TccGrpc{TransBase: *dtmcli.NewTransBase(gid, "tcc", dtm, "")}
 	dc := MustGetDtmClient(tcc.Dtm)
 	dr := &DtmRequest{
 		Gid:       tcc.Gid,
@@ -52,8 +51,7 @@ func TccGlobalTransaction(dtm string, gid string, tccFunc TccGlobalFunc) (rerr e
 // TccFromRequest tcc from request info
 func TccFromRequest(br *BusiRequest) (*TccGrpc, error) {
 	tcc := &TccGrpc{
-		TransBase: *dtmcli.NewTransBase(br.Dtm, br.Info.BranchID),
-		TransData: dtmcli.TransData{Gid: br.Info.BranchID, TransType: br.Info.TransType},
+		TransBase: *dtmcli.NewTransBase(br.Info.Gid, br.Info.TransType, br.Dtm, br.Info.BranchID),
 	}
 	if tcc.Dtm == "" || tcc.Gid == "" {
 		return nil, fmt.Errorf("bad tcc info. dtm: %s, gid: %s parentID: %s", tcc.Dtm, tcc.Gid, br.Info.BranchID)

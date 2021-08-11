@@ -2,13 +2,7 @@ package dtmcli
 
 // Saga struct of saga
 type Saga struct {
-	SagaData
 	TransBase
-}
-
-// SagaData sage data
-type SagaData struct {
-	TransData
 	Steps []SagaStep `json:"steps"`
 }
 
@@ -22,19 +16,17 @@ type SagaStep struct {
 // NewSaga create a saga
 func NewSaga(server string, gid string) *Saga {
 	return &Saga{
-		SagaData: SagaData{TransData: TransData{
+		TransBase: TransBase{
 			Gid:       gid,
 			TransType: "saga",
-		}},
-		TransBase: TransBase{
-			Dtm: server,
+			Dtm:       server,
 		},
 	}
 }
 
 // Add add a saga step
 func (s *Saga) Add(action string, compensate string, postData interface{}) *Saga {
-	Logf("saga %s Add %s %s %v", s.SagaData.Gid, action, compensate, postData)
+	Logf("saga %s Add %s %s %v", s.Gid, action, compensate, postData)
 	step := SagaStep{
 		Action:     action,
 		Compensate: compensate,
@@ -46,5 +38,5 @@ func (s *Saga) Add(action string, compensate string, postData interface{}) *Saga
 
 // Submit submit the saga trans
 func (s *Saga) Submit() error {
-	return s.CallDtm(&s.SagaData, "submit")
+	return s.CallDtm(s, "submit")
 }

@@ -46,14 +46,10 @@ type TransResult struct {
 	Message   string
 }
 
-// TransData 每个全局事务都有的数据
-type TransData struct {
-	Gid       string `json:"gid"`
-	TransType string `json:"trans_type"`
-}
-
 // TransBase 事务的基础类
 type TransBase struct {
+	Gid       string `json:"gid"`
+	TransType string `json:"trans_type"`
 	IDGenerator
 	Dtm string
 	// WaitResult 是否等待全局事务的最终结果
@@ -61,8 +57,10 @@ type TransBase struct {
 }
 
 // NewTransBase 1
-func NewTransBase(dtm string, parentID string) *TransBase {
+func NewTransBase(gid string, transType string, dtm string, parentID string) *TransBase {
 	return &TransBase{
+		Gid:         gid,
+		TransType:   transType,
 		IDGenerator: IDGenerator{parentID: parentID},
 		Dtm:         dtm,
 	}
@@ -70,7 +68,7 @@ func NewTransBase(dtm string, parentID string) *TransBase {
 
 // TransBaseFromQuery construct transaction info from request
 func TransBaseFromQuery(qs url.Values) *TransBase {
-	return NewTransBase(qs.Get("dtm"), qs.Get("branch_id"))
+	return NewTransBase(qs.Get("gid"), qs.Get("trans_type"), qs.Get("dtm"), qs.Get("branch_id"))
 }
 
 // CallDtm 调用dtm服务器，返回事务的状态

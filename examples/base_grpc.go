@@ -31,8 +31,8 @@ func GrpcStartup() {
 	dtmcli.FatalIfError(err)
 	s := grpc.NewServer(grpc.UnaryInterceptor(dtmgrpc.GrpcServerLog))
 	RegisterBusiServer(s, &busiServer{})
-	dtmcli.Logf("busi grpc listening at %v", lis.Addr())
 	go func() {
+		dtmcli.Logf("busi grpc listening at %v", lis.Addr())
 		err := s.Serve(lis)
 		dtmcli.FatalIfError(err)
 	}()

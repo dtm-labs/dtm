@@ -9,7 +9,6 @@ import (
 
 // Tcc struct of tcc
 type Tcc struct {
-	TransData
 	TransBase
 }
 
@@ -21,8 +20,13 @@ type TccGlobalFunc func(tcc *Tcc) (*resty.Response, error)
 // gid 全局事务id
 // tccFunc tcc事务函数，里面会定义全局事务的分支
 func TccGlobalTransaction(dtm string, gid string, tccFunc TccGlobalFunc) (rerr error) {
-	tcc := &Tcc{TransBase: TransBase{Dtm: dtm}, TransData: TransData{Gid: gid, TransType: "tcc"}}
-	rerr = tcc.CallDtm(&tcc.TransData, "prepare")
+	tcc := &Tcc{
+		TransBase: TransBase{
+			Gid:       gid,
+			TransType: "tcc",
+			Dtm:       dtm,
+		}}
+	rerr = tcc.CallDtm(tcc, "prepare")
 	if rerr != nil {
 		return rerr
 	}
@@ -30,7 +34,7 @@ func TccGlobalTransaction(dtm string, gid string, tccFunc TccGlobalFunc) (rerr e
 	defer func() {
 		x := recover()
 		operation := If(x == nil && rerr == nil, "submit", "abort").(string)
-		err := tcc.CallDtm(&tcc.TransData, operation)
+		err := tcc.CallDtm(tcc, operation)
 		if rerr == nil {
 			rerr = err
 		}
@@ -47,7 +51,6 @@ func TccGlobalTransaction(dtm string, gid string, tccFunc TccGlobalFunc) (rerr e
 func TccFromQuery(qs url.Values) (*Tcc, error) {
 	tcc := &Tcc{
 		TransBase: *TransBaseFromQuery(qs),
-		TransData: TransData{Gid: qs.Get("gid"), TransType: "tcc"},
 	}
 	if tcc.Dtm == "" || tcc.Gid == "" {
 		return nil, fmt.Errorf("bad tcc info. dtm: %s, gid: %s parentID: %s", tcc.Dtm, tcc.Gid, tcc.parentID)
