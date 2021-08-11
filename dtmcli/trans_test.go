@@ -14,7 +14,7 @@ func TestQuery(t *testing.T) {
 	assert.Error(t, err)
 	_, err = TccFromQuery(qs)
 	assert.Error(t, err)
-	_, err = TransInfoFromQuery(qs)
+	_, err = BarrierFromQuery(qs)
 	assert.Error(t, err)
 }
 

@@ -11,21 +11,22 @@ import (
 // BusiFunc type for busi func
 type BusiFunc func(db *sql.Tx) (interface{}, error)
 
-// TransInfo every branch info
-type TransInfo struct {
+// BranchBarrier every branch info
+type BranchBarrier struct {
 	TransType  string
 	Gid        string
 	BranchID   string
 	BranchType string
+	BarrierID  int
 }
 
-func (t *TransInfo) String() string {
-	return fmt.Sprintf("transInfo: %s %s %s %s", t.TransType, t.Gid, t.BranchID, t.BranchType)
+func (bb *BranchBarrier) String() string {
+	return fmt.Sprintf("transInfo: %s %s %s %s", bb.TransType, bb.Gid, bb.BranchID, bb.BranchType)
 }
 
-// TransInfoFromQuery construct transaction info from request
-func TransInfoFromQuery(qs url.Values) (*TransInfo, error) {
-	ti := &TransInfo{
+// BarrierFromQuery construct transaction info from request
+func BarrierFromQuery(qs url.Values) (*BranchBarrier, error) {
+	ti := &BranchBarrier{
 		TransType:  qs.Get("trans_type"),
 		Gid:        qs.Get("gid"),
 		BranchID:   qs.Get("branch_id"),
@@ -37,14 +38,14 @@ func TransInfoFromQuery(qs url.Values) (*TransInfo, error) {
 	return ti, nil
 }
 
-func insertBarrier(tx *sql.Tx, transType string, gid string, branchID string, branchType string, reason string) (int64, error) {
+func insertBarrier(tx *sql.Tx, transType string, gid string, branchID string, branchType string, barrierID string, reason string) (int64, error) {
 	if branchType == "" {
 		return 0, nil
 	}
-	return StxExec(tx, "insert ignore into dtm_barrier.barrier(trans_type, gid, branch_id, branch_type, reason) values(?,?,?,?,?)", transType, gid, branchID, branchType, reason)
+	return StxExec(tx, "insert ignore into dtm_barrier.barrier(trans_type, gid, branch_id, branch_type, barrier_id, reason) values(?,?,?,?,?,?)", transType, gid, branchID, branchType, barrierID, reason)
 }
 
-// ThroughBarrierCall 子事务屏障，详细介绍见 https://zhuanlan.zhihu.com/p/388444465
+// Call 子事务屏障，详细介绍见 https://zhuanlan.zhihu.com/p/388444465
 // db: 本地数据库
 // transInfo: 事务信息
 // bisiCall: 业务函数，仅在必要时被调用
@@ -53,7 +54,9 @@ func insertBarrier(tx *sql.Tx, transType string, gid string, branchID string, br
 // 如果发生重复调用，则busiCall不会被重复调用，直接对保存在数据库中上一次的结果，进行unmarshal，通常是一个map[string]interface{}，直接作为http的resp
 // 如果发生悬挂，则busiCall不会被调用，直接返回错误 {"dtm_result": "FAILURE"}
 // 如果发生空补偿，则busiCall不会被调用，直接返回 {"dtm_result": "SUCCESS"}
-func ThroughBarrierCall(db *sql.DB, transInfo *TransInfo, busiCall BusiFunc) (res interface{}, rerr error) {
+func (bb *BranchBarrier) Call(db *sql.DB, busiCall BusiFunc) (res interface{}, rerr error) {
+	bb.BarrierID = bb.BarrierID + 1
+	bid := fmt.Sprintf("%02d", bb.BarrierID)
 	tx, rerr := db.BeginTx(context.Background(), &sql.TxOptions{})
 	if rerr != nil {
 		return
@@ -69,21 +72,21 @@ func ThroughBarrierCall(db *sql.DB, transInfo *TransInfo, busiCall BusiFunc) (re
 			tx.Commit()
 		}
 	}()
-	ti := transInfo
+	ti := bb
 	originType := map[string]string{
 		"cancel":     "try",
 		"compensate": "action",
 	}[ti.BranchType]
-	originAffected, _ := insertBarrier(tx, ti.TransType, ti.Gid, ti.BranchID, originType, ti.BranchType)
-	currentAffected, rerr := insertBarrier(tx, ti.TransType, ti.Gid, ti.BranchID, ti.BranchType, ti.BranchType)
+	originAffected, _ := insertBarrier(tx, ti.TransType, ti.Gid, ti.BranchID, originType, bid, ti.BranchType)
+	currentAffected, rerr := insertBarrier(tx, ti.TransType, ti.Gid, ti.BranchID, ti.BranchType, bid, ti.BranchType)
 	Logf("originAffected: %d currentAffected: %d", originAffected, currentAffected)
 	if (ti.BranchType == "cancel" || ti.BranchType == "compensate") && originAffected > 0 { // 这个是空补偿，返回成功
 		res = ResultSuccess
 		return
 	} else if currentAffected == 0 { // 插入不成功
 		var result sql.NullString
-		err := StxQueryRow(tx, "select result from dtm_barrier.barrier where trans_type=? and gid=? and branch_id=? and branch_type=? and reason=?",
-			ti.TransType, ti.Gid, ti.BranchID, ti.BranchType, ti.BranchType).Scan(&result)
+		err := StxQueryRow(tx, "select result from dtm_barrier.barrier where trans_type=? and gid=? and branch_id=? and branch_type=? and barrier_id=? and reason=?",
+			ti.TransType, ti.Gid, ti.BranchID, ti.BranchType, bid, ti.BranchType).Scan(&result)
 		if err == sql.ErrNoRows { // 这个是悬挂操作，返回失败，AP收到这个返回，会尽快回滚
 			res = ResultFailure
 			return

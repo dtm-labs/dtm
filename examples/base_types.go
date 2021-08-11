@@ -52,8 +52,8 @@ func reqFrom(c *gin.Context) *TransReq {
 	return v.(*TransReq)
 }
 
-func infoFromContext(c *gin.Context) *dtmcli.TransInfo {
-	info := dtmcli.TransInfo{
+func infoFromContext(c *gin.Context) *dtmcli.BranchBarrier {
+	info := dtmcli.BranchBarrier{
 		TransType:  c.Query("trans_type"),
 		Gid:        c.Query("gid"),
 		BranchID:   c.Query("branch_id"),
@@ -73,8 +73,8 @@ func sdbGet() *sql.DB {
 }
 
 // MustGetTrans construct transaction info from request
-func MustGetTrans(c *gin.Context) *dtmcli.TransInfo {
-	ti, err := dtmcli.TransInfoFromQuery(c.Request.URL.Query())
+func MustGetTrans(c *gin.Context) *dtmcli.BranchBarrier {
+	ti, err := dtmcli.BarrierFromQuery(c.Request.URL.Query())
 	e2p(err)
 	return ti
 }

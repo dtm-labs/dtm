@@ -22,7 +22,7 @@ func TestTypes(t *testing.T) {
 	})
 	assert.Error(t, err)
 	assert.Error(t, err)
-	_, err = TransInfoFromQuery(url.Values{})
+	_, err = BarrierFromQuery(url.Values{})
 	assert.Error(t, err)
 
 }

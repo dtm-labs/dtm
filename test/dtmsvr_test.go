@@ -20,7 +20,7 @@ var app *gin.Engine
 // BarrierModel barrier model for gorm
 type BarrierModel struct {
 	common.ModelBase
-	dtmcli.TransInfo
+	dtmcli.BranchBarrier
 }
 
 // TableName gorm table name
@@ -111,14 +111,14 @@ func transQuery(t *testing.T, gid string) {
 func TestSqlDB(t *testing.T) {
 	asserts := assert.New(t)
 	db := common.DbGet(config.DB)
-	transInfo := &dtmcli.TransInfo{
+	barrier := &dtmcli.BranchBarrier{
 		TransType:  "saga",
 		Gid:        "gid2",
 		BranchID:   "branch_id2",
 		BranchType: "action",
 	}
 	db.Must().Exec("insert ignore into dtm_barrier.barrier(trans_type, gid, branch_id, branch_type, reason) values('saga', 'gid1', 'branch_id1', 'action', 'saga')")
-	_, err := dtmcli.ThroughBarrierCall(db.ToSQLDB(), transInfo, func(db *sql.Tx) (interface{}, error) {
+	_, err := barrier.Call(db.ToSQLDB(), func(db *sql.Tx) (interface{}, error) {
 		dtmcli.Logf("rollback gid2")
 		return nil, fmt.Errorf("gid2 error")
 	})
@@ -128,14 +128,16 @@ func TestSqlDB(t *testing.T) {
 	dbr = db.Model(&BarrierModel{}).Where("gid=?", "gid2").Find(&[]BarrierModel{})
 	asserts.Equal(dbr.RowsAffected, int64(0))
 	gid2Res := dtmcli.M{"result": "first"}
-	_, err = dtmcli.ThroughBarrierCall(db.ToSQLDB(), transInfo, func(db *sql.Tx) (interface{}, error) {
+	barrier.BarrierID = 0
+	_, err = barrier.Call(db.ToSQLDB(), func(db *sql.Tx) (interface{}, error) {
 		dtmcli.Logf("submit gid2")
 		return gid2Res, nil
 	})
 	asserts.Nil(err)
 	dbr = db.Model(&BarrierModel{}).Where("gid=?", "gid2").Find(&[]BarrierModel{})
 	asserts.Equal(dbr.RowsAffected, int64(1))
-	newResult, err := dtmcli.ThroughBarrierCall(db.ToSQLDB(), transInfo, func(db *sql.Tx) (interface{}, error) {
+	barrier.BarrierID = 0
+	newResult, err := barrier.Call(db.ToSQLDB(), func(db *sql.Tx) (interface{}, error) {
 		dtmcli.Logf("submit gid2")
 		return dtmcli.MS{"result": "ignored"}, nil
 	})
