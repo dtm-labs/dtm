@@ -1,4 +1,4 @@
-package dtmsvr
+package test
 
 import (
 	"testing"
@@ -6,18 +6,18 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/yedf/dtm/dtmcli"
+	"github.com/yedf/dtm/dtmgrpc"
 	"github.com/yedf/dtm/examples"
 )
 
-func TestSaga(t *testing.T) {
-
-	sagaNormal(t)
-	sagaCommittedPending(t)
-	sagaRollback(t)
+func TestGrpcSaga(t *testing.T) {
+	sagaGrpcNormal(t)
+	sagaGrpcCommittedPending(t)
+	sagaGrpcRollback(t)
 }
 
-func sagaNormal(t *testing.T) {
-	saga := genSaga("gid-noramlSaga", false, false)
+func sagaGrpcNormal(t *testing.T) {
+	saga := genSagaGrpc("gid-sagaGrpcNormal", false, false)
 	saga.Submit()
 	WaitTransProcessed(saga.Gid)
 	assert.Equal(t, []string{"prepared", "succeed", "prepared", "succeed"}, getBranchesStatus(saga.Gid))
@@ -25,8 +25,8 @@ func sagaNormal(t *testing.T) {
 	transQuery(t, saga.Gid)
 }
 
-func sagaCommittedPending(t *testing.T) {
-	saga := genSaga("gid-committedPending", false, false)
+func sagaGrpcCommittedPending(t *testing.T) {
+	saga := genSagaGrpc("gid-committedPendingGrpc", false, false)
 	examples.MainSwitch.TransOutResult.SetOnce("PENDING")
 	saga.Submit()
 	WaitTransProcessed(saga.Gid)
@@ -36,8 +36,8 @@ func sagaCommittedPending(t *testing.T) {
 	assert.Equal(t, "succeed", getTransStatus(saga.Gid))
 }
 
-func sagaRollback(t *testing.T) {
-	saga := genSaga("gid-rollbackSaga2", false, true)
+func sagaGrpcRollback(t *testing.T) {
+	saga := genSagaGrpc("gid-rollbackSaga2Grpc", false, true)
 	examples.MainSwitch.TransOutRevertResult.SetOnce("PENDING")
 	saga.Submit()
 	WaitTransProcessed(saga.Gid)
@@ -47,11 +47,11 @@ func sagaRollback(t *testing.T) {
 	assert.Equal(t, []string{"succeed", "succeed", "succeed", "failed"}, getBranchesStatus(saga.Gid))
 }
 
-func genSaga(gid string, outFailed bool, inFailed bool) *dtmcli.Saga {
-	dtmcli.Logf("beginning a saga test ---------------- %s", gid)
-	saga := dtmcli.NewSaga(examples.DtmServer, gid)
-	req := examples.GenTransReq(30, outFailed, inFailed)
-	saga.Add(examples.Busi+"/TransOut", examples.Busi+"/TransOutRevert", &req)
-	saga.Add(examples.Busi+"/TransIn", examples.Busi+"/TransInRevert", &req)
+func genSagaGrpc(gid string, outFailed bool, inFailed bool) *dtmgrpc.SagaGrpc {
+	dtmcli.Logf("beginning a grpc saga test ---------------- %s", gid)
+	saga := dtmgrpc.NewSaga(examples.DtmGrpcServer, gid)
+	req := dtmcli.MustMarshal(examples.GenTransReq(30, outFailed, inFailed))
+	saga.Add(examples.BusiGrpc+"/examples.Busi/TransOut", examples.BusiGrpc+"/examples.Busi/TransOutRevert", req)
+	saga.Add(examples.BusiGrpc+"/examples.Busi/TransIn", examples.BusiGrpc+"/examples.Busi/TransInRevert", req)
 	return saga
 }

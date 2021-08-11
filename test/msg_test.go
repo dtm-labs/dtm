@@ -1,4 +1,4 @@
-package dtmsvr
+package test
 
 import (
 	"testing"

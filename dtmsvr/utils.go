@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net"
 	"strings"
+	"time"
 
 	"github.com/bwmarrin/snowflake"
 	"github.com/yedf/dtm/common"
@@ -41,12 +42,16 @@ var TransProcessedTestChan chan string = nil
 // WaitTransProcessed only for test usage. wait for transaction processed once
 func WaitTransProcessed(gid string) {
 	dtmcli.Logf("waiting for gid %s", gid)
-	id := <-TransProcessedTestChan
-	for id != gid {
-		dtmcli.LogRedf("-------id %s not match gid %s", id, gid)
-		id = <-TransProcessedTestChan
+	select {
+	case id := <-TransProcessedTestChan:
+		for id != gid {
+			dtmcli.LogRedf("-------id %s not match gid %s", id, gid)
+			id = <-TransProcessedTestChan
+		}
+		dtmcli.Logf("finish for gid %s", gid)
+	case <-time.After(time.Duration(time.Second * 3)):
+		dtmcli.LogFatalf("Wait Trans timeout")
 	}
-	dtmcli.Logf("finish for gid %s", gid)
 }
 
 var gNode *snowflake.Node = nil

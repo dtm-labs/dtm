@@ -1,4 +1,4 @@
-package dtmsvr
+package test
 
 import (
 	"database/sql"
@@ -9,6 +9,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/yedf/dtm/common"
 	"github.com/yedf/dtm/dtmcli"
+	"github.com/yedf/dtm/dtmsvr"
 	"github.com/yedf/dtm/examples"
 )
 
@@ -41,29 +42,16 @@ func resetXaData() {
 }
 
 func TestMain(m *testing.M) {
-	TransProcessedTestChan = make(chan string, 1)
-	PopulateDB(false)
+	dtmsvr.TransProcessedTestChan = make(chan string, 1)
+	dtmsvr.PopulateDB(false)
 	examples.PopulateDB(false)
 	// 启动组件
-	go StartSvr()
+	go dtmsvr.StartSvr()
 	examples.GrpcStartup()
 	app = examples.BaseAppStartup()
 
 	resetXaData()
 	m.Run()
-}
-
-func TestCover(t *testing.T) {
-	db := dbGet()
-	db.NoMust()
-	CronTransOnce(0)
-	err := dtmcli.CatchP(func() {
-		checkAffected(db.DB)
-	})
-	assert.Error(t, err)
-
-	CronExpiredTrans(1)
-	go sleepCronTime()
 }
 
 func getTransStatus(gid string) string {
