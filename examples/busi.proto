@@ -18,5 +18,6 @@ service Busi {
   rpc XaNotify(dtmgrpc.BusiRequest) returns (google.protobuf.Empty) {}
   rpc TransInXa(dtmgrpc.BusiRequest) returns (google.protobuf.Empty) {}
   rpc TransOutXa(dtmgrpc.BusiRequest) returns (google.protobuf.Empty) {}
+  rpc TransInTccNested(dtmgrpc.BusiRequest) returns (google.protobuf.Empty) {}
 }
 

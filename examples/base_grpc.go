@@ -119,3 +119,13 @@ func (s *busiServer) TransOutXa(ctx context.Context, in *dtmgrpc.BusiRequest) (*
 		return err
 	})
 }
+
+func (s *busiServer) TransInTccNested(ctx context.Context, in *dtmgrpc.BusiRequest) (*emptypb.Empty, error) {
+	req := TransReq{}
+	dtmcli.MustUnmarshal(in.BusiData, &req)
+	tcc, err := dtmgrpc.TccFromRequest(in)
+	e2p(err)
+	_, err = tcc.CallBranch(dtmcli.MustMarshal(req), BusiGrpc+"/examples.Busi/TransIn", BusiGrpc+"/examples.Busi/TransInConfirm", BusiGrpc+"/examples.Busi/TransInRevert")
+	e2p(err)
+	return &emptypb.Empty{}, handleGrpcBusiness(in, MainSwitch.TransInResult.Fetch(), req.TransInResult, dtmcli.GetFuncName())
+}

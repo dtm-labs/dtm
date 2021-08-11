@@ -17,5 +17,5 @@ func TestUtils(t *testing.T) {
 	assert.Error(t, err)
 
 	CronExpiredTrans(1)
-	go sleepCronTime()
+	sleepCronTime(10)
 }

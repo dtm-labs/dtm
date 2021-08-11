@@ -11,9 +11,9 @@ import (
 )
 
 func TestGrpcTcc(t *testing.T) {
-	tccGrpcNormal(t)
-	tccGrpcRollback(t)
-
+	// tccGrpcNormal(t)
+	tccGrpcNested(t)
+	// tccGrpcRollback(t)
 }
 
 func tccGrpcNormal(t *testing.T) {
@@ -23,6 +23,18 @@ func tccGrpcNormal(t *testing.T) {
 		_, err := tcc.CallBranch(data, examples.BusiGrpc+"/examples.Busi/TransOut", examples.BusiGrpc+"/examples.Busi/TransOutConfirm", examples.BusiGrpc+"/examples.Busi/TransOutRevert")
 		assert.Nil(t, err)
 		_, err = tcc.CallBranch(data, examples.BusiGrpc+"/examples.Busi/TransIn", examples.BusiGrpc+"/examples.Busi/TransInConfirm", examples.BusiGrpc+"/examples.Busi/TransInRevert")
+		return err
+	})
+	assert.Nil(t, err)
+}
+
+func tccGrpcNested(t *testing.T) {
+	data := dtmcli.MustMarshal(&examples.TransReq{Amount: 30})
+	gid := "tccGrpcNested"
+	err := dtmgrpc.TccGlobalTransaction(examples.DtmGrpcServer, gid, func(tcc *dtmgrpc.TccGrpc) error {
+		_, err := tcc.CallBranch(data, examples.BusiGrpc+"/examples.Busi/TransOut", examples.BusiGrpc+"/examples.Busi/TransOutConfirm", examples.BusiGrpc+"/examples.Busi/TransOutRevert")
+		assert.Nil(t, err)
+		_, err = tcc.CallBranch(data, examples.BusiGrpc+"/examples.Busi/TransInTccNested", examples.BusiGrpc+"/examples.Busi/TransInConfirm", examples.BusiGrpc+"/examples.Busi/TransInRevert")
 		return err
 	})
 	assert.Nil(t, err)

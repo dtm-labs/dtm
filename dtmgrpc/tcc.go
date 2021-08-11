@@ -87,6 +87,7 @@ func (t *TccGrpc) CallBranch(busiData []byte, tryURL string, confirmURL string, 
 			BranchType: "try",
 		},
 		BusiData: busiData,
+		Dtm:      t.Dtm,
 	}, reply)
 	return reply, err
 }

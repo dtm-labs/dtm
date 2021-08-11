@@ -30,6 +30,7 @@ type BusiClient interface {
 	XaNotify(ctx context.Context, in *dtmgrpc.BusiRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
 	TransInXa(ctx context.Context, in *dtmgrpc.BusiRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
 	TransOutXa(ctx context.Context, in *dtmgrpc.BusiRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
+	TransInTccNested(ctx context.Context, in *dtmgrpc.BusiRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
 }
 
 type busiClient struct {
@@ -130,6 +131,15 @@ func (c *busiClient) TransOutXa(ctx context.Context, in *dtmgrpc.BusiRequest, op
 	return out, nil
 }
 
+func (c *busiClient) TransInTccNested(ctx context.Context, in *dtmgrpc.BusiRequest, opts ...grpc.CallOption) (*emptypb.Empty, error) {
+	out := new(emptypb.Empty)
+	err := c.cc.Invoke(ctx, "/examples.Busi/TransInTccNested", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // BusiServer is the server API for Busi service.
 // All implementations must embed UnimplementedBusiServer
 // for forward compatibility
@@ -144,6 +154,7 @@ type BusiServer interface {
 	XaNotify(context.Context, *dtmgrpc.BusiRequest) (*emptypb.Empty, error)
 	TransInXa(context.Context, *dtmgrpc.BusiRequest) (*emptypb.Empty, error)
 	TransOutXa(context.Context, *dtmgrpc.BusiRequest) (*emptypb.Empty, error)
+	TransInTccNested(context.Context, *dtmgrpc.BusiRequest) (*emptypb.Empty, error)
 	mustEmbedUnimplementedBusiServer()
 }
 
@@ -180,6 +191,9 @@ func (UnimplementedBusiServer) TransInXa(context.Context, *dtmgrpc.BusiRequest) 
 }
 func (UnimplementedBusiServer) TransOutXa(context.Context, *dtmgrpc.BusiRequest) (*emptypb.Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method TransOutXa not implemented")
+}
+func (UnimplementedBusiServer) TransInTccNested(context.Context, *dtmgrpc.BusiRequest) (*emptypb.Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method TransInTccNested not implemented")
 }
 func (UnimplementedBusiServer) mustEmbedUnimplementedBusiServer() {}
 
@@ -374,6 +388,24 @@ func _Busi_TransOutXa_Handler(srv interface{}, ctx context.Context, dec func(int
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Busi_TransInTccNested_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(dtmgrpc.BusiRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BusiServer).TransInTccNested(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/examples.Busi/TransInTccNested",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BusiServer).TransInTccNested(ctx, req.(*dtmgrpc.BusiRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // Busi_ServiceDesc is the grpc.ServiceDesc for Busi service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -420,6 +452,10 @@ var Busi_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "TransOutXa",
 			Handler:    _Busi_TransOutXa_Handler,
+		},
+		{
+			MethodName: "TransInTccNested",
+			Handler:    _Busi_TransInTccNested_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
