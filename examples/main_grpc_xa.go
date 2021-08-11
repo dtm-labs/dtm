@@ -3,6 +3,7 @@ package examples
 import (
 	context "context"
 
+	"github.com/gin-gonic/gin"
 	"github.com/yedf/dtm/dtmcli"
 	"github.com/yedf/dtm/dtmgrpc"
 	emptypb "google.golang.org/protobuf/types/known/emptypb"
@@ -11,9 +12,10 @@ import (
 // XaGrpcClient XA client connection
 var XaGrpcClient *dtmgrpc.XaGrpcClient = nil
 
-// XaGrpcSetup 挂载http的api，创建XaClient
-func XaGrpcSetup() {
-	XaGrpcClient = dtmgrpc.NewXaGrpcClient(DtmGrpcServer, config.DB, BusiGrpc+"/examples.Busi/XaNotify")
+func init() {
+	setupFuncs["XaGrpcSetup"] = func(app *gin.Engine) {
+		XaGrpcClient = dtmgrpc.NewXaGrpcClient(DtmGrpcServer, config.DB, BusiGrpc+"/examples.Busi/XaNotify")
+	}
 }
 
 func (s *busiServer) XaNotify(ctx context.Context, in *dtmgrpc.BusiRequest) (*emptypb.Empty, error) {

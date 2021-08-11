@@ -46,13 +46,8 @@ func TestMain(m *testing.M) {
 	examples.PopulateDB(false)
 	// 启动组件
 	go StartSvr()
-	app = examples.BaseAppStartup()
 	examples.GrpcStartup()
-	examples.XaGrpcSetup()
-	examples.TccSetup(app)
-	examples.XaSetup(app)
-	examples.TccBarrierAddRoute(app)
-	examples.SagaBarrierAddRoute(app)
+	app = examples.BaseAppStartup()
 
 	resetXaData()
 	m.Run()

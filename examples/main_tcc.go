@@ -7,14 +7,15 @@ import (
 	"github.com/yedf/dtm/dtmcli"
 )
 
-// TccSetup 1
-func TccSetup(app *gin.Engine) {
-	app.POST(BusiAPI+"/TransInTccParent", common.WrapHandler(func(c *gin.Context) (interface{}, error) {
-		tcc, err := dtmcli.TccFromQuery(c.Request.URL.Query())
-		e2p(err)
-		dtmcli.Logf("TransInTccParent ")
-		return tcc.CallBranch(&TransReq{Amount: reqFrom(c).Amount}, Busi+"/TransIn", Busi+"/TransInConfirm", Busi+"/TransInRevert")
-	}))
+func init() {
+	setupFuncs["TccSetupSetup"] = func(app *gin.Engine) {
+		app.POST(BusiAPI+"/TransInTccParent", common.WrapHandler(func(c *gin.Context) (interface{}, error) {
+			tcc, err := dtmcli.TccFromQuery(c.Request.URL.Query())
+			e2p(err)
+			dtmcli.Logf("TransInTccParent ")
+			return tcc.CallBranch(&TransReq{Amount: reqFrom(c).Amount}, Busi+"/TransIn", Busi+"/TransInConfirm", Busi+"/TransInRevert")
+		}))
+	}
 }
 
 // TccFireRequestNested 1

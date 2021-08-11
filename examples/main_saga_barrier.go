@@ -21,13 +21,14 @@ func SagaBarrierFireRequest() string {
 	return saga.Gid
 }
 
-// SagaBarrierAddRoute 1
-func SagaBarrierAddRoute(app *gin.Engine) {
-	app.POST(BusiAPI+"/SagaBTransIn", common.WrapHandler(sagaBarrierTransIn))
-	app.POST(BusiAPI+"/SagaBTransInCompensate", common.WrapHandler(sagaBarrierTransInCompensate))
-	app.POST(BusiAPI+"/SagaBTransOut", common.WrapHandler(sagaBarrierTransOut))
-	app.POST(BusiAPI+"/SagaBTransOutCompensate", common.WrapHandler(sagaBarrierTransOutCompensate))
-	dtmcli.Logf("examples listening at %d", BusiPort)
+func init() {
+	setupFuncs["SagaBarrierSetup"] = func(app *gin.Engine) {
+		app.POST(BusiAPI+"/SagaBTransIn", common.WrapHandler(sagaBarrierTransIn))
+		app.POST(BusiAPI+"/SagaBTransInCompensate", common.WrapHandler(sagaBarrierTransInCompensate))
+		app.POST(BusiAPI+"/SagaBTransOut", common.WrapHandler(sagaBarrierTransOut))
+		app.POST(BusiAPI+"/SagaBTransOutCompensate", common.WrapHandler(sagaBarrierTransOutCompensate))
+		dtmcli.Logf("examples listening at %d", BusiPort)
+	}
 }
 
 func sagaBarrierAdjustBalance(sdb *sql.Tx, uid int, amount int) (interface{}, error) {

@@ -49,6 +49,7 @@ func (s *dtmServer) RegisterXaBranch(ctx context.Context, in *pb.DtmXaBranchRequ
 		BranchID: in.Info.BranchID,
 		Status:   "prepared",
 		Data:     in.BusiData,
+		URL:      in.Notify,
 	})
 	return &emptypb.Empty{}, dtmgrpc.Result2Error(r, err)
 }

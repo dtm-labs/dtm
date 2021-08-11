@@ -10,15 +10,16 @@ import (
 // XaClient XA client connection
 var XaClient *dtmcli.XaClient = nil
 
-// XaSetup 挂载http的api，创建XaClient
-func XaSetup(app *gin.Engine) {
-	var err error
-	XaClient, err = dtmcli.NewXaClient(DtmServer, config.DB, Busi+"/xa", func(path string, xa *dtmcli.XaClient) {
-		app.POST(path, common.WrapHandler(func(c *gin.Context) (interface{}, error) {
-			return xa.HandleCallback(c.Query("gid"), c.Query("branch_id"), c.Query("branch_type"))
-		}))
-	})
-	e2p(err)
+func init() {
+	setupFuncs["XaSetup"] = func(app *gin.Engine) {
+		var err error
+		XaClient, err = dtmcli.NewXaClient(DtmServer, config.DB, Busi+"/xa", func(path string, xa *dtmcli.XaClient) {
+			app.POST(path, common.WrapHandler(func(c *gin.Context) (interface{}, error) {
+				return xa.HandleCallback(c.Query("gid"), c.Query("branch_id"), c.Query("branch_type"))
+			}))
+		})
+		e2p(err)
+	}
 }
 
 // XaFireRequest 注册全局XA事务，调用XA的分支
