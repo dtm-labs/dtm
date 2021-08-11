@@ -16,10 +16,11 @@ var clients = map[string]*grpc.ClientConn{}
 // GetGrpcConn 1
 func GetGrpcConn(grpcServer string) (conn *grpc.ClientConn, rerr error) {
 	if clients[grpcServer] == nil {
-		conn, err := grpc.Dial(grpcServer, grpc.WithInsecure(), grpc.WithBlock(), grpc.WithUnaryInterceptor(GrpcClientLog))
+		dtmcli.Logf("grpc client connecting %s", grpcServer)
+		conn, err := grpc.Dial(grpcServer, grpc.WithInsecure(), grpc.WithUnaryInterceptor(GrpcClientLog))
 		if err == nil {
 			clients[grpcServer] = conn
-			dtmcli.Logf("dtm client inited for %s", grpcServer)
+			dtmcli.Logf("grpc client inited for %s", grpcServer)
 		}
 	}
 	conn = clients[grpcServer]

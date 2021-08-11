@@ -14,9 +14,15 @@ func TestGrpcXa(t *testing.T) {
 	if config.DB["driver"] != "mysql" {
 		return
 	}
-	// xaGrpcLocalError(t)
+	xaGrpcType(t)
+	xaGrpcLocalError(t)
 	xaGrpcNormal(t)
 	xaGrpcRollback(t)
+}
+
+func xaGrpcType(t *testing.T) {
+	_, err := dtmgrpc.XaGrpcFromRequest(&dtmgrpc.BusiRequest{Info: &dtmgrpc.BranchInfo{}})
+	assert.Error(t, err)
 }
 
 func xaGrpcLocalError(t *testing.T) {

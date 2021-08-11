@@ -11,11 +11,19 @@ import (
 )
 
 func TestGrpcTcc(t *testing.T) {
+	tccGrpcType(t)
 	tccGrpcNormal(t)
 	tccGrpcNested(t)
 	tccGrpcRollback(t)
 }
 
+func tccGrpcType(t *testing.T) {
+	_, err := dtmgrpc.TccFromRequest(&dtmgrpc.BusiRequest{Info: &dtmgrpc.BranchInfo{}})
+	assert.Error(t, err)
+	dtmcli.Logf("expecting dtmgrpcserver error")
+	err = dtmgrpc.TccGlobalTransaction("-", "", func(tcc *dtmgrpc.TccGrpc) error { return nil })
+	assert.Error(t, err)
+}
 func tccGrpcNormal(t *testing.T) {
 	data := dtmcli.MustMarshal(&examples.TransReq{Amount: 30})
 	gid := "tccGrpcNormal"
