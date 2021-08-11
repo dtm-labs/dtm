@@ -14,10 +14,10 @@ var config = common.DtmConfig
 // RunSQLScript 1
 func RunSQLScript(conf map[string]string, script string, skipDrop bool) {
 	con, err := dtmcli.SdbAlone(conf)
-	e2p(err)
+	dtmcli.FatalIfError(err)
 	defer func() { con.Close() }()
 	content, err := ioutil.ReadFile(script)
-	e2p(err)
+	dtmcli.FatalIfError(err)
 	sqls := strings.Split(string(content), ";")
 	for _, sql := range sqls {
 		s := strings.TrimSpace(sql)
@@ -25,7 +25,7 @@ func RunSQLScript(conf map[string]string, script string, skipDrop bool) {
 			continue
 		}
 		_, err = dtmcli.SdbExec(con, s)
-		e2p(err)
+		dtmcli.FatalIfError(err)
 	}
 }
 

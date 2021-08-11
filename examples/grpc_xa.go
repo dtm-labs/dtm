@@ -35,6 +35,6 @@ func XaGrpcFireRequest() string {
 		_, err = xa.CallBranch(busiData, BusiGrpc+"/examples.Busi/TransInXa")
 		return err
 	})
-	e2p(err)
+	dtmcli.FatalIfError(err)
 	return gid
 }

@@ -18,7 +18,7 @@ func init() {
 				return xa.HandleCallback(c.Query("gid"), c.Query("branch_id"), c.Query("branch_type"))
 			}))
 		})
-		e2p(err)
+		dtmcli.FatalIfError(err)
 	}
 }
 
@@ -32,6 +32,6 @@ func XaFireRequest() string {
 		}
 		return xa.CallBranch(&TransReq{Amount: 30}, Busi+"/TransInXa")
 	})
-	e2p(err)
+	dtmcli.FatalIfError(err)
 	return gid
 }

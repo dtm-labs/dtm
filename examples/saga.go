@@ -18,6 +18,6 @@ func SagaFireRequest() string {
 	dtmcli.Logf("saga busi trans submit")
 	err := saga.Submit()
 	dtmcli.Logf("result gid is: %s", saga.Gid)
-	e2p(err)
+	dtmcli.FatalIfError(err)
 	return saga.Gid
 }

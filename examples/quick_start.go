@@ -37,7 +37,7 @@ func QsFireRequest() string {
 		Add(qsBusi+"/TransIn", qsBusi+"/TransInCompensate", req)
 	// 提交saga事务，dtm会完成所有的子事务/回滚所有的子事务
 	err := saga.Submit()
-	e2p(err)
+	dtmcli.FatalIfError(err)
 	return saga.Gid
 }
 

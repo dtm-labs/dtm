@@ -12,6 +12,6 @@ func MsgGrpcFireRequest() string {
 		Add(BusiGrpc+"/examples.Busi/TransOut", req).
 		Add(BusiGrpc+"/examples.Busi/TransIn", req)
 	err := msg.Submit()
-	e2p(err)
+	dtmcli.FatalIfError(err)
 	return msg.Gid
 }

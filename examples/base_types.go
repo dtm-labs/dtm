@@ -9,8 +9,6 @@ import (
 	"github.com/yedf/dtm/dtmcli"
 )
 
-var e2p = dtmcli.E2P
-
 // M alias
 type M = map[string]interface{}
 
@@ -45,7 +43,7 @@ func reqFrom(c *gin.Context) *TransReq {
 	if !ok {
 		req := TransReq{}
 		err := c.BindJSON(&req)
-		e2p(err)
+		dtmcli.FatalIfError(err)
 		c.Set("trans_req", &req)
 		v = &req
 	}
@@ -68,13 +66,13 @@ func dbGet() *common.DB {
 
 func sdbGet() *sql.DB {
 	db, err := dtmcli.SdbGet(config.DB)
-	e2p(err)
+	dtmcli.FatalIfError(err)
 	return db
 }
 
 // MustGetTrans construct transaction info from request
 func MustGetTrans(c *gin.Context) *dtmcli.BranchBarrier {
 	ti, err := dtmcli.BarrierFromQuery(c.Request.URL.Query())
-	e2p(err)
+	dtmcli.FatalIfError(err)
 	return ti
 }

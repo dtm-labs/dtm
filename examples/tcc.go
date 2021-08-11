@@ -11,7 +11,7 @@ func init() {
 	setupFuncs["TccSetupSetup"] = func(app *gin.Engine) {
 		app.POST(BusiAPI+"/TransInTccParent", common.WrapHandler(func(c *gin.Context) (interface{}, error) {
 			tcc, err := dtmcli.TccFromQuery(c.Request.URL.Query())
-			e2p(err)
+			dtmcli.FatalIfError(err)
 			dtmcli.Logf("TransInTccParent ")
 			return tcc.CallBranch(&TransReq{Amount: reqFrom(c).Amount}, Busi+"/TransIn", Busi+"/TransInConfirm", Busi+"/TransInRevert")
 		}))
@@ -28,7 +28,7 @@ func TccFireRequestNested() string {
 		}
 		return tcc.CallBranch(&TransReq{Amount: 30}, Busi+"/TransInTccParent", Busi+"/TransInConfirm", Busi+"/TransInRevert")
 	})
-	e2p(err)
+	dtmcli.FatalIfError(err)
 	return gid
 }
 
@@ -43,6 +43,6 @@ func TccFireRequest() string {
 		}
 		return tcc.CallBranch(&TransReq{Amount: 30}, Busi+"/TransIn", Busi+"/TransInConfirm", Busi+"/TransInRevert")
 	})
-	e2p(err)
+	dtmcli.FatalIfError(err)
 	return gid
 }

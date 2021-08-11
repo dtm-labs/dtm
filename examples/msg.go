@@ -12,9 +12,9 @@ func MsgFireRequest() string {
 		Add(Busi+"/TransOut", req).
 		Add(Busi+"/TransIn", req)
 	err := msg.Prepare(Busi + "/TransQuery")
-	e2p(err)
+	dtmcli.FatalIfError(err)
 	dtmcli.Logf("busi trans submit")
 	err = msg.Submit()
-	e2p(err)
+	dtmcli.FatalIfError(err)
 	return msg.Gid
 }

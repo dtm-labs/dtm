@@ -18,6 +18,6 @@ func SagaWaitFireRequest() string {
 	saga.WaitResult = true // 设置为等待结果模式，后面的submit调用，会等待服务器处理这个事务。如果Submit正常返回，那么整个全局事务已成功完成
 	err := saga.Submit()
 	dtmcli.Logf("result gid is: %s", saga.Gid)
-	e2p(err)
+	dtmcli.FatalIfError(err)
 	return saga.Gid
 }

@@ -17,7 +17,7 @@ func SagaBarrierFireRequest() string {
 		Add(Busi+"/SagaBTransIn", Busi+"/SagaBTransInCompensate", req)
 	dtmcli.Logf("busi trans submit")
 	err := saga.Submit()
-	e2p(err)
+	dtmcli.FatalIfError(err)
 	return saga.Gid
 }
 
