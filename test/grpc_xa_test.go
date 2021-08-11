@@ -23,6 +23,14 @@ func TestGrpcXa(t *testing.T) {
 func xaGrpcType(t *testing.T) {
 	_, err := dtmgrpc.XaGrpcFromRequest(&dtmgrpc.BusiRequest{Info: &dtmgrpc.BranchInfo{}})
 	assert.Error(t, err)
+
+	err = examples.XaGrpcClient.XaLocalTransaction(&dtmgrpc.BusiRequest{Info: &dtmgrpc.BranchInfo{}}, nil)
+	assert.Error(t, err)
+
+	err = dtmcli.CatchP(func() {
+		examples.XaGrpcClient.XaGlobalTransaction("id1", func(xa *dtmgrpc.XaGrpc) error { panic(fmt.Errorf("hello")) })
+	})
+	assert.Error(t, err)
 }
 
 func xaGrpcLocalError(t *testing.T) {
