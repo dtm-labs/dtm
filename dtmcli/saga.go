@@ -15,28 +15,20 @@ type SagaStep struct {
 
 // NewSaga create a saga
 func NewSaga(server string, gid string) *Saga {
-	return &Saga{
-		TransBase: TransBase{
-			Gid:       gid,
-			TransType: "saga",
-			Dtm:       server,
-		},
-	}
+	return &Saga{TransBase: *NewTransBase(gid, "saga", server, "")}
 }
 
 // Add add a saga step
 func (s *Saga) Add(action string, compensate string, postData interface{}) *Saga {
-	Logf("saga %s Add %s %s %v", s.Gid, action, compensate, postData)
-	step := SagaStep{
+	s.Steps = append(s.Steps, SagaStep{
 		Action:     action,
 		Compensate: compensate,
 		Data:       MustMarshalString(postData),
-	}
-	s.Steps = append(s.Steps, step)
+	})
 	return s
 }
 
 // Submit submit the saga trans
 func (s *Saga) Submit() error {
-	return s.CallDtm(s, "submit")
+	return s.callDtm(s, "submit")
 }

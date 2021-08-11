@@ -102,23 +102,22 @@ func (xc *XaClient) XaLocalTransaction(qs url.Values, xaFunc XaLocalFunc) (ret i
 	if rerr != nil {
 		return
 	}
-	rerr = xa.CallDtm(&M{"gid": xa.Gid, "branch_id": branchID, "trans_type": "xa", "url": xc.NotifyURL}, "registerXaBranch")
+	rerr = xa.callDtm(&M{"gid": xa.Gid, "branch_id": branchID, "trans_type": "xa", "url": xc.NotifyURL}, "registerXaBranch")
 	return
 }
 
 // XaGlobalTransaction start a xa global transaction
 func (xc *XaClient) XaGlobalTransaction(gid string, xaFunc XaGlobalFunc) (rerr error) {
 	xa := Xa{TransBase: *NewTransBase(gid, "xa", xc.Server, "")}
-	rerr = xa.CallDtm(xa, "prepare")
+	rerr = xa.callDtm(xa, "prepare")
 	if rerr != nil {
 		return
 	}
-	var resp *resty.Response
 	// 小概率情况下，prepare成功了，但是由于网络状况导致上面Failure，那么不执行下面defer的内容，等待超时后再回滚标记事务失败，也没有问题
 	defer func() {
 		x := recover()
 		operation := If(x != nil || rerr != nil, "abort", "submit").(string)
-		err := xa.CallDtm(xa, operation)
+		err := xa.callDtm(xa, operation)
 		if rerr == nil { // 如果用户函数没有返回错误，那么返回dtm的
 			rerr = err
 		}
@@ -126,7 +125,7 @@ func (xc *XaClient) XaGlobalTransaction(gid string, xaFunc XaGlobalFunc) (rerr e
 			panic(x)
 		}
 	}()
-	resp, rerr = xaFunc(&xa)
+	resp, rerr := xaFunc(&xa)
 	rerr = CheckResponse(resp, rerr)
 	return
 }
@@ -137,6 +136,7 @@ func (x *Xa) CallBranch(body interface{}, url string) (*resty.Response, error) {
 	resp, err := RestyClient.R().
 		SetBody(body).
 		SetQueryParams(MS{
+			"dtm":         x.Dtm,
 			"gid":         x.Gid,
 			"branch_id":   branchID,
 			"trans_type":  "xa",

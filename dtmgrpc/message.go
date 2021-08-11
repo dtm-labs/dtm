@@ -15,18 +15,15 @@ type MsgGrpc struct {
 
 // NewMsgGrpc create new msg
 func NewMsgGrpc(server string, gid string) *MsgGrpc {
-	return &MsgGrpc{
-		TransBase: *dtmcli.NewTransBase(gid, "msg", server, ""),
-	}
+	return &MsgGrpc{TransBase: *dtmcli.NewTransBase(gid, "msg", server, "")}
 }
 
 // Add add a new step
 func (s *MsgGrpc) Add(action string, data []byte) *MsgGrpc {
-	step := dtmcli.MsgStep{
+	s.Steps = append(s.Steps, dtmcli.MsgStep{
 		Action: action,
 		Data:   string(data),
-	}
-	s.Steps = append(s.Steps, step)
+	})
 	return s
 }
 

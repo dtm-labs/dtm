@@ -20,13 +20,8 @@ type TccGlobalFunc func(tcc *Tcc) (*resty.Response, error)
 // gid 全局事务id
 // tccFunc tcc事务函数，里面会定义全局事务的分支
 func TccGlobalTransaction(dtm string, gid string, tccFunc TccGlobalFunc) (rerr error) {
-	tcc := &Tcc{
-		TransBase: TransBase{
-			Gid:       gid,
-			TransType: "tcc",
-			Dtm:       dtm,
-		}}
-	rerr = tcc.CallDtm(tcc, "prepare")
+	tcc := &Tcc{TransBase: *NewTransBase(gid, "tcc", dtm, "")}
+	rerr = tcc.callDtm(tcc, "prepare")
 	if rerr != nil {
 		return rerr
 	}
@@ -34,7 +29,7 @@ func TccGlobalTransaction(dtm string, gid string, tccFunc TccGlobalFunc) (rerr e
 	defer func() {
 		x := recover()
 		operation := If(x == nil && rerr == nil, "submit", "abort").(string)
-		err := tcc.CallDtm(tcc, operation)
+		err := tcc.callDtm(tcc, operation)
 		if rerr == nil {
 			rerr = err
 		}
@@ -49,9 +44,7 @@ func TccGlobalTransaction(dtm string, gid string, tccFunc TccGlobalFunc) (rerr e
 
 // TccFromQuery tcc from request info
 func TccFromQuery(qs url.Values) (*Tcc, error) {
-	tcc := &Tcc{
-		TransBase: *TransBaseFromQuery(qs),
-	}
+	tcc := &Tcc{TransBase: *TransBaseFromQuery(qs)}
 	if tcc.Dtm == "" || tcc.Gid == "" {
 		return nil, fmt.Errorf("bad tcc info. dtm: %s, gid: %s parentID: %s", tcc.Dtm, tcc.Gid, tcc.parentID)
 	}
@@ -62,7 +55,7 @@ func TccFromQuery(qs url.Values) (*Tcc, error) {
 // 函数首先注册子事务的所有分支，成功后调用try分支，返回try分支的调用结果
 func (t *Tcc) CallBranch(body interface{}, tryURL string, confirmURL string, cancelURL string) (*resty.Response, error) {
 	branchID := t.NewBranchID()
-	err := t.CallDtm(&M{
+	err := t.callDtm(&M{
 		"gid":        t.Gid,
 		"branch_id":  branchID,
 		"trans_type": "tcc",

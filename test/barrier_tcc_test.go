@@ -68,7 +68,8 @@ func tccBarrierDisorder(t *testing.T) {
 			return res, err
 		}))
 		// 注册子事务
-		err := tcc.CallDtm(M{
+		resp, err := dtmcli.RestyClient.R().
+			SetResult(&dtmcli.TransResult{}).SetBody(M{
 			"gid":        tcc.Gid,
 			"branch_id":  branchID,
 			"trans_type": "tcc",
@@ -77,8 +78,11 @@ func tccBarrierDisorder(t *testing.T) {
 			"try":        tryURL,
 			"confirm":    confirmURL,
 			"cancel":     cancelURL,
-		}, "registerTccBranch")
+		}).Post(fmt.Sprintf("%s/%s", tcc.Dtm, "registerTccBranch"))
 		assert.Nil(t, err)
+		tr := resp.Result().(*dtmcli.TransResult)
+		assert.Equal(t, "SUCCESS", tr.DtmResult)
+
 		go func() {
 			dtmcli.Logf("sleeping to wait for tcc try timeout")
 			<-timeoutChan

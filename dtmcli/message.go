@@ -15,33 +15,25 @@ type MsgStep struct {
 
 // NewMsg create new msg
 func NewMsg(server string, gid string) *Msg {
-	return &Msg{
-		TransBase: TransBase{
-			Gid:       gid,
-			TransType: "msg",
-			Dtm:       server,
-		},
-	}
+	return &Msg{TransBase: *NewTransBase(gid, "msg", server, "")}
 }
 
 // Add add a new step
 func (s *Msg) Add(action string, postData interface{}) *Msg {
-	Logf("msg %s Add %s %v", s.Gid, action, postData)
-	step := MsgStep{
+	s.Steps = append(s.Steps, MsgStep{
 		Action: action,
 		Data:   MustMarshalString(postData),
-	}
-	s.Steps = append(s.Steps, step)
+	})
 	return s
 }
 
 // Prepare prepare the msg
 func (s *Msg) Prepare(queryPrepared string) error {
 	s.QueryPrepared = OrString(queryPrepared, s.QueryPrepared)
-	return s.CallDtm(s, "prepare")
+	return s.callDtm(s, "prepare")
 }
 
 // Submit submit the msg
 func (s *Msg) Submit() error {
-	return s.CallDtm(s, "submit")
+	return s.callDtm(s, "submit")
 }

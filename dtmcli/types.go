@@ -71,8 +71,8 @@ func TransBaseFromQuery(qs url.Values) *TransBase {
 	return NewTransBase(qs.Get("gid"), qs.Get("trans_type"), qs.Get("dtm"), qs.Get("branch_id"))
 }
 
-// CallDtm 调用dtm服务器，返回事务的状态
-func (tb *TransBase) CallDtm(body interface{}, operation string) error {
+// callDtm 调用dtm服务器，返回事务的状态
+func (tb *TransBase) callDtm(body interface{}, operation string) error {
 	params := MS{}
 	if tb.WaitResult {
 		params["wait_result"] = "1"

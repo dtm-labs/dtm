@@ -14,20 +14,16 @@ type SagaGrpc struct {
 
 // NewSaga create a saga
 func NewSaga(server string, gid string) *SagaGrpc {
-	return &SagaGrpc{
-		TransBase: *dtmcli.NewTransBase(gid, "saga", server, ""),
-	}
+	return &SagaGrpc{TransBase: *dtmcli.NewTransBase(gid, "saga", server, "")}
 }
 
 // Add add a saga step
 func (s *SagaGrpc) Add(action string, compensate string, busiData []byte) *SagaGrpc {
-	dtmcli.Logf("saga %s Add %s %s %v", s.Gid, action, compensate, string(busiData))
-	step := dtmcli.SagaStep{
+	s.Steps = append(s.Steps, dtmcli.SagaStep{
 		Action:     action,
 		Compensate: compensate,
 		Data:       string(busiData),
-	}
-	s.Steps = append(s.Steps, step)
+	})
 	return s
 }
 
