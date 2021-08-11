@@ -9,11 +9,22 @@ func init() {
 	addSample("grpc_saga", func() string {
 		req := dtmcli.MustMarshal(&TransReq{Amount: 30})
 		gid := dtmgrpc.MustGenGid(DtmGrpcServer)
-		msg := dtmgrpc.NewSaga(DtmGrpcServer, gid).
+		saga := dtmgrpc.NewSaga(DtmGrpcServer, gid).
 			Add(BusiGrpc+"/examples.Busi/TransOut", BusiGrpc+"/examples.Busi/TransOutRevert", req).
 			Add(BusiGrpc+"/examples.Busi/TransIn", BusiGrpc+"/examples.Busi/TransOutRevert", req)
-		err := msg.Submit()
+		err := saga.Submit()
 		dtmcli.FatalIfError(err)
-		return msg.Gid
+		return saga.Gid
+	})
+	addSample("grpc_saga_wait", func() string {
+		req := dtmcli.MustMarshal(&TransReq{Amount: 30})
+		gid := dtmgrpc.MustGenGid(DtmGrpcServer)
+		saga := dtmgrpc.NewSaga(DtmGrpcServer, gid).
+			Add(BusiGrpc+"/examples.Busi/TransOut", BusiGrpc+"/examples.Busi/TransOutRevert", req).
+			Add(BusiGrpc+"/examples.Busi/TransIn", BusiGrpc+"/examples.Busi/TransOutRevert", req)
+		saga.WaitResult = true
+		err := saga.Submit()
+		dtmcli.FatalIfError(err)
+		return saga.Gid
 	})
 }
