@@ -19,6 +19,7 @@ const _ = grpc.SupportPackageIsVersion7
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type DtmClient interface {
+	NewGid(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*DtmGidReply, error)
 	Submit(ctx context.Context, in *DtmRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
 	Prepare(ctx context.Context, in *DtmRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
 	Abort(ctx context.Context, in *DtmRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
@@ -32,6 +33,15 @@ type dtmClient struct {
 
 func NewDtmClient(cc grpc.ClientConnInterface) DtmClient {
 	return &dtmClient{cc}
+}
+
+func (c *dtmClient) NewGid(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*DtmGidReply, error) {
+	out := new(DtmGidReply)
+	err := c.cc.Invoke(ctx, "/dtmgrpc.Dtm/NewGid", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
 }
 
 func (c *dtmClient) Submit(ctx context.Context, in *DtmRequest, opts ...grpc.CallOption) (*emptypb.Empty, error) {
@@ -83,6 +93,7 @@ func (c *dtmClient) RegisterXaBranch(ctx context.Context, in *DtmXaBranchRequest
 // All implementations must embed UnimplementedDtmServer
 // for forward compatibility
 type DtmServer interface {
+	NewGid(context.Context, *emptypb.Empty) (*DtmGidReply, error)
 	Submit(context.Context, *DtmRequest) (*emptypb.Empty, error)
 	Prepare(context.Context, *DtmRequest) (*emptypb.Empty, error)
 	Abort(context.Context, *DtmRequest) (*emptypb.Empty, error)
@@ -95,6 +106,9 @@ type DtmServer interface {
 type UnimplementedDtmServer struct {
 }
 
+func (UnimplementedDtmServer) NewGid(context.Context, *emptypb.Empty) (*DtmGidReply, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method NewGid not implemented")
+}
 func (UnimplementedDtmServer) Submit(context.Context, *DtmRequest) (*emptypb.Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Submit not implemented")
 }
@@ -121,6 +135,24 @@ type UnsafeDtmServer interface {
 
 func RegisterDtmServer(s grpc.ServiceRegistrar, srv DtmServer) {
 	s.RegisterService(&Dtm_ServiceDesc, srv)
+}
+
+func _Dtm_NewGid_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(emptypb.Empty)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(DtmServer).NewGid(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/dtmgrpc.Dtm/NewGid",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(DtmServer).NewGid(ctx, req.(*emptypb.Empty))
+	}
+	return interceptor(ctx, in, info, handler)
 }
 
 func _Dtm_Submit_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
@@ -220,6 +252,10 @@ var Dtm_ServiceDesc = grpc.ServiceDesc{
 	ServiceName: "dtmgrpc.Dtm",
 	HandlerType: (*DtmServer)(nil),
 	Methods: []grpc.MethodDesc{
+		{
+			MethodName: "NewGid",
+			Handler:    _Dtm_NewGid_Handler,
+		},
 		{
 			MethodName: "Submit",
 			Handler:    _Dtm_Submit_Handler,

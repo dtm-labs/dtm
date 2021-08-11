@@ -10,21 +10,6 @@ import (
 	"github.com/yedf/dtm/dtmcli"
 )
 
-// TccBarrierFireRequest 1
-func TccBarrierFireRequest() string {
-	dtmcli.Logf("tcc transaction begin")
-	gid := dtmcli.MustGenGid(DtmServer)
-	err := dtmcli.TccGlobalTransaction(DtmServer, gid, func(tcc *dtmcli.Tcc) (*resty.Response, error) {
-		resp, err := tcc.CallBranch(&TransReq{Amount: 30}, Busi+"/TccBTransOutTry", Busi+"/TccBTransOutConfirm", Busi+"/TccBTransOutCancel")
-		if err != nil {
-			return resp, err
-		}
-		return tcc.CallBranch(&TransReq{Amount: 30}, Busi+"/TccBTransInTry", Busi+"/TccBTransInConfirm", Busi+"/TccBTransInCancel")
-	})
-	dtmcli.FatalIfError(err)
-	return gid
-}
-
 func init() {
 	setupFuncs["TccBarrierSetup"] = func(app *gin.Engine) {
 		app.POST(BusiAPI+"/TccBTransInTry", common.WrapHandler(tccBarrierTransInTry))
@@ -35,6 +20,19 @@ func init() {
 		app.POST(BusiAPI+"/TccBTransOutCancel", common.WrapHandler(TccBarrierTransOutCancel))
 		dtmcli.Logf("examples listening at %d", BusiPort)
 	}
+	addSample("tcc_barrier", func() string {
+		dtmcli.Logf("tcc transaction begin")
+		gid := dtmcli.MustGenGid(DtmServer)
+		err := dtmcli.TccGlobalTransaction(DtmServer, gid, func(tcc *dtmcli.Tcc) (*resty.Response, error) {
+			resp, err := tcc.CallBranch(&TransReq{Amount: 30}, Busi+"/TccBTransOutTry", Busi+"/TccBTransOutConfirm", Busi+"/TccBTransOutCancel")
+			if err != nil {
+				return resp, err
+			}
+			return tcc.CallBranch(&TransReq{Amount: 30}, Busi+"/TccBTransInTry", Busi+"/TccBTransInConfirm", Busi+"/TccBTransInCancel")
+		})
+		dtmcli.FatalIfError(err)
+		return gid
+	})
 }
 
 const transInUID = 1

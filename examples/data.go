@@ -36,3 +36,13 @@ func PopulateDB(skipDrop bool) {
 	file = fmt.Sprintf("%s/../dtmcli/barrier.%s.sql", common.GetCurrentCodeDir(), config.DB["driver"])
 	RunSQLScript(config.DB, file, skipDrop)
 }
+
+// Samples 所有的示例都会注册到这里
+var Samples = map[string]func() string{}
+
+func addSample(name string, fn func() string) {
+	if Samples[name] != nil {
+		dtmcli.LogFatalf("sample %s duplicated", name)
+	}
+	Samples[name] = fn
+}

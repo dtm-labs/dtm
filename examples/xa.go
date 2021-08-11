@@ -20,18 +20,16 @@ func init() {
 		})
 		dtmcli.FatalIfError(err)
 	}
-}
-
-// XaFireRequest 注册全局XA事务，调用XA的分支
-func XaFireRequest() string {
-	gid := dtmcli.MustGenGid(DtmServer)
-	err := XaClient.XaGlobalTransaction(gid, func(xa *dtmcli.Xa) (*resty.Response, error) {
-		resp, err := xa.CallBranch(&TransReq{Amount: 30}, Busi+"/TransOutXa")
-		if err != nil {
-			return resp, err
-		}
-		return xa.CallBranch(&TransReq{Amount: 30}, Busi+"/TransInXa")
+	addSample("xa", func() string {
+		gid := dtmcli.MustGenGid(DtmServer)
+		err := XaClient.XaGlobalTransaction(gid, func(xa *dtmcli.Xa) (*resty.Response, error) {
+			resp, err := xa.CallBranch(&TransReq{Amount: 30}, Busi+"/TransOutXa")
+			if err != nil {
+				return resp, err
+			}
+			return xa.CallBranch(&TransReq{Amount: 30}, Busi+"/TransInXa")
+		})
+		dtmcli.FatalIfError(err)
+		return gid
 	})
-	dtmcli.FatalIfError(err)
-	return gid
 }

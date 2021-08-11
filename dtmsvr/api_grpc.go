@@ -14,6 +14,10 @@ type dtmServer struct {
 	pb.UnimplementedDtmServer
 }
 
+func (s *dtmServer) NewGid(ctx context.Context, in *emptypb.Empty) (*dtmgrpc.DtmGidReply, error) {
+	return &dtmgrpc.DtmGidReply{Gid: GenGid()}, nil
+}
+
 func (s *dtmServer) Submit(ctx context.Context, in *pb.DtmRequest) (*emptypb.Empty, error) {
 	r, err := svcSubmit(TransFromDtmRequest(in), in.WaitResult)
 	return &emptypb.Empty{}, dtmgrpc.Result2Error(r, err)

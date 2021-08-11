@@ -7,6 +7,7 @@ package dtmgrpc;
 
 // The dtm service definition.
 service Dtm {
+  rpc NewGid(google.protobuf.Empty) returns (DtmGidReply) {}
   rpc Submit(DtmRequest) returns (google.protobuf.Empty) {}
   rpc Prepare(DtmRequest) returns (google.protobuf.Empty) {}
   rpc Abort(DtmRequest) returns (google.protobuf.Empty) {}
@@ -26,18 +27,9 @@ message DtmRequest {
   string Data = 5;
 }
 
-/*
-		"gid":        t.Gid,
-		"branch_id":  branchID,
-		"trans_type": "tcc",
-		"status":     "prepared",
-		"data":       string(MustMarshal(body)),
-		"try":        tryURL,
-		"confirm":    confirmURL,
-		"cancel":     cancelURL,
-
-*/
-
+message DtmGidReply {
+  string Gid = 1;
+}
 // BranchInfo 事务分支信息
 message BranchInfo {
   string Gid = 1;

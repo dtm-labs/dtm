@@ -42,27 +42,9 @@ func main() {
 	// 下面是各类的例子
 	examples.BaseAppStartup()
 	examples.GrpcStartup()
-	if os.Args[1] == "xa" { // 启动xa示例
-		examples.XaFireRequest()
-	} else if os.Args[1] == "saga" { // 启动saga示例
-		examples.SagaFireRequest()
-	} else if os.Args[1] == "tcc" { // 启动tcc示例
-		examples.TccFireRequestNested()
-	} else if os.Args[1] == "msg" { // 启动msg示例
-		examples.MsgFireRequest()
-	} else if os.Args[1] == "msg_grpc" { // 启动msg示例
-		examples.MsgGrpcFireRequest()
-	} else if os.Args[1] == "all" { // 运行所有示例
-		examples.SagaFireRequest()
-		examples.TccFireRequestNested()
-		examples.XaFireRequest()
-		examples.MsgFireRequest()
-	} else if os.Args[1] == "saga_barrier" {
-		examples.SagaBarrierFireRequest()
-	} else if os.Args[1] == "tcc_barrier" {
-		examples.TccBarrierFireRequest()
-	} else {
-		dtmcli.LogRedf("unknown arg: %s", os.Args[1])
-	}
+
+	fn := examples.Samples[os.Args[1]]
+	dtmcli.LogIfFatalf(fn == nil, "no sample name for %s", os.Args[1])
+	fn()
 	wait()
 }

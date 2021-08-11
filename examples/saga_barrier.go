@@ -8,19 +8,6 @@ import (
 	"github.com/yedf/dtm/dtmcli"
 )
 
-// SagaBarrierFireRequest 1
-func SagaBarrierFireRequest() string {
-	dtmcli.Logf("a busi transaction begin")
-	req := &TransReq{Amount: 30}
-	saga := dtmcli.NewSaga(DtmServer, dtmcli.MustGenGid(DtmServer)).
-		Add(Busi+"/SagaBTransOut", Busi+"/SagaBTransOutCompensate", req).
-		Add(Busi+"/SagaBTransIn", Busi+"/SagaBTransInCompensate", req)
-	dtmcli.Logf("busi trans submit")
-	err := saga.Submit()
-	dtmcli.FatalIfError(err)
-	return saga.Gid
-}
-
 func init() {
 	setupFuncs["SagaBarrierSetup"] = func(app *gin.Engine) {
 		app.POST(BusiAPI+"/SagaBTransIn", common.WrapHandler(sagaBarrierTransIn))
@@ -29,6 +16,17 @@ func init() {
 		app.POST(BusiAPI+"/SagaBTransOutCompensate", common.WrapHandler(sagaBarrierTransOutCompensate))
 		dtmcli.Logf("examples listening at %d", BusiPort)
 	}
+	addSample("saga_barrier", func() string {
+		dtmcli.Logf("a busi transaction begin")
+		req := &TransReq{Amount: 30}
+		saga := dtmcli.NewSaga(DtmServer, dtmcli.MustGenGid(DtmServer)).
+			Add(Busi+"/SagaBTransOut", Busi+"/SagaBTransOutCompensate", req).
+			Add(Busi+"/SagaBTransIn", Busi+"/SagaBTransInCompensate", req)
+		dtmcli.Logf("busi trans submit")
+		err := saga.Submit()
+		dtmcli.FatalIfError(err)
+		return saga.Gid
+	})
 }
 
 func sagaBarrierAdjustBalance(sdb *sql.Tx, uid int, amount int) (interface{}, error) {

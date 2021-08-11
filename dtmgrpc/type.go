@@ -9,6 +9,7 @@ import (
 	grpc "google.golang.org/grpc"
 	codes "google.golang.org/grpc/codes"
 	status "google.golang.org/grpc/status"
+	"google.golang.org/protobuf/types/known/emptypb"
 )
 
 var clients = map[string]*grpc.ClientConn{}
@@ -37,6 +38,14 @@ func MustGetGrpcConn(grpcServer string) *grpc.ClientConn {
 // MustGetDtmClient 1
 func MustGetDtmClient(grpcServer string) DtmClient {
 	return NewDtmClient(MustGetGrpcConn(grpcServer))
+}
+
+// MustGenGid 1
+func MustGenGid(grpcServer string) string {
+	dc := MustGetDtmClient(grpcServer)
+	r, err := dc.NewGid(context.Background(), &emptypb.Empty{})
+	dtmcli.E2P(err)
+	return r.Gid
 }
 
 // GetServerAndMethod 将grpc的url分解为server和method

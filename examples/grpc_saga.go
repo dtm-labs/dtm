@@ -6,12 +6,12 @@ import (
 )
 
 func init() {
-	addSample("grpc_msg", func() string {
+	addSample("grpc_saga", func() string {
 		req := dtmcli.MustMarshal(&TransReq{Amount: 30})
 		gid := dtmgrpc.MustGenGid(DtmGrpcServer)
-		msg := dtmgrpc.NewMsgGrpc(DtmGrpcServer, gid).
-			Add(BusiGrpc+"/examples.Busi/TransOut", req).
-			Add(BusiGrpc+"/examples.Busi/TransIn", req)
+		msg := dtmgrpc.NewSaga(DtmGrpcServer, gid).
+			Add(BusiGrpc+"/examples.Busi/TransOut", BusiGrpc+"/examples.Busi/TransOutRevert", req).
+			Add(BusiGrpc+"/examples.Busi/TransIn", BusiGrpc+"/examples.Busi/TransOutRevert", req)
 		err := msg.Submit()
 		dtmcli.FatalIfError(err)
 		return msg.Gid
