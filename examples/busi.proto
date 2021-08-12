@@ -16,8 +16,11 @@ service Busi {
   rpc TransInConfirm(dtmgrpc.BusiRequest) returns (google.protobuf.Empty) {}
   rpc TransOutConfirm(dtmgrpc.BusiRequest) returns (google.protobuf.Empty) {}
   rpc XaNotify(dtmgrpc.BusiRequest) returns (google.protobuf.Empty) {}
-  rpc TransInXa(dtmgrpc.BusiRequest) returns (google.protobuf.Empty) {}
-  rpc TransOutXa(dtmgrpc.BusiRequest) returns (google.protobuf.Empty) {}
-  rpc TransInTccNested(dtmgrpc.BusiRequest) returns (google.protobuf.Empty) {}
+
+  rpc TransInXa(dtmgrpc.BusiRequest) returns (dtmgrpc.BusiReply) {}
+  rpc TransOutXa(dtmgrpc.BusiRequest) returns (dtmgrpc.BusiReply) {}
+  rpc TransInTcc(dtmgrpc.BusiRequest) returns (dtmgrpc.BusiReply) {}
+  rpc TransOutTcc(dtmgrpc.BusiRequest) returns (dtmgrpc.BusiReply) {}
+  rpc TransInTccNested(dtmgrpc.BusiRequest) returns (dtmgrpc.BusiReply) {}
 }
 

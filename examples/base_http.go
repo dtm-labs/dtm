@@ -16,7 +16,7 @@ const (
 	// BusiPort busi server port
 	BusiPort = 8081
 	// BusiGrpcPort busi server port
-	BusiGrpcPort = 60081
+	BusiGrpcPort = 58081
 )
 
 type setupFunc func(*gin.Engine)

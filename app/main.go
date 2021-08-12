@@ -40,8 +40,8 @@ func main() {
 	}
 
 	// 下面是各类的例子
-	examples.BaseAppStartup()
 	examples.GrpcStartup()
+	examples.BaseAppStartup()
 
 	fn := examples.Samples[os.Args[1]]
 	dtmcli.LogIfFatalf(fn == nil, "no sample name for %s", os.Args[1])

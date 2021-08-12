@@ -14,7 +14,7 @@ import (
 )
 
 var dtmsvrPort = 8080
-var dtmsvrGrpcPort = 50081
+var dtmsvrGrpcPort = 58080
 
 // StartSvr StartSvr
 func StartSvr() {

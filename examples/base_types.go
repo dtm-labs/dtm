@@ -16,7 +16,7 @@ type M = map[string]interface{}
 const DtmServer = "http://localhost:8080/api/dtmsvr"
 
 // DtmGrpcServer dtm grpc service address
-const DtmGrpcServer = "localhost:50081"
+const DtmGrpcServer = "localhost:58080"
 
 // TransReq transaction request payload
 type TransReq struct {

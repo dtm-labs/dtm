@@ -18,7 +18,6 @@ func init() {
 		app.POST(BusiAPI+"/TccBTransOutTry", common.WrapHandler(tccBarrierTransOutTry))
 		app.POST(BusiAPI+"/TccBTransOutConfirm", common.WrapHandler(tccBarrierTransOutConfirm))
 		app.POST(BusiAPI+"/TccBTransOutCancel", common.WrapHandler(TccBarrierTransOutCancel))
-		dtmcli.Logf("examples listening at %d", BusiPort)
 	}
 	addSample("tcc_barrier", func() string {
 		dtmcli.Logf("tcc transaction begin")

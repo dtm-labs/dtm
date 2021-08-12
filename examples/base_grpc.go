@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"fmt"
 	"net"
+	"time"
 
 	"github.com/yedf/dtm/dtmcli"
 	dtmgrpc "github.com/yedf/dtm/dtmgrpc"
@@ -36,6 +37,7 @@ func GrpcStartup() {
 		err := s.Serve(lis)
 		dtmcli.FatalIfError(err)
 	}()
+	time.Sleep(100 * time.Millisecond)
 }
 
 func handleGrpcBusiness(in *dtmgrpc.BusiRequest, result1 string, result2 string, busi string) error {
@@ -47,7 +49,6 @@ func handleGrpcBusiness(in *dtmgrpc.BusiRequest, result1 string, result2 string,
 		return status.New(codes.Aborted, "user want to rollback").Err()
 	}
 	return status.New(codes.Internal, fmt.Sprintf("unknow result %s", res)).Err()
-
 }
 
 // busiServer is used to implement helloworld.GreeterServer.
@@ -96,10 +97,22 @@ func (s *busiServer) TransOutConfirm(ctx context.Context, in *dtmgrpc.BusiReques
 	return &emptypb.Empty{}, handleGrpcBusiness(in, MainSwitch.TransOutConfirmResult.Fetch(), "", dtmcli.GetFuncName())
 }
 
-func (s *busiServer) TransInXa(ctx context.Context, in *dtmgrpc.BusiRequest) (*emptypb.Empty, error) {
+func (s *busiServer) TransInTcc(ctx context.Context, in *dtmgrpc.BusiRequest) (*dtmgrpc.BusiReply, error) {
 	req := TransReq{}
 	dtmcli.MustUnmarshal(in.BusiData, &req)
-	return &emptypb.Empty{}, XaGrpcClient.XaLocalTransaction(in, func(db *sql.DB, xa *dtmgrpc.XaGrpc) error {
+	return &dtmgrpc.BusiReply{BusiData: []byte("reply")}, handleGrpcBusiness(in, MainSwitch.TransInResult.Fetch(), req.TransInResult, dtmcli.GetFuncName())
+}
+
+func (s *busiServer) TransOutTcc(ctx context.Context, in *dtmgrpc.BusiRequest) (*dtmgrpc.BusiReply, error) {
+	req := TransReq{}
+	dtmcli.MustUnmarshal(in.BusiData, &req)
+	return &dtmgrpc.BusiReply{BusiData: []byte("reply")}, handleGrpcBusiness(in, MainSwitch.TransOutResult.Fetch(), req.TransOutResult, dtmcli.GetFuncName())
+}
+
+func (s *busiServer) TransInXa(ctx context.Context, in *dtmgrpc.BusiRequest) (*dtmgrpc.BusiReply, error) {
+	req := TransReq{}
+	dtmcli.MustUnmarshal(in.BusiData, &req)
+	return &dtmgrpc.BusiReply{BusiData: []byte("reply")}, XaGrpcClient.XaLocalTransaction(in, func(db *sql.DB, xa *dtmgrpc.XaGrpc) error {
 		if req.TransInResult == "FAILURE" {
 			return status.New(codes.Aborted, "user return failure").Err()
 		}
@@ -108,10 +121,10 @@ func (s *busiServer) TransInXa(ctx context.Context, in *dtmgrpc.BusiRequest) (*e
 	})
 }
 
-func (s *busiServer) TransOutXa(ctx context.Context, in *dtmgrpc.BusiRequest) (*emptypb.Empty, error) {
+func (s *busiServer) TransOutXa(ctx context.Context, in *dtmgrpc.BusiRequest) (*dtmgrpc.BusiReply, error) {
 	req := TransReq{}
 	dtmcli.MustUnmarshal(in.BusiData, &req)
-	return &emptypb.Empty{}, XaGrpcClient.XaLocalTransaction(in, func(db *sql.DB, xa *dtmgrpc.XaGrpc) error {
+	return &dtmgrpc.BusiReply{BusiData: []byte("reply")}, XaGrpcClient.XaLocalTransaction(in, func(db *sql.DB, xa *dtmgrpc.XaGrpc) error {
 		if req.TransOutResult == "FAILURE" {
 			return status.New(codes.Aborted, "user return failure").Err()
 		}
@@ -120,12 +133,12 @@ func (s *busiServer) TransOutXa(ctx context.Context, in *dtmgrpc.BusiRequest) (*
 	})
 }
 
-func (s *busiServer) TransInTccNested(ctx context.Context, in *dtmgrpc.BusiRequest) (*emptypb.Empty, error) {
+func (s *busiServer) TransInTccNested(ctx context.Context, in *dtmgrpc.BusiRequest) (*dtmgrpc.BusiReply, error) {
 	req := TransReq{}
 	dtmcli.MustUnmarshal(in.BusiData, &req)
 	tcc, err := dtmgrpc.TccFromRequest(in)
 	dtmcli.FatalIfError(err)
 	_, err = tcc.CallBranch(dtmcli.MustMarshal(req), BusiGrpc+"/examples.Busi/TransIn", BusiGrpc+"/examples.Busi/TransInConfirm", BusiGrpc+"/examples.Busi/TransInRevert")
 	dtmcli.FatalIfError(err)
-	return &emptypb.Empty{}, handleGrpcBusiness(in, MainSwitch.TransInResult.Fetch(), req.TransInResult, dtmcli.GetFuncName())
+	return &dtmgrpc.BusiReply{BusiData: []byte("reply")}, handleGrpcBusiness(in, MainSwitch.TransInResult.Fetch(), req.TransInResult, dtmcli.GetFuncName())
 }

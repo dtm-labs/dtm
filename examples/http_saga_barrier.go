@@ -14,7 +14,6 @@ func init() {
 		app.POST(BusiAPI+"/SagaBTransInCompensate", common.WrapHandler(sagaBarrierTransInCompensate))
 		app.POST(BusiAPI+"/SagaBTransOut", common.WrapHandler(sagaBarrierTransOut))
 		app.POST(BusiAPI+"/SagaBTransOutCompensate", common.WrapHandler(sagaBarrierTransOutCompensate))
-		dtmcli.Logf("examples listening at %d", BusiPort)
 	}
 	addSample("saga_barrier", func() string {
 		dtmcli.Logf("a busi transaction begin")
