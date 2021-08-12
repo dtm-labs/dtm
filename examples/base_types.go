@@ -7,6 +7,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/yedf/dtm/common"
 	"github.com/yedf/dtm/dtmcli"
+	"github.com/yedf/dtm/dtmgrpc"
 )
 
 // M alias
@@ -70,9 +71,16 @@ func sdbGet() *sql.DB {
 	return db
 }
 
-// MustGetTrans construct transaction info from request
-func MustGetTrans(c *gin.Context) *dtmcli.BranchBarrier {
+// MustBarrierFromGin 1
+func MustBarrierFromGin(c *gin.Context) *dtmcli.BranchBarrier {
 	ti, err := dtmcli.BarrierFromQuery(c.Request.URL.Query())
+	dtmcli.FatalIfError(err)
+	return ti
+}
+
+// MustBarrierFromGrpc 1
+func MustBarrierFromGrpc(in *dtmgrpc.BusiRequest) *dtmcli.BranchBarrier {
+	ti, err := dtmcli.BarrierFrom(in.Info.TransType, in.Info.Gid, in.Info.BranchID, in.Info.BranchType)
 	dtmcli.FatalIfError(err)
 	return ti
 }

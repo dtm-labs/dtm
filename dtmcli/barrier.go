@@ -26,11 +26,16 @@ func (bb *BranchBarrier) String() string {
 
 // BarrierFromQuery construct transaction info from request
 func BarrierFromQuery(qs url.Values) (*BranchBarrier, error) {
+	return BarrierFrom(qs.Get("trans_type"), qs.Get("gid"), qs.Get("branch_id"), qs.Get("branch_type"))
+}
+
+// BarrierFrom construct transaction info from request
+func BarrierFrom(transType, gid, branchID, branchType string) (*BranchBarrier, error) {
 	ti := &BranchBarrier{
-		TransType:  qs.Get("trans_type"),
-		Gid:        qs.Get("gid"),
-		BranchID:   qs.Get("branch_id"),
-		BranchType: qs.Get("branch_type"),
+		TransType:  transType,
+		Gid:        gid,
+		BranchID:   branchID,
+		BranchType: branchType,
 	}
 	if ti.TransType == "" || ti.Gid == "" || ti.BranchID == "" || ti.BranchType == "" {
 		return nil, fmt.Errorf("invlid trans info: %v", ti)

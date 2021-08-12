@@ -33,6 +33,10 @@ type BusiClient interface {
 	TransInTcc(ctx context.Context, in *dtmgrpc.BusiRequest, opts ...grpc.CallOption) (*dtmgrpc.BusiReply, error)
 	TransOutTcc(ctx context.Context, in *dtmgrpc.BusiRequest, opts ...grpc.CallOption) (*dtmgrpc.BusiReply, error)
 	TransInTccNested(ctx context.Context, in *dtmgrpc.BusiRequest, opts ...grpc.CallOption) (*dtmgrpc.BusiReply, error)
+	TransInBSaga(ctx context.Context, in *dtmgrpc.BusiRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
+	TransOutBSaga(ctx context.Context, in *dtmgrpc.BusiRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
+	TransInRevertBSaga(ctx context.Context, in *dtmgrpc.BusiRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
+	TransOutRevertBSaga(ctx context.Context, in *dtmgrpc.BusiRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
 }
 
 type busiClient struct {
@@ -160,6 +164,42 @@ func (c *busiClient) TransInTccNested(ctx context.Context, in *dtmgrpc.BusiReque
 	return out, nil
 }
 
+func (c *busiClient) TransInBSaga(ctx context.Context, in *dtmgrpc.BusiRequest, opts ...grpc.CallOption) (*emptypb.Empty, error) {
+	out := new(emptypb.Empty)
+	err := c.cc.Invoke(ctx, "/examples.Busi/TransInBSaga", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *busiClient) TransOutBSaga(ctx context.Context, in *dtmgrpc.BusiRequest, opts ...grpc.CallOption) (*emptypb.Empty, error) {
+	out := new(emptypb.Empty)
+	err := c.cc.Invoke(ctx, "/examples.Busi/TransOutBSaga", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *busiClient) TransInRevertBSaga(ctx context.Context, in *dtmgrpc.BusiRequest, opts ...grpc.CallOption) (*emptypb.Empty, error) {
+	out := new(emptypb.Empty)
+	err := c.cc.Invoke(ctx, "/examples.Busi/TransInRevertBSaga", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *busiClient) TransOutRevertBSaga(ctx context.Context, in *dtmgrpc.BusiRequest, opts ...grpc.CallOption) (*emptypb.Empty, error) {
+	out := new(emptypb.Empty)
+	err := c.cc.Invoke(ctx, "/examples.Busi/TransOutRevertBSaga", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // BusiServer is the server API for Busi service.
 // All implementations must embed UnimplementedBusiServer
 // for forward compatibility
@@ -177,6 +217,10 @@ type BusiServer interface {
 	TransInTcc(context.Context, *dtmgrpc.BusiRequest) (*dtmgrpc.BusiReply, error)
 	TransOutTcc(context.Context, *dtmgrpc.BusiRequest) (*dtmgrpc.BusiReply, error)
 	TransInTccNested(context.Context, *dtmgrpc.BusiRequest) (*dtmgrpc.BusiReply, error)
+	TransInBSaga(context.Context, *dtmgrpc.BusiRequest) (*emptypb.Empty, error)
+	TransOutBSaga(context.Context, *dtmgrpc.BusiRequest) (*emptypb.Empty, error)
+	TransInRevertBSaga(context.Context, *dtmgrpc.BusiRequest) (*emptypb.Empty, error)
+	TransOutRevertBSaga(context.Context, *dtmgrpc.BusiRequest) (*emptypb.Empty, error)
 	mustEmbedUnimplementedBusiServer()
 }
 
@@ -222,6 +266,18 @@ func (UnimplementedBusiServer) TransOutTcc(context.Context, *dtmgrpc.BusiRequest
 }
 func (UnimplementedBusiServer) TransInTccNested(context.Context, *dtmgrpc.BusiRequest) (*dtmgrpc.BusiReply, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method TransInTccNested not implemented")
+}
+func (UnimplementedBusiServer) TransInBSaga(context.Context, *dtmgrpc.BusiRequest) (*emptypb.Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method TransInBSaga not implemented")
+}
+func (UnimplementedBusiServer) TransOutBSaga(context.Context, *dtmgrpc.BusiRequest) (*emptypb.Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method TransOutBSaga not implemented")
+}
+func (UnimplementedBusiServer) TransInRevertBSaga(context.Context, *dtmgrpc.BusiRequest) (*emptypb.Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method TransInRevertBSaga not implemented")
+}
+func (UnimplementedBusiServer) TransOutRevertBSaga(context.Context, *dtmgrpc.BusiRequest) (*emptypb.Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method TransOutRevertBSaga not implemented")
 }
 func (UnimplementedBusiServer) mustEmbedUnimplementedBusiServer() {}
 
@@ -470,6 +526,78 @@ func _Busi_TransInTccNested_Handler(srv interface{}, ctx context.Context, dec fu
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Busi_TransInBSaga_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(dtmgrpc.BusiRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BusiServer).TransInBSaga(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/examples.Busi/TransInBSaga",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BusiServer).TransInBSaga(ctx, req.(*dtmgrpc.BusiRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Busi_TransOutBSaga_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(dtmgrpc.BusiRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BusiServer).TransOutBSaga(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/examples.Busi/TransOutBSaga",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BusiServer).TransOutBSaga(ctx, req.(*dtmgrpc.BusiRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Busi_TransInRevertBSaga_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(dtmgrpc.BusiRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BusiServer).TransInRevertBSaga(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/examples.Busi/TransInRevertBSaga",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BusiServer).TransInRevertBSaga(ctx, req.(*dtmgrpc.BusiRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Busi_TransOutRevertBSaga_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(dtmgrpc.BusiRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BusiServer).TransOutRevertBSaga(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/examples.Busi/TransOutRevertBSaga",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BusiServer).TransOutRevertBSaga(ctx, req.(*dtmgrpc.BusiRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // Busi_ServiceDesc is the grpc.ServiceDesc for Busi service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -528,6 +656,22 @@ var Busi_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "TransInTccNested",
 			Handler:    _Busi_TransInTccNested_Handler,
+		},
+		{
+			MethodName: "TransInBSaga",
+			Handler:    _Busi_TransInBSaga_Handler,
+		},
+		{
+			MethodName: "TransOutBSaga",
+			Handler:    _Busi_TransOutBSaga_Handler,
+		},
+		{
+			MethodName: "TransInRevertBSaga",
+			Handler:    _Busi_TransInRevertBSaga_Handler,
+		},
+		{
+			MethodName: "TransOutRevertBSaga",
+			Handler:    _Busi_TransOutRevertBSaga_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

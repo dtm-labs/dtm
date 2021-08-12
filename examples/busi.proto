@@ -22,5 +22,10 @@ service Busi {
   rpc TransInTcc(dtmgrpc.BusiRequest) returns (dtmgrpc.BusiReply) {}
   rpc TransOutTcc(dtmgrpc.BusiRequest) returns (dtmgrpc.BusiReply) {}
   rpc TransInTccNested(dtmgrpc.BusiRequest) returns (dtmgrpc.BusiReply) {}
+
+  rpc TransInBSaga(dtmgrpc.BusiRequest) returns (google.protobuf.Empty) {}
+  rpc TransOutBSaga(dtmgrpc.BusiRequest) returns (google.protobuf.Empty) {}
+  rpc TransInRevertBSaga(dtmgrpc.BusiRequest) returns (google.protobuf.Empty) {}
+  rpc TransOutRevertBSaga(dtmgrpc.BusiRequest) returns (google.protobuf.Empty) {}
 }
 

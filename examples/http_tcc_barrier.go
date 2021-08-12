@@ -62,21 +62,21 @@ func tccBarrierTransInTry(c *gin.Context) (interface{}, error) {
 	if req.TransInResult != "" {
 		return req.TransInResult, nil
 	}
-	barrier := MustGetTrans(c)
+	barrier := MustBarrierFromGin(c)
 	return barrier.Call(sdbGet(), func(sdb *sql.Tx) (interface{}, error) {
 		return adjustTrading(sdb, transInUID, req.Amount)
 	})
 }
 
 func tccBarrierTransInConfirm(c *gin.Context) (interface{}, error) {
-	barrier := MustGetTrans(c)
+	barrier := MustBarrierFromGin(c)
 	return barrier.Call(sdbGet(), func(sdb *sql.Tx) (interface{}, error) {
 		return adjustBalance(sdb, transInUID, reqFrom(c).Amount)
 	})
 }
 
 func tccBarrierTransInCancel(c *gin.Context) (interface{}, error) {
-	barrier := MustGetTrans(c)
+	barrier := MustBarrierFromGin(c)
 	return barrier.Call(sdbGet(), func(sdb *sql.Tx) (interface{}, error) {
 		return adjustTrading(sdb, transInUID, -reqFrom(c).Amount)
 	})
@@ -87,14 +87,14 @@ func tccBarrierTransOutTry(c *gin.Context) (interface{}, error) {
 	if req.TransInResult != "" {
 		return req.TransInResult, nil
 	}
-	barrier := MustGetTrans(c)
+	barrier := MustBarrierFromGin(c)
 	return barrier.Call(sdbGet(), func(sdb *sql.Tx) (interface{}, error) {
 		return adjustTrading(sdb, transOutUID, -req.Amount)
 	})
 }
 
 func tccBarrierTransOutConfirm(c *gin.Context) (interface{}, error) {
-	barrier := MustGetTrans(c)
+	barrier := MustBarrierFromGin(c)
 	return barrier.Call(sdbGet(), func(sdb *sql.Tx) (interface{}, error) {
 		return adjustBalance(sdb, transOutUID, -reqFrom(c).Amount)
 	})
@@ -102,7 +102,7 @@ func tccBarrierTransOutConfirm(c *gin.Context) (interface{}, error) {
 
 // TccBarrierTransOutCancel will be use in test
 func TccBarrierTransOutCancel(c *gin.Context) (interface{}, error) {
-	barrier := MustGetTrans(c)
+	barrier := MustBarrierFromGin(c)
 	return barrier.Call(sdbGet(), func(sdb *sql.Tx) (interface{}, error) {
 		return adjustTrading(sdb, transOutUID, reqFrom(c).Amount)
 	})
