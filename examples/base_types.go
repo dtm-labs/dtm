@@ -79,8 +79,8 @@ func MustBarrierFromGin(c *gin.Context) *dtmcli.BranchBarrier {
 }
 
 // MustBarrierFromGrpc 1
-func MustBarrierFromGrpc(in *dtmgrpc.BusiRequest) *dtmcli.BranchBarrier {
-	ti, err := dtmcli.BarrierFrom(in.Info.TransType, in.Info.Gid, in.Info.BranchID, in.Info.BranchType)
+func MustBarrierFromGrpc(in *dtmgrpc.BusiRequest) *dtmgrpc.BranchBarrier {
+	ti, err := dtmgrpc.BarrierFromGrpc(in)
 	dtmcli.FatalIfError(err)
 	return ti
 }

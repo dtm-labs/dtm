@@ -27,3 +27,11 @@ func (bb *BranchBarrier) Call(db *sql.DB, busiCall dtmcli.BusiFunc) (rerr error)
 	}
 	return err
 }
+
+// BarrierFromGrpc 从BusiRequest生成一个Barrier
+func BarrierFromGrpc(in *BusiRequest) (*BranchBarrier, error) {
+	b, err := dtmcli.BarrierFrom(in.Info.TransType, in.Info.Gid, in.Info.BranchID, in.Info.BranchType)
+	return &BranchBarrier{
+		BranchBarrier: b,
+	}, err
+}
