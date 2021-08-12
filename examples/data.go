@@ -37,12 +37,16 @@ func PopulateDB(skipDrop bool) {
 	RunSQLScript(config.DB, file, skipDrop)
 }
 
+type sampleInfo struct {
+	Arg    string
+	Action func() string
+	Desc   string
+}
+
 // Samples 所有的示例都会注册到这里
-var Samples = map[string]func() string{}
+var Samples = map[string]*sampleInfo{}
 
 func addSample(name string, fn func() string) {
-	if Samples[name] != nil {
-		dtmcli.LogFatalf("sample %s duplicated", name)
-	}
-	Samples[name] = fn
+	dtmcli.LogIfFatalf(Samples[name] != nil, "%s already exists")
+	Samples[name] = &sampleInfo{Arg: name, Action: fn}
 }

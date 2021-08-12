@@ -9,7 +9,7 @@ import (
 func TestExamples(t *testing.T) {
 	// for coverage
 	examples.QsStartSvr()
-	for _, fn := range examples.Samples {
-		assertSucceed(t, fn())
+	for _, s := range examples.Samples {
+		assertSucceed(t, s.Action())
 	}
 }

@@ -131,6 +131,9 @@ type dtmConfigType struct {
 var DtmConfig = dtmConfigType{}
 
 func init() {
+	if len(os.Args) == 1 {
+		return
+	}
 	DtmConfig.TransCronInterval = int64(dtmcli.MustAtoi(dtmcli.OrString(os.Getenv("TRANS_CRON_INTERVAL"), "10")))
 	DtmConfig.DB = map[string]string{
 		"driver":   dtmcli.OrString(os.Getenv("DB_DRIVER"), "mysql"),
