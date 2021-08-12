@@ -11,9 +11,9 @@ import (
 )
 
 func TestGrpcTcc(t *testing.T) {
-	// tccGrpcType(t)
-	// tccGrpcNormal(t)
-	// tccGrpcNested(t)
+	tccGrpcType(t)
+	tccGrpcNormal(t)
+	tccGrpcNested(t)
 	tccGrpcRollback(t)
 }
 

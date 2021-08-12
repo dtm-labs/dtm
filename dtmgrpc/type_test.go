@@ -9,4 +9,7 @@ import (
 func TestType(t *testing.T) {
 	_, err := BarrierFromGrpc(&BusiRequest{Info: &BranchInfo{}})
 	assert.Error(t, err)
+
+	_, err = TccFromRequest(&BusiRequest{Info: &BranchInfo{}})
+	assert.Error(t, err)
 }
