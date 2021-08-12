@@ -28,9 +28,9 @@ func init() {
 	})
 }
 
-func sagaBarrierAdjustBalance(sdb *sql.Tx, uid int, amount int) (interface{}, error) {
+func sagaBarrierAdjustBalance(sdb *sql.Tx, uid int, amount int) error {
 	_, err := dtmcli.StxExec(sdb, "update dtm_busi.user_account set balance = balance + ? where user_id = ?", amount, uid)
-	return dtmcli.ResultSuccess, err
+	return err
 
 }
 
@@ -40,14 +40,14 @@ func sagaBarrierTransIn(c *gin.Context) (interface{}, error) {
 		return req.TransInResult, nil
 	}
 	barrier := MustBarrierFromGin(c)
-	return barrier.Call(sdbGet(), func(sdb *sql.Tx) (interface{}, error) {
+	return dtmcli.ResultSuccess, barrier.Call(sdbGet(), func(sdb *sql.Tx) error {
 		return sagaBarrierAdjustBalance(sdb, 1, req.Amount)
 	})
 }
 
 func sagaBarrierTransInCompensate(c *gin.Context) (interface{}, error) {
 	barrier := MustBarrierFromGin(c)
-	return barrier.Call(sdbGet(), func(sdb *sql.Tx) (interface{}, error) {
+	return dtmcli.ResultSuccess, barrier.Call(sdbGet(), func(sdb *sql.Tx) error {
 		return sagaBarrierAdjustBalance(sdb, 1, -reqFrom(c).Amount)
 	})
 }
@@ -58,14 +58,14 @@ func sagaBarrierTransOut(c *gin.Context) (interface{}, error) {
 		return req.TransInResult, nil
 	}
 	barrier := MustBarrierFromGin(c)
-	return barrier.Call(sdbGet(), func(sdb *sql.Tx) (interface{}, error) {
+	return dtmcli.ResultSuccess, barrier.Call(sdbGet(), func(sdb *sql.Tx) error {
 		return sagaBarrierAdjustBalance(sdb, 2, -req.Amount)
 	})
 }
 
 func sagaBarrierTransOutCompensate(c *gin.Context) (interface{}, error) {
 	barrier := MustBarrierFromGin(c)
-	return barrier.Call(sdbGet(), func(sdb *sql.Tx) (interface{}, error) {
+	return dtmcli.ResultSuccess, barrier.Call(sdbGet(), func(sdb *sql.Tx) error {
 		return sagaBarrierAdjustBalance(sdb, 2, reqFrom(c).Amount)
 	})
 }

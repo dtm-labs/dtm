@@ -3,13 +3,12 @@ package dtmcli
 import (
 	"context"
 	"database/sql"
-	"encoding/json"
 	"fmt"
 	"net/url"
 )
 
 // BusiFunc type for busi func
-type BusiFunc func(db *sql.Tx) (interface{}, error)
+type BusiFunc func(db *sql.Tx) error
 
 // BranchBarrier every branch info
 type BranchBarrier struct {
@@ -55,11 +54,9 @@ func insertBarrier(tx *sql.Tx, transType string, gid string, branchID string, br
 // transInfo: 事务信息
 // bisiCall: 业务函数，仅在必要时被调用
 // 返回值:
-// 如果正常调用，返回bisiCall的结果
-// 如果发生重复调用，则busiCall不会被重复调用，直接对保存在数据库中上一次的结果，进行unmarshal，通常是一个map[string]interface{}，直接作为http的resp
-// 如果发生悬挂，则busiCall不会被调用，直接返回错误 {"dtm_result": "FAILURE"}
-// 如果发生空补偿，则busiCall不会被调用，直接返回 {"dtm_result": "SUCCESS"}
-func (bb *BranchBarrier) Call(db *sql.DB, busiCall BusiFunc) (res interface{}, rerr error) {
+// 如果发生悬挂，则busiCall不会被调用，直接返回错误 ErrFailure，全局事务尽早进行回滚
+// 如果正常调用，重复调用，空补偿，返回的错误值为nil，正常往下进行
+func (bb *BranchBarrier) Call(db *sql.DB, busiCall BusiFunc) (rerr error) {
 	bb.BarrierID = bb.BarrierID + 1
 	bid := fmt.Sprintf("%02d", bb.BarrierID)
 	tx, rerr := db.BeginTx(context.Background(), &sql.TxOptions{})
@@ -67,7 +64,7 @@ func (bb *BranchBarrier) Call(db *sql.DB, busiCall BusiFunc) (res interface{}, r
 		return
 	}
 	defer func() {
-		Logf("result is %v error is %v", res, rerr)
+		Logf("barrier call error is %v", rerr)
 		if x := recover(); x != nil {
 			tx.Rollback()
 			panic(x)
@@ -86,33 +83,18 @@ func (bb *BranchBarrier) Call(db *sql.DB, busiCall BusiFunc) (res interface{}, r
 	currentAffected, rerr := insertBarrier(tx, ti.TransType, ti.Gid, ti.BranchID, ti.BranchType, bid, ti.BranchType)
 	Logf("originAffected: %d currentAffected: %d", originAffected, currentAffected)
 	if (ti.BranchType == "cancel" || ti.BranchType == "compensate") && originAffected > 0 { // 这个是空补偿，返回成功
-		res = ResultSuccess
 		return
 	} else if currentAffected == 0 { // 插入不成功
 		var result sql.NullString
-		err := StxQueryRow(tx, "select result from dtm_barrier.barrier where trans_type=? and gid=? and branch_id=? and branch_type=? and barrier_id=? and reason=?",
+		err := StxQueryRow(tx, "select 1 from dtm_barrier.barrier where trans_type=? and gid=? and branch_id=? and branch_type=? and barrier_id=? and reason=?",
 			ti.TransType, ti.Gid, ti.BranchID, ti.BranchType, bid, ti.BranchType).Scan(&result)
-		if err == sql.ErrNoRows { // 这个是悬挂操作，返回失败，AP收到这个返回，会尽快回滚
-			res = ResultFailure
+		if err == sql.ErrNoRows { // 不是当前分支插入的，那么是cancel插入的，因此是悬挂操作，返回失败，AP收到这个返回，会尽快回滚
+			rerr = ErrFailure
 			return
 		}
-		if err != nil {
-			rerr = err
-			return
-		}
-		if result.Valid { // 数据库里有上一次结果，返回上一次的结果
-			rerr = json.Unmarshal([]byte(result.String), &res)
-			return
-		}
-		// 数据库里没有上次的结果，属于重复空补偿，直接返回成功
-		res = ResultSuccess
+		rerr = err //幂等和空补偿，直接返回
 		return
 	}
-	res, rerr = busiCall(tx)
-	if rerr == nil { // 正确返回了，需要将结果保存到数据库
-		sval := MustMarshalString(res)
-		_, rerr = StxExec(tx, "update dtm_barrier.barrier set result=? where trans_type=? and gid=? and branch_id=? and branch_type=?", sval,
-			ti.TransType, ti.Gid, ti.BranchID, ti.BranchType)
-	}
+	rerr = busiCall(tx)
 	return
 }
