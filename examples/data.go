@@ -47,6 +47,6 @@ type sampleInfo struct {
 var Samples = map[string]*sampleInfo{}
 
 func addSample(name string, fn func() string) {
-	dtmcli.LogIfFatalf(Samples[name] != nil, "%s already exists")
+	dtmcli.LogIfFatalf(Samples[name] != nil, "%s already exists", name)
 	Samples[name] = &sampleInfo{Arg: name, Action: fn}
 }
