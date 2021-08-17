@@ -4,6 +4,7 @@ import (
 	context "context"
 	"fmt"
 	"strings"
+	sync "sync"
 
 	"github.com/yedf/dtm/dtmcli"
 	grpc "google.golang.org/grpc"
@@ -12,20 +13,21 @@ import (
 	"google.golang.org/protobuf/types/known/emptypb"
 )
 
-var clients = map[string]*grpc.ClientConn{}
+var clients sync.Map
 
 // GetGrpcConn 1
 func GetGrpcConn(grpcServer string) (conn *grpc.ClientConn, rerr error) {
-	if clients[grpcServer] == nil {
+	v, ok := clients.Load(grpcServer)
+	if !ok {
 		dtmcli.Logf("grpc client connecting %s", grpcServer)
-		conn, err := grpc.Dial(grpcServer, grpc.WithInsecure(), grpc.WithUnaryInterceptor(GrpcClientLog))
-		if err == nil {
-			clients[grpcServer] = conn
+		conn, rerr := grpc.Dial(grpcServer, grpc.WithInsecure(), grpc.WithUnaryInterceptor(GrpcClientLog))
+		if rerr == nil {
+			clients.Store(grpcServer, conn)
+			v = conn
 			dtmcli.Logf("grpc client inited for %s", grpcServer)
 		}
 	}
-	conn = clients[grpcServer]
-	return
+	return v.(*grpc.ClientConn), rerr
 }
 
 // MustGetGrpcConn 1

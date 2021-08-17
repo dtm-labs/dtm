@@ -11,9 +11,7 @@ func init() {
 		gid := dtmgrpc.MustGenGid(DtmGrpcServer)
 		err := dtmgrpc.TccGlobalTransaction(DtmGrpcServer, gid, func(tcc *dtmgrpc.TccGrpc) error {
 			data := dtmcli.MustMarshal(&TransReq{Amount: 30})
-			r, err := tcc.CallBranch(data, BusiGrpc+"/examples.Busi/TransOutTcc", BusiGrpc+"/examples.Busi/TransOutConfirm", BusiGrpc+"/examples.Busi/TransOutRevert")
-			dtmcli.LogRedf("callbranch return %v", r)
-			dtmcli.LogRedf("callbranch return data %s", string(r.BusiData))
+			_, err := tcc.CallBranch(data, BusiGrpc+"/examples.Busi/TransOutTcc", BusiGrpc+"/examples.Busi/TransOutConfirm", BusiGrpc+"/examples.Busi/TransOutRevert")
 			if err != nil {
 				return err
 			}
