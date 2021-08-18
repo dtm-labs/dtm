@@ -206,7 +206,7 @@ func (t *TransGlobal) execBranch(db *common.DB, branch *TransBranch) {
 		t.touch(db, config.TransCronInterval)
 		branch.changeStatus(db, "failed")
 	} else {
-		panic(fmt.Errorf("http result should contains SUCCESS|FAILURE. grpc error should return nil|Aborted.\nunkown result will be retried: %s", body))
+		panic(fmt.Errorf("http result should contains SUCCESS|FAILURE. grpc error should return nil|Aborted. \nrefer to: https://dtm.pub/summary/arch.html#http\nunkown result will be retried: %s", body))
 	}
 }
 
