@@ -52,7 +52,7 @@ func main() {
 	if os.Args[1] == "quick_start" || os.Args[1] == "qs" {
 		examples.QsStartSvr()
 		examples.QsFireRequest()
-	} else if os.Args[1] == "dev" {
+	} else if os.Args[1] == "dev" || os.Args[1] == "dtmsvr" {
 	} else {
 		// 下面是各类的例子
 		examples.GrpcStartup()
