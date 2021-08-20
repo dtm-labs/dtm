@@ -116,7 +116,7 @@ func (s *busiServer) TransInXa(ctx context.Context, in *dtmgrpc.BusiRequest) (*d
 		if req.TransInResult == "FAILURE" {
 			return status.New(codes.Aborted, "user return failure").Err()
 		}
-		_, err := dtmcli.SdbExec(db, "update dtm_busi.user_account set balance=balance+? where user_id=?", req.Amount, 2)
+		_, err := dtmcli.DBExec(db, "update dtm_busi.user_account set balance=balance+? where user_id=?", req.Amount, 2)
 		return err
 	})
 }
@@ -128,7 +128,7 @@ func (s *busiServer) TransOutXa(ctx context.Context, in *dtmgrpc.BusiRequest) (*
 		if req.TransOutResult == "FAILURE" {
 			return status.New(codes.Aborted, "user return failure").Err()
 		}
-		_, err := dtmcli.SdbExec(db, "update dtm_busi.user_account set balance=balance-? where user_id=?", req.Amount, 1)
+		_, err := dtmcli.DBExec(db, "update dtm_busi.user_account set balance=balance-? where user_id=?", req.Amount, 1)
 		return err
 	})
 }

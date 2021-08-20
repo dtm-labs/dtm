@@ -8,6 +8,8 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/yedf/dtm/common"
 	"github.com/yedf/dtm/dtmcli"
+	"gorm.io/driver/mysql"
+	"gorm.io/gorm"
 )
 
 const (
@@ -108,7 +110,7 @@ func BaseAddRoute(app *gin.Engine) {
 			if reqFrom(c).TransInResult == "FAILURE" {
 				return dtmcli.ResultFailure, nil
 			}
-			_, err := dtmcli.SdbExec(db, "update dtm_busi.user_account set balance=balance+? where user_id=?", reqFrom(c).Amount, 2)
+			_, err := dtmcli.DBExec(db, "update dtm_busi.user_account set balance=balance+? where user_id=?", reqFrom(c).Amount, 2)
 			return dtmcli.ResultSuccess, err
 		})
 	}))
@@ -117,8 +119,24 @@ func BaseAddRoute(app *gin.Engine) {
 			if reqFrom(c).TransOutResult == "FAILURE" {
 				return dtmcli.ResultFailure, nil
 			}
-			_, err := dtmcli.SdbExec(db, "update dtm_busi.user_account set balance=balance-? where user_id=?", reqFrom(c).Amount, 1)
+			_, err := dtmcli.DBExec(db, "update dtm_busi.user_account set balance=balance-? where user_id=?", reqFrom(c).Amount, 1)
 			return dtmcli.ResultSuccess, err
+		})
+	}))
+
+	app.POST(BusiAPI+"/TransOutXaGorm", common.WrapHandler(func(c *gin.Context) (interface{}, error) {
+		return XaClient.XaLocalTransaction(c.Request.URL.Query(), func(db *sql.DB, xa *dtmcli.Xa) (interface{}, error) {
+			if reqFrom(c).TransOutResult == "FAILURE" {
+				return dtmcli.ResultFailure, nil
+			}
+			gdb, err := gorm.Open(mysql.New(mysql.Config{
+				Conn: db,
+			}), &gorm.Config{})
+			if err != nil {
+				return nil, err
+			}
+			dbr := gdb.Exec("update dtm_busi.user_account set balance=balance-? where user_id=?", reqFrom(c).Amount, 1)
+			return dtmcli.ResultSuccess, dbr.Error
 		})
 	}))
 

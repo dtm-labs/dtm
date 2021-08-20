@@ -1,8 +1,6 @@
 package examples
 
 import (
-	"database/sql"
-
 	"github.com/gin-gonic/gin"
 	"github.com/yedf/dtm/common"
 	"github.com/yedf/dtm/dtmcli"
@@ -28,8 +26,8 @@ func init() {
 	})
 }
 
-func sagaBarrierAdjustBalance(sdb *sql.Tx, uid int, amount int) error {
-	_, err := dtmcli.StxExec(sdb, "update dtm_busi.user_account set balance = balance + ? where user_id = ?", amount, uid)
+func sagaBarrierAdjustBalance(db dtmcli.DB, uid int, amount int) error {
+	_, err := dtmcli.DBExec(db, "update dtm_busi.user_account set balance = balance + ? where user_id = ?", amount, uid)
 	return err
 
 }
@@ -40,15 +38,15 @@ func sagaBarrierTransIn(c *gin.Context) (interface{}, error) {
 		return req.TransInResult, nil
 	}
 	barrier := MustBarrierFromGin(c)
-	return dtmcli.ResultSuccess, barrier.Call(sdbGet(), func(sdb *sql.Tx) error {
-		return sagaBarrierAdjustBalance(sdb, 1, req.Amount)
+	return dtmcli.ResultSuccess, barrier.Call(txGet(), func(db dtmcli.DB) error {
+		return sagaBarrierAdjustBalance(db, 1, req.Amount)
 	})
 }
 
 func sagaBarrierTransInCompensate(c *gin.Context) (interface{}, error) {
 	barrier := MustBarrierFromGin(c)
-	return dtmcli.ResultSuccess, barrier.Call(sdbGet(), func(sdb *sql.Tx) error {
-		return sagaBarrierAdjustBalance(sdb, 1, -reqFrom(c).Amount)
+	return dtmcli.ResultSuccess, barrier.Call(txGet(), func(db dtmcli.DB) error {
+		return sagaBarrierAdjustBalance(db, 1, -reqFrom(c).Amount)
 	})
 }
 
@@ -58,14 +56,14 @@ func sagaBarrierTransOut(c *gin.Context) (interface{}, error) {
 		return req.TransInResult, nil
 	}
 	barrier := MustBarrierFromGin(c)
-	return dtmcli.ResultSuccess, barrier.Call(sdbGet(), func(sdb *sql.Tx) error {
-		return sagaBarrierAdjustBalance(sdb, 2, -req.Amount)
+	return dtmcli.ResultSuccess, barrier.Call(txGet(), func(db dtmcli.DB) error {
+		return sagaBarrierAdjustBalance(db, 2, -req.Amount)
 	})
 }
 
 func sagaBarrierTransOutCompensate(c *gin.Context) (interface{}, error) {
 	barrier := MustBarrierFromGin(c)
-	return dtmcli.ResultSuccess, barrier.Call(sdbGet(), func(sdb *sql.Tx) error {
-		return sagaBarrierAdjustBalance(sdb, 2, reqFrom(c).Amount)
+	return dtmcli.ResultSuccess, barrier.Call(txGet(), func(db dtmcli.DB) error {
+		return sagaBarrierAdjustBalance(db, 2, reqFrom(c).Amount)
 	})
 }

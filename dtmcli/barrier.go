@@ -1,14 +1,13 @@
 package dtmcli
 
 import (
-	"context"
 	"database/sql"
 	"fmt"
 	"net/url"
 )
 
 // BusiFunc type for busi func
-type BusiFunc func(db *sql.Tx) error
+type BusiFunc func(db DB) error
 
 // BranchBarrier every branch info
 type BranchBarrier struct {
@@ -42,11 +41,11 @@ func BarrierFrom(transType, gid, branchID, branchType string) (*BranchBarrier, e
 	return ti, nil
 }
 
-func insertBarrier(tx *sql.Tx, transType string, gid string, branchID string, branchType string, barrierID string, reason string) (int64, error) {
+func insertBarrier(tx Tx, transType string, gid string, branchID string, branchType string, barrierID string, reason string) (int64, error) {
 	if branchType == "" {
 		return 0, nil
 	}
-	return StxExec(tx, "insert ignore into dtm_barrier.barrier(trans_type, gid, branch_id, branch_type, barrier_id, reason) values(?,?,?,?,?,?)", transType, gid, branchID, branchType, barrierID, reason)
+	return DBExec(tx, "insert ignore into dtm_barrier.barrier(trans_type, gid, branch_id, branch_type, barrier_id, reason) values(?,?,?,?,?,?)", transType, gid, branchID, branchType, barrierID, reason)
 }
 
 // Call 子事务屏障，详细介绍见 https://zhuanlan.zhihu.com/p/388444465
@@ -56,10 +55,9 @@ func insertBarrier(tx *sql.Tx, transType string, gid string, branchID string, br
 // 返回值:
 // 如果发生悬挂，则busiCall不会被调用，直接返回错误 ErrFailure，全局事务尽早进行回滚
 // 如果正常调用，重复调用，空补偿，返回的错误值为nil，正常往下进行
-func (bb *BranchBarrier) Call(db *sql.DB, busiCall BusiFunc) (rerr error) {
+func (bb *BranchBarrier) Call(tx Tx, busiCall BusiFunc) (rerr error) {
 	bb.BarrierID = bb.BarrierID + 1
 	bid := fmt.Sprintf("%02d", bb.BarrierID)
-	tx, rerr := db.BeginTx(context.Background(), &sql.TxOptions{})
 	if rerr != nil {
 		return
 	}
@@ -86,7 +84,7 @@ func (bb *BranchBarrier) Call(db *sql.DB, busiCall BusiFunc) (rerr error) {
 		return
 	} else if currentAffected == 0 { // 插入不成功
 		var result sql.NullString
-		err := StxQueryRow(tx, "select 1 from dtm_barrier.barrier where trans_type=? and gid=? and branch_id=? and branch_type=? and barrier_id=? and reason=?",
+		err := DBQueryRow(tx, "select 1 from dtm_barrier.barrier where trans_type=? and gid=? and branch_id=? and branch_type=? and barrier_id=? and reason=?",
 			ti.TransType, ti.Gid, ti.BranchID, ti.BranchType, bid, ti.BranchType).Scan(&result)
 		if err == sql.ErrNoRows { // 不是当前分支插入的，那么是cancel插入的，因此是悬挂操作，返回失败，AP收到这个返回，会尽快回滚
 			rerr = ErrFailure

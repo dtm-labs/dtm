@@ -61,7 +61,7 @@ func (xc *XaClient) HandleCallback(gid string, branchID string, action string) (
 	}
 	defer db.Close()
 	xaID := gid + "-" + branchID
-	_, err = SdbExec(db, fmt.Sprintf("xa %s '%s'", action, xaID))
+	_, err = DBExec(db, fmt.Sprintf("xa %s '%s'", action, xaID))
 	return ResultSuccess, err
 
 }
@@ -82,9 +82,9 @@ func (xc *XaClient) XaLocalTransaction(qs url.Values, xaFunc XaLocalFunc) (ret i
 	defer func() { db.Close() }()
 	defer func() {
 		x := recover()
-		_, err := SdbExec(db, fmt.Sprintf("XA end '%s'", xaBranch))
+		_, err := DBExec(db, fmt.Sprintf("XA end '%s'", xaBranch))
 		if x == nil && rerr == nil && err == nil {
-			_, err = SdbExec(db, fmt.Sprintf("XA prepare '%s'", xaBranch))
+			_, err = DBExec(db, fmt.Sprintf("XA prepare '%s'", xaBranch))
 		}
 		if rerr == nil {
 			rerr = err
@@ -93,7 +93,7 @@ func (xc *XaClient) XaLocalTransaction(qs url.Values, xaFunc XaLocalFunc) (ret i
 			panic(x)
 		}
 	}()
-	_, rerr = SdbExec(db, fmt.Sprintf("XA start '%s'", xaBranch))
+	_, rerr = DBExec(db, fmt.Sprintf("XA start '%s'", xaBranch))
 	if rerr != nil {
 		return
 	}

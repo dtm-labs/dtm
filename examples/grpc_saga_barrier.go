@@ -2,7 +2,6 @@ package examples
 
 import (
 	"context"
-	"database/sql"
 
 	"github.com/yedf/dtm/dtmcli"
 	"github.com/yedf/dtm/dtmgrpc"
@@ -24,11 +23,11 @@ func init() {
 	})
 }
 
-func sagaGrpcBarrierAdjustBalance(sdb *sql.Tx, uid int, amount int, result string) error {
+func sagaGrpcBarrierAdjustBalance(db dtmcli.DB, uid int, amount int, result string) error {
 	if result == "FAILURE" {
 		return status.New(codes.Aborted, "user rollback").Err()
 	}
-	_, err := dtmcli.StxExec(sdb, "update dtm_busi.user_account set balance = balance + ? where user_id = ?", amount, uid)
+	_, err := dtmcli.DBExec(db, "update dtm_busi.user_account set balance = balance + ? where user_id = ?", amount, uid)
 	return err
 
 }
@@ -37,8 +36,8 @@ func (s *busiServer) TransInBSaga(ctx context.Context, in *dtmgrpc.BusiRequest) 
 	req := TransReq{}
 	dtmcli.MustUnmarshal(in.BusiData, &req)
 	barrier := MustBarrierFromGrpc(in)
-	return &emptypb.Empty{}, barrier.Call(sdbGet(), func(sdb *sql.Tx) error {
-		return sagaGrpcBarrierAdjustBalance(sdb, 2, req.Amount, req.TransInResult)
+	return &emptypb.Empty{}, barrier.Call(txGet(), func(tx dtmcli.DB) error {
+		return sagaGrpcBarrierAdjustBalance(tx, 2, req.Amount, req.TransInResult)
 	})
 }
 
@@ -46,8 +45,8 @@ func (s *busiServer) TransOutBSaga(ctx context.Context, in *dtmgrpc.BusiRequest)
 	req := TransReq{}
 	dtmcli.MustUnmarshal(in.BusiData, &req)
 	barrier := MustBarrierFromGrpc(in)
-	return &emptypb.Empty{}, barrier.Call(sdbGet(), func(sdb *sql.Tx) error {
-		return sagaGrpcBarrierAdjustBalance(sdb, 1, -req.Amount, req.TransOutResult)
+	return &emptypb.Empty{}, barrier.Call(txGet(), func(db dtmcli.DB) error {
+		return sagaGrpcBarrierAdjustBalance(db, 1, -req.Amount, req.TransOutResult)
 	})
 }
 
@@ -55,8 +54,8 @@ func (s *busiServer) TransInRevertBSaga(ctx context.Context, in *dtmgrpc.BusiReq
 	req := TransReq{}
 	dtmcli.MustUnmarshal(in.BusiData, &req)
 	barrier := MustBarrierFromGrpc(in)
-	return &emptypb.Empty{}, barrier.Call(sdbGet(), func(sdb *sql.Tx) error {
-		return sagaGrpcBarrierAdjustBalance(sdb, 2, -req.Amount, "")
+	return &emptypb.Empty{}, barrier.Call(txGet(), func(db dtmcli.DB) error {
+		return sagaGrpcBarrierAdjustBalance(db, 2, -req.Amount, "")
 	})
 }
 
@@ -64,7 +63,7 @@ func (s *busiServer) TransOutRevertBSaga(ctx context.Context, in *dtmgrpc.BusiRe
 	req := TransReq{}
 	dtmcli.MustUnmarshal(in.BusiData, &req)
 	barrier := MustBarrierFromGrpc(in)
-	return &emptypb.Empty{}, barrier.Call(sdbGet(), func(sdb *sql.Tx) error {
-		return sagaGrpcBarrierAdjustBalance(sdb, 1, req.Amount, "")
+	return &emptypb.Empty{}, barrier.Call(txGet(), func(db dtmcli.DB) error {
+		return sagaGrpcBarrierAdjustBalance(db, 1, req.Amount, "")
 	})
 }

@@ -71,6 +71,13 @@ func sdbGet() *sql.DB {
 	return db
 }
 
+func txGet() *sql.Tx {
+	db := sdbGet()
+	tx, err := db.Begin()
+	dtmcli.FatalIfError(err)
+	return tx
+}
+
 // MustBarrierFromGin 1
 func MustBarrierFromGin(c *gin.Context) *dtmcli.BranchBarrier {
 	ti, err := dtmcli.BarrierFromQuery(c.Request.URL.Query())

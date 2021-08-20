@@ -1,7 +1,6 @@
 package test
 
 import (
-	"database/sql"
 	"fmt"
 	"testing"
 
@@ -118,7 +117,9 @@ func TestSqlDB(t *testing.T) {
 		BranchType: "action",
 	}
 	db.Must().Exec("insert ignore into dtm_barrier.barrier(trans_type, gid, branch_id, branch_type, reason) values('saga', 'gid1', 'branch_id1', 'action', 'saga')")
-	err := barrier.Call(db.ToSQLDB(), func(db *sql.Tx) error {
+	tx, err := db.ToSQLDB().Begin()
+	asserts.Nil(err)
+	err = barrier.Call(tx, func(db dtmcli.DB) error {
 		dtmcli.Logf("rollback gid2")
 		return fmt.Errorf("gid2 error")
 	})
@@ -128,7 +129,9 @@ func TestSqlDB(t *testing.T) {
 	dbr = db.Model(&BarrierModel{}).Where("gid=?", "gid2").Find(&[]BarrierModel{})
 	asserts.Equal(dbr.RowsAffected, int64(0))
 	barrier.BarrierID = 0
-	err = barrier.Call(db.ToSQLDB(), func(db *sql.Tx) error {
+	tx2, err := db.ToSQLDB().Begin()
+	asserts.Nil(err)
+	err = barrier.Call(tx2, func(db dtmcli.DB) error {
 		dtmcli.Logf("submit gid2")
 		return nil
 	})

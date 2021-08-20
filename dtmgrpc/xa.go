@@ -55,7 +55,7 @@ func (xc *XaGrpcClient) HandleCallback(gid string, branchID string, action strin
 	}
 	defer db.Close()
 	xaID := gid + "-" + branchID
-	_, err = dtmcli.SdbExec(db, fmt.Sprintf("xa %s '%s'", action, xaID))
+	_, err = dtmcli.DBExec(db, fmt.Sprintf("xa %s '%s'", action, xaID))
 	return err
 
 }
@@ -76,9 +76,9 @@ func (xc *XaGrpcClient) XaLocalTransaction(br *BusiRequest, xaFunc XaGrpcLocalFu
 	defer func() { db.Close() }()
 	defer func() {
 		x := recover()
-		_, err := dtmcli.SdbExec(db, fmt.Sprintf("XA end '%s'", xaBranch))
+		_, err := dtmcli.DBExec(db, fmt.Sprintf("XA end '%s'", xaBranch))
 		if x == nil && rerr == nil && err == nil {
-			_, err = dtmcli.SdbExec(db, fmt.Sprintf("XA prepare '%s'", xaBranch))
+			_, err = dtmcli.DBExec(db, fmt.Sprintf("XA prepare '%s'", xaBranch))
 		}
 		if rerr == nil {
 			rerr = err
@@ -87,7 +87,7 @@ func (xc *XaGrpcClient) XaLocalTransaction(br *BusiRequest, xaFunc XaGrpcLocalFu
 			panic(x)
 		}
 	}()
-	_, rerr = dtmcli.SdbExec(db, fmt.Sprintf("XA start '%s'", xaBranch))
+	_, rerr = dtmcli.DBExec(db, fmt.Sprintf("XA start '%s'", xaBranch))
 	if rerr != nil {
 		return
 	}

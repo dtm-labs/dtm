@@ -24,7 +24,7 @@ func RunSQLScript(conf map[string]string, script string, skipDrop bool) {
 		if s == "" || skipDrop && strings.Contains(s, "drop") {
 			continue
 		}
-		_, err = dtmcli.SdbExec(con, s)
+		_, err = dtmcli.DBExec(con, s)
 		dtmcli.FatalIfError(err)
 	}
 }

@@ -202,8 +202,8 @@ func SdbAlone(conf map[string]string) (*sql.DB, error) {
 	return sql.Open(conf["driver"], dsn)
 }
 
-// SdbExec use raw db to exec
-func SdbExec(db *sql.DB, sql string, values ...interface{}) (affected int64, rerr error) {
+// DBExec use raw db to exec
+func DBExec(db DB, sql string, values ...interface{}) (affected int64, rerr error) {
 	r, rerr := db.Exec(sql, values...)
 	if rerr == nil {
 		affected, rerr = r.RowsAffected()
@@ -214,22 +214,10 @@ func SdbExec(db *sql.DB, sql string, values ...interface{}) (affected int64, rer
 	return
 }
 
-// StxExec use raw tx to exec
-func StxExec(tx *sql.Tx, sql string, values ...interface{}) (affected int64, rerr error) {
-	r, rerr := tx.Exec(sql, values...)
-	if rerr == nil {
-		affected, rerr = r.RowsAffected()
-		Logf("affected: %d for %s %v", affected, sql, values)
-	} else {
-		LogRedf("exec error: %v for %s %v", rerr, sql, values)
-	}
-	return
-}
-
-// StxQueryRow use raw tx to query row
-func StxQueryRow(tx *sql.Tx, query string, args ...interface{}) *sql.Row {
+// DBQueryRow use raw tx to query row
+func DBQueryRow(db DB, query string, args ...interface{}) *sql.Row {
 	Logf("querying: "+query, args...)
-	return tx.QueryRow(query, args...)
+	return db.QueryRow(query, args...)
 }
 
 // GetDsn get dsn from map config

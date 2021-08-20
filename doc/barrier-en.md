@@ -17,8 +17,8 @@ Let’s take a look at a sequence diagram of network abnormalities to better und
 
 ![abnormal network image](https://pic2.zhimg.com/80/v2-04c577b69ab7145ab493a8158a048a08_1440w.png)
 
-- When business processing step 4, Cancel is executed before Try, and empty rollback needs to be processed. 
-- When business processing step 6, Cancel is executed repeatedly and needs to be idempotent. 
+- When business processing step 4, Cancel is executed before Try, and empty rollback needs to be processed.
+- When business processing step 6, Cancel is executed repeatedly and needs to be idempotent.
 - When business processing step 8, Try is executed after Cancel and needs to be processed.
 
 For the above-mentioned complex network abnormalities, all distributed transaction systems currently recommend that business developers use unique keys to query whether the associated operations have been completed. If it is completed, it returns directly to success. The related logic is complex, error-prone, and the business burden is heavy.
@@ -72,19 +72,21 @@ Under this mechanism, problems related to network abnormalities are solved
 - Idempotent control: No single key can be inserted repeatedly in any branch, which ensures that it will not be executed repeatedly
 - Dangling action control: Try is to be executed after Cancel, then the inserted gid-branchid-try is not successful, it will not be executed
 
-Let's take a look at the example in main_tcc_barrier.go in dtm:
+Let's take a look at the example in http_tcc_barrier.go in dtm:
 
 ``` GO
 func tccBarrierTransInTry(c *gin.Context) (interface{}, error) {
-  return dtmcli.ThroughBarrierCall(db, dtmcli.TransInfoFromReq(c), func(sdb *sql.DB) (interface{}, error) {
-    return adjustTrading(sdb, transInUid, reqFrom(c).Amount)
-  })
+	req := reqFrom(c) // 去重构一下，改成可以重复使用的输入
+	barrier := MustBarrierFromGin(c)
+	return dtmcli.ResultSuccess, barrier.Call(txGet(), func(db dtmcli.DB) error {
+		return adjustTrading(db, transInUID, req.Amount)
+	})
 }
 ```
 
-The Try in the TransIn business only needs one ThroughBarrierCall call to handle the above abnormal situation, which greatly simplifies the work of business developers. For SAGA transactions, reliable messages, etc., a similar mechanism can also be used.
+The Try in the TransIn business only needs one barrier.Call call to handle the above abnormal situation, which greatly simplifies the work of business developers. For SAGA transactions, reliable messages, etc., a similar mechanism can also be used.
 
 ## summary
-The sub-transaction barrier technology proposed in this project systematically solves the problem of network disorder in distributed transactions and greatly reduces the difficulty of sub-transaction disorder processing. 
+The sub-transaction barrier technology proposed in this project systematically solves the problem of network disorder in distributed transactions and greatly reduces the difficulty of sub-transaction disorder processing.
 
 Other development languages ​​can also quickly access the technology
