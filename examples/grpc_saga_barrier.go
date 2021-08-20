@@ -7,7 +7,6 @@ import (
 	"github.com/yedf/dtm/dtmgrpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
-	"google.golang.org/protobuf/types/known/emptypb"
 )
 
 func init() {
@@ -32,38 +31,38 @@ func sagaGrpcBarrierAdjustBalance(db dtmcli.DB, uid int, amount int, result stri
 
 }
 
-func (s *busiServer) TransInBSaga(ctx context.Context, in *dtmgrpc.BusiRequest) (*emptypb.Empty, error) {
+func (s *busiServer) TransInBSaga(ctx context.Context, in *dtmgrpc.BusiRequest) (*dtmgrpc.BusiReply, error) {
 	req := TransReq{}
 	dtmcli.MustUnmarshal(in.BusiData, &req)
 	barrier := MustBarrierFromGrpc(in)
-	return &emptypb.Empty{}, barrier.Call(txGet(), func(tx dtmcli.DB) error {
+	return &dtmgrpc.BusiReply{}, barrier.Call(txGet(), func(tx dtmcli.DB) error {
 		return sagaGrpcBarrierAdjustBalance(tx, 2, req.Amount, req.TransInResult)
 	})
 }
 
-func (s *busiServer) TransOutBSaga(ctx context.Context, in *dtmgrpc.BusiRequest) (*emptypb.Empty, error) {
+func (s *busiServer) TransOutBSaga(ctx context.Context, in *dtmgrpc.BusiRequest) (*dtmgrpc.BusiReply, error) {
 	req := TransReq{}
 	dtmcli.MustUnmarshal(in.BusiData, &req)
 	barrier := MustBarrierFromGrpc(in)
-	return &emptypb.Empty{}, barrier.Call(txGet(), func(db dtmcli.DB) error {
+	return &dtmgrpc.BusiReply{}, barrier.Call(txGet(), func(db dtmcli.DB) error {
 		return sagaGrpcBarrierAdjustBalance(db, 1, -req.Amount, req.TransOutResult)
 	})
 }
 
-func (s *busiServer) TransInRevertBSaga(ctx context.Context, in *dtmgrpc.BusiRequest) (*emptypb.Empty, error) {
+func (s *busiServer) TransInRevertBSaga(ctx context.Context, in *dtmgrpc.BusiRequest) (*dtmgrpc.BusiReply, error) {
 	req := TransReq{}
 	dtmcli.MustUnmarshal(in.BusiData, &req)
 	barrier := MustBarrierFromGrpc(in)
-	return &emptypb.Empty{}, barrier.Call(txGet(), func(db dtmcli.DB) error {
+	return &dtmgrpc.BusiReply{}, barrier.Call(txGet(), func(db dtmcli.DB) error {
 		return sagaGrpcBarrierAdjustBalance(db, 2, -req.Amount, "")
 	})
 }
 
-func (s *busiServer) TransOutRevertBSaga(ctx context.Context, in *dtmgrpc.BusiRequest) (*emptypb.Empty, error) {
+func (s *busiServer) TransOutRevertBSaga(ctx context.Context, in *dtmgrpc.BusiRequest) (*dtmgrpc.BusiReply, error) {
 	req := TransReq{}
 	dtmcli.MustUnmarshal(in.BusiData, &req)
 	barrier := MustBarrierFromGrpc(in)
-	return &emptypb.Empty{}, barrier.Call(txGet(), func(db dtmcli.DB) error {
+	return &dtmgrpc.BusiReply{}, barrier.Call(txGet(), func(db dtmcli.DB) error {
 		return sagaGrpcBarrierAdjustBalance(db, 1, req.Amount, "")
 	})
 }

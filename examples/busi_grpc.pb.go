@@ -8,7 +8,6 @@ import (
 	grpc "google.golang.org/grpc"
 	codes "google.golang.org/grpc/codes"
 	status "google.golang.org/grpc/status"
-	emptypb "google.golang.org/protobuf/types/known/emptypb"
 )
 
 // This is a compile-time assertion to ensure that this generated file
@@ -20,23 +19,23 @@ const _ = grpc.SupportPackageIsVersion7
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type BusiClient interface {
-	CanSubmit(ctx context.Context, in *dtmgrpc.BusiRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
-	TransIn(ctx context.Context, in *dtmgrpc.BusiRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
-	TransOut(ctx context.Context, in *dtmgrpc.BusiRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
-	TransInRevert(ctx context.Context, in *dtmgrpc.BusiRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
-	TransOutRevert(ctx context.Context, in *dtmgrpc.BusiRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
-	TransInConfirm(ctx context.Context, in *dtmgrpc.BusiRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
-	TransOutConfirm(ctx context.Context, in *dtmgrpc.BusiRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
-	XaNotify(ctx context.Context, in *dtmgrpc.BusiRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
+	CanSubmit(ctx context.Context, in *dtmgrpc.BusiRequest, opts ...grpc.CallOption) (*dtmgrpc.BusiReply, error)
+	TransIn(ctx context.Context, in *dtmgrpc.BusiRequest, opts ...grpc.CallOption) (*dtmgrpc.BusiReply, error)
+	TransOut(ctx context.Context, in *dtmgrpc.BusiRequest, opts ...grpc.CallOption) (*dtmgrpc.BusiReply, error)
+	TransInRevert(ctx context.Context, in *dtmgrpc.BusiRequest, opts ...grpc.CallOption) (*dtmgrpc.BusiReply, error)
+	TransOutRevert(ctx context.Context, in *dtmgrpc.BusiRequest, opts ...grpc.CallOption) (*dtmgrpc.BusiReply, error)
+	TransInConfirm(ctx context.Context, in *dtmgrpc.BusiRequest, opts ...grpc.CallOption) (*dtmgrpc.BusiReply, error)
+	TransOutConfirm(ctx context.Context, in *dtmgrpc.BusiRequest, opts ...grpc.CallOption) (*dtmgrpc.BusiReply, error)
+	XaNotify(ctx context.Context, in *dtmgrpc.BusiRequest, opts ...grpc.CallOption) (*dtmgrpc.BusiReply, error)
 	TransInXa(ctx context.Context, in *dtmgrpc.BusiRequest, opts ...grpc.CallOption) (*dtmgrpc.BusiReply, error)
 	TransOutXa(ctx context.Context, in *dtmgrpc.BusiRequest, opts ...grpc.CallOption) (*dtmgrpc.BusiReply, error)
 	TransInTcc(ctx context.Context, in *dtmgrpc.BusiRequest, opts ...grpc.CallOption) (*dtmgrpc.BusiReply, error)
 	TransOutTcc(ctx context.Context, in *dtmgrpc.BusiRequest, opts ...grpc.CallOption) (*dtmgrpc.BusiReply, error)
 	TransInTccNested(ctx context.Context, in *dtmgrpc.BusiRequest, opts ...grpc.CallOption) (*dtmgrpc.BusiReply, error)
-	TransInBSaga(ctx context.Context, in *dtmgrpc.BusiRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
-	TransOutBSaga(ctx context.Context, in *dtmgrpc.BusiRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
-	TransInRevertBSaga(ctx context.Context, in *dtmgrpc.BusiRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
-	TransOutRevertBSaga(ctx context.Context, in *dtmgrpc.BusiRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
+	TransInBSaga(ctx context.Context, in *dtmgrpc.BusiRequest, opts ...grpc.CallOption) (*dtmgrpc.BusiReply, error)
+	TransOutBSaga(ctx context.Context, in *dtmgrpc.BusiRequest, opts ...grpc.CallOption) (*dtmgrpc.BusiReply, error)
+	TransInRevertBSaga(ctx context.Context, in *dtmgrpc.BusiRequest, opts ...grpc.CallOption) (*dtmgrpc.BusiReply, error)
+	TransOutRevertBSaga(ctx context.Context, in *dtmgrpc.BusiRequest, opts ...grpc.CallOption) (*dtmgrpc.BusiReply, error)
 }
 
 type busiClient struct {
@@ -47,8 +46,8 @@ func NewBusiClient(cc grpc.ClientConnInterface) BusiClient {
 	return &busiClient{cc}
 }
 
-func (c *busiClient) CanSubmit(ctx context.Context, in *dtmgrpc.BusiRequest, opts ...grpc.CallOption) (*emptypb.Empty, error) {
-	out := new(emptypb.Empty)
+func (c *busiClient) CanSubmit(ctx context.Context, in *dtmgrpc.BusiRequest, opts ...grpc.CallOption) (*dtmgrpc.BusiReply, error) {
+	out := new(dtmgrpc.BusiReply)
 	err := c.cc.Invoke(ctx, "/examples.Busi/CanSubmit", in, out, opts...)
 	if err != nil {
 		return nil, err
@@ -56,8 +55,8 @@ func (c *busiClient) CanSubmit(ctx context.Context, in *dtmgrpc.BusiRequest, opt
 	return out, nil
 }
 
-func (c *busiClient) TransIn(ctx context.Context, in *dtmgrpc.BusiRequest, opts ...grpc.CallOption) (*emptypb.Empty, error) {
-	out := new(emptypb.Empty)
+func (c *busiClient) TransIn(ctx context.Context, in *dtmgrpc.BusiRequest, opts ...grpc.CallOption) (*dtmgrpc.BusiReply, error) {
+	out := new(dtmgrpc.BusiReply)
 	err := c.cc.Invoke(ctx, "/examples.Busi/TransIn", in, out, opts...)
 	if err != nil {
 		return nil, err
@@ -65,8 +64,8 @@ func (c *busiClient) TransIn(ctx context.Context, in *dtmgrpc.BusiRequest, opts 
 	return out, nil
 }
 
-func (c *busiClient) TransOut(ctx context.Context, in *dtmgrpc.BusiRequest, opts ...grpc.CallOption) (*emptypb.Empty, error) {
-	out := new(emptypb.Empty)
+func (c *busiClient) TransOut(ctx context.Context, in *dtmgrpc.BusiRequest, opts ...grpc.CallOption) (*dtmgrpc.BusiReply, error) {
+	out := new(dtmgrpc.BusiReply)
 	err := c.cc.Invoke(ctx, "/examples.Busi/TransOut", in, out, opts...)
 	if err != nil {
 		return nil, err
@@ -74,8 +73,8 @@ func (c *busiClient) TransOut(ctx context.Context, in *dtmgrpc.BusiRequest, opts
 	return out, nil
 }
 
-func (c *busiClient) TransInRevert(ctx context.Context, in *dtmgrpc.BusiRequest, opts ...grpc.CallOption) (*emptypb.Empty, error) {
-	out := new(emptypb.Empty)
+func (c *busiClient) TransInRevert(ctx context.Context, in *dtmgrpc.BusiRequest, opts ...grpc.CallOption) (*dtmgrpc.BusiReply, error) {
+	out := new(dtmgrpc.BusiReply)
 	err := c.cc.Invoke(ctx, "/examples.Busi/TransInRevert", in, out, opts...)
 	if err != nil {
 		return nil, err
@@ -83,8 +82,8 @@ func (c *busiClient) TransInRevert(ctx context.Context, in *dtmgrpc.BusiRequest,
 	return out, nil
 }
 
-func (c *busiClient) TransOutRevert(ctx context.Context, in *dtmgrpc.BusiRequest, opts ...grpc.CallOption) (*emptypb.Empty, error) {
-	out := new(emptypb.Empty)
+func (c *busiClient) TransOutRevert(ctx context.Context, in *dtmgrpc.BusiRequest, opts ...grpc.CallOption) (*dtmgrpc.BusiReply, error) {
+	out := new(dtmgrpc.BusiReply)
 	err := c.cc.Invoke(ctx, "/examples.Busi/TransOutRevert", in, out, opts...)
 	if err != nil {
 		return nil, err
@@ -92,8 +91,8 @@ func (c *busiClient) TransOutRevert(ctx context.Context, in *dtmgrpc.BusiRequest
 	return out, nil
 }
 
-func (c *busiClient) TransInConfirm(ctx context.Context, in *dtmgrpc.BusiRequest, opts ...grpc.CallOption) (*emptypb.Empty, error) {
-	out := new(emptypb.Empty)
+func (c *busiClient) TransInConfirm(ctx context.Context, in *dtmgrpc.BusiRequest, opts ...grpc.CallOption) (*dtmgrpc.BusiReply, error) {
+	out := new(dtmgrpc.BusiReply)
 	err := c.cc.Invoke(ctx, "/examples.Busi/TransInConfirm", in, out, opts...)
 	if err != nil {
 		return nil, err
@@ -101,8 +100,8 @@ func (c *busiClient) TransInConfirm(ctx context.Context, in *dtmgrpc.BusiRequest
 	return out, nil
 }
 
-func (c *busiClient) TransOutConfirm(ctx context.Context, in *dtmgrpc.BusiRequest, opts ...grpc.CallOption) (*emptypb.Empty, error) {
-	out := new(emptypb.Empty)
+func (c *busiClient) TransOutConfirm(ctx context.Context, in *dtmgrpc.BusiRequest, opts ...grpc.CallOption) (*dtmgrpc.BusiReply, error) {
+	out := new(dtmgrpc.BusiReply)
 	err := c.cc.Invoke(ctx, "/examples.Busi/TransOutConfirm", in, out, opts...)
 	if err != nil {
 		return nil, err
@@ -110,8 +109,8 @@ func (c *busiClient) TransOutConfirm(ctx context.Context, in *dtmgrpc.BusiReques
 	return out, nil
 }
 
-func (c *busiClient) XaNotify(ctx context.Context, in *dtmgrpc.BusiRequest, opts ...grpc.CallOption) (*emptypb.Empty, error) {
-	out := new(emptypb.Empty)
+func (c *busiClient) XaNotify(ctx context.Context, in *dtmgrpc.BusiRequest, opts ...grpc.CallOption) (*dtmgrpc.BusiReply, error) {
+	out := new(dtmgrpc.BusiReply)
 	err := c.cc.Invoke(ctx, "/examples.Busi/XaNotify", in, out, opts...)
 	if err != nil {
 		return nil, err
@@ -164,8 +163,8 @@ func (c *busiClient) TransInTccNested(ctx context.Context, in *dtmgrpc.BusiReque
 	return out, nil
 }
 
-func (c *busiClient) TransInBSaga(ctx context.Context, in *dtmgrpc.BusiRequest, opts ...grpc.CallOption) (*emptypb.Empty, error) {
-	out := new(emptypb.Empty)
+func (c *busiClient) TransInBSaga(ctx context.Context, in *dtmgrpc.BusiRequest, opts ...grpc.CallOption) (*dtmgrpc.BusiReply, error) {
+	out := new(dtmgrpc.BusiReply)
 	err := c.cc.Invoke(ctx, "/examples.Busi/TransInBSaga", in, out, opts...)
 	if err != nil {
 		return nil, err
@@ -173,8 +172,8 @@ func (c *busiClient) TransInBSaga(ctx context.Context, in *dtmgrpc.BusiRequest, 
 	return out, nil
 }
 
-func (c *busiClient) TransOutBSaga(ctx context.Context, in *dtmgrpc.BusiRequest, opts ...grpc.CallOption) (*emptypb.Empty, error) {
-	out := new(emptypb.Empty)
+func (c *busiClient) TransOutBSaga(ctx context.Context, in *dtmgrpc.BusiRequest, opts ...grpc.CallOption) (*dtmgrpc.BusiReply, error) {
+	out := new(dtmgrpc.BusiReply)
 	err := c.cc.Invoke(ctx, "/examples.Busi/TransOutBSaga", in, out, opts...)
 	if err != nil {
 		return nil, err
@@ -182,8 +181,8 @@ func (c *busiClient) TransOutBSaga(ctx context.Context, in *dtmgrpc.BusiRequest,
 	return out, nil
 }
 
-func (c *busiClient) TransInRevertBSaga(ctx context.Context, in *dtmgrpc.BusiRequest, opts ...grpc.CallOption) (*emptypb.Empty, error) {
-	out := new(emptypb.Empty)
+func (c *busiClient) TransInRevertBSaga(ctx context.Context, in *dtmgrpc.BusiRequest, opts ...grpc.CallOption) (*dtmgrpc.BusiReply, error) {
+	out := new(dtmgrpc.BusiReply)
 	err := c.cc.Invoke(ctx, "/examples.Busi/TransInRevertBSaga", in, out, opts...)
 	if err != nil {
 		return nil, err
@@ -191,8 +190,8 @@ func (c *busiClient) TransInRevertBSaga(ctx context.Context, in *dtmgrpc.BusiReq
 	return out, nil
 }
 
-func (c *busiClient) TransOutRevertBSaga(ctx context.Context, in *dtmgrpc.BusiRequest, opts ...grpc.CallOption) (*emptypb.Empty, error) {
-	out := new(emptypb.Empty)
+func (c *busiClient) TransOutRevertBSaga(ctx context.Context, in *dtmgrpc.BusiRequest, opts ...grpc.CallOption) (*dtmgrpc.BusiReply, error) {
+	out := new(dtmgrpc.BusiReply)
 	err := c.cc.Invoke(ctx, "/examples.Busi/TransOutRevertBSaga", in, out, opts...)
 	if err != nil {
 		return nil, err
@@ -204,23 +203,23 @@ func (c *busiClient) TransOutRevertBSaga(ctx context.Context, in *dtmgrpc.BusiRe
 // All implementations must embed UnimplementedBusiServer
 // for forward compatibility
 type BusiServer interface {
-	CanSubmit(context.Context, *dtmgrpc.BusiRequest) (*emptypb.Empty, error)
-	TransIn(context.Context, *dtmgrpc.BusiRequest) (*emptypb.Empty, error)
-	TransOut(context.Context, *dtmgrpc.BusiRequest) (*emptypb.Empty, error)
-	TransInRevert(context.Context, *dtmgrpc.BusiRequest) (*emptypb.Empty, error)
-	TransOutRevert(context.Context, *dtmgrpc.BusiRequest) (*emptypb.Empty, error)
-	TransInConfirm(context.Context, *dtmgrpc.BusiRequest) (*emptypb.Empty, error)
-	TransOutConfirm(context.Context, *dtmgrpc.BusiRequest) (*emptypb.Empty, error)
-	XaNotify(context.Context, *dtmgrpc.BusiRequest) (*emptypb.Empty, error)
+	CanSubmit(context.Context, *dtmgrpc.BusiRequest) (*dtmgrpc.BusiReply, error)
+	TransIn(context.Context, *dtmgrpc.BusiRequest) (*dtmgrpc.BusiReply, error)
+	TransOut(context.Context, *dtmgrpc.BusiRequest) (*dtmgrpc.BusiReply, error)
+	TransInRevert(context.Context, *dtmgrpc.BusiRequest) (*dtmgrpc.BusiReply, error)
+	TransOutRevert(context.Context, *dtmgrpc.BusiRequest) (*dtmgrpc.BusiReply, error)
+	TransInConfirm(context.Context, *dtmgrpc.BusiRequest) (*dtmgrpc.BusiReply, error)
+	TransOutConfirm(context.Context, *dtmgrpc.BusiRequest) (*dtmgrpc.BusiReply, error)
+	XaNotify(context.Context, *dtmgrpc.BusiRequest) (*dtmgrpc.BusiReply, error)
 	TransInXa(context.Context, *dtmgrpc.BusiRequest) (*dtmgrpc.BusiReply, error)
 	TransOutXa(context.Context, *dtmgrpc.BusiRequest) (*dtmgrpc.BusiReply, error)
 	TransInTcc(context.Context, *dtmgrpc.BusiRequest) (*dtmgrpc.BusiReply, error)
 	TransOutTcc(context.Context, *dtmgrpc.BusiRequest) (*dtmgrpc.BusiReply, error)
 	TransInTccNested(context.Context, *dtmgrpc.BusiRequest) (*dtmgrpc.BusiReply, error)
-	TransInBSaga(context.Context, *dtmgrpc.BusiRequest) (*emptypb.Empty, error)
-	TransOutBSaga(context.Context, *dtmgrpc.BusiRequest) (*emptypb.Empty, error)
-	TransInRevertBSaga(context.Context, *dtmgrpc.BusiRequest) (*emptypb.Empty, error)
-	TransOutRevertBSaga(context.Context, *dtmgrpc.BusiRequest) (*emptypb.Empty, error)
+	TransInBSaga(context.Context, *dtmgrpc.BusiRequest) (*dtmgrpc.BusiReply, error)
+	TransOutBSaga(context.Context, *dtmgrpc.BusiRequest) (*dtmgrpc.BusiReply, error)
+	TransInRevertBSaga(context.Context, *dtmgrpc.BusiRequest) (*dtmgrpc.BusiReply, error)
+	TransOutRevertBSaga(context.Context, *dtmgrpc.BusiRequest) (*dtmgrpc.BusiReply, error)
 	mustEmbedUnimplementedBusiServer()
 }
 
@@ -228,28 +227,28 @@ type BusiServer interface {
 type UnimplementedBusiServer struct {
 }
 
-func (UnimplementedBusiServer) CanSubmit(context.Context, *dtmgrpc.BusiRequest) (*emptypb.Empty, error) {
+func (UnimplementedBusiServer) CanSubmit(context.Context, *dtmgrpc.BusiRequest) (*dtmgrpc.BusiReply, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CanSubmit not implemented")
 }
-func (UnimplementedBusiServer) TransIn(context.Context, *dtmgrpc.BusiRequest) (*emptypb.Empty, error) {
+func (UnimplementedBusiServer) TransIn(context.Context, *dtmgrpc.BusiRequest) (*dtmgrpc.BusiReply, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method TransIn not implemented")
 }
-func (UnimplementedBusiServer) TransOut(context.Context, *dtmgrpc.BusiRequest) (*emptypb.Empty, error) {
+func (UnimplementedBusiServer) TransOut(context.Context, *dtmgrpc.BusiRequest) (*dtmgrpc.BusiReply, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method TransOut not implemented")
 }
-func (UnimplementedBusiServer) TransInRevert(context.Context, *dtmgrpc.BusiRequest) (*emptypb.Empty, error) {
+func (UnimplementedBusiServer) TransInRevert(context.Context, *dtmgrpc.BusiRequest) (*dtmgrpc.BusiReply, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method TransInRevert not implemented")
 }
-func (UnimplementedBusiServer) TransOutRevert(context.Context, *dtmgrpc.BusiRequest) (*emptypb.Empty, error) {
+func (UnimplementedBusiServer) TransOutRevert(context.Context, *dtmgrpc.BusiRequest) (*dtmgrpc.BusiReply, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method TransOutRevert not implemented")
 }
-func (UnimplementedBusiServer) TransInConfirm(context.Context, *dtmgrpc.BusiRequest) (*emptypb.Empty, error) {
+func (UnimplementedBusiServer) TransInConfirm(context.Context, *dtmgrpc.BusiRequest) (*dtmgrpc.BusiReply, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method TransInConfirm not implemented")
 }
-func (UnimplementedBusiServer) TransOutConfirm(context.Context, *dtmgrpc.BusiRequest) (*emptypb.Empty, error) {
+func (UnimplementedBusiServer) TransOutConfirm(context.Context, *dtmgrpc.BusiRequest) (*dtmgrpc.BusiReply, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method TransOutConfirm not implemented")
 }
-func (UnimplementedBusiServer) XaNotify(context.Context, *dtmgrpc.BusiRequest) (*emptypb.Empty, error) {
+func (UnimplementedBusiServer) XaNotify(context.Context, *dtmgrpc.BusiRequest) (*dtmgrpc.BusiReply, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method XaNotify not implemented")
 }
 func (UnimplementedBusiServer) TransInXa(context.Context, *dtmgrpc.BusiRequest) (*dtmgrpc.BusiReply, error) {
@@ -267,16 +266,16 @@ func (UnimplementedBusiServer) TransOutTcc(context.Context, *dtmgrpc.BusiRequest
 func (UnimplementedBusiServer) TransInTccNested(context.Context, *dtmgrpc.BusiRequest) (*dtmgrpc.BusiReply, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method TransInTccNested not implemented")
 }
-func (UnimplementedBusiServer) TransInBSaga(context.Context, *dtmgrpc.BusiRequest) (*emptypb.Empty, error) {
+func (UnimplementedBusiServer) TransInBSaga(context.Context, *dtmgrpc.BusiRequest) (*dtmgrpc.BusiReply, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method TransInBSaga not implemented")
 }
-func (UnimplementedBusiServer) TransOutBSaga(context.Context, *dtmgrpc.BusiRequest) (*emptypb.Empty, error) {
+func (UnimplementedBusiServer) TransOutBSaga(context.Context, *dtmgrpc.BusiRequest) (*dtmgrpc.BusiReply, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method TransOutBSaga not implemented")
 }
-func (UnimplementedBusiServer) TransInRevertBSaga(context.Context, *dtmgrpc.BusiRequest) (*emptypb.Empty, error) {
+func (UnimplementedBusiServer) TransInRevertBSaga(context.Context, *dtmgrpc.BusiRequest) (*dtmgrpc.BusiReply, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method TransInRevertBSaga not implemented")
 }
-func (UnimplementedBusiServer) TransOutRevertBSaga(context.Context, *dtmgrpc.BusiRequest) (*emptypb.Empty, error) {
+func (UnimplementedBusiServer) TransOutRevertBSaga(context.Context, *dtmgrpc.BusiRequest) (*dtmgrpc.BusiReply, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method TransOutRevertBSaga not implemented")
 }
 func (UnimplementedBusiServer) mustEmbedUnimplementedBusiServer() {}

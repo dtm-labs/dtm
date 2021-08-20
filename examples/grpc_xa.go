@@ -6,7 +6,6 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/yedf/dtm/dtmcli"
 	"github.com/yedf/dtm/dtmgrpc"
-	emptypb "google.golang.org/protobuf/types/known/emptypb"
 )
 
 // XaGrpcClient XA client connection
@@ -32,7 +31,7 @@ func init() {
 	})
 }
 
-func (s *busiServer) XaNotify(ctx context.Context, in *dtmgrpc.BusiRequest) (*emptypb.Empty, error) {
+func (s *busiServer) XaNotify(ctx context.Context, in *dtmgrpc.BusiRequest) (*dtmgrpc.BusiReply, error) {
 	err := XaGrpcClient.HandleCallback(in.Info.Gid, in.Info.BranchID, in.Info.BranchType)
-	return &emptypb.Empty{}, dtmgrpc.Result2Error(nil, err)
+	return &dtmgrpc.BusiReply{}, dtmgrpc.Result2Error(nil, err)
 }

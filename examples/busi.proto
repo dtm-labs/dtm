@@ -4,18 +4,17 @@ package examples;
 
 option go_package = "github.com/yedf/dtm/examples";
 import "dtmgrpc/dtmgrpc.proto";
-import "google/protobuf/empty.proto";
 
 // The dtm service definition.
 service Busi {
-  rpc CanSubmit(dtmgrpc.BusiRequest) returns (google.protobuf.Empty) {}
-  rpc TransIn(dtmgrpc.BusiRequest) returns (google.protobuf.Empty) {}
-  rpc TransOut(dtmgrpc.BusiRequest) returns (google.protobuf.Empty) {}
-  rpc TransInRevert(dtmgrpc.BusiRequest) returns (google.protobuf.Empty) {}
-  rpc TransOutRevert(dtmgrpc.BusiRequest) returns (google.protobuf.Empty) {}
-  rpc TransInConfirm(dtmgrpc.BusiRequest) returns (google.protobuf.Empty) {}
-  rpc TransOutConfirm(dtmgrpc.BusiRequest) returns (google.protobuf.Empty) {}
-  rpc XaNotify(dtmgrpc.BusiRequest) returns (google.protobuf.Empty) {}
+  rpc CanSubmit(dtmgrpc.BusiRequest) returns (dtmgrpc.BusiReply) {}
+  rpc TransIn(dtmgrpc.BusiRequest) returns (dtmgrpc.BusiReply) {}
+  rpc TransOut(dtmgrpc.BusiRequest) returns (dtmgrpc.BusiReply) {}
+  rpc TransInRevert(dtmgrpc.BusiRequest) returns (dtmgrpc.BusiReply) {}
+  rpc TransOutRevert(dtmgrpc.BusiRequest) returns (dtmgrpc.BusiReply) {}
+  rpc TransInConfirm(dtmgrpc.BusiRequest) returns (dtmgrpc.BusiReply) {}
+  rpc TransOutConfirm(dtmgrpc.BusiRequest) returns (dtmgrpc.BusiReply) {}
+  rpc XaNotify(dtmgrpc.BusiRequest) returns (dtmgrpc.BusiReply) {}
 
   rpc TransInXa(dtmgrpc.BusiRequest) returns (dtmgrpc.BusiReply) {}
   rpc TransOutXa(dtmgrpc.BusiRequest) returns (dtmgrpc.BusiReply) {}
@@ -23,9 +22,9 @@ service Busi {
   rpc TransOutTcc(dtmgrpc.BusiRequest) returns (dtmgrpc.BusiReply) {}
   rpc TransInTccNested(dtmgrpc.BusiRequest) returns (dtmgrpc.BusiReply) {}
 
-  rpc TransInBSaga(dtmgrpc.BusiRequest) returns (google.protobuf.Empty) {}
-  rpc TransOutBSaga(dtmgrpc.BusiRequest) returns (google.protobuf.Empty) {}
-  rpc TransInRevertBSaga(dtmgrpc.BusiRequest) returns (google.protobuf.Empty) {}
-  rpc TransOutRevertBSaga(dtmgrpc.BusiRequest) returns (google.protobuf.Empty) {}
+  rpc TransInBSaga(dtmgrpc.BusiRequest) returns (dtmgrpc.BusiReply) {}
+  rpc TransOutBSaga(dtmgrpc.BusiRequest) returns (dtmgrpc.BusiReply) {}
+  rpc TransInRevertBSaga(dtmgrpc.BusiRequest) returns (dtmgrpc.BusiReply) {}
+  rpc TransOutRevertBSaga(dtmgrpc.BusiRequest) returns (dtmgrpc.BusiReply) {}
 }
 
