@@ -1,6 +1,8 @@
 package examples
 
 import (
+	"database/sql"
+
 	"github.com/gin-gonic/gin"
 	"github.com/yedf/dtm/common"
 	"github.com/yedf/dtm/dtmcli"
@@ -28,7 +30,7 @@ func sagaGormBarrierTransOut(c *gin.Context) (interface{}, error) {
 	req := reqFrom(c)
 	barrier := MustBarrierFromGin(c)
 	tx := dbGet().DB.Begin()
-	return dtmcli.ResultSuccess, barrier.Call(tx.Statement.ConnPool.(dtmcli.Tx), func(db dtmcli.DB) error {
+	return dtmcli.ResultSuccess, barrier.Call(tx.Statement.ConnPool.(*sql.Tx), func(db dtmcli.DB) error {
 		return tx.Exec("update dtm_busi.user_account set balance = balance + ? where user_id = ?", -req.Amount, 2).Error
 	})
 }
