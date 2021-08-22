@@ -41,14 +41,14 @@ The following is a comparison of the main features of dtm and seata:
 
 | Features | DTM | SEATA | Remarks |
 |:-----:|:----:|:----:|:----:|
-| Supported languages| <span style="color:green">Golang, python, php, c# and others</span> | <span style="color:orange">Java</span> |dtm can easily support a new language|
+| Supported languages| <span style="color:green">Go, Java python, php, c# and others</span> | <span style="color:orange">Java</span> |dtm can easily support a new language|
 |Exception Handling| <span style="color:green">[Sub-transaction barrier automatic processing](./doc/barrier-en.md)</span>|<span style="color:orange">Manual processing</span> | dtm solves idempotence, suspension, and null compensation|
-| TCC| <span style="color:green">✓</span>|<span style="color:green">✓</span>||
-| XA|<span style="color:green">✓</span>|<span style="color:green">✓</span>||
-|AT |<span style="color:red">✗</span>|<span style="color:green">✓</span>|AT is similar to XA, with better performance but dirty rollback|
-| SAGA |<span style="color:orange">simple mode</span> |<span style="color:green">state machine complex mode</span> |dtm's state machine mode is under planning|
+|TCC| <span style="color:green">✓</span>|<span style="color:green">✓</span>||
+|XA|<span style="color:green">✓</span>|<span style="color:green">✓</span>||
+|AT|<span style="color:red">✗</span>|<span style="color:green">✓</span>|AT is similar to XA, with better performance but dirty rollback|
+|SAGA|<span style="color:orange">simple mode</span> |<span style="color:green">state machine complex mode</span> |dtm's state machine mode is under planning|
 |Transaction message|<span style="color:green">✓</span>|<span style="color:red">✗</span>|dtm provides transaction messages similar to rocketmq|
-|Communication protocol|HTTP|dubbo and other protocols, no HTTP|dtm will support grpc protocol in the future|
+|Communication protocol|HTTP,GRPC|dubbo and other protocols, no HTTP|dtm is friendly to cloud native|
 |star number|<img src="https://img.shields.io/github/stars/yedf/dtm.svg?style=social" alt="github stars"/>|<img src="https://img.shields.io/github/stars/seata/seata.svg?style=social" alt="github stars"/>|dtm releases 0.1 from 20210604, fast development|
 
 From the features of the comparison above, if your language stack includes languages ​​other than Java, then dtm is your first choice. If your language stack is Java, you can also choose to access dtm and use sub-transaction barrier technology to simplify your business writing.
