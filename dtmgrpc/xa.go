@@ -6,6 +6,8 @@ import (
 	"fmt"
 
 	"github.com/yedf/dtm/dtmcli"
+	grpc "google.golang.org/grpc"
+	emptypb "google.golang.org/protobuf/types/known/emptypb"
 )
 
 // XaGrpcGlobalFunc type of xa global function
@@ -16,9 +18,7 @@ type XaGrpcLocalFunc func(db *sql.DB, xa *XaGrpc) error
 
 // XaGrpcClient xa client
 type XaGrpcClient struct {
-	Server    string
-	Conf      map[string]string
-	NotifyURL string
+	dtmcli.XaClientBase
 }
 
 // XaGrpc xa transaction
@@ -39,25 +39,17 @@ func XaGrpcFromRequest(br *BusiRequest) (*XaGrpc, error) {
 
 // NewXaGrpcClient construct a xa client
 func NewXaGrpcClient(server string, mysqlConf map[string]string, notifyURL string) *XaGrpcClient {
-	xa := &XaGrpcClient{
+	xa := &XaGrpcClient{XaClientBase: dtmcli.XaClientBase{
 		Server:    server,
 		Conf:      mysqlConf,
 		NotifyURL: notifyURL,
-	}
+	}}
 	return xa
 }
 
 // HandleCallback 处理commit/rollback的回调
 func (xc *XaGrpcClient) HandleCallback(gid string, branchID string, action string) error {
-	db, err := dtmcli.SdbAlone(xc.Conf)
-	if err != nil {
-		return err
-	}
-	defer db.Close()
-	xaID := gid + "-" + branchID
-	_, err = dtmcli.DBExec(db, fmt.Sprintf("xa %s '%s'", action, xaID))
-	return err
-
+	return xc.XaClientBase.HandleCallback(gid, branchID, action)
 }
 
 // XaLocalTransaction start a xa local transaction
@@ -66,43 +58,21 @@ func (xc *XaGrpcClient) XaLocalTransaction(br *BusiRequest, xaFunc XaGrpcLocalFu
 	if rerr != nil {
 		return
 	}
-	xa.Dtm = xc.Server
-	branchID := xa.NewBranchID()
-	xaBranch := xa.Gid + "-" + branchID
-	db, rerr := dtmcli.SdbAlone(xc.Conf)
-	if rerr != nil {
-		return
-	}
-	defer func() { db.Close() }()
-	defer func() {
-		x := recover()
-		_, err := dtmcli.DBExec(db, fmt.Sprintf("XA end '%s'", xaBranch))
-		if x == nil && rerr == nil && err == nil {
-			_, err = dtmcli.DBExec(db, fmt.Sprintf("XA prepare '%s'", xaBranch))
+	_, rerr = xc.HandleLocalTrans(&xa.TransBase, func(db *sql.DB) (interface{}, error) {
+		rerr := xaFunc(db, xa)
+		if rerr != nil {
+			return nil, rerr
 		}
-		if rerr == nil {
-			rerr = err
-		}
-		if x != nil {
-			panic(x)
-		}
-	}()
-	_, rerr = dtmcli.DBExec(db, fmt.Sprintf("XA start '%s'", xaBranch))
-	if rerr != nil {
-		return
-	}
-	rerr = xaFunc(db, xa)
-	if rerr != nil {
-		return
-	}
-	_, rerr = MustGetDtmClient(xa.Dtm).RegisterXaBranch(context.Background(), &DtmXaBranchRequest{
-		Info: &BranchInfo{
-			Gid:       xa.Gid,
-			BranchID:  branchID,
-			TransType: xa.TransType,
-		},
-		BusiData: "",
-		Notify:   xc.NotifyURL,
+		_, rerr = MustGetDtmClient(xa.Dtm).RegisterXaBranch(context.Background(), &DtmXaBranchRequest{
+			Info: &BranchInfo{
+				Gid:       xa.Gid,
+				BranchID:  xa.CurrentBranchID(),
+				TransType: xa.TransType,
+			},
+			BusiData: "",
+			Notify:   xc.NotifyURL,
+		})
+		return nil, rerr
 	})
 	return
 }
@@ -115,27 +85,17 @@ func (xc *XaGrpcClient) XaGlobalTransaction(gid string, xaFunc XaGrpcGlobalFunc)
 		Gid:       gid,
 		TransType: xa.TransType,
 	}
-	_, rerr = dc.Prepare(context.Background(), req)
-	if rerr != nil {
-		return
-	}
-	// 小概率情况下，prepare成功了，但是由于网络状况导致上面Failure，那么不执行下面defer的内容，等待超时后再回滚标记事务失败，也没有问题
-	defer func() {
-		x := recover()
-		if x == nil && rerr == nil {
-			_, rerr = dc.Submit(context.Background(), req)
-			return
-		}
-		_, err := dc.Abort(context.Background(), req)
-		if rerr == nil { // 如果用户函数没有返回错误，那么返回dtm的
-			rerr = err
-		}
-		if x != nil {
-			panic(x)
-		}
-	}()
-	rerr = xaFunc(&xa)
-	return
+	return xc.HandleGlobalTrans(&xa.TransBase, func(action string) error {
+		f := map[string]func(context.Context, *DtmRequest, ...grpc.CallOption) (*emptypb.Empty, error){
+			"prepare": dc.Prepare,
+			"submit":  dc.Submit,
+			"abort":   dc.Abort,
+		}[action]
+		_, err := f(context.Background(), req)
+		return err
+	}, func() error {
+		return xaFunc(&xa)
+	})
 }
 
 // CallBranch call a xa branch

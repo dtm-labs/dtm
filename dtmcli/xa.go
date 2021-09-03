@@ -19,9 +19,7 @@ type XaRegisterCallback func(path string, xa *XaClient)
 
 // XaClient xa client
 type XaClient struct {
-	Server    string
-	Conf      map[string]string
-	NotifyURL string
+	XaClientBase
 }
 
 // Xa xa transaction
@@ -40,11 +38,11 @@ func XaFromQuery(qs url.Values) (*Xa, error) {
 
 // NewXaClient construct a xa client
 func NewXaClient(server string, mysqlConf map[string]string, notifyURL string, register XaRegisterCallback) (*XaClient, error) {
-	xa := &XaClient{
+	xa := &XaClient{XaClientBase: XaClientBase{
 		Server:    server,
 		Conf:      mysqlConf,
 		NotifyURL: notifyURL,
-	}
+	}}
 	u, err := url.Parse(notifyURL)
 	if err != nil {
 		return nil, err
@@ -55,15 +53,7 @@ func NewXaClient(server string, mysqlConf map[string]string, notifyURL string, r
 
 // HandleCallback 处理commit/rollback的回调
 func (xc *XaClient) HandleCallback(gid string, branchID string, action string) (interface{}, error) {
-	db, err := SdbAlone(xc.Conf)
-	if err != nil {
-		return nil, err
-	}
-	defer db.Close()
-	xaID := gid + "-" + branchID
-	_, err = DBExec(db, fmt.Sprintf("xa %s '%s'", action, xaID))
-	return ResultSuccess, err
-
+	return ResultSuccess, xc.XaClientBase.HandleCallback(gid, branchID, action)
 }
 
 // XaLocalTransaction start a xa local transaction
@@ -72,62 +62,27 @@ func (xc *XaClient) XaLocalTransaction(qs url.Values, xaFunc XaLocalFunc) (ret i
 	if rerr != nil {
 		return
 	}
-	xa.Dtm = xc.Server
-	branchID := xa.NewBranchID()
-	xaBranch := xa.Gid + "-" + branchID
-	db, rerr := SdbAlone(xc.Conf)
-	if rerr != nil {
-		return
-	}
-	defer func() { db.Close() }()
-	defer func() {
-		x := recover()
-		_, err := DBExec(db, fmt.Sprintf("XA end '%s'", xaBranch))
-		if x == nil && rerr == nil && err == nil {
-			_, err = DBExec(db, fmt.Sprintf("XA prepare '%s'", xaBranch))
+	ret, rerr = xc.HandleLocalTrans(&xa.TransBase, func(db *sql.DB) (ret interface{}, rerr error) {
+		ret, rerr = xaFunc(db, xa)
+		rerr = CheckResult(ret, rerr)
+		if rerr != nil {
+			return
 		}
-		if rerr == nil {
-			rerr = err
-		}
-		if x != nil {
-			panic(x)
-		}
-	}()
-	_, rerr = DBExec(db, fmt.Sprintf("XA start '%s'", xaBranch))
-	if rerr != nil {
+		rerr = xa.callDtm(&M{"gid": xa.Gid, "branch_id": xa.CurrentBranchID(), "trans_type": "xa", "url": xc.XaClientBase.NotifyURL}, "registerXaBranch")
 		return
-	}
-	ret, rerr = xaFunc(db, xa)
-	rerr = CheckResult(ret, rerr)
-	if rerr != nil {
-		return
-	}
-	rerr = xa.callDtm(&M{"gid": xa.Gid, "branch_id": branchID, "trans_type": "xa", "url": xc.NotifyURL}, "registerXaBranch")
+	})
 	return
 }
 
 // XaGlobalTransaction start a xa global transaction
 func (xc *XaClient) XaGlobalTransaction(gid string, xaFunc XaGlobalFunc) (rerr error) {
-	xa := Xa{TransBase: *NewTransBase(gid, "xa", xc.Server, "")}
-	rerr = xa.callDtm(xa, "prepare")
-	if rerr != nil {
-		return
-	}
-	// 小概率情况下，prepare成功了，但是由于网络状况导致上面Failure，那么不执行下面defer的内容，等待超时后再回滚标记事务失败，也没有问题
-	defer func() {
-		x := recover()
-		operation := If(x != nil || rerr != nil, "abort", "submit").(string)
-		err := xa.callDtm(xa, operation)
-		if rerr == nil { // 如果用户函数没有返回错误，那么返回dtm的
-			rerr = err
-		}
-		if x != nil {
-			panic(x)
-		}
-	}()
-	resp, rerr := xaFunc(&xa)
-	rerr = CheckResponse(resp, rerr)
-	return
+	xa := Xa{TransBase: *NewTransBase(gid, "xa", xc.XaClientBase.Server, "")}
+	return xc.HandleGlobalTrans(&xa.TransBase, func(action string) error {
+		return xa.callDtm(xa, action)
+	}, func() error {
+		resp, rerr := xaFunc(&xa)
+		return CheckResponse(resp, rerr)
+	})
 }
 
 // CallBranch call a xa branch

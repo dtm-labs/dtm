@@ -37,6 +37,11 @@ func (g *IDGenerator) NewBranchID() string {
 		panic(fmt.Errorf("total branch id is longer than 20"))
 	}
 	g.branchID = g.branchID + 1
+	return g.CurrentBranchID()
+}
+
+// CurrentBranchID return current branchID
+func (g *IDGenerator) CurrentBranchID() string {
 	return g.parentID + fmt.Sprintf("%02d", g.branchID)
 }
 
