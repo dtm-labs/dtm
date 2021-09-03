@@ -11,4 +11,4 @@ builds:
       - arm64
     id: 'dtm'
     dir: .
-    main: ./cmd/dtm
+    main: ./app/main
