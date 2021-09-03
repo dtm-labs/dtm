@@ -2,3 +2,4 @@ conf.yml
 *.out
 */**/main
 main
+dist

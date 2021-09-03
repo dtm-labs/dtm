@@ -112,7 +112,7 @@ func Logf(format string, args ...interface{}) {
 	ts := fmt.Sprintf("%s.%03d", n.Format("2006-01-02 15:04:05"), n.Nanosecond()/1000000)
 	var file string
 	var line int
-	for i := 1; ; i++ {
+	for i := 1; i < 10; i++ {
 		_, file, line, _ = runtime.Caller(i)
 		if strings.Contains(file, "dtm") {
 			break
