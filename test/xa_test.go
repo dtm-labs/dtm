@@ -6,6 +6,7 @@ import (
 
 	"github.com/go-resty/resty/v2"
 	"github.com/stretchr/testify/assert"
+	"github.com/yedf/dtm/common"
 	"github.com/yedf/dtm/dtmcli"
 	"github.com/yedf/dtm/examples"
 )
@@ -16,6 +17,7 @@ func TestXa(t *testing.T) {
 	}
 	xaLocalError(t)
 	xaNormal(t)
+	xaDuplicate(t)
 	xaRollback(t)
 }
 
@@ -43,6 +45,23 @@ func xaNormal(t *testing.T) {
 	assert.Equal(t, []string{"prepared", "succeed", "prepared", "succeed"}, getBranchesStatus(gid))
 }
 
+func xaDuplicate(t *testing.T) {
+	xc := examples.XaClient
+	gid := "xaDuplicate"
+	err := xc.XaGlobalTransaction(gid, func(xa *dtmcli.Xa) (*resty.Response, error) {
+		req := examples.GenTransReq(30, false, false)
+		_, err := xa.CallBranch(req, examples.Busi+"/TransOutXa")
+		assert.Nil(t, err)
+		sdb, err := dtmcli.SdbAlone(common.DtmConfig.DB)
+		assert.Nil(t, err)
+		dtmcli.DBExec(sdb, "xa recover")
+		dtmcli.DBExec(sdb, "xa commit 'xaDuplicate-0101'") // 先把某一个事务提交，模拟重复请求
+		return xa.CallBranch(req, examples.Busi+"/TransInXa")
+	})
+	assert.Equal(t, nil, err)
+	WaitTransProcessed(gid)
+	assert.Equal(t, []string{"prepared", "succeed", "prepared", "succeed"}, getBranchesStatus(gid))
+}
 func xaRollback(t *testing.T) {
 	xc := examples.XaClient
 	gid := "xaRollback"
