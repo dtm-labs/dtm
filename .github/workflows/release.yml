@@ -23,3 +23,12 @@ jobs:
           args: release -f helper/.goreleaser.yml --rm-dist
         env:
           GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
+
+      - name: Publish docker
+        env:
+          host: 'ubuntu@en.dtm.pub'
+          dest: '/home/ubuntu'
+        run: |
+          echo "${{secrets.DEPLOY_KEY}}" > deploy_key
+          chmod 600 ./deploy_key
+          ssh -i deploy_key -o StrictHostKeyChecking=no ${{env.host}} 'cd ${{env.dest}}/dtm && sh helper/build-repo.sh ${{github.event.release.tag_name}}'

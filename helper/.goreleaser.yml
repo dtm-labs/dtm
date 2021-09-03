@@ -8,7 +8,6 @@ builds:
       - darwin
     goarch:
       - amd64
-      - arm64
     id: 'dtm'
     dir: .
     main: ./app/main.go
