@@ -31,4 +31,4 @@ jobs:
         run: |
           echo "${{secrets.DEPLOY_KEY}}" > deploy_key
           chmod 600 ./deploy_key
-          ssh -i deploy_key -o StrictHostKeyChecking=no ${{env.host}} 'cd ${{env.dest}}/dtm && sh helper/build-repo.sh ${{github.event.release.tag_name}}'
+          ssh -i deploy_key -o StrictHostKeyChecking=no ${{env.host}} 'cd ${{env.dest}}/dtm && git pull && sudo sh helper/build-repo.sh ${{github.event.release.tag_name}}'
