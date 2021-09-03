@@ -19,6 +19,6 @@ jobs:
       - name: Create release on GitHub
         uses: docker://goreleaser/goreleaser:latest
         with:
-          args: release -f .github/workflows/.goreleaser.yml --rm-dist
+          args: release -f helper/.goreleaser.yml --rm-dist
         env:
           GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
