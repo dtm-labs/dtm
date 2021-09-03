@@ -11,4 +11,4 @@ builds:
       - arm64
     id: 'dtm'
     dir: .
-    main: ./app/main
+    main: ./app/main.go
