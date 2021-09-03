@@ -1,0 +1,14 @@
+# .goreleaser.yml
+project_name: dtm
+builds:
+  - env: [CGO_ENABLED=0]
+    goos:
+      - linux
+      - windows
+      - darwin
+    goarch:
+      - amd64
+      - arm64
+    id: 'dtm'
+    dir: .
+    main: ./app/main
