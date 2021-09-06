@@ -18,6 +18,10 @@ DTM是首款golang的开源分布式事务管理器，优雅的解决了幂等�
 
 [Eglass 视咖镜小二](https://epeijing.cn)
 
+[极欧科技](http://jiou.me)
+
+[金数智联]()
+
 ## 亮点
 
 * 极易接入
@@ -110,4 +114,6 @@ DTM是首款golang的开源分布式事务管理器，优雅的解决了幂等�
 <div style='vertical-align: middle'>
     <img alt='常青藤爸爸' height='40'  src='https://www.ivydad.com/_nuxt/img/header-logo.5b3eb96.png'  /img>
     <img alt='镜小二' height='40'  src='https://img.epeijing.cn/official-website/assets/logo.png'  /img>
+    <img alt='极欧科技' height='40'  src='http://www.siqitech.com.cn/img/logo.3f6c2914.png'  /img>
+    <img alt='金数智联' height='40'  src='https://pic1.zhimg.com/80/v2-dc1d0cef5f7b72be345fc34d768e69e3_1440w.png'  /img>
 </div>
