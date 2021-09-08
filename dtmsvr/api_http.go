@@ -65,6 +65,7 @@ func query(c *gin.Context) (interface{}, error) {
 	}
 	trans := TransGlobal{}
 	db := dbGet()
+	db.Begin()
 	dbr := db.Must().Where("gid", gid).First(&trans)
 	if dbr.Error == gorm.ErrRecordNotFound {
 		return M{"transaction": nil, "branches": [0]int{}}, nil
