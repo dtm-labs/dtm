@@ -26,11 +26,11 @@ func tccBarrierRollback(t *testing.T) {
 	err := dtmcli.TccGlobalTransaction(DtmServer, gid, func(tcc *dtmcli.Tcc) (*resty.Response, error) {
 		_, err := tcc.CallBranch(&examples.TransReq{Amount: 30}, Busi+"/TccBTransOutTry", Busi+"/TccBTransOutConfirm", Busi+"/TccBTransOutCancel")
 		assert.Nil(t, err)
-		return tcc.CallBranch(&examples.TransReq{Amount: 30, TransInResult: "FAILURE"}, Busi+"/TccBTransInTry", Busi+"/TccBTransInConfirm", Busi+"/TccBTransInCancel")
+		return tcc.CallBranch(&examples.TransReq{Amount: 30, TransInResult: dtmcli.ResultFailure}, Busi+"/TccBTransInTry", Busi+"/TccBTransInConfirm", Busi+"/TccBTransInCancel")
 	})
 	assert.Error(t, err)
 	WaitTransProcessed(gid)
-	assert.Equal(t, "failed", getTransStatus(gid))
+	assert.Equal(t, dtmcli.StatusFailed, getTransStatus(gid))
 }
 
 func tccBarrierNormal(t *testing.T) {
@@ -42,7 +42,7 @@ func tccBarrierNormal(t *testing.T) {
 	})
 	assert.Nil(t, err)
 	WaitTransProcessed(gid)
-	assert.Equal(t, "succeed", getTransStatus(gid))
+	assert.Equal(t, dtmcli.StatusSucceed, getTransStatus(gid))
 }
 
 func tccBarrierDisorder(t *testing.T) {
@@ -70,18 +70,18 @@ func tccBarrierDisorder(t *testing.T) {
 		// 注册子事务
 		resp, err := dtmcli.RestyClient.R().
 			SetResult(&dtmcli.TransResult{}).SetBody(M{
-			"gid":        tcc.Gid,
-			"branch_id":  branchID,
-			"trans_type": "tcc",
-			"status":     "prepared",
-			"data":       string(dtmcli.MustMarshal(body)),
-			"try":        tryURL,
-			"confirm":    confirmURL,
-			"cancel":     cancelURL,
+			"gid":                tcc.Gid,
+			"branch_id":          branchID,
+			"trans_type":         "tcc",
+			"status":             dtmcli.StatusPrepared,
+			"data":               string(dtmcli.MustMarshal(body)),
+			dtmcli.BranchTry:     tryURL,
+			dtmcli.BranchConfirm: confirmURL,
+			dtmcli.BranchCancel:  cancelURL,
 		}).Post(fmt.Sprintf("%s/%s", tcc.Dtm, "registerTccBranch"))
 		assert.Nil(t, err)
 		tr := resp.Result().(*dtmcli.TransResult)
-		assert.Equal(t, "SUCCESS", tr.DtmResult)
+		assert.Equal(t, dtmcli.ResultSuccess, tr.DtmResult)
 
 		go func() {
 			dtmcli.Logf("sleeping to wait for tcc try timeout")
@@ -93,10 +93,10 @@ func tccBarrierDisorder(t *testing.T) {
 					"gid":         tcc.Gid,
 					"branch_id":   branchID,
 					"trans_type":  "tcc",
-					"branch_type": "try",
+					"branch_type": dtmcli.BranchTry,
 				}).
 				Post(tryURL)
-			assert.True(t, strings.Contains(r.String(), "FAILURE"))
+			assert.True(t, strings.Contains(r.String(), dtmcli.ResultFailure))
 			finishedChan <- "1"
 		}()
 		dtmcli.Logf("cron to timeout and then call cancel")
@@ -112,6 +112,6 @@ func tccBarrierDisorder(t *testing.T) {
 		return nil, fmt.Errorf("a cancelled tcc")
 	})
 	assert.Error(t, err, fmt.Errorf("a cancelled tcc"))
-	assert.Equal(t, []string{"succeed", "prepared", "prepared"}, getBranchesStatus(gid))
-	assert.Equal(t, "failed", getTransStatus(gid))
+	assert.Equal(t, []string{dtmcli.StatusSucceed, dtmcli.StatusPrepared, dtmcli.StatusPrepared}, getBranchesStatus(gid))
+	assert.Equal(t, dtmcli.StatusFailed, getTransStatus(gid))
 }

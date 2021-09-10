@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/yedf/dtm/dtmcli"
 	"github.com/yedf/dtm/examples"
 )
 
@@ -21,8 +22,8 @@ func sagaNormalWait(t *testing.T) {
 	err := saga.Submit()
 	assert.Nil(t, err)
 	WaitTransProcessed(saga.Gid)
-	assert.Equal(t, []string{"prepared", "succeed", "prepared", "succeed"}, getBranchesStatus(saga.Gid))
-	assert.Equal(t, "succeed", getTransStatus(saga.Gid))
+	assert.Equal(t, []string{dtmcli.StatusPrepared, dtmcli.StatusSucceed, dtmcli.StatusPrepared, dtmcli.StatusSucceed}, getBranchesStatus(saga.Gid))
+	assert.Equal(t, dtmcli.StatusSucceed, getTransStatus(saga.Gid))
 	transQuery(t, saga.Gid)
 }
 
@@ -33,10 +34,10 @@ func sagaCommittedPendingWait(t *testing.T) {
 	err := saga.Submit()
 	assert.Error(t, err)
 	WaitTransProcessed(saga.Gid)
-	assert.Equal(t, []string{"prepared", "prepared", "prepared", "prepared"}, getBranchesStatus(saga.Gid))
+	assert.Equal(t, []string{dtmcli.StatusPrepared, dtmcli.StatusPrepared, dtmcli.StatusPrepared, dtmcli.StatusPrepared}, getBranchesStatus(saga.Gid))
 	CronTransOnce(60 * time.Second)
-	assert.Equal(t, []string{"prepared", "succeed", "prepared", "succeed"}, getBranchesStatus(saga.Gid))
-	assert.Equal(t, "succeed", getTransStatus(saga.Gid))
+	assert.Equal(t, []string{dtmcli.StatusPrepared, dtmcli.StatusSucceed, dtmcli.StatusPrepared, dtmcli.StatusSucceed}, getBranchesStatus(saga.Gid))
+	assert.Equal(t, dtmcli.StatusSucceed, getTransStatus(saga.Gid))
 }
 
 func sagaRollbackWait(t *testing.T) {
@@ -45,6 +46,6 @@ func sagaRollbackWait(t *testing.T) {
 	err := saga.Submit()
 	assert.Error(t, err)
 	WaitTransProcessed(saga.Gid)
-	assert.Equal(t, "failed", getTransStatus(saga.Gid))
-	assert.Equal(t, []string{"succeed", "succeed", "succeed", "failed"}, getBranchesStatus(saga.Gid))
+	assert.Equal(t, dtmcli.StatusFailed, getTransStatus(saga.Gid))
+	assert.Equal(t, []string{dtmcli.StatusSucceed, dtmcli.StatusSucceed, dtmcli.StatusSucceed, dtmcli.StatusFailed}, getBranchesStatus(saga.Gid))
 }

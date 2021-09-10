@@ -20,8 +20,8 @@ func sagaGrpcNormal(t *testing.T) {
 	saga := genSagaGrpc("gid-sagaGrpcNormal", false, false)
 	saga.Submit()
 	WaitTransProcessed(saga.Gid)
-	assert.Equal(t, []string{"prepared", "succeed", "prepared", "succeed"}, getBranchesStatus(saga.Gid))
-	assert.Equal(t, "succeed", getTransStatus(saga.Gid))
+	assert.Equal(t, []string{dtmcli.StatusPrepared, dtmcli.StatusSucceed, dtmcli.StatusPrepared, dtmcli.StatusSucceed}, getBranchesStatus(saga.Gid))
+	assert.Equal(t, dtmcli.StatusSucceed, getTransStatus(saga.Gid))
 	transQuery(t, saga.Gid)
 }
 
@@ -30,10 +30,10 @@ func sagaGrpcCommittedPending(t *testing.T) {
 	examples.MainSwitch.TransOutResult.SetOnce("PENDING")
 	saga.Submit()
 	WaitTransProcessed(saga.Gid)
-	assert.Equal(t, []string{"prepared", "prepared", "prepared", "prepared"}, getBranchesStatus(saga.Gid))
+	assert.Equal(t, []string{dtmcli.StatusPrepared, dtmcli.StatusPrepared, dtmcli.StatusPrepared, dtmcli.StatusPrepared}, getBranchesStatus(saga.Gid))
 	CronTransOnce(60 * time.Second)
-	assert.Equal(t, []string{"prepared", "succeed", "prepared", "succeed"}, getBranchesStatus(saga.Gid))
-	assert.Equal(t, "succeed", getTransStatus(saga.Gid))
+	assert.Equal(t, []string{dtmcli.StatusPrepared, dtmcli.StatusSucceed, dtmcli.StatusPrepared, dtmcli.StatusSucceed}, getBranchesStatus(saga.Gid))
+	assert.Equal(t, dtmcli.StatusSucceed, getTransStatus(saga.Gid))
 }
 
 func sagaGrpcRollback(t *testing.T) {
@@ -43,8 +43,8 @@ func sagaGrpcRollback(t *testing.T) {
 	WaitTransProcessed(saga.Gid)
 	assert.Equal(t, "aborting", getTransStatus(saga.Gid))
 	CronTransOnce(60 * time.Second)
-	assert.Equal(t, "failed", getTransStatus(saga.Gid))
-	assert.Equal(t, []string{"succeed", "succeed", "succeed", "failed"}, getBranchesStatus(saga.Gid))
+	assert.Equal(t, dtmcli.StatusFailed, getTransStatus(saga.Gid))
+	assert.Equal(t, []string{dtmcli.StatusSucceed, dtmcli.StatusSucceed, dtmcli.StatusSucceed, dtmcli.StatusFailed}, getBranchesStatus(saga.Gid))
 }
 
 func genSagaGrpc(gid string, outFailed bool, inFailed bool) *dtmgrpc.SagaGrpc {

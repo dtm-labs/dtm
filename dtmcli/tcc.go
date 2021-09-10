@@ -56,13 +56,13 @@ func TccFromQuery(qs url.Values) (*Tcc, error) {
 func (t *Tcc) CallBranch(body interface{}, tryURL string, confirmURL string, cancelURL string) (*resty.Response, error) {
 	branchID := t.NewBranchID()
 	err := t.callDtm(&M{
-		"gid":        t.Gid,
-		"branch_id":  branchID,
-		"trans_type": "tcc",
-		"data":       string(MustMarshal(body)),
-		"try":        tryURL,
-		"confirm":    confirmURL,
-		"cancel":     cancelURL,
+		"gid":         t.Gid,
+		"branch_id":   branchID,
+		"trans_type":  "tcc",
+		"data":        string(MustMarshal(body)),
+		BranchTry:     tryURL,
+		BranchConfirm: confirmURL,
+		"cancel":      cancelURL,
 	}, "registerTccBranch")
 	if err != nil {
 		return nil, err
@@ -74,7 +74,7 @@ func (t *Tcc) CallBranch(body interface{}, tryURL string, confirmURL string, can
 			"gid":         t.Gid,
 			"branch_id":   branchID,
 			"trans_type":  "tcc",
-			"branch_type": "try",
+			"branch_type": BranchTry,
 		}).
 		Post(tryURL)
 	return resp, CheckResponse(resp, err)

@@ -62,21 +62,21 @@ func tccBarrierTransInTry(c *gin.Context) (interface{}, error) {
 		return req.TransInResult, nil
 	}
 	barrier := MustBarrierFromGin(c)
-	return dtmcli.ResultSuccess, barrier.Call(txGet(), func(db dtmcli.DB) error {
+	return dtmcli.MapSuccess, barrier.Call(txGet(), func(db dtmcli.DB) error {
 		return adjustTrading(db, transInUID, req.Amount)
 	})
 }
 
 func tccBarrierTransInConfirm(c *gin.Context) (interface{}, error) {
 	barrier := MustBarrierFromGin(c)
-	return dtmcli.ResultSuccess, barrier.Call(txGet(), func(db dtmcli.DB) error {
+	return dtmcli.MapSuccess, barrier.Call(txGet(), func(db dtmcli.DB) error {
 		return adjustBalance(db, transInUID, reqFrom(c).Amount)
 	})
 }
 
 func tccBarrierTransInCancel(c *gin.Context) (interface{}, error) {
 	barrier := MustBarrierFromGin(c)
-	return dtmcli.ResultSuccess, barrier.Call(txGet(), func(db dtmcli.DB) error {
+	return dtmcli.MapSuccess, barrier.Call(txGet(), func(db dtmcli.DB) error {
 		return adjustTrading(db, transInUID, -reqFrom(c).Amount)
 	})
 }
@@ -87,14 +87,14 @@ func tccBarrierTransOutTry(c *gin.Context) (interface{}, error) {
 		return req.TransInResult, nil
 	}
 	barrier := MustBarrierFromGin(c)
-	return dtmcli.ResultSuccess, barrier.Call(txGet(), func(db dtmcli.DB) error {
+	return dtmcli.MapSuccess, barrier.Call(txGet(), func(db dtmcli.DB) error {
 		return adjustTrading(db, transOutUID, -req.Amount)
 	})
 }
 
 func tccBarrierTransOutConfirm(c *gin.Context) (interface{}, error) {
 	barrier := MustBarrierFromGin(c)
-	return dtmcli.ResultSuccess, barrier.Call(txGet(), func(db dtmcli.DB) error {
+	return dtmcli.MapSuccess, barrier.Call(txGet(), func(db dtmcli.DB) error {
 		return adjustBalance(db, transOutUID, -reqFrom(c).Amount)
 	})
 }
@@ -102,7 +102,7 @@ func tccBarrierTransOutConfirm(c *gin.Context) (interface{}, error) {
 // TccBarrierTransOutCancel will be use in test
 func TccBarrierTransOutCancel(c *gin.Context) (interface{}, error) {
 	barrier := MustBarrierFromGin(c)
-	return dtmcli.ResultSuccess, barrier.Call(txGet(), func(db dtmcli.DB) error {
+	return dtmcli.MapSuccess, barrier.Call(txGet(), func(db dtmcli.DB) error {
 		return adjustTrading(db, transOutUID, reqFrom(c).Amount)
 	})
 }

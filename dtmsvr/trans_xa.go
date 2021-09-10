@@ -18,14 +18,14 @@ func (t *transXaProcessor) GenBranches() []TransBranch {
 }
 
 func (t *transXaProcessor) ProcessOnce(db *common.DB, branches []TransBranch) {
-	if t.Status == "succeed" {
+	if t.Status == dtmcli.StatusSucceed {
 		return
 	}
-	currentType := dtmcli.If(t.Status == "submitted", "commit", "rollback").(string)
+	currentType := dtmcli.If(t.Status == dtmcli.StatusSubmitted, dtmcli.BranchCommit, dtmcli.BranchRollback).(string)
 	for _, branch := range branches {
-		if branch.BranchType == currentType && branch.Status != "succeed" {
+		if branch.BranchType == currentType && branch.Status != dtmcli.StatusSucceed {
 			t.execBranch(db, &branch)
 		}
 	}
-	t.changeStatus(db, dtmcli.If(t.Status == "submitted", "succeed", "failed").(string))
+	t.changeStatus(db, dtmcli.If(t.Status == dtmcli.StatusSubmitted, dtmcli.StatusSucceed, dtmcli.StatusFailed).(string))
 }

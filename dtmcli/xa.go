@@ -53,7 +53,7 @@ func NewXaClient(server string, mysqlConf map[string]string, notifyURL string, r
 
 // HandleCallback 处理commit/rollback的回调
 func (xc *XaClient) HandleCallback(gid string, branchID string, action string) (interface{}, error) {
-	return ResultSuccess, xc.XaClientBase.HandleCallback(gid, branchID, action)
+	return MapSuccess, xc.XaClientBase.HandleCallback(gid, branchID, action)
 }
 
 // XaLocalTransaction start a xa local transaction
@@ -95,7 +95,7 @@ func (x *Xa) CallBranch(body interface{}, url string) (*resty.Response, error) {
 			"gid":         x.Gid,
 			"branch_id":   branchID,
 			"trans_type":  "xa",
-			"branch_type": "action",
+			"branch_type": BranchAction,
 		}).
 		Post(url)
 	return resp, CheckResponse(resp, err)

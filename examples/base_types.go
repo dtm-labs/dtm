@@ -34,8 +34,8 @@ func (t *TransReq) String() string {
 func GenTransReq(amount int, outFailed bool, inFailed bool) *TransReq {
 	return &TransReq{
 		Amount:         amount,
-		TransOutResult: dtmcli.If(outFailed, "FAILURE", "SUCCESS").(string),
-		TransInResult:  dtmcli.If(inFailed, "FAILURE", "SUCCESS").(string),
+		TransOutResult: dtmcli.If(outFailed, dtmcli.ResultFailure, dtmcli.ResultSuccess).(string),
+		TransInResult:  dtmcli.If(inFailed, dtmcli.ResultFailure, dtmcli.ResultSuccess).(string),
 	}
 }
 

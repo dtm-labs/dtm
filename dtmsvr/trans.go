@@ -56,10 +56,10 @@ func (t *TransGlobal) changeStatus(db *common.DB, status string) *gorm.DB {
 	updates := t.setNextCron(config.TransCronInterval)
 	updates = append(updates, "status")
 	now := time.Now()
-	if status == "succeed" {
+	if status == dtmcli.StatusSucceed {
 		t.FinishTime = &now
 		updates = append(updates, "finish_time")
-	} else if status == "failed" {
+	} else if status == dtmcli.StatusFailed {
 		t.RollbackTime = &now
 		updates = append(updates, "rollback_time")
 	}
@@ -119,17 +119,17 @@ func (t *TransGlobal) getProcessor() transProcessor {
 func (t *TransGlobal) Process(db *common.DB, waitResult bool) dtmcli.M {
 	if !waitResult {
 		go t.processInner(db)
-		return dtmcli.ResultSuccess
+		return dtmcli.MapSuccess
 	}
-	submitting := t.Status == "submitted"
+	submitting := t.Status == dtmcli.StatusSubmitted
 	err := t.processInner(db)
 	if err != nil {
-		return dtmcli.M{"dtm_result": "FAILURE", "message": err.Error()}
+		return dtmcli.M{"dtm_result": dtmcli.ResultFailure, "message": err.Error()}
 	}
-	if submitting && t.Status != "succeed" {
-		return dtmcli.M{"dtm_result": "FAILURE", "message": "trans failed by user"}
+	if submitting && t.Status != dtmcli.StatusSucceed {
+		return dtmcli.M{"dtm_result": dtmcli.ResultFailure, "message": "trans failed by user"}
 	}
-	return dtmcli.ResultSuccess
+	return dtmcli.MapSuccess
 }
 
 func (t *TransGlobal) processInner(db *common.DB) (rerr error) {
@@ -142,7 +142,7 @@ func (t *TransGlobal) processInner(db *common.DB) (rerr error) {
 		}
 	}()
 	dtmcli.Logf("processing: %s status: %s", t.Gid, t.Status)
-	if t.Status == "prepared" && t.TransType != "msg" {
+	if t.Status == dtmcli.StatusPrepared && t.TransType != "msg" {
 		t.changeStatus(db, "aborting")
 	}
 	branches := []TransBranch{}
@@ -173,9 +173,9 @@ func (t *TransGlobal) getURLResult(url string, branchID, branchType string, bran
 			BusiData: branchData,
 		}, &emptypb.Empty{})
 		if err == nil {
-			return "SUCCESS"
+			return dtmcli.ResultSuccess
 		} else if status.Code(err) == codes.Aborted {
-			return "FAILURE"
+			return dtmcli.ResultFailure
 		}
 		return err.Error()
 	}
@@ -199,12 +199,12 @@ func (t *TransGlobal) getBranchResult(branch *TransBranch) string {
 
 func (t *TransGlobal) execBranch(db *common.DB, branch *TransBranch) {
 	body := t.getBranchResult(branch)
-	if strings.Contains(body, "SUCCESS") {
+	if strings.Contains(body, dtmcli.ResultSuccess) {
 		t.touch(db, config.TransCronInterval)
-		branch.changeStatus(db, "succeed")
-	} else if t.TransType == "saga" && branch.BranchType == "action" && strings.Contains(body, "FAILURE") {
+		branch.changeStatus(db, dtmcli.StatusSucceed)
+	} else if t.TransType == "saga" && branch.BranchType == dtmcli.BranchAction && strings.Contains(body, dtmcli.ResultFailure) {
 		t.touch(db, config.TransCronInterval)
-		branch.changeStatus(db, "failed")
+		branch.changeStatus(db, dtmcli.StatusFailed)
 	} else {
 		panic(fmt.Errorf("http result should contains SUCCESS|FAILURE. grpc error should return nil|Aborted. \nrefer to: https://dtm.pub/summary/arch.html#http\nunkown result will be retried: %s", body))
 	}
@@ -226,8 +226,8 @@ func (t *TransGlobal) saveNew(db *common.DB) {
 					DoNothing: true,
 				}).Create(&branches)
 			}
-		} else if dbr.RowsAffected == 0 && t.Status == "submitted" { // 如果数据库已经存放了prepared的事务，则修改状态
-			dbr = db.Must().Model(t).Where("gid=? and status=?", t.Gid, "prepared").Select(append(updates, "status")).Updates(t)
+		} else if dbr.RowsAffected == 0 && t.Status == dtmcli.StatusSubmitted { // 如果数据库已经存放了prepared的事务，则修改状态
+			dbr = db.Must().Model(t).Where("gid=? and status=?", t.Gid, dtmcli.StatusPrepared).Select(append(updates, "status")).Updates(t)
 		}
 		return nil
 	})

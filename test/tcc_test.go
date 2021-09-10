@@ -29,7 +29,7 @@ func tccNormal(t *testing.T) {
 
 func tccRollback(t *testing.T) {
 	gid := "tccRollback"
-	data := &examples.TransReq{Amount: 30, TransInResult: "FAILURE"}
+	data := &examples.TransReq{Amount: 30, TransInResult: dtmcli.ResultFailure}
 	err := dtmcli.TccGlobalTransaction(examples.DtmServer, gid, func(tcc *dtmcli.Tcc) (*resty.Response, error) {
 		_, rerr := tcc.CallBranch(data, Busi+"/TransOut", Busi+"/TransOutConfirm", Busi+"/TransOutRevert")
 		assert.Nil(t, rerr)
@@ -40,5 +40,5 @@ func tccRollback(t *testing.T) {
 	WaitTransProcessed(gid)
 	assert.Equal(t, "aborting", getTransStatus(gid))
 	CronTransOnce(60 * time.Second)
-	assert.Equal(t, "failed", getTransStatus(gid))
+	assert.Equal(t, dtmcli.StatusFailed, getTransStatus(gid))
 }

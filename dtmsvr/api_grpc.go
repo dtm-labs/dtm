@@ -37,12 +37,12 @@ func (s *dtmServer) RegisterTccBranch(ctx context.Context, in *pb.DtmTccBranchRe
 	r, err := svcRegisterTccBranch(&TransBranch{
 		Gid:      in.Info.Gid,
 		BranchID: in.Info.BranchID,
-		Status:   "prepared",
+		Status:   dtmcli.StatusPrepared,
 		Data:     in.BusiData,
 	}, dtmcli.MS{
-		"cancel":  in.Cancel,
-		"confirm": in.Confirm,
-		"try":     in.Try,
+		dtmcli.BranchCancel:  in.Cancel,
+		dtmcli.BranchConfirm: in.Confirm,
+		dtmcli.BranchTry:     in.Try,
 	})
 	return &emptypb.Empty{}, dtmgrpc.Result2Error(r, err)
 }
@@ -51,7 +51,7 @@ func (s *dtmServer) RegisterXaBranch(ctx context.Context, in *pb.DtmXaBranchRequ
 	r, err := svcRegisterXaBranch(&TransBranch{
 		Gid:      in.Info.Gid,
 		BranchID: in.Info.BranchID,
-		Status:   "prepared",
+		Status:   dtmcli.StatusPrepared,
 		Data:     in.BusiData,
 		URL:      in.Notify,
 	})

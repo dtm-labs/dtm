@@ -21,7 +21,7 @@ func grpcMsgNormal(t *testing.T) {
 	err := msg.Submit()
 	assert.Nil(t, err)
 	WaitTransProcessed(msg.Gid)
-	assert.Equal(t, "succeed", getTransStatus(msg.Gid))
+	assert.Equal(t, dtmcli.StatusSucceed, getTransStatus(msg.Gid))
 }
 
 func grpcMsgPending(t *testing.T) {
@@ -30,12 +30,12 @@ func grpcMsgPending(t *testing.T) {
 	assert.Nil(t, err)
 	examples.MainSwitch.CanSubmitResult.SetOnce("PENDING")
 	CronTransOnce(60 * time.Second)
-	assert.Equal(t, "prepared", getTransStatus(msg.Gid))
+	assert.Equal(t, dtmcli.StatusPrepared, getTransStatus(msg.Gid))
 	examples.MainSwitch.TransInResult.SetOnce("PENDING")
 	CronTransOnce(60 * time.Second)
-	assert.Equal(t, "submitted", getTransStatus(msg.Gid))
+	assert.Equal(t, dtmcli.StatusSubmitted, getTransStatus(msg.Gid))
 	CronTransOnce(60 * time.Second)
-	assert.Equal(t, "succeed", getTransStatus(msg.Gid))
+	assert.Equal(t, dtmcli.StatusSucceed, getTransStatus(msg.Gid))
 }
 
 func genGrpcMsg(gid string) *dtmgrpc.MsgGrpc {

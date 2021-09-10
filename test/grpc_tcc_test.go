@@ -50,7 +50,7 @@ func tccGrpcNested(t *testing.T) {
 
 func tccGrpcRollback(t *testing.T) {
 	gid := "tccGrpcRollback"
-	data := dtmcli.MustMarshal(&examples.TransReq{Amount: 30, TransInResult: "FAILURE"})
+	data := dtmcli.MustMarshal(&examples.TransReq{Amount: 30, TransInResult: dtmcli.ResultFailure})
 	err := dtmgrpc.TccGlobalTransaction(examples.DtmGrpcServer, gid, func(tcc *dtmgrpc.TccGrpc) error {
 		_, err := tcc.CallBranch(data, examples.BusiGrpc+"/examples.Busi/TransOutTcc", examples.BusiGrpc+"/examples.Busi/TransOutConfirm", examples.BusiGrpc+"/examples.Busi/TransOutRevert")
 		assert.Nil(t, err)
@@ -62,5 +62,5 @@ func tccGrpcRollback(t *testing.T) {
 	WaitTransProcessed(gid)
 	assert.Equal(t, "aborting", getTransStatus(gid))
 	CronTransOnce(60 * time.Second)
-	assert.Equal(t, "failed", getTransStatus(gid))
+	assert.Equal(t, dtmcli.StatusFailed, getTransStatus(gid))
 }

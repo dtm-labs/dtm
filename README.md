@@ -57,7 +57,7 @@ DTM是首款golang的开源分布式事务管理器，优雅的解决了幂等�
 
 ## [教程与文档](https://dtm.pub)
 
-## [各语言客户端及示例](./doc/sdk.md)
+## [各语言客户端及示例](https://dtm.pub/summary/code.html#go)
 
 ## 快速开始
 

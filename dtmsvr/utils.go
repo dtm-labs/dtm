@@ -29,7 +29,7 @@ func writeTransLog(gid string, action string, status string, branch string, deta
 	// }
 	// dbGet().Must().Table("trans_log").Create(M{
 	// 	"gid":        gid,
-	// 	"action":     action,
+	// 	dtmcli.BranchAction:     action,
 	// 	"new_status": status,
 	// 	"branch":     branch,
 	// 	"detail":     detail,

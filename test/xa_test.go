@@ -42,7 +42,7 @@ func xaNormal(t *testing.T) {
 	})
 	assert.Equal(t, nil, err)
 	WaitTransProcessed(gid)
-	assert.Equal(t, []string{"prepared", "succeed", "prepared", "succeed"}, getBranchesStatus(gid))
+	assert.Equal(t, []string{dtmcli.StatusPrepared, dtmcli.StatusSucceed, dtmcli.StatusPrepared, dtmcli.StatusSucceed}, getBranchesStatus(gid))
 }
 
 func xaDuplicate(t *testing.T) {
@@ -60,13 +60,13 @@ func xaDuplicate(t *testing.T) {
 	})
 	assert.Equal(t, nil, err)
 	WaitTransProcessed(gid)
-	assert.Equal(t, []string{"prepared", "succeed", "prepared", "succeed"}, getBranchesStatus(gid))
+	assert.Equal(t, []string{dtmcli.StatusPrepared, dtmcli.StatusSucceed, dtmcli.StatusPrepared, dtmcli.StatusSucceed}, getBranchesStatus(gid))
 }
 func xaRollback(t *testing.T) {
 	xc := examples.XaClient
 	gid := "xaRollback"
 	err := xc.XaGlobalTransaction(gid, func(xa *dtmcli.Xa) (*resty.Response, error) {
-		req := &examples.TransReq{Amount: 30, TransInResult: "FAILURE"}
+		req := &examples.TransReq{Amount: 30, TransInResult: dtmcli.ResultFailure}
 		resp, err := xa.CallBranch(req, examples.Busi+"/TransOutXa")
 		if err != nil {
 			return resp, err
@@ -75,6 +75,6 @@ func xaRollback(t *testing.T) {
 	})
 	assert.Error(t, err)
 	WaitTransProcessed(gid)
-	assert.Equal(t, []string{"succeed", "prepared"}, getBranchesStatus(gid))
-	assert.Equal(t, "failed", getTransStatus(gid))
+	assert.Equal(t, []string{dtmcli.StatusSucceed, dtmcli.StatusPrepared}, getBranchesStatus(gid))
+	assert.Equal(t, dtmcli.StatusFailed, getTransStatus(gid))
 }

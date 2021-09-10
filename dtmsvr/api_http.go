@@ -20,14 +20,14 @@ func addRoute(engine *gin.Engine) {
 }
 
 func newGid(c *gin.Context) (interface{}, error) {
-	return M{"gid": GenGid(), "dtm_result": "SUCCESS"}, nil
+	return M{"gid": GenGid(), "dtm_result": dtmcli.ResultSuccess}, nil
 }
 
 func prepare(c *gin.Context) (interface{}, error) {
 	t := TransFromContext(c)
-	t.Status = "prepared"
+	t.Status = dtmcli.StatusPrepared
 	t.saveNew(dbGet())
-	return dtmcli.ResultSuccess, nil
+	return dtmcli.MapSuccess, nil
 }
 
 func submit(c *gin.Context) (interface{}, error) {
@@ -52,7 +52,7 @@ func registerTccBranch(c *gin.Context) (interface{}, error) {
 	branch := TransBranch{
 		Gid:      data["gid"],
 		BranchID: data["branch_id"],
-		Status:   "prepared",
+		Status:   dtmcli.StatusPrepared,
 		Data:     data["data"],
 	}
 	return svcRegisterTccBranch(&branch, data)

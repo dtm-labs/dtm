@@ -18,14 +18,14 @@ func (t *transTccProcessor) GenBranches() []TransBranch {
 }
 
 func (t *transTccProcessor) ProcessOnce(db *common.DB, branches []TransBranch) {
-	if t.Status == "succeed" || t.Status == "failed" {
+	if t.Status == dtmcli.StatusSucceed || t.Status == dtmcli.StatusFailed {
 		return
 	}
-	branchType := dtmcli.If(t.Status == "submitted", "confirm", "cancel").(string)
+	branchType := dtmcli.If(t.Status == dtmcli.StatusSubmitted, dtmcli.BranchConfirm, dtmcli.BranchCancel).(string)
 	for current := len(branches) - 1; current >= 0; current-- {
-		if branches[current].BranchType == branchType && branches[current].Status == "prepared" {
+		if branches[current].BranchType == branchType && branches[current].Status == dtmcli.StatusPrepared {
 			t.execBranch(db, &branches[current])
 		}
 	}
-	t.changeStatus(db, dtmcli.If(t.Status == "submitted", "succeed", "failed").(string))
+	t.changeStatus(db, dtmcli.If(t.Status == dtmcli.StatusSubmitted, dtmcli.StatusSucceed, dtmcli.StatusFailed).(string))
 }

@@ -23,16 +23,16 @@ func sagaBarrierNormal(t *testing.T) {
 	err := saga.Submit()
 	e2p(err)
 	WaitTransProcessed(saga.Gid)
-	assert.Equal(t, []string{"prepared", "succeed", "prepared", "succeed"}, getBranchesStatus(saga.Gid))
+	assert.Equal(t, []string{dtmcli.StatusPrepared, dtmcli.StatusSucceed, dtmcli.StatusPrepared, dtmcli.StatusSucceed}, getBranchesStatus(saga.Gid))
 }
 
 func sagaBarrierRollback(t *testing.T) {
 	saga := dtmcli.NewSaga(DtmServer, "sagaBarrierRollback").
 		Add(Busi+"/SagaBTransOut", Busi+"/SagaBTransOutCompensate", &examples.TransReq{Amount: 30}).
-		Add(Busi+"/SagaBTransIn", Busi+"/SagaBTransInCompensate", &examples.TransReq{Amount: 30, TransInResult: "FAILURE"})
+		Add(Busi+"/SagaBTransIn", Busi+"/SagaBTransInCompensate", &examples.TransReq{Amount: 30, TransInResult: dtmcli.ResultFailure})
 	dtmcli.Logf("busi trans submit")
 	err := saga.Submit()
 	e2p(err)
 	WaitTransProcessed(saga.Gid)
-	assert.Equal(t, "failed", getTransStatus(saga.Gid))
+	assert.Equal(t, dtmcli.StatusFailed, getTransStatus(saga.Gid))
 }

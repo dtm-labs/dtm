@@ -239,7 +239,7 @@ func CheckResponse(resp *resty.Response, err error) error {
 	if err == nil && resp != nil {
 		if resp.IsError() {
 			return errors.New(resp.String())
-		} else if strings.Contains(resp.String(), "FAILURE") {
+		} else if strings.Contains(resp.String(), ResultFailure) {
 			return ErrFailure
 		}
 	}
@@ -254,7 +254,7 @@ func CheckResult(res interface{}, err error) error {
 	}
 	if res != nil {
 		str := MustMarshalString(res)
-		if strings.Contains(str, "FAILURE") {
+		if strings.Contains(str, ResultFailure) {
 			return ErrFailure
 		} else if strings.Contains(str, "PENDING") {
 			return ErrPending

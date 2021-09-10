@@ -70,13 +70,13 @@ func (bb *BranchBarrier) Call(tx Tx, busiCall BusiFunc) (rerr error) {
 	}()
 	ti := bb
 	originType := map[string]string{
-		"cancel":     "try",
-		"compensate": "action",
+		BranchCancel:     BranchTry,
+		BranchCompensate: BranchAction,
 	}[ti.BranchType]
 	originAffected, _ := insertBarrier(tx, ti.TransType, ti.Gid, ti.BranchID, originType, bid, ti.BranchType)
 	currentAffected, rerr := insertBarrier(tx, ti.TransType, ti.Gid, ti.BranchID, ti.BranchType, bid, ti.BranchType)
 	Logf("originAffected: %d currentAffected: %d", originAffected, currentAffected)
-	if (ti.BranchType == "cancel" || ti.BranchType == "compensate") && originAffected > 0 { // 这个是空补偿，返回成功
+	if (ti.BranchType == BranchCancel || ti.BranchType == BranchCompensate) && originAffected > 0 { // 这个是空补偿，返回成功
 		return
 	} else if currentAffected == 0 { // 插入不成功
 		var result sql.NullString

@@ -55,14 +55,14 @@ func xaGrpcNormal(t *testing.T) {
 	})
 	assert.Equal(t, nil, err)
 	WaitTransProcessed(gid)
-	assert.Equal(t, []string{"prepared", "succeed", "prepared", "succeed"}, getBranchesStatus(gid))
+	assert.Equal(t, []string{dtmcli.StatusPrepared, dtmcli.StatusSucceed, dtmcli.StatusPrepared, dtmcli.StatusSucceed}, getBranchesStatus(gid))
 }
 
 func xaGrpcRollback(t *testing.T) {
 	xc := examples.XaGrpcClient
 	gid := "xaGrpcRollback"
 	err := xc.XaGlobalTransaction(gid, func(xa *dtmgrpc.XaGrpc) error {
-		req := dtmcli.MustMarshal(&examples.TransReq{Amount: 30, TransInResult: "FAILURE"})
+		req := dtmcli.MustMarshal(&examples.TransReq{Amount: 30, TransInResult: dtmcli.ResultFailure})
 		_, err := xa.CallBranch(req, examples.BusiGrpc+"/examples.Busi/TransOutXa")
 		if err != nil {
 			return err
@@ -72,6 +72,6 @@ func xaGrpcRollback(t *testing.T) {
 	})
 	assert.Error(t, err)
 	WaitTransProcessed(gid)
-	assert.Equal(t, []string{"succeed", "prepared"}, getBranchesStatus(gid))
-	assert.Equal(t, "failed", getTransStatus(gid))
+	assert.Equal(t, []string{dtmcli.StatusSucceed, dtmcli.StatusPrepared}, getBranchesStatus(gid))
+	assert.Equal(t, dtmcli.StatusFailed, getTransStatus(gid))
 }

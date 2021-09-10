@@ -73,7 +73,7 @@ func getBranchesStatus(gid string) []string {
 
 func assertSucceed(t *testing.T, gid string) {
 	WaitTransProcessed(gid)
-	assert.Equal(t, "succeed", getTransStatus(gid))
+	assert.Equal(t, dtmcli.StatusSucceed, getTransStatus(gid))
 }
 
 func genMsg(gid string) *dtmcli.Msg {
@@ -114,7 +114,7 @@ func TestSqlDB(t *testing.T) {
 		TransType:  "saga",
 		Gid:        "gid2",
 		BranchID:   "branch_id2",
-		BranchType: "action",
+		BranchType: dtmcli.BranchAction,
 	}
 	db.Must().Exec("insert ignore into dtm_barrier.barrier(trans_type, gid, branch_id, branch_type, reason) values('saga', 'gid1', 'branch_id1', 'action', 'saga')")
 	tx, err := db.ToSQLDB().Begin()
