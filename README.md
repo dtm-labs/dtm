@@ -8,10 +8,6 @@
 # [English Docs](https://en.dtm.pub)
 # GO语言分布式事务管理服务
 
-DTM是首款golang的开源分布式事务管理器，优雅的解决了幂等、空补偿、悬挂等分布式事务难题。提供了简单易用、高性能、易水平扩展的分布式事务解决方案。
-
-受邀参加中国数据库大会分享[多语言环境下分布式事务实践](http://dtcc.it168.com/yicheng.html#b9)
-
 ## 谁在使用dtm
 
 [Ivydad 常青藤爸爸](https://ivydad.com)
@@ -22,35 +18,35 @@ DTM是首款golang的开源分布式事务管理器，优雅的解决了幂等�
 
 [金数智联]()
 
-## 亮点
+## 可以做什么
 
-* 极易接入
-  - 支持HTTP，提供非常简单的接口，极大降低上手分布式事务的难度，新手也能快速接入
-* 使用简单
-  - 开发者不再担心悬挂、空补偿、幂等各类问题，框架层代为处理
-* 跨语言
-  - 可适合多语言栈的公司使用。方便go、python、php、nodejs、ruby、c# 各类语言使用。
-* 易部署、易扩展
-  - 仅依赖mysql，部署简单，易集群化，易水平扩展
-* 多种分布式事务协议支持
-  - TCC、SAGA、XA、事务消息
+* 一站式解决分布式事务需求
+  - 支持TCC、SAGA、XA、事务消息、可靠消息
+* 支持跨语言栈事务
+  - 适合多语言栈的公司使用。支持Go、Python、PHP、Nodejs、Java、c# 各类语言SDK。
+* 自动处理子事务乱序
+  - 首创子事务屏障技术，框架层自动处理悬挂、空补偿、幂等网络异常问题
+* 支持单服务多数据源访问
+  - 通过子事务屏障技术，保证单服务多数据源访问的一致性，也能保证本地长事务拆分多个子事务后的一致性
+* 开箱即用，提供云上服务
+  - 支持通用的HTTP、gRPC协议接入，云原生友好。支持Mysql接入。提供测试版本的云上服务，方便新用户测试
 
 ## 与其他框架对比
 
-目前开源的分布式事务框架，暂未看到非Java语言有成熟的框架。而Java语言的较多，有阿里的SEATA、华为的ServiceComb-Pack，京东的shardingsphere，以及himly，tcc-transaction，ByteTCC等等，其中以seata应用最为广泛。
+目前开源的分布式事务框架，暂未看到非Java语言有成熟的框架。而Java语言的较多，其中以seata应用最为广泛。
 
 下面是dtm和seata的主要特性对比：
 
 |  特性| DTM | SEATA |备注|
 |:-----:|:----:|:----:|:----:|
 | 支持语言 |<span style="color:green">Go、Java、python、php、c#...</span>|<span style="color:orange">Java</span>|dtm可轻松接入一门新语言|
-|异常处理| <span style="color:green">[子事务屏障自动处理](https://zhuanlan.zhihu.com/p/388444465)</span>|<span style="color:orange">手动处理</span> |dtm解决了幂等、悬挂、空补偿|
+|异常处理| <span style="color:green">[子事务屏障自动处理](https://dtm.pub/exception/barrier.html)</span>|<span style="color:orange">手动处理</span> |dtm解决了幂等、悬挂、空补偿|
 | TCC事务| <span style="color:green">✓</span>|<span style="color:green">✓</span>||
 | XA事务|<span style="color:green">✓</span>|<span style="color:green">✓</span>||
 |AT事务|<span style="color:red">✗</span>|<span style="color:green">✓</span>|AT与XA类似，性能更好，但有脏回滚|
 | SAGA事务 |<span style="color:orange">简单模式</span> |<span style="color:green">状态机复杂模式</span> |dtm的状态机模式在规划中|
 |事务消息|<span style="color:green">✓</span>|<span style="color:red">✗</span>|dtm提供类似rocketmq的事务消息|
-|通信协议|HTTP、GRPC|dubbo等协议，无HTTP|dtm对云原生更加友好|
+|通信协议|HTTP、GRPC|dubbo等协议，无HTTP||
 |star数量|<img src="https://img.shields.io/github/stars/yedf/dtm.svg?style=social" alt="github stars"/>|<img src="https://img.shields.io/github/stars/seata/seata.svg?style=social" alt="github stars"/>|dtm从20210604发布0.1，发展快|
 
 从上面对比的特性来看，如果您的语言栈包含了Java之外的语言，那么dtm是您的首选。如果您的语言栈是Java，您也可以选择接入dtm，使用子事务屏障技术，简化您的业务编写。
