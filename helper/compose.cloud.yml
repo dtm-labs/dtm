@@ -1,7 +1,7 @@
 version: '3.3'
 services:
   api:
-    build: .
+    build: ..
     environment:
       IS_DOCKER: 1
       DISABLE_LOCALHOST: 1
@@ -9,7 +9,7 @@ services:
     ports:
       - '9080:8080'
     volumes:
-      - .:/app/dtm
+      - ..:/app/dtm
   mysql:
     image: 'mysql:5.7'
     environment:
