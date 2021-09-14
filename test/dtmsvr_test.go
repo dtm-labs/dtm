@@ -105,6 +105,9 @@ func transQuery(t *testing.T, gid string) {
 	dtmcli.MustUnmarshalString(resp.String(), &m)
 	assert.Equal(t, nil, m["transaction"])
 	assert.Equal(t, 0, len(m["branches"].([]interface{})))
+
+	resp, err = dtmcli.RestyClient.R().Get(examples.DtmServer + "/all")
+	assert.Nil(t, err)
 }
 
 func TestSqlDB(t *testing.T) {

@@ -2,6 +2,7 @@ package dtmsvr
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"strings"
 	"time"
@@ -222,6 +223,7 @@ func (t *TransGlobal) saveNew(db *common.DB) {
 			branches := t.getProcessor().GenBranches()
 			if len(branches) > 0 {
 				writeTransLog(t.Gid, "save branches", t.Status, "", dtmcli.MustMarshalString(branches))
+				checkLocalhost(branches)
 				db.Must().Clauses(clause.OnConflict{
 					DoNothing: true,
 				}).Create(&branches)
@@ -270,4 +272,15 @@ func TransFromDb(db *common.DB, gid string) *TransGlobal {
 	}
 	e2p(dbr.Error)
 	return &m
+}
+
+func checkLocalhost(branches []TransBranch) {
+	if config.DisableLocalhost == 0 {
+		return
+	}
+	for _, branch := range branches {
+		if strings.HasPrefix(branch.URL, "http://localhost") || strings.HasPrefix(branch.URL, "localhost") {
+			panic(errors.New("url for localhost is disabled. check for your config"))
+		}
+	}
 }

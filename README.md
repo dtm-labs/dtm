@@ -23,19 +23,19 @@
 * 一站式解决分布式事务需求
   - 支持TCC、SAGA、XA、事务消息、可靠消息
 * 支持跨语言栈事务
-  - 适合多语言栈的公司使用。支持Go、Python、PHP、Nodejs、Java、c# 各类语言SDK。
+  - 支持多语言栈混合的分布式事务。支持Go、Python、PHP、Nodejs、Java、c# 各类语言SDK。
 * 自动处理子事务乱序
   - 首创子事务屏障技术，框架层自动处理悬挂、空补偿、幂等网络异常问题
 * 支持单服务多数据源访问
   - 通过子事务屏障技术，保证单服务多数据源访问的一致性，也能保证本地长事务拆分多个子事务后的一致性
 * 开箱即用，提供云上服务
-  - 支持通用的HTTP、gRPC协议接入，云原生友好。支持Mysql接入。提供测试版本的云上服务，方便新用户测试
+  - 支持通用的HTTP、gRPC协议接入，云原生友好。支持Mysql接入。提供测试版本的云上服务，方便新用户测试接入
 
 ## 与其他框架对比
 
 目前开源的分布式事务框架，暂未看到非Java语言有成熟的框架。而Java语言的较多，其中以seata应用最为广泛。
 
-下面是dtm和seata的主要特性对比：
+下面是DTM和SEATA的主要特性对比：
 
 |  特性| DTM | SEATA |备注|
 |:-----:|:----:|:----:|:----:|
@@ -46,7 +46,7 @@
 |AT事务|<span style="color:red">✗</span>|<span style="color:green">✓</span>|AT与XA类似，性能更好，但有脏回滚|
 | SAGA事务 |<span style="color:orange">简单模式</span> |<span style="color:green">状态机复杂模式</span> |dtm的状态机模式在规划中|
 |事务消息|<span style="color:green">✓</span>|<span style="color:red">✗</span>|dtm提供类似rocketmq的事务消息|
-|通信协议|HTTP、GRPC|dubbo等协议，无HTTP||
+|通信协议|HTTP、gRPC|dubbo等协议，无HTTP||
 |star数量|<img src="https://img.shields.io/github/stars/yedf/dtm.svg?style=social" alt="github stars"/>|<img src="https://img.shields.io/github/stars/seata/seata.svg?style=social" alt="github stars"/>|dtm从20210604发布0.1，发展快|
 
 从上面对比的特性来看，如果您的语言栈包含了Java之外的语言，那么dtm是您的首选。如果您的语言栈是Java，您也可以选择接入dtm，使用子事务屏障技术，简化您的业务编写。

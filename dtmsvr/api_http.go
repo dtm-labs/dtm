@@ -16,6 +16,7 @@ func addRoute(engine *gin.Engine) {
 	engine.POST("/api/dtmsvr/registerTccBranch", common.WrapHandler(registerTccBranch))
 	engine.POST("/api/dtmsvr/abort", common.WrapHandler(abort))
 	engine.GET("/api/dtmsvr/query", common.WrapHandler(query))
+	engine.GET("/api/dtmsvr/all", common.WrapHandler(all))
 	engine.GET("/api/dtmsvr/newGid", common.WrapHandler(newGid))
 }
 
@@ -73,4 +74,15 @@ func query(c *gin.Context) (interface{}, error) {
 	branches := []TransBranch{}
 	db.Must().Where("gid", gid).Find(&branches)
 	return M{"transaction": trans, "branches": branches}, nil
+}
+
+func all(c *gin.Context) (interface{}, error) {
+	lastId := c.Query("last_id")
+	if lastId == "" {
+		lastId = "2000000000"
+	}
+	lid := dtmcli.MustAtoi(lastId)
+	trans := []TransGlobal{}
+	dbGet().Must().Where("id < ?", lid).Order("id desc").Limit(100).Find(&trans)
+	return M{"transactions": trans}, nil
 }

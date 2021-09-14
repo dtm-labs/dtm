@@ -1,4 +1,4 @@
-FROM daocloud.io/atsctoo/golang:1.15
+FROM golang:1.15
 WORKDIR /app/dtm
 RUN go env -w GO111MODULE=on
 RUN go env -w GOPROXY=https://goproxy.io,direct
