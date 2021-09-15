@@ -7,112 +7,110 @@
 
 # [中文文档](http://dtm.pub)
 
-# A lightweight distributed transaction manager
+# A Lightweight Distributed Transaction Manager
 
-DTM is the first golang open source distributed transaction project. It elegantly resolve the problem of execution out of order. In the microservice architecture, a high-performance and easy-to-use distributed transaction solution is provided.
+## Who's using DTM
 
-## Who's using dtm
+[Ivydad](https://ivydad.com)
 
-[Ivydad 常青藤爸爸](https://ivydad.com)
+[Eglass](https://epeijing.cn)
 
-[Eglass 视咖镜小二](https://epeijing.cn)
+[Jiou](http://jiou.me)
 
-## Characteristic
+[GoldenData]()
 
-* Stable and reliable
-  + Tested in the production environment, unit test coverage is over 90%
-* Simple to use
-  + The interface is simple, developers no longer worry about suspension, null compensation, idempotence, etc., and the framework layer takes care of them.
-* Multi language supported
-  + It is suitable for companies with multi-language stacks. The protocol supports http. Convenient to use in various languages ​​such as go, python, php, nodejs, ruby, c#.
-* Easy to deploy, easy to expand
-  + Only rely on mysql, easy to deploy, easy to expand horizontally
-* Multiple distributed transaction protocol supported
-  + TCC: Try-Confirm-Cancel
-  + SAGA:
-  + Reliable news
-  + XA
+## What is DTM
 
-## dtm vs other
+DTM is the first distributed transaction management framework in golang. Unlike other frameworks, DTM provides extremely easy access to HTTP and gRPC, supports multiple language bindings, and handles tricky problems of unordered sub-transactions at the framework level.
 
-At present, the open source distributed transaction framework has not yet seen a mature framework for non-Java languages. There are many Java projects, such as Ali's SEATA, Huawei's ServiceComb-Pack, JD's shardingsphere, and himly, tcc-transaction, ByteTCC, etc. Among them, seata is the most widely used.
+## Features
 
-The following is a comparison of the main features of dtm and seata:
+* Extremely easy to adopt
+  - Support HTTP and gRPC, provide easy-to-use programing interfaces, lower substantially the barrier of getting started with distributed transactions, newcomers can adopt quickly
 
-| Features | DTM | SEATA | Remarks |
-|:-----:|:----:|:----:|:----:|
-| Supported languages| <span style="color:green">Go, Java python, php, c# and others</span> | <span style="color:orange">Java</span> |dtm can easily support a new language|
-|Exception Handling| <span style="color:green">[Sub-transaction barrier automatic processing](./doc/barrier-en.md)</span>|<span style="color:orange">Manual processing</span> | dtm solves idempotence, suspension, and null compensation|
-|TCC| <span style="color:green">✓</span>|<span style="color:green">✓</span>||
-|XA|<span style="color:green">✓</span>|<span style="color:green">✓</span>||
-|AT|<span style="color:red">✗</span>|<span style="color:green">✓</span>|AT is similar to XA, with better performance but dirty rollback|
-|SAGA|<span style="color:orange">simple mode</span> |<span style="color:green">state machine complex mode</span> |dtm's state machine mode is under planning|
-|Transaction message|<span style="color:green">✓</span>|<span style="color:red">✗</span>|dtm provides transaction messages similar to rocketmq|
-|Communication protocol|HTTP,GRPC|dubbo and other protocols, no HTTP|dtm is friendly to cloud native|
-|star number|<img src="https://img.shields.io/github/stars/yedf/dtm.svg?style=social" alt="github stars"/>|<img src="https://img.shields.io/github/stars/seata/seata.svg?style=social" alt="github stars"/>|dtm releases 0.1 from 20210604, fast development|
+* Easy to use
+  - Relieving developers from worrying about suspension, null compensation, idempotent transaction, and other tricky problems, the framework layer handles them all
 
-From the features of the comparison above, if your language stack includes languages ​​other than Java, then dtm is your first choice. If your language stack is Java, you can also choose to access dtm and use sub-transaction barrier technology to simplify your business writing.
+* Language-agnostic
+  - Suitable for companies with multiple-language stacks.
+    Easy to write bindings for go, python, php, nodejs, ruby and other languages.
+
+* Easy to deploy, easy to extend
+  - DTM depends only on mysql, easy to deploy, cluster, and scale horizontally
+
+* Support for multiple distributed transaction protocol
+  - TCC, SAGA, XA, Transactional messages
+
+## DTM vs Other
+
+There is no mature open-source distributed transaction framework for non-Java languages.
+Mature open-source distributed transaction frameworks for Java language include Ali's Seata, Huawei's ServiceComb-Pack, Jingdong's shardingsphere, himly, tcc-transaction, ByteTCC and so on, of which Seata is most widely used.
+
+The following is a comparison of the main features of dtm and Seata.
+
+
+| Features                | DTM                                                                                           | Seata                                                                                            | Remarks                                                             |
+| :-----:                 | :----:                                                                                        | :----:                                                                                           | :----:                                                              |
+| Supported languages     | <span style="color:green">Golang, python, php and others</span>                               | <span style="color:orange">Java</span>                                                           | dtm allows easy access from a new language                            |
+| Exception handling      | [Sub-transaction barrier](https://zhuanlan.zhihu.com/p/388444465)                             | <span style="color:orange">manual</span>                                                         | dtm solves idempotent transaction, hanging, null compensation                   |
+| TCC                     | <span style="color:green">✓</span>                                                            | <span style="color:green">✓</span>                                                               |                                                                     |
+| XA                      | <span style="color:green">✓</span>                                                            | <span style="color:green">✓</span>                                                               |                                                                     |
+| AT                      | <span style="color:red">✗</span>                                                              | <span style="color:green">✓</span>                                                               | AT is similar to XA with better performance but with dirty rollback |
+| SAGA                    | <span style="color:orange">Simple mode</span>                                                 | <span style="color:green">complicated state-machine mode</span>                                   | dtm's state-machine mode is being planned                         |
+| Transactional Messaging | <span style="color:green">✓</span>                                                            | <span style="color:red">✗</span>                                                                 | dtm provides Transactional Messaging similar to RocketMQ               |
+| Communication protocols | <span style="color:green">HTTP, gRPC</span>                                                   | <span style="color:green">Dubbo, no HTTP</span>                                             |                                                                     |
+| star count              | <img src="https://img.shields.io/github/stars/yedf/dtm.svg?style=social" alt="github stars"/> | <img src="https://img.shields.io/github/stars/seata/seata.svg?style=social" alt="github stars"/> | dtm 0.1 is released from 20210604 and under fast development                    |
+
+From the features comparison above, if your language stack includes languages other than Java, then dtm is the one for you.
+If your language stack is Java, you can also choose to access dtm and use sub-transaction barrier technology to simplify your business development.
 
 # Quick start
-### Installation
-`git clone https://github.com/yedf/dtm`
-### DTM depends on mysql
 
-Configure mysql:
+### Installation
+
+`git clone https://github.com/yedf/dtm`
+
+### Configure Mysql
 
 `cp conf.sample.yml conf.yml # Modify conf.yml`
 
-### Start and run the saga example
+### Start The Example
 `go run app/main.go`
 
-# Start using
+# Code
 
 ### Use
 ``` go
-  // business microservice address
+  // business micro-service address
   const qsBusi = "http://localhost:8081/api/busi_saga"
-  req := &gin.H{"amount": 30} // Microservice payload
   // The address where DtmServer serves DTM, which is a url
   DtmServer := "http://localhost:8080/api/dtmsvr"
-  saga := dtmcli.NewSaga(DtmServer, dtmcli.MustGenGid(DtmServer)).
-    // Add a TransOut sub-transaction, the operation is url: qsBusi+"/TransOut"，
-    // compensation operation is url: qsBusi+"/TransOutCompensate"
-    Add(qsBusi+"/TransOut", qsBusi+"/TransOutCompensate", req).
-    // Add a TransIn sub-transaction, the operation is url: qsBusi+"/TransOut"，
-    // compensation operation is url: qsBusi+"/TransInCompensate"
-    Add(qsBusi+"/TransIn", qsBusi+"/TransInCompensate", req)
-  // Submit the saga transaction, dtm will complete all sub-transactions/rollback all sub-transactions
-  err := saga.Submit()
+  req := &gin.H{"amount": 30} // micro-service payload
+	// DtmServer is the address of DTM micro-service
+	saga := dtmcli.NewSaga(DtmServer, dtmcli.MustGenGid(DtmServer)).
+		// add a TransOut subtraction，forward operation with url: qsBusi+"/TransOut", reverse compensation operation with url: qsBusi+"/TransOutCompensate"
+		Add(qsBusi+"/TransOut", qsBusi+"/TransOutCompensate", req).
+		// add a TransIn subtraction, forward operation with url: qsBusi+"/TransIn", reverse compensation operation with url: qsBusi+"/TransInCompensate"
+		Add(qsBusi+"/TransIn", qsBusi+"/TransInCompensate", req)
+	// submit the created saga transaction，dtm ensures all subtractions either complete or get revoked
+	err := saga.Submit()
 ```
-### Complete example
+### Complete Example
 
 Refer to [examples/quick_start.go](./examples/quick_start.go)
 
-### [sub-transaction barrier](./doc/barrier-en.md)
+### Slack
 
-### [protocol](./doc/protocol-en.md)
+You can join the [DTM slack channel here](https://join.slack.com/t/dtm-w6k9662/shared_invite/zt-vkrph4k1-eFqEFnMkbmlXqfUo5GWHWw)
 
-### Wechat Group
-
-Please add wechat yedf2008 friends or scan the code to add friends
-
-![yedf2008](http://service.ivydad.com/cover/dubbingb6b5e2c0-2d2a-cd59-f7c5-c6b90aceb6f1.jpeg)
+### Give a Star! ⭐
 
 If you think this project is good, or helpful to you, please give a star!
 
 ### Who is using
 <div style='vertical-align: middle'>
-    <img alt='ivydad' height='40'  src='https://www.ivydad.com/_nuxt/img/header-logo.2645ad5.png'  /img>
-    <img alt='eglass' height='40'  src='https://img.epeijing.cn/official-website/assets/logo.png'  /img>
+    <img alt='Ivydad' height='40'  src='https://www.ivydad.com/_nuxt/img/header-logo.5b3eb96.png'  /img>
+    <img alt='Eglass' height='40'  src='https://img.epeijing.cn/official-website/assets/logo.png'  /img>
+    <img alt='Jiou' height='40'  src='http://www.siqitech.com.cn/img/logo.3f6c2914.png'  /img>
+    <img alt='GoldenData' height='40'  src='https://pic1.zhimg.com/80/v2-dc1d0cef5f7b72be345fc34d768e69e3_1440w.png'  /img>
 </div>
-
-### Following is keyword for SEO
-
-分布式事务框架
-
-事务消息
-
-可靠消息
-
-微服务
-
