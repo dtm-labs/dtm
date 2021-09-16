@@ -21,37 +21,37 @@
 
 ## What is DTM
 
-DTM is the first distributed transaction management framework in golang. Unlike other frameworks, DTM provides extremely easy access to HTTP and gRPC, supports multiple language bindings, and handles tricky problems of unordered sub-transactions at the framework level.
+DTM is the first distributed transaction management framework in Golang. Unlike other frameworks, DTM provides extremely easy access interfaces of HTTP and gRPC, supports multiple language bindings, and handles tricky problems of unordered sub-transactions at the framework level.
 
 ## Features
 
-* Extremely easy to adopt
-  - Support HTTP and gRPC, provide easy-to-use programing interfaces, lower substantially the barrier of getting started with distributed transactions, newcomers can adopt quickly
+* Extremely easy to adapt
+  - Support HTTP and gRPC, provide easy-to-use programming interfaces, lower substantially the barrier of getting started with distributed transactions. Newcomers can adapt quickly.
 
 * Easy to use
-  - Relieving developers from worrying about suspension, null compensation, idempotent transaction, and other tricky problems, the framework layer handles them all
+  - Relieving developers from worrying about suspension, null compensation, idempotent transaction, and other tricky problems, the framework layer handles them all.
 
 * Language-agnostic
-  - Suitable for companies with multiple-language stacks.
-    Easy to write bindings for go, python, php, nodejs, ruby and other languages.
+  - Suit for companies with multiple-language stacks.
+    Easy to write bindings for Go, Python, PHP, Node.js, Ruby, and other languages.
 
 * Easy to deploy, easy to extend
-  - DTM depends only on mysql, easy to deploy, cluster, and scale horizontally
+  - DTM depends only on MySQL, easy to deploy, cluster, and scale horizontally.
 
 * Support for multiple distributed transaction protocol
-  - TCC, SAGA, XA, Transactional messages
+  - TCC, SAGA, XA, Transactional messages.
 
-## DTM vs Other
+## DTM vs. others
 
 There is no mature open-source distributed transaction framework for non-Java languages.
-Mature open-source distributed transaction frameworks for Java language include Ali's Seata, Huawei's ServiceComb-Pack, Jingdong's shardingsphere, himly, tcc-transaction, ByteTCC and so on, of which Seata is most widely used.
+Mature open-source distributed transaction frameworks for Java language include Ali's Seata, Huawei's ServiceComb-Pack, Jingdong's shardingsphere, himly, tcc-transaction, ByteTCC, and so on, of which Seata is most widely used.
 
 The following is a comparison of the main features of dtm and Seata.
 
 
 | Features                | DTM                                                                                           | Seata                                                                                            | Remarks                                                             |
 | :-----:                 | :----:                                                                                        | :----:                                                                                           | :----:                                                              |
-| Supported languages     | <span style="color:green">Golang, python, php and others</span>                               | <span style="color:orange">Java</span>                                                           | dtm allows easy access from a new language                            |
+| Supported languages     | <span style="color:green">Golang, Python, PHP,  and others</span>                               | <span style="color:orange">Java</span>                                                           | dtm allows easy access from a new language                            |
 | Exception handling      | [Sub-transaction barrier](https://zhuanlan.zhihu.com/p/388444465)                             | <span style="color:orange">manual</span>                                                         | dtm solves idempotent transaction, hanging, null compensation                   |
 | TCC                     | <span style="color:green">✓</span>                                                            | <span style="color:green">✓</span>                                                               |                                                                     |
 | XA                      | <span style="color:green">✓</span>                                                            | <span style="color:green">✓</span>                                                               |                                                                     |
@@ -59,14 +59,14 @@ The following is a comparison of the main features of dtm and Seata.
 | SAGA                    | <span style="color:orange">Simple mode</span>                                                 | <span style="color:green">complicated state-machine mode</span>                                   | dtm's state-machine mode is being planned                         |
 | Transactional Messaging | <span style="color:green">✓</span>                                                            | <span style="color:red">✗</span>                                                                 | dtm provides Transactional Messaging similar to RocketMQ               |
 | Communication protocols | <span style="color:green">HTTP, gRPC</span>                                                   | <span style="color:green">Dubbo, no HTTP</span>                                             |                                                                     |
-| star count              | <img src="https://img.shields.io/github/stars/yedf/dtm.svg?style=social" alt="github stars"/> | <img src="https://img.shields.io/github/stars/seata/seata.svg?style=social" alt="github stars"/> | dtm 0.1 is released from 20210604 and under fast development                    |
+| Star count              | <img src="https://img.shields.io/github/stars/yedf/dtm.svg?style=social" alt="github stars"/> | <img src="https://img.shields.io/github/stars/seata/seata.svg?style=social" alt="github stars"/> | dtm 0.1 is released from 20210604 and under fast development                    |
 
-From the features comparison above, if your language stack includes languages other than Java, then dtm is the one for you.
+From the features' comparison above, if your language stack includes languages other than Java, then dtm is the one for you.
 If your language stack is Java, you can also choose to access dtm and use sub-transaction barrier technology to simplify your business development.
 
 # Quick start
 
-### Installation
+### Install
 
 `git clone https://github.com/yedf/dtm`
 
@@ -74,7 +74,7 @@ If your language stack is Java, you can also choose to access dtm and use sub-tr
 
 `cp conf.sample.yml conf.yml # Modify conf.yml`
 
-### Start The Example
+### Start the example
 `go run app/main.go`
 
 # Code
@@ -95,22 +95,22 @@ If your language stack is Java, you can also choose to access dtm and use sub-tr
 	// submit the created saga transaction，dtm ensures all subtractions either complete or get revoked
 	err := saga.Submit()
 ```
-### Complete Example
+### Complete example
 
-Refer to [examples/quick_start.go](./examples/quick_start.go)
+Refer to [examples/quick_start.go](./examples/quick_start.go).
 
 ### Slack
 
-You can join the [DTM slack channel here](https://join.slack.com/t/dtm-w6k9662/shared_invite/zt-vkrph4k1-eFqEFnMkbmlXqfUo5GWHWw)
+You can join the [DTM slack channel here](https://join.slack.com/t/dtm-w6k9662/shared_invite/zt-vkrph4k1-eFqEFnMkbmlXqfUo5GWHWw).
 
-### Give a Star! ⭐
+### Give a star! ⭐
 
 If you think this project is good, or helpful to you, please give a star!
 
 ### Who is using
 <div style='vertical-align: middle'>
-    <img alt='Ivydad' height='40'  src='https://www.ivydad.com/_nuxt/img/header-logo.5b3eb96.png'  /img>
-    <img alt='Eglass' height='40'  src='https://img.epeijing.cn/official-website/assets/logo.png'  /img>
-    <img alt='Jiou' height='40'  src='http://www.siqitech.com.cn/img/logo.3f6c2914.png'  /img>
-    <img alt='GoldenData' height='40'  src='https://pic1.zhimg.com/80/v2-dc1d0cef5f7b72be345fc34d768e69e3_1440w.png'  /img>
+    <img alt='Ivydad' height='40'  src='https://www.ivydad.com/_nuxt/img/header-logo.5b3eb96.png'>
+    <img alt='Eglass' height='40'  src='https://img.epeijing.cn/official-website/assets/logo.png'>
+    <img alt='Jiou' height='40'  src='http://www.siqitech.com.cn/img/logo.3f6c2914.png'>
+    <img alt='GoldenData' height='40'  src='https://pic1.zhimg.com/80/v2-dc1d0cef5f7b72be345fc34d768e69e3_1440w.png'>
 </div>
