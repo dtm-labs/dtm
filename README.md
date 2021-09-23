@@ -44,7 +44,7 @@ DTM是首款golang的开源分布式事务管理器，优雅的解决了幂等�
 |  特性| DTM | SEATA |备注|
 |:-----:|:----:|:----:|:----:|
 | 支持语言 |<span style="color:green">Go、Java、python、php、c#...</span>|<span style="color:orange">Java</span>|dtm可轻松接入一门新语言|
-|异常处理| <span style="color:green">[子事务屏障自动处理](https://zhuanlan.zhihu.com/p/388444465)</span>|<span style="color:orange">手动处理</span> |dtm解决了幂等、悬挂、空补偿|
+|异常处理| <span style="color:green"> [子事务屏障自动处理](https://zhuanlan.zhihu.com/p/388444465) </span>|<span style="color:orange">手动处理</span> |dtm解决了幂等、悬挂、空补偿|
 | TCC事务| <span style="color:green">✓</span>|<span style="color:green">✓</span>||
 | XA事务|<span style="color:green">✓</span>|<span style="color:green">✓</span>||
 |AT事务|<span style="color:red">✗</span>|<span style="color:green">✓</span>|AT与XA类似，性能更好，但有脏回滚|
