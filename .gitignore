@@ -3,3 +3,4 @@ conf.yml
 */**/main
 main
 dist
+.idea/**
