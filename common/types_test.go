@@ -20,7 +20,7 @@ func TestDb(t *testing.T) {
 }
 
 func TestDbAlone(t *testing.T) {
-	db, err := dtmcli.SdbAlone(DtmConfig.DB)
+	db, err := dtmcli.StandaloneDB(DtmConfig.DB)
 	assert.Nil(t, err)
 	_, err = dtmcli.DBExec(db, "select 1")
 	assert.Equal(t, nil, err)

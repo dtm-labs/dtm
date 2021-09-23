@@ -35,7 +35,7 @@ func TestFuncs(t *testing.T) {
 	wd := MustGetwd()
 	assert.NotEqual(t, "", wd)
 
-	dir1 := GetCurrentCodeDir()
+	dir1 := GetCallerCodeDir()
 	assert.Equal(t, true, strings.HasSuffix(dir1, "common"))
 
 }

@@ -105,11 +105,14 @@ func MustRemarshal(from interface{}, to interface{}) {
 	E2P(err)
 }
 
+var layout = "2006-01-02 15:04:05.999"
+
 // Logf 输出日志
 func Logf(format string, args ...interface{}) {
 	msg := fmt.Sprintf(format, args...)
-	n := time.Now()
-	ts := fmt.Sprintf("%s.%03d", n.Format("2006-01-02 15:04:05"), n.Nanosecond()/1000000)
+
+	ts := time.Now().Format(layout)
+
 	var file string
 	var line int
 	for i := 1; i < 10; i++ {
@@ -182,11 +185,11 @@ func MayReplaceLocalhost(host string) string {
 
 var sqlDbs = map[string]*sql.DB{}
 
-// SdbGet get pooled sql.DB
-func SdbGet(conf map[string]string) (*sql.DB, error) {
+// PooledDB get pooled sql.DB
+func PooledDB(conf map[string]string) (*sql.DB, error) {
 	dsn := GetDsn(conf)
 	if sqlDbs[dsn] == nil {
-		db, err := SdbAlone(conf)
+		db, err := StandaloneDB(conf)
 		if err != nil {
 			return nil, err
 		}
@@ -195,10 +198,10 @@ func SdbGet(conf map[string]string) (*sql.DB, error) {
 	return sqlDbs[dsn], nil
 }
 
-// SdbAlone get a standalone db connection
-func SdbAlone(conf map[string]string) (*sql.DB, error) {
+// StandaloneDB get a standalone db instance
+func StandaloneDB(conf map[string]string) (*sql.DB, error) {
 	dsn := GetDsn(conf)
-	Logf("opening alone %s: %s", conf["driver"], strings.Replace(dsn, conf["password"], "****", 1))
+	Logf("opening standalone %s: %s", conf["driver"], strings.Replace(dsn, conf["password"], "****", 1))
 	return sql.Open(conf["driver"], dsn)
 }
 

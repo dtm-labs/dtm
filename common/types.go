@@ -10,15 +10,11 @@ import (
 	"time"
 
 	_ "github.com/go-sql-driver/mysql"
-	"github.com/yedf/dtm/dtmcli"
 	"gopkg.in/yaml.v2"
-
-	// _ "github.com/lib/pq"
-
 	"gorm.io/driver/mysql"
-
-	// "gorm.io/driver/postgres"
 	"gorm.io/gorm"
+
+	"github.com/yedf/dtm/dtmcli"
 )
 
 // ModelBase model base for gorm to provide base fields
@@ -28,11 +24,9 @@ type ModelBase struct {
 	UpdateTime *time.Time `gorm:"autoUpdateTime"`
 }
 
-func getGormDialator(driver string, dsn string) gorm.Dialector {
+func getGormDialetor(driver string, dsn string) gorm.Dialector {
 	if driver == "mysql" {
 		return mysql.Open(dsn)
-		// } else if driver == "postgres" {
-		// 	return postgres.Open(dsn)
 	}
 	panic(fmt.Errorf("unkown driver: %s", driver))
 }
@@ -112,7 +106,7 @@ func DbGet(conf map[string]string) *DB {
 	dsn := dtmcli.GetDsn(conf)
 	if dbs[dsn] == nil {
 		dtmcli.Logf("connecting %s", strings.Replace(dsn, conf["password"], "****", 1))
-		db1, err := gorm.Open(getGormDialator(conf["driver"], dsn), &gorm.Config{
+		db1, err := gorm.Open(getGormDialetor(conf["driver"], dsn), &gorm.Config{
 			SkipDefaultTransaction: true,
 		})
 		dtmcli.E2P(err)

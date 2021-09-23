@@ -52,7 +52,7 @@ func xaDuplicate(t *testing.T) {
 		req := examples.GenTransReq(30, false, false)
 		_, err := xa.CallBranch(req, examples.Busi+"/TransOutXa")
 		assert.Nil(t, err)
-		sdb, err := dtmcli.SdbAlone(common.DtmConfig.DB)
+		sdb, err := dtmcli.StandaloneDB(common.DtmConfig.DB)
 		assert.Nil(t, err)
 		dtmcli.DBExec(sdb, "xa recover")
 		dtmcli.DBExec(sdb, "xa commit 'xaDuplicate-0101'") // 先把某一个事务提交，模拟重复请求

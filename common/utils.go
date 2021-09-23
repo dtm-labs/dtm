@@ -12,6 +12,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/go-resty/resty/v2"
+
 	"github.com/yedf/dtm/dtmcli"
 )
 
@@ -69,8 +70,8 @@ func MustGetwd() string {
 	return wd
 }
 
-// GetCurrentCodeDir 获取当前源代码的目录，主要用于测试时，查找相关文件
-func GetCurrentCodeDir() string {
+// GetCallerCodeDir 获取调用该函数的caller源代码的目录，主要用于测试时，查找相关文件
+func GetCallerCodeDir() string {
 	_, file, _, _ := runtime.Caller(1)
 	wd := MustGetwd()
 	if strings.HasSuffix(wd, "/test") {
