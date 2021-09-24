@@ -5,115 +5,114 @@
 [![Go Reference](https://pkg.go.dev/badge/github.com/yedf/dtm.svg)](https://pkg.go.dev/github.com/yedf/dtm)
 [![Mentioned in Awesome Go](https://awesome.re/mentioned-badge-flat.svg)](https://github.com/avelino/awesome-go#database)
 
-# [English Docs](https://en.dtm.pub)
-# GO语言分布式事务管理服务
+# [中文文档](http://dtm.pub)
 
-DTM是首款golang的开源分布式事务管理器，优雅的解决了幂等、空补偿、悬挂等分布式事务难题。提供了简单易用、高性能、易水平扩展的分布式事务解决方案。
+# A Lightweight Distributed Transaction Manager
 
-受邀参加中国数据库大会分享[多语言环境下分布式事务实践](http://dtcc.it168.com/yicheng.html#b9)
+## Who's using DTM
 
-## 谁在使用dtm
+[Ivydad](https://ivydad.com)
 
-[Ivydad 常青藤爸爸](https://ivydad.com)
+[Eglass](https://epeijing.cn)
 
-[Eglass 视咖镜小二](https://epeijing.cn)
+[Jiou](http://jiou.me)
 
-[极欧科技](http://jiou.me)
+[GoldenData]()
 
-[金数智联]()
+## What is DTM
 
-## 亮点
+DTM is the first distributed transaction management framework in Golang. Unlike other frameworks, DTM provides extremely easy access interfaces of HTTP and gRPC, supports multiple language bindings, and handles tricky problems of unordered sub-transactions at the framework level.
 
-* 极易接入
-  - 支持HTTP，提供非常简单的接口，极大降低上手分布式事务的难度，新手也能快速接入
-* 使用简单
-  - 开发者不再担心悬挂、空补偿、幂等各类问题，框架层代为处理
-* 跨语言
-  - 可适合多语言栈的公司使用。方便go、python、php、nodejs、ruby、c# 各类语言使用。
-* 易部署、易扩展
-  - 仅依赖mysql，部署简单，易集群化，易水平扩展
-* 多种分布式事务协议支持
-  - TCC、SAGA、XA、事务消息
+## Features
 
-## 与其他框架对比
+* Extremely easy to adapt
+  - Support HTTP and gRPC, provide easy-to-use programming interfaces, lower substantially the barrier of getting started with distributed transactions. Newcomers can adapt quickly.
 
-目前开源的分布式事务框架，暂未看到非Java语言有成熟的框架。而Java语言的较多，有阿里的SEATA、华为的ServiceComb-Pack，京东的shardingsphere，以及himly，tcc-transaction，ByteTCC等等，其中以seata应用最为广泛。
+* Easy to use
+  - Relieving developers from worrying about suspension, null compensation, idempotent transaction, and other tricky problems, the framework layer handles them all.
 
-下面是dtm和seata的主要特性对比：
+* Language-agnostic
+  - Suit for companies with multiple-language stacks.
+    Easy to write bindings for Go, Python, PHP, Node.js, Ruby, and other languages.
 
-|  特性| DTM | SEATA |备注|
-|:-----:|:----:|:----:|:----:|
-| 支持语言 |<span style="color:green">Go、Java、python、php、c#...</span>|<span style="color:orange">Java</span>|dtm可轻松接入一门新语言|
-|异常处理| <span style="color:green"> [子事务屏障自动处理](https://zhuanlan.zhihu.com/p/388444465) </span>|<span style="color:orange">手动处理</span> |dtm解决了幂等、悬挂、空补偿|
-| TCC事务| <span style="color:green">✓</span>|<span style="color:green">✓</span>||
-| XA事务|<span style="color:green">✓</span>|<span style="color:green">✓</span>||
-|AT事务|<span style="color:red">✗</span>|<span style="color:green">✓</span>|AT与XA类似，性能更好，但有脏回滚|
-| SAGA事务 |<span style="color:orange">简单模式</span> |<span style="color:green">状态机复杂模式</span> |dtm的状态机模式在规划中|
-|事务消息|<span style="color:green">✓</span>|<span style="color:red">✗</span>|dtm提供类似rocketmq的事务消息|
-|通信协议|HTTP、GRPC|dubbo等协议，无HTTP|dtm对云原生更加友好|
-|star数量|<img src="https://img.shields.io/github/stars/yedf/dtm.svg?style=social" alt="github stars"/>|<img src="https://img.shields.io/github/stars/seata/seata.svg?style=social" alt="github stars"/>|dtm从20210604发布0.1，发展快|
+* Easy to deploy, easy to extend
+  - DTM depends only on MySQL, easy to deploy, cluster, and scale horizontally.
 
-从上面对比的特性来看，如果您的语言栈包含了Java之外的语言，那么dtm是您的首选。如果您的语言栈是Java，您也可以选择接入dtm，使用子事务屏障技术，简化您的业务编写。
+* Support for multiple distributed transaction protocol
+  - TCC, SAGA, XA, Transactional messages.
 
-## [教程与文档](https://dtm.pub)
+## DTM vs. others
 
-## [各语言客户端及示例](https://dtm.pub/summary/code.html#go)
+There is no mature open-source distributed transaction framework for non-Java languages.
+Mature open-source distributed transaction frameworks for Java language include Ali's Seata, Huawei's ServiceComb-Pack, Jingdong's shardingsphere, himly, tcc-transaction, ByteTCC, and so on, of which Seata is most widely used.
 
-## 快速开始
+The following is a comparison of the main features of dtm and Seata.
 
-### 安装
+
+| Features                | DTM                                                                                           | Seata                                                                                            | Remarks                                                             |
+| :-----:                 | :----:                                                                                        | :----:                                                                                           | :----:                                                              |
+| Supported languages     | <span style="color:green">Golang, Python, PHP,  and others</span>                               | <span style="color:orange">Java</span>                                                           | dtm allows easy access from a new language                            |
+| Exception handling      | [Sub-transaction barrier](https://zhuanlan.zhihu.com/p/388444465)                             | <span style="color:orange">manual</span>                                                         | dtm solves idempotent transaction, hanging, null compensation                   |
+| TCC                     | <span style="color:green">✓</span>                                                            | <span style="color:green">✓</span>                                                               |                                                                     |
+| XA                      | <span style="color:green">✓</span>                                                            | <span style="color:green">✓</span>                                                               |                                                                     |
+| AT                      | <span style="color:red">✗</span>                                                              | <span style="color:green">✓</span>                                                               | AT is similar to XA with better performance but with dirty rollback |
+| SAGA                    | <span style="color:orange">Simple mode</span>                                                 | <span style="color:green">complicated state-machine mode</span>                                   | dtm's state-machine mode is being planned                         |
+| Transactional Messaging | <span style="color:green">✓</span>                                                            | <span style="color:red">✗</span>                                                                 | dtm provides Transactional Messaging similar to RocketMQ               |
+| Communication protocols | <span style="color:green">HTTP, gRPC</span>                                                   | <span style="color:green">Dubbo, no HTTP</span>                                             |                                                                     |
+| Star count              | <img src="https://img.shields.io/github/stars/yedf/dtm.svg?style=social" alt="github stars"/> | <img src="https://img.shields.io/github/stars/seata/seata.svg?style=social" alt="github stars"/> | dtm 0.1 is released from 20210604 and under fast development                    |
+
+From the features' comparison above, if your language stack includes languages other than Java, then dtm is the one for you.
+If your language stack is Java, you can also choose to access dtm and use sub-transaction barrier technology to simplify your business development.
+
+## [Cook Book](https://en.dtm.pub)
+
+# Quick start
+
+### Install
 
 `git clone https://github.com/yedf/dtm`
 
-### dtm依赖于mysql
+### Configure Mysql
 
-配置mysql：
+`cp conf.sample.yml conf.yml # Modify conf.yml`
 
-`cp conf.sample.yml conf.yml # 修改conf.yml`
+### Start the example
+`go run app/main.go`
 
-### 启动并运行saga示例
-`go run app/main.go saga`
+# Code
 
-## 开始使用
-
-### 使用
-``` GO
-  // 具体业务微服务地址
+### Use
+``` go
+  // business micro-service address
   const qsBusi = "http://localhost:8081/api/busi_saga"
-  req := &gin.H{"amount": 30} // 微服务的载荷
-  // DtmServer为DTM服务的地址，是一个url
+  // The address where DtmServer serves DTM, which is a url
   DtmServer := "http://localhost:8080/api/dtmsvr"
-  saga := dtmcli.NewSaga(DtmServer, dtmcli.MustGenGid(DtmServer)).
-    // 添加一个TransOut的子事务，正向操作为url: qsBusi+"/TransOut"， 补偿操作为url: qsBusi+"/TransOutCompensate"
-    Add(qsBusi+"/TransOut", qsBusi+"/TransOutCompensate", req).
-    // 添加一个TransIn的子事务，正向操作为url: qsBusi+"/TransIn"， 补偿操作为url: qsBusi+"/TransInCompensate"
-    Add(qsBusi+"/TransIn", qsBusi+"/TransInCompensate", req)
-  // 提交saga事务，dtm会完成所有的子事务/回滚所有的子事务
-  err := saga.Submit()
+  req := &gin.H{"amount": 30} // micro-service payload
+	// DtmServer is the address of DTM micro-service
+	saga := dtmcli.NewSaga(DtmServer, dtmcli.MustGenGid(DtmServer)).
+		// add a TransOut subtraction，forward operation with url: qsBusi+"/TransOut", reverse compensation operation with url: qsBusi+"/TransOutCompensate"
+		Add(qsBusi+"/TransOut", qsBusi+"/TransOutCompensate", req).
+		// add a TransIn subtraction, forward operation with url: qsBusi+"/TransIn", reverse compensation operation with url: qsBusi+"/TransInCompensate"
+		Add(qsBusi+"/TransIn", qsBusi+"/TransInCompensate", req)
+	// submit the created saga transaction，dtm ensures all subtractions either complete or get revoked
+	err := saga.Submit()
 ```
+### Complete example
 
-成功运行后，可以看到TransOut、TransIn依次被调用，完成了整个分布式事务
+Refer to [examples/quick_start.go](./examples/quick_start.go).
 
-### 时序图
+### Slack
 
-上述saga分布式事务的时序图如下：
+You can join the [DTM slack channel here](https://join.slack.com/t/dtm-w6k9662/shared_invite/zt-vkrph4k1-eFqEFnMkbmlXqfUo5GWHWw).
 
-<img src="https://pic3.zhimg.com/80/v2-b7d98659093c399e182a0173a8e549ca_1440w.jpg" height=428 />
+### Give a star! ⭐
 
-### 完整示例
-参考[examples/quick_start.go](./examples/quick_start.go)
+If you think this project is good, or helpful to you, please give a star!
 
-## 交流群
-请加 yedf2008 好友或者扫码加好友，验证回复 dtm 按照指引进群
-
-![yedf2008](http://service.ivydad.com/cover/dubbingb6b5e2c0-2d2a-cd59-f7c5-c6b90aceb6f1.jpeg)
-
-如果您觉得[dtm](https://github.com/yedf/dtm)不错，或者对您有帮助，请赏颗星吧！
-
-## 谁在使用
+### Who is using
 <div style='vertical-align: middle'>
-    <img alt='常青藤爸爸' height='40'  src='https://www.ivydad.com/_nuxt/img/header-logo.5b3eb96.png'  /img>
-    <img alt='镜小二' height='40'  src='https://img.epeijing.cn/official-website/assets/logo.png'  /img>
-    <img alt='极欧科技' height='40'  src='http://www.siqitech.com.cn/img/logo.3f6c2914.png'  /img>
-    <img alt='金数智联' height='40'  src='https://pic1.zhimg.com/80/v2-dc1d0cef5f7b72be345fc34d768e69e3_1440w.png'  /img>
+    <img alt='Ivydad' height='40'  src='https://www.ivydad.com/_nuxt/img/header-logo.5b3eb96.png'>
+    <img alt='Eglass' height='40'  src='https://img.epeijing.cn/official-website/assets/logo.png'>
+    <img alt='Jiou' height='40'  src='http://www.siqitech.com.cn/img/logo.3f6c2914.png'>
+    <img alt='GoldenData' height='40'  src='https://pic1.zhimg.com/80/v2-dc1d0cef5f7b72be345fc34d768e69e3_1440w.png'>
 </div>
