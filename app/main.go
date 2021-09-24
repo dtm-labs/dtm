@@ -10,27 +10,24 @@ import (
 	"github.com/yedf/dtm/examples"
 )
 
-// M alias
-type M = map[string]interface{}
-
 var usage = `dtm is a lightweight distributed transaction manager.
 
 usage:
     dtm [command]
 
 Available commands:
-    dtmsvr         run dtm as a server
-    dev            create all needed table and run dtm as a server
+    dtmsvr            run dtm as a server
+    dev               create all needed table and run dtm as a server
 
-    quick_start    run quick start example (dtm will create needed table)
-    qs             same as quick_start
+    quick_start       run quick start example (dtm will create needed table)
+    qs                same as quick_start
 `
 
 func main() {
 	if len(os.Args) == 1 {
 		fmt.Println(usage)
 		for name := range examples.Samples {
-			fmt.Printf("%-18srun a sample includes %s\n", name, strings.Replace(name, "_", " ", 100))
+			fmt.Printf("%4s%-18srun a sample includes %s\n", "", name, strings.ReplaceAll(name, "_", " "))
 		}
 		return
 	}
