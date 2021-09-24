@@ -9,8 +9,9 @@ import (
 	"github.com/yedf/dtm/dtmcli"
 	"github.com/yedf/dtm/dtmgrpc"
 
-	"github.com/yedf/dtm/examples"
 	"google.golang.org/grpc"
+
+	"github.com/yedf/dtm/examples"
 )
 
 var dtmsvrPort = 8080
@@ -39,6 +40,6 @@ func StartSvr() {
 
 // PopulateDB setup mysql data
 func PopulateDB(skipDrop bool) {
-	file := fmt.Sprintf("%s/dtmsvr.%s.sql", common.GetCurrentCodeDir(), config.DB["driver"])
+	file := fmt.Sprintf("%s/dtmsvr.%s.sql", common.GetCallerCodeDir(), config.DB["driver"])
 	examples.RunSQLScript(config.DB, file, skipDrop)
 }

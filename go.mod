@@ -13,7 +13,6 @@ require (
 	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd // indirect
 	github.com/modern-go/reflect2 v1.0.1 // indirect
 	github.com/stretchr/testify v1.7.0
-	github.com/yedf/dtmcli v1.0.0
 	golang.org/x/net v0.0.0-20210805182204-aaa1db679c0d // indirect
 	golang.org/x/sys v0.0.0-20210806184541-e5e7981a1069 // indirect
 	google.golang.org/genproto v0.0.0-20210805201207-89edb61ffb67 // indirect

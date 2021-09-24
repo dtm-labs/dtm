@@ -13,7 +13,7 @@ var config = common.DtmConfig
 
 // RunSQLScript 1
 func RunSQLScript(conf map[string]string, script string, skipDrop bool) {
-	con, err := dtmcli.SdbAlone(conf)
+	con, err := dtmcli.StandaloneDB(conf)
 	dtmcli.FatalIfError(err)
 	defer func() { con.Close() }()
 	content, err := ioutil.ReadFile(script)
@@ -21,7 +21,7 @@ func RunSQLScript(conf map[string]string, script string, skipDrop bool) {
 	sqls := strings.Split(string(content), ";")
 	for _, sql := range sqls {
 		s := strings.TrimSpace(sql)
-		if s == "" || skipDrop && strings.Contains(s, "drop") {
+		if s == "" || (skipDrop && strings.Contains(s, "drop")) {
 			continue
 		}
 		_, err = dtmcli.DBExec(con, s)
@@ -31,9 +31,9 @@ func RunSQLScript(conf map[string]string, script string, skipDrop bool) {
 
 // PopulateDB populate example mysql data
 func PopulateDB(skipDrop bool) {
-	file := fmt.Sprintf("%s/examples.%s.sql", common.GetCurrentCodeDir(), config.DB["driver"])
+	file := fmt.Sprintf("%s/examples.%s.sql", common.GetCallerCodeDir(), config.DB["driver"])
 	RunSQLScript(config.DB, file, skipDrop)
-	file = fmt.Sprintf("%s/../dtmcli/barrier.%s.sql", common.GetCurrentCodeDir(), config.DB["driver"])
+	file = fmt.Sprintf("%s/../dtmcli/barrier.%s.sql", common.GetCallerCodeDir(), config.DB["driver"])
 	RunSQLScript(config.DB, file, skipDrop)
 }
 

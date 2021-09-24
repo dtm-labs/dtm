@@ -66,7 +66,7 @@ func dbGet() *common.DB {
 }
 
 func sdbGet() *sql.DB {
-	db, err := dtmcli.SdbGet(config.DB)
+	db, err := dtmcli.PooledDB(config.DB)
 	dtmcli.FatalIfError(err)
 	return db
 }

@@ -15,7 +15,7 @@ type XaClientBase struct {
 
 // HandleCallback 处理commit/rollback的回调
 func (xc *XaClientBase) HandleCallback(gid string, branchID string, action string) error {
-	db, err := SdbAlone(xc.Conf)
+	db, err := StandaloneDB(xc.Conf)
 	if err != nil {
 		return err
 	}
@@ -32,7 +32,7 @@ func (xc *XaClientBase) HandleCallback(gid string, branchID string, action strin
 func (xc *XaClientBase) HandleLocalTrans(xa *TransBase, cb func(*sql.DB) (interface{}, error)) (ret interface{}, rerr error) {
 	branchID := xa.NewBranchID()
 	xaBranch := xa.Gid + "-" + branchID
-	db, rerr := SdbAlone(xc.Conf)
+	db, rerr := StandaloneDB(xc.Conf)
 	if rerr != nil {
 		return
 	}

@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"os"
 	"strings"
-	"time"
 
 	"github.com/yedf/dtm/dtmcli"
 	"github.com/yedf/dtm/dtmsvr"
@@ -14,28 +13,22 @@ import (
 // M alias
 type M = map[string]interface{}
 
-func wait() {
-	for {
-		time.Sleep(10000 * time.Second)
-	}
-}
+var usage = `dtm is a lightweight distributed transaction manager.
+
+usage:
+    dtm [command]
+
+Available commands:
+    dtmsvr         run dtm as a server
+    dev            create all needed table and run dtm as a server
+
+    quick_start    run quick start example (dtm will create needed table)
+    qs             same as quick_start
+`
 
 func main() {
 	if len(os.Args) == 1 {
-		for _, ln := range []string{
-			"dtm is a lightweight distributed transaction manager.",
-			"usage:",
-			"dtm [command]",
-			"",
-			"Available Commands:",
-			"dtmsvr            run dtm as a server.",
-			"dev               create all needed table and run dtm as a server.",
-			"",
-			"quick_start       run quick start example. dtm will create all needed table",
-			"qs                same as quick_start",
-		} {
-			fmt.Print(ln + "\n")
-		}
+		fmt.Println(usage)
 		for name := range examples.Samples {
 			fmt.Printf("%-18srun a sample includes %s\n", name, strings.Replace(name, "_", " ", 100))
 		}
@@ -48,12 +41,13 @@ func main() {
 	dtmsvr.StartSvr()              // 启动dtmsvr的api服务
 	go dtmsvr.CronExpiredTrans(-1) // 启动dtmsvr的定时过期查询
 
-	// quick_start 比较独立，单独作为一个例子运行，方便新人上手
-	if os.Args[1] == "quick_start" || os.Args[1] == "qs" {
+	switch os.Args[1] {
+	case "quick_start", "qs":
+		// quick_start 比较独立，单独作为一个例子运行，方便新人上手
 		examples.QsStartSvr()
 		examples.QsFireRequest()
-	} else if os.Args[1] == "dev" || os.Args[1] == "dtmsvr" {
-	} else {
+	case "dev", "dtmsvr":
+	default:
 		// 下面是各类的例子
 		examples.GrpcStartup()
 		examples.BaseAppStartup()
@@ -62,5 +56,5 @@ func main() {
 		dtmcli.LogIfFatalf(sample == nil, "no sample name for %s", os.Args[1])
 		sample.Action()
 	}
-	wait()
+	select {}
 }
