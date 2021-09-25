@@ -53,12 +53,10 @@ func httpMetrics(app *gin.Engine) *gin.Engine {
 		defer timer.ObserveDuration()
 		c.Next()
 		status := c.Writer.Status()
-		if status >= 500 {
+		if status >= 400 {
 			processTotal.WithLabelValues("http", api, "fail").Inc()
-		} else if status == 200 {
-			processTotal.WithLabelValues("http", api, "ok").Inc()
 		} else {
-			panic("undefined status")
+			processTotal.WithLabelValues("http", api, "ok").Inc()
 		}
 	})
 	return app
