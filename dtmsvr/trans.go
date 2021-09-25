@@ -120,6 +120,7 @@ func (t *TransGlobal) getProcessor() transProcessor {
 func (t *TransGlobal) Process(db *common.DB, waitResult bool) dtmcli.M {
 	r := t.process(db, waitResult)
 	transactionMetrics(t, r["dtm_result"] == dtmcli.ResultSuccess)
+	return r
 }
 
 func (t *TransGlobal) process(db *common.DB, waitResult bool) dtmcli.M {
