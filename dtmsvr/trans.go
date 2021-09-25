@@ -120,16 +120,20 @@ func (t *TransGlobal) getProcessor() transProcessor {
 func (t *TransGlobal) Process(db *common.DB, waitResult bool) dtmcli.M {
 	if !waitResult {
 		go t.processInner(db)
+		TransactionMetrics(t, true)
 		return dtmcli.MapSuccess
 	}
 	submitting := t.Status == dtmcli.StatusSubmitted
 	err := t.processInner(db)
 	if err != nil {
+		TransactionMetrics(t, false)
 		return dtmcli.M{"dtm_result": dtmcli.ResultFailure, "message": err.Error()}
 	}
 	if submitting && t.Status != dtmcli.StatusSucceed {
+		TransactionMetrics(t, false)
 		return dtmcli.M{"dtm_result": dtmcli.ResultFailure, "message": "trans failed by user"}
 	}
+	TransactionMetrics(t, true)
 	return dtmcli.MapSuccess
 }
 
@@ -203,9 +207,11 @@ func (t *TransGlobal) execBranch(db *common.DB, branch *TransBranch) {
 	if strings.Contains(body, dtmcli.ResultSuccess) {
 		t.touch(db, config.TransCronInterval)
 		branch.changeStatus(db, dtmcli.StatusSucceed)
+		BranchMetrics(t, branch, true)
 	} else if t.TransType == "saga" && branch.BranchType == dtmcli.BranchAction && strings.Contains(body, dtmcli.ResultFailure) {
 		t.touch(db, config.TransCronInterval)
 		branch.changeStatus(db, dtmcli.StatusFailed)
+		BranchMetrics(t, branch, false)
 	} else {
 		panic(fmt.Errorf("http result should contains SUCCESS|FAILURE. grpc error should return nil|Aborted. \nrefer to: https://dtm.pub/summary/arch.html#http\nunkown result will be retried: %s", body))
 	}
