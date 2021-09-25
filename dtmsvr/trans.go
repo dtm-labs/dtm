@@ -118,22 +118,23 @@ func (t *TransGlobal) getProcessor() transProcessor {
 
 // Process process global transaction once
 func (t *TransGlobal) Process(db *common.DB, waitResult bool) dtmcli.M {
+	r := t.process(db, waitResult)
+	TransactionMetrics(t, r["dtm_result"] == dtmcli.ResultSuccess)
+}
+
+func (t *TransGlobal) process(db *common.DB, waitResult bool) dtmcli.M {
 	if !waitResult {
 		go t.processInner(db)
-		TransactionMetrics(t, true)
 		return dtmcli.MapSuccess
 	}
 	submitting := t.Status == dtmcli.StatusSubmitted
 	err := t.processInner(db)
 	if err != nil {
-		TransactionMetrics(t, false)
 		return dtmcli.M{"dtm_result": dtmcli.ResultFailure, "message": err.Error()}
 	}
 	if submitting && t.Status != dtmcli.StatusSucceed {
-		TransactionMetrics(t, false)
 		return dtmcli.M{"dtm_result": dtmcli.ResultFailure, "message": "trans failed by user"}
 	}
-	TransactionMetrics(t, true)
 	return dtmcli.MapSuccess
 }
 
