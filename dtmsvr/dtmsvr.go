@@ -23,7 +23,7 @@ var metricsPort = 8889
 func StartSvr() {
 	dtmcli.Logf("start dtmsvr")
 	app := common.GetGinApp()
-	app = HTTP_metrics(app)
+	app = httpMetrics(app)
 	addRoute(app)
 	dtmcli.Logf("dtmsvr listen at: %d", dtmsvrPort)
 	go app.Run(fmt.Sprintf(":%d", dtmsvrPort))
@@ -32,7 +32,7 @@ func StartSvr() {
 	dtmcli.FatalIfError(err)
 	s := grpc.NewServer(
 		grpc.UnaryInterceptor(grpc_middleware.ChainUnaryServer(
-			grpc.UnaryServerInterceptor(GRPC_metrics), grpc.UnaryServerInterceptor(dtmgrpc.GrpcServerLog)),
+			grpc.UnaryServerInterceptor(grpcMetrics), grpc.UnaryServerInterceptor(dtmgrpc.GrpcServerLog)),
 		))
 	dtmgrpc.RegisterDtmServer(s, &dtmServer{})
 	dtmcli.Logf("grpc listening at %v", lis.Addr())
@@ -43,7 +43,7 @@ func StartSvr() {
 
 	// prometheus exporter
 	dtmcli.Logf("prometheus exporter listen at: %d", metricsPort)
-	PrometheusHttpRun(fmt.Sprintf("%d", metricsPort))
+	prometheusHTTPRun(fmt.Sprintf("%d", metricsPort))
 	time.Sleep(100 * time.Millisecond)
 }
 

@@ -37,14 +37,14 @@ var (
 		[]string{"model", "gid", "branchid", "branchtype", "status"})
 )
 
-func PrometheusHttpRun(port string) {
+func prometheusHTTPRun(port string) {
 	go func() {
-		http.Handle("/metrics", promhttp.Handler())
+		http.Handle("/api/metrics", promhttp.Handler())
 		http.ListenAndServe(":"+port, nil)
 	}()
 }
 
-func HTTP_metrics(app *gin.Engine) *gin.Engine {
+func httpMetrics(app *gin.Engine) *gin.Engine {
 	app.Use(func(c *gin.Context) {
 		api := extractFromPath(c.Request.RequestURI)
 		timer := prometheus.NewTimer(prometheus.ObserverFunc(func(v float64) {
@@ -64,7 +64,7 @@ func HTTP_metrics(app *gin.Engine) *gin.Engine {
 	return app
 }
 
-func GRPC_metrics(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (resp interface{}, err error) {
+func grpcMetrics(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (resp interface{}, err error) {
 	api := extractFromPath(info.FullMethod)
 	timer := prometheus.NewTimer(prometheus.ObserverFunc(func(v float64) {
 		responseTime.WithLabelValues("grpc", api).Observe(v)
@@ -79,7 +79,7 @@ func GRPC_metrics(ctx context.Context, req interface{}, info *grpc.UnaryServerIn
 	return m, err
 }
 
-func TransactionMetrics(global *TransGlobal, status bool) {
+func transactionMetrics(global *TransGlobal, status bool) {
 	if status {
 		transactionTotal.WithLabelValues(global.TransType, global.Gid, "ok").Inc()
 	} else {
@@ -87,7 +87,7 @@ func TransactionMetrics(global *TransGlobal, status bool) {
 	}
 }
 
-func BranchMetrics(global *TransGlobal, branch *TransBranch, status bool) {
+func branchMetrics(global *TransGlobal, branch *TransBranch, status bool) {
 	if status {
 		branchTotal.WithLabelValues(global.TransType, global.Gid, branch.BranchID, branch.BranchType, "ok").Inc()
 	} else {

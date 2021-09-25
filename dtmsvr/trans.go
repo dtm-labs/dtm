@@ -119,7 +119,7 @@ func (t *TransGlobal) getProcessor() transProcessor {
 // Process process global transaction once
 func (t *TransGlobal) Process(db *common.DB, waitResult bool) dtmcli.M {
 	r := t.process(db, waitResult)
-	TransactionMetrics(t, r["dtm_result"] == dtmcli.ResultSuccess)
+	transactionMetrics(t, r["dtm_result"] == dtmcli.ResultSuccess)
 }
 
 func (t *TransGlobal) process(db *common.DB, waitResult bool) dtmcli.M {
@@ -208,11 +208,11 @@ func (t *TransGlobal) execBranch(db *common.DB, branch *TransBranch) {
 	if strings.Contains(body, dtmcli.ResultSuccess) {
 		t.touch(db, config.TransCronInterval)
 		branch.changeStatus(db, dtmcli.StatusSucceed)
-		BranchMetrics(t, branch, true)
+		branchMetrics(t, branch, true)
 	} else if t.TransType == "saga" && branch.BranchType == dtmcli.BranchAction && strings.Contains(body, dtmcli.ResultFailure) {
 		t.touch(db, config.TransCronInterval)
 		branch.changeStatus(db, dtmcli.StatusFailed)
-		BranchMetrics(t, branch, false)
+		branchMetrics(t, branch, false)
 	} else {
 		panic(fmt.Errorf("http result should contains SUCCESS|FAILURE. grpc error should return nil|Aborted. \nrefer to: https://dtm.pub/summary/arch.html#http\nunkown result will be retried: %s", body))
 	}
