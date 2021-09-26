@@ -105,6 +105,12 @@ Refer to [examples/quick_start.go](./examples/quick_start.go).
 
 You can join the [DTM slack channel here](https://join.slack.com/t/dtm-w6k9662/shared_invite/zt-vkrph4k1-eFqEFnMkbmlXqfUo5GWHWw).
 
+### Wechat
+
+Add wechat friend with id yedf2008, or scan the OR code. Fill in dtm as verification.
+
+![yedf2008](http://service.ivydad.com/cover/dubbingb6b5e2c0-2d2a-cd59-f7c5-c6b90aceb6f1.jpeg)
+
 ### Give a star! ⭐
 
 If you think this project is good, or helpful to you, please give a star!
