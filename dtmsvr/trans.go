@@ -18,6 +18,8 @@ import (
 	"gorm.io/gorm/clause"
 )
 
+var errUniqueConflict = errors.New("unique key conflict error")
+
 // TransGlobal global transaction
 type TransGlobal struct {
 	common.ModelBase
@@ -219,29 +221,27 @@ func (t *TransGlobal) execBranch(db *common.DB, branch *TransBranch) {
 	}
 }
 
-func (t *TransGlobal) saveNew(db *common.DB) {
-	err := db.Transaction(func(db1 *gorm.DB) error {
+func (t *TransGlobal) saveNew(db *common.DB) error {
+	return db.Transaction(func(db1 *gorm.DB) error {
 		db := &common.DB{DB: db1}
-		updates := t.setNextCron(config.TransCronInterval)
+		t.setNextCron(config.TransCronInterval)
 		writeTransLog(t.Gid, "create trans", t.Status, "", t.Data)
 		dbr := db.Must().Clauses(clause.OnConflict{
 			DoNothing: true,
 		}).Create(t)
-		if dbr.RowsAffected > 0 { // 如果这个是新事务，保存所有的分支
-			branches := t.getProcessor().GenBranches()
-			if len(branches) > 0 {
-				writeTransLog(t.Gid, "save branches", t.Status, "", dtmcli.MustMarshalString(branches))
-				checkLocalhost(branches)
-				db.Must().Clauses(clause.OnConflict{
-					DoNothing: true,
-				}).Create(&branches)
-			}
-		} else if dbr.RowsAffected == 0 && t.Status == dtmcli.StatusSubmitted { // 如果数据库已经存放了prepared的事务，则修改状态
-			dbr = db.Must().Model(t).Where("gid=? and status=?", t.Gid, dtmcli.StatusPrepared).Select(append(updates, "status")).Updates(t)
+		if dbr.RowsAffected <= 0 { // 如果这个不是新事务，返回错误
+			return errUniqueConflict
+		}
+		branches := t.getProcessor().GenBranches()
+		if len(branches) > 0 {
+			writeTransLog(t.Gid, "save branches", t.Status, "", dtmcli.MustMarshalString(branches))
+			checkLocalhost(branches)
+			db.Must().Clauses(clause.OnConflict{
+				DoNothing: true,
+			}).Create(&branches)
 		}
 		return nil
 	})
-	e2p(err)
 }
 
 // TransFromContext TransFromContext

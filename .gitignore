@@ -1,5 +1,6 @@
 conf.yml
 *.out
+*.log
 */**/main
 main
 dist

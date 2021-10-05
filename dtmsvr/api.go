@@ -9,19 +9,30 @@ import (
 
 func svcSubmit(t *TransGlobal, waitResult bool) (interface{}, error) {
 	db := dbGet()
-	dbt := TransFromDb(db, t.Gid)
-	if dbt != nil && dbt.Status != dtmcli.StatusPrepared && dbt.Status != dtmcli.StatusSubmitted {
-		return M{"dtm_result": dtmcli.ResultFailure, "message": fmt.Sprintf("current status %s, cannot sumbmit", dbt.Status)}, nil
-	}
 	t.Status = dtmcli.StatusSubmitted
-	t.saveNew(db)
-	return t.Process(db, waitResult), nil
+	err := t.saveNew(db)
 
+	if err == errUniqueConflict {
+		dbt := TransFromDb(db, t.Gid)
+		if dbt.Status == dtmcli.StatusPrepared {
+			updates := t.setNextCron(config.TransCronInterval)
+			db.Must().Model(t).Where("gid=? and status=?", t.Gid, dtmcli.StatusPrepared).Select(append(updates, "status")).Updates(t)
+		} else if dbt.Status != dtmcli.StatusSubmitted {
+			return M{"dtm_result": dtmcli.ResultFailure, "message": fmt.Sprintf("current status %s, cannot sumbmit", dbt.Status)}, nil
+		}
+	}
+	return t.Process(db, waitResult), nil
 }
 
 func svcPrepare(t *TransGlobal) (interface{}, error) {
 	t.Status = dtmcli.StatusPrepared
-	t.saveNew(dbGet())
+	err := t.saveNew(dbGet())
+	if err == errUniqueConflict {
+		dbt := TransFromDb(dbGet(), t.Gid)
+		if dbt.Status != dtmcli.StatusPrepared {
+			return M{"dtm_result": dtmcli.ResultFailure, "message": fmt.Sprintf("current status %s, cannot prepare", dbt.Status)}, nil
+		}
+	}
 	return dtmcli.MapSuccess, nil
 }
 

@@ -25,10 +25,7 @@ func newGid(c *gin.Context) (interface{}, error) {
 }
 
 func prepare(c *gin.Context) (interface{}, error) {
-	t := TransFromContext(c)
-	t.Status = dtmcli.StatusPrepared
-	t.saveNew(dbGet())
-	return dtmcli.MapSuccess, nil
+	return svcPrepare(TransFromContext(c))
 }
 
 func submit(c *gin.Context) (interface{}, error) {
