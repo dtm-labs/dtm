@@ -10,6 +10,7 @@ import (
 	"runtime"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/go-resty/resty/v2"
@@ -183,19 +184,21 @@ func MayReplaceLocalhost(host string) string {
 	return host
 }
 
-var sqlDbs = map[string]*sql.DB{}
+var sqlDbs sync.Map
 
 // PooledDB get pooled sql.DB
 func PooledDB(conf map[string]string) (*sql.DB, error) {
 	dsn := GetDsn(conf)
-	if sqlDbs[dsn] == nil {
-		db, err := StandaloneDB(conf)
+	db, ok := sqlDbs.Load(dsn)
+	if !ok {
+		db2, err := StandaloneDB(conf)
 		if err != nil {
 			return nil, err
 		}
-		sqlDbs[dsn] = db
+		db = db2
+		sqlDbs.Store(dsn, db)
 	}
-	return sqlDbs[dsn], nil
+	return db.(*sql.DB), nil
 }
 
 // StandaloneDB get a standalone db instance
@@ -225,13 +228,13 @@ func DBQueryRow(db DB, query string, args ...interface{}) *sql.Row {
 
 // GetDsn get dsn from map config
 func GetDsn(conf map[string]string) string {
-	conf["host"] = MayReplaceLocalhost(conf["host"])
+	host := MayReplaceLocalhost(conf["host"])
 	driver := conf["driver"]
 	dsn := MS{
 		"mysql": fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?charset=utf8mb4&parseTime=true&loc=Local",
-			conf["user"], conf["password"], conf["host"], conf["port"], conf["database"]),
+			conf["user"], conf["password"], host, conf["port"], conf["database"]),
 		"postgres": fmt.Sprintf("host=%s user=%s password=%s dbname='%s' port=%s sslmode=disable TimeZone=Asia/Shanghai",
-			conf["host"], conf["user"], conf["password"], conf["database"], conf["port"]),
+			host, conf["user"], conf["password"], conf["database"], conf["port"]),
 	}[driver]
 	PanicIf(dsn == "", fmt.Errorf("unknow driver: %s", driver))
 	return dsn

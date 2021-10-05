@@ -7,6 +7,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"sync"
 	"time"
 
 	_ "github.com/go-sql-driver/mysql"
@@ -31,7 +32,7 @@ func getGormDialetor(driver string, dsn string) gorm.Dialector {
 	panic(fmt.Errorf("unkown driver: %s", driver))
 }
 
-var dbs = map[string]*DB{}
+var dbs sync.Map
 
 // DB provide more func over gorm.DB
 type DB struct {
@@ -104,16 +105,18 @@ func (op *tracePlugin) Initialize(db *gorm.DB) (err error) {
 // DbGet get db connection for specified conf
 func DbGet(conf map[string]string) *DB {
 	dsn := dtmcli.GetDsn(conf)
-	if dbs[dsn] == nil {
+	db, ok := dbs.Load(dsn)
+	if !ok {
 		dtmcli.Logf("connecting %s", strings.Replace(dsn, conf["password"], "****", 1))
 		db1, err := gorm.Open(getGormDialetor(conf["driver"], dsn), &gorm.Config{
 			SkipDefaultTransaction: true,
 		})
 		dtmcli.E2P(err)
 		db1.Use(&tracePlugin{})
-		dbs[dsn] = &DB{DB: db1}
+		db = &DB{DB: db1}
+		dbs.Store(dsn, db)
 	}
-	return dbs[dsn]
+	return db.(*DB)
 }
 
 type dtmConfigType struct {
