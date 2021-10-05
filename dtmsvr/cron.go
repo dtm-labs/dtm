@@ -10,10 +10,13 @@ import (
 	"github.com/yedf/dtm/dtmcli"
 )
 
+// CronForwardDuration will be set in test, cron will fetch trans which expire in CronForwardDuration
+var CronForwardDuration time.Duration = time.Duration(0)
+
 // CronTransOnce cron expired trans. use expireIn as expire time
-func CronTransOnce(expireIn time.Duration) bool {
+func CronTransOnce() bool {
 	defer handlePanic(nil)
-	trans := lockOneTrans(expireIn)
+	trans := lockOneTrans(CronForwardDuration)
 	if trans == nil {
 		return false
 	}
@@ -27,7 +30,7 @@ func CronTransOnce(expireIn time.Duration) bool {
 // CronExpiredTrans cron expired trans, num == -1 indicate for ever
 func CronExpiredTrans(num int) {
 	for i := 0; i < num || num == -1; i++ {
-		hasTrans := CronTransOnce(time.Duration(0))
+		hasTrans := CronTransOnce()
 		if !hasTrans && num != 1 {
 			sleepCronTime(0)
 		}

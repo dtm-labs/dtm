@@ -100,10 +100,10 @@ func tccBarrierDisorder(t *testing.T) {
 			finishedChan <- "1"
 		}()
 		dtmcli.Logf("cron to timeout and then call cancel")
-		go CronTransOnce(60 * time.Second)
+		go CronTransOnce()
 		time.Sleep(100 * time.Millisecond)
 		dtmcli.Logf("cron to timeout and then call cancelled twice")
-		CronTransOnce(60 * time.Second)
+		CronTransOnce()
 		timeoutChan <- "wake"
 		timeoutChan <- "wake"
 		<-finishedChan

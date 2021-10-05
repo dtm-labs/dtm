@@ -34,6 +34,7 @@ type TransGlobal struct {
 	RollbackTime     *time.Time
 	NextCronInterval int64
 	NextCronTime     *time.Time
+	processStarted   time.Time // record the start time of process
 }
 
 // TableName TableName
@@ -156,6 +157,7 @@ func (t *TransGlobal) processInner(db *common.DB) (rerr error) {
 	}
 	branches := []TransBranch{}
 	db.Must().Where("gid=?", t.Gid).Order("id asc").Find(&branches)
+	t.processStarted = time.Now()
 	t.getProcessor().ProcessOnce(db, branches)
 	return
 }
@@ -208,17 +210,20 @@ func (t *TransGlobal) getBranchResult(branch *TransBranch) string {
 
 func (t *TransGlobal) execBranch(db *common.DB, branch *TransBranch) {
 	body := t.getBranchResult(branch)
+	status := ""
 	if strings.Contains(body, dtmcli.ResultSuccess) {
-		t.touch(db, config.TransCronInterval)
-		branch.changeStatus(db, dtmcli.StatusSucceed)
-		branchMetrics(t, branch, true)
+		status = dtmcli.StatusSucceed
 	} else if t.TransType == "saga" && branch.BranchType == dtmcli.BranchAction && strings.Contains(body, dtmcli.ResultFailure) {
-		t.touch(db, config.TransCronInterval)
-		branch.changeStatus(db, dtmcli.StatusFailed)
-		branchMetrics(t, branch, false)
+		status = dtmcli.StatusFailed
 	} else {
 		panic(fmt.Errorf("http result should contains SUCCESS|FAILURE. grpc error should return nil|Aborted. \nrefer to: https://dtm.pub/summary/arch.html#http\nunkown result will be retried: %s", body))
 	}
+	branchMetrics(t, branch, status == dtmcli.StatusSucceed)
+	// 如果一次处理超过1500ms，那么touch一下TransGlobal，避免被Cron取出
+	if time.Since(t.processStarted)+CronForwardDuration >= 1500*time.Millisecond || t.NextCronInterval > config.TransCronInterval {
+		t.touch(db, config.TransCronInterval)
+	}
+	branch.changeStatus(db, status)
 }
 
 func (t *TransGlobal) saveNew(db *common.DB) error {

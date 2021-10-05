@@ -3,6 +3,7 @@ package test
 import (
 	"fmt"
 	"testing"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/assert"
@@ -42,6 +43,7 @@ func resetXaData() {
 
 func TestMain(m *testing.M) {
 	dtmsvr.TransProcessedTestChan = make(chan string, 1)
+	dtmsvr.CronForwardDuration = 60 * time.Second
 	dtmsvr.PopulateDB(false)
 	examples.PopulateDB(false)
 	// 启动组件

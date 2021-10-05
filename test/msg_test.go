@@ -2,7 +2,6 @@ package test
 
 import (
 	"testing"
-	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/yedf/dtm/dtmcli"
@@ -29,12 +28,12 @@ func msgPending(t *testing.T) {
 	msg.Prepare("")
 	assert.Equal(t, dtmcli.StatusPrepared, getTransStatus(msg.Gid))
 	examples.MainSwitch.CanSubmitResult.SetOnce("PENDING")
-	CronTransOnce(60 * time.Second)
+	CronTransOnce()
 	assert.Equal(t, dtmcli.StatusPrepared, getTransStatus(msg.Gid))
 	examples.MainSwitch.TransInResult.SetOnce("PENDING")
-	CronTransOnce(60 * time.Second)
+	CronTransOnce()
 	assert.Equal(t, dtmcli.StatusSubmitted, getTransStatus(msg.Gid))
-	CronTransOnce(60 * time.Second)
+	CronTransOnce()
 	assert.Equal(t, []string{dtmcli.StatusSucceed, dtmcli.StatusSucceed}, getBranchesStatus(msg.Gid))
 	assert.Equal(t, dtmcli.StatusSucceed, getTransStatus(msg.Gid))
 }

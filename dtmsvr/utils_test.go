@@ -10,7 +10,6 @@ import (
 func TestUtils(t *testing.T) {
 	db := dbGet()
 	db.NoMust()
-	CronTransOnce(0)
 	err := dtmcli.CatchP(func() {
 		checkAffected(db.DB)
 	})

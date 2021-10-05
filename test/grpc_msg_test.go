@@ -3,7 +3,6 @@ package test
 import (
 	"fmt"
 	"testing"
-	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/yedf/dtm/dtmcli"
@@ -29,12 +28,12 @@ func grpcMsgPending(t *testing.T) {
 	err := msg.Prepare(fmt.Sprintf("%s/examples.Busi/CanSubmit", examples.BusiGrpc))
 	assert.Nil(t, err)
 	examples.MainSwitch.CanSubmitResult.SetOnce("PENDING")
-	CronTransOnce(60 * time.Second)
+	CronTransOnce()
 	assert.Equal(t, dtmcli.StatusPrepared, getTransStatus(msg.Gid))
 	examples.MainSwitch.TransInResult.SetOnce("PENDING")
-	CronTransOnce(60 * time.Second)
+	CronTransOnce()
 	assert.Equal(t, dtmcli.StatusSubmitted, getTransStatus(msg.Gid))
-	CronTransOnce(60 * time.Second)
+	CronTransOnce()
 	assert.Equal(t, dtmcli.StatusSucceed, getTransStatus(msg.Gid))
 }
 
