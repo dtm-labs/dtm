@@ -8,8 +8,9 @@ import (
 	"github.com/yedf/dtm/common"
 	"github.com/yedf/dtm/dtmcli"
 	"github.com/yedf/dtm/dtmgrpc"
+	"gorm.io/gorm/clause"
 
-	"github.com/grpc-ecosystem/go-grpc-middleware"
+	grpc_middleware "github.com/grpc-ecosystem/go-grpc-middleware"
 	"google.golang.org/grpc"
 
 	"github.com/yedf/dtm/examples"
@@ -40,6 +41,7 @@ func StartSvr() {
 		err := s.Serve(lis)
 		dtmcli.FatalIfError(err)
 	}()
+	go updateBranchAsync()
 
 	// prometheus exporter
 	dtmcli.Logf("prometheus exporter listen at: %d", metricsPort)
@@ -51,4 +53,38 @@ func StartSvr() {
 func PopulateDB(skipDrop bool) {
 	file := fmt.Sprintf("%s/dtmsvr.%s.sql", common.GetCallerCodeDir(), config.DB["driver"])
 	examples.RunSQLScript(config.DB, file, skipDrop)
+}
+
+// UpdateBranchAsyncInterval unit millisecond
+var UpdateBranchAsyncInterval time.Duration = 1000
+var updateBranchAsyncChan chan branchStatus = make(chan branchStatus, 1000)
+
+func updateBranchAsync() {
+	for { // flush branches every second
+		updates := []TransBranch{}
+		started := time.Now()
+		for time.Since(started) < UpdateBranchAsyncInterval*time.Millisecond {
+			select {
+			case updateBranch := <-updateBranchAsyncChan:
+				updates = append(updates, TransBranch{
+					ModelBase:  common.ModelBase{ID: updateBranch.id},
+					Status:     updateBranch.status,
+					FinishTime: updateBranch.finish_time,
+				})
+			case <-time.After(50 * time.Millisecond):
+			}
+		}
+		for len(updates) > 0 {
+			dbr := dbGet().Clauses(clause.OnConflict{
+				DoUpdates: clause.AssignmentColumns([]string{"status", "finish_time"}),
+			}).Create(updates)
+			dtmcli.Logf("flushed %d branch status to db. affected: %d", len(updates), dbr.RowsAffected)
+			if dbr.Error != nil {
+				dtmcli.LogRedf("async update branch status error: %v", dbr.Error)
+				time.Sleep(1 * time.Second)
+			} else {
+				updates = []TransBranch{}
+			}
+		}
+	}
 }

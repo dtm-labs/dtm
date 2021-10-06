@@ -25,7 +25,7 @@ type TransGlobal struct {
 	common.ModelBase
 	Gid              string `json:"gid"`
 	TransType        string `json:"trans_type"`
-	Data             string `json:"data"`
+	Data             string `json:"data" gorm:"-"`
 	Status           string `json:"status"`
 	QueryPrepared    string `json:"query_prepared"`
 	Protocol         string `json:"protocol"`
@@ -92,13 +92,17 @@ func (*TransBranch) TableName() string {
 
 func (t *TransBranch) changeStatus(db *common.DB, status string) *gorm.DB {
 	writeTransLog(t.Gid, "branch change", status, t.BranchID, "")
-	dbr := db.Must().Model(t).Where("status=?", t.Status).Updates(M{
-		"status":      status,
-		"finish_time": time.Now(),
-	})
-	checkAffected(dbr)
+	if common.DtmConfig.UpdateBranchSync > 0 {
+		dbr := db.Must().Model(t).Updates(M{
+			"status":      status,
+			"finish_time": time.Now(),
+		})
+		checkAffected(dbr)
+	} else { // 为了性能优化，把branch的status更新异步化
+		updateBranchAsyncChan <- branchStatus{id: t.ID, status: status}
+	}
 	t.Status = status
-	return dbr
+	return db.DB
 }
 
 func checkAffected(db1 *gorm.DB) {

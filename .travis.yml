@@ -14,4 +14,4 @@ before_install:
   - go get -t -v ./...
   - go get github.com/mattn/goveralls
 script:
-  - $GOPATH/bin/goveralls -service=travis-ci -ignore="examples/*,dtmgrpc/*.pb.go"
+  - $GOPATH/bin/goveralls -service=travis-ci -ignore="examples/*,dtmgrpc/*.pb.go,bench/*"

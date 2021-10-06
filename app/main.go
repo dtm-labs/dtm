@@ -18,7 +18,8 @@ usage:
 
 Available commands:
     dtmsvr            run dtm as a server
-    dev               create all needed table and run dtm as a server
+		dev               create all needed table and run dtm as a server
+		bench             start bench server
 
     quick_start       run quick start example (dtm will create needed table)
     qs                same as quick_start

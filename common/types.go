@@ -123,7 +123,7 @@ type dtmConfigType struct {
 	TransCronInterval int64             `yaml:"TransCronInterval"` // 单位秒 当事务等待这个时间之后，还没有变化，则进行一轮处理，包括prepared中的任务和committed的任务
 	DB                map[string]string `yaml:"DB"`
 	DisableLocalhost  int64             `yaml:"DisableLocalhost"`
-	RetryLimit        int64             `yaml:"RetryLimit"`
+	UpdateBranchSync  int64             `yaml:"UpdateBranchSync"`
 }
 
 // DtmConfig 配置
@@ -146,7 +146,7 @@ func init() {
 		"password": os.Getenv("DB_PASSWORD"),
 	}
 	DtmConfig.DisableLocalhost = getIntEnv("DISABLE_LOCALHOST", "0")
-	DtmConfig.RetryLimit = getIntEnv("RETRY_LIMIT", "2000000000")
+	DtmConfig.UpdateBranchSync = getIntEnv("UPDATE_BRANCH_SYNC", "0")
 	cont := []byte{}
 	for d := MustGetwd(); d != "" && d != "/"; d = filepath.Dir(d) {
 		cont1, err := ioutil.ReadFile(d + "/conf.yml")

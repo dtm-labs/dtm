@@ -15,6 +15,12 @@ import (
 // M a short name
 type M = map[string]interface{}
 
+type branchStatus struct {
+	id          uint
+	status      string
+	finish_time *time.Time
+}
+
 var p2e = dtmcli.P2E
 var e2p = dtmcli.E2P
 
