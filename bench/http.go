@@ -38,12 +38,15 @@ func txGet() *sql.Tx {
 func reloadData() {
 	began := time.Now()
 	db := sdbGet()
-	_, err := dtmcli.DBExec(db, `create table if not exists dtm_busi.user_account_log (
+	_, err := dtmcli.DBExec(db, "drop table if exists dtm_busi.user_account_log")
+	dtmcli.FatalIfError(err)
+	_, err = dtmcli.DBExec(db, `create table if not exists dtm_busi.user_account_log (
 	id      INT(11) AUTO_INCREMENT PRIMARY KEY,
 	user_id INT(11) NOT NULL,
 	delta DECIMAL(11, 2) not null,
 	gid varchar(45) not null,
 	branch_id varchar(45) not null,
+	branch_type varchar(45) not null,
 	reason varchar(45),
 	create_time datetime not null default now(),
 	update_time datetime not null default now(),
