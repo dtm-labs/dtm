@@ -118,15 +118,13 @@ func TestSqlDB(t *testing.T) {
 
 func TestUpdateBranchAsync(t *testing.T) {
 	common.DtmConfig.UpdateBranchSync = 0
-	dtmsvr.UpdateBranchAsyncInterval = 50
 	saga := genSaga("gid-update-branch-async", false, false)
 	saga.WaitResult = true
 	err := saga.Submit()
 	assert.Nil(t, err)
 	WaitTransProcessed(saga.Gid)
-	time.Sleep(100 * time.Millisecond)
+	time.Sleep(dtmsvr.UpdateBranchAsyncInterval)
 	assert.Equal(t, []string{dtmcli.StatusPrepared, dtmcli.StatusSucceed, dtmcli.StatusPrepared, dtmcli.StatusSucceed}, getBranchesStatus(saga.Gid))
 	assert.Equal(t, dtmcli.StatusSucceed, getTransStatus(saga.Gid))
 	common.DtmConfig.UpdateBranchSync = 1
-	dtmsvr.UpdateBranchAsyncInterval = 1000
 }

@@ -55,15 +55,16 @@ func PopulateDB(skipDrop bool) {
 	examples.RunSQLScript(config.DB, file, skipDrop)
 }
 
-// UpdateBranchAsyncInterval unit millisecond
-var UpdateBranchAsyncInterval time.Duration = 1000
+// UpdateBranchAsyncInterval interval to flush branch
+var UpdateBranchAsyncInterval = 200 * time.Millisecond
 var updateBranchAsyncChan chan branchStatus = make(chan branchStatus, 1000)
 
 func updateBranchAsync() {
 	for { // flush branches every second
 		updates := []TransBranch{}
 		started := time.Now()
-		for time.Since(started) < UpdateBranchAsyncInterval*time.Millisecond {
+		checkInterval := 20 * time.Millisecond
+		for time.Since(started) < UpdateBranchAsyncInterval-checkInterval && len(updates) < 20 {
 			select {
 			case updateBranch := <-updateBranchAsyncChan:
 				updates = append(updates, TransBranch{
@@ -71,7 +72,7 @@ func updateBranchAsync() {
 					Status:     updateBranch.status,
 					FinishTime: updateBranch.finish_time,
 				})
-			case <-time.After(50 * time.Millisecond):
+			case <-time.After(checkInterval):
 			}
 		}
 		for len(updates) > 0 {

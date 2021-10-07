@@ -10,6 +10,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/yedf/dtm/common"
 	"github.com/yedf/dtm/dtmcli"
+	"github.com/yedf/dtm/dtmsvr"
 	"github.com/yedf/dtm/examples"
 )
 
@@ -36,7 +37,34 @@ func txGet() *sql.Tx {
 }
 
 func reloadData() {
+	time.Sleep(dtmsvr.UpdateBranchAsyncInterval * 2)
 	began := time.Now()
+	db := sdbGet()
+	tables := []string{"dtm_busi.user_account", "dtm_busi.user_account_log", "dtm.trans_global", "dtm.trans_branch", "dtm_barrier.barrier"}
+	for _, t := range tables {
+		_, err := dtmcli.DBExec(db, fmt.Sprintf("truncate %s", t))
+		dtmcli.FatalIfError(err)
+	}
+	s := "insert ignore into dtm_busi.user_account(user_id, balance) values "
+	ss := []string{}
+	for i := 1; i <= total; i++ {
+		ss = append(ss, fmt.Sprintf("(%d, 1000000)", i))
+	}
+	_, err := db.Exec(s + strings.Join(ss, ","))
+	dtmcli.FatalIfError(err)
+	dtmcli.Logf("%d users inserted. used: %dms", total, time.Since(began).Milliseconds())
+}
+
+var uidCounter int32 = 0
+var mode string = ""
+var sqls int = 1
+
+// StartSvr 1
+func StartSvr() {
+	app := common.GetGinApp()
+	benchAddRoute(app)
+	dtmcli.Logf("bench listening at %d", benchPort)
+	go app.Run(fmt.Sprintf(":%d", benchPort))
 	db := sdbGet()
 	_, err := dtmcli.DBExec(db, "drop table if exists dtm_busi.user_account_log")
 	dtmcli.FatalIfError(err)
@@ -55,33 +83,6 @@ func reloadData() {
 )
 `)
 	dtmcli.FatalIfError(err)
-	tables := []string{"dtm_busi.user_account", "dtm_busi.user_account_log", "dtm.trans_global", "dtm.trans_branch", "dtm_barrier.barrier"}
-	for _, t := range tables {
-		_, err = dtmcli.DBExec(db, fmt.Sprintf("truncate %s", t))
-		dtmcli.FatalIfError(err)
-	}
-	s := "insert ignore into dtm_busi.user_account(user_id, balance) values "
-	ss := []string{}
-	for i := 1; i <= total; i++ {
-		ss = append(ss, fmt.Sprintf("(%d, 1000000)", i))
-	}
-	_, err = db.Exec(s + strings.Join(ss, ","))
-	dtmcli.FatalIfError(err)
-	dtmcli.Logf("%d users inserted. used: %dms", total, time.Since(began).Milliseconds())
-}
-
-var uidCounter int32 = 0
-var mode string = ""
-var sqls int = 1
-
-// StartSvr 1
-func StartSvr() {
-	app := common.GetGinApp()
-	benchAddRoute(app)
-	dtmcli.Logf("bench listening at %d", benchPort)
-	go app.Run(fmt.Sprintf(":%d", benchPort))
-	reloadData()
-	time.Sleep(1100 * time.Millisecond) // sleep 1 second for async branch status update to finish
 }
 
 func qsAdjustBalance(uid int, amount int, c *gin.Context) (interface{}, error) {
