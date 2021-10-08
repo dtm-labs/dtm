@@ -96,7 +96,7 @@ func tccBarrierDisorder(t *testing.T) {
 					"branch_type": dtmcli.BranchTry,
 				}).
 				Post(tryURL)
-			assert.True(t, strings.Contains(r.String(), dtmcli.ResultFailure))
+			assert.True(t, strings.Contains(r.String(), dtmcli.ResultSuccess)) // 这个是悬挂操作，为了简单起见，依旧让他返回成功
 			finishedChan <- "1"
 		}()
 		dtmcli.Logf("cron to timeout and then call cancel")
