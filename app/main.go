@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/yedf/dtm/bench"
+	"github.com/yedf/dtm/common"
 	"github.com/yedf/dtm/dtmcli"
 	"github.com/yedf/dtm/dtmsvr"
 	"github.com/yedf/dtm/examples"
@@ -26,6 +27,7 @@ Available commands:
 `
 
 func main() {
+	dtmcli.DBDriver = common.DtmConfig.DB["driver"]
 	if len(os.Args) == 1 {
 		fmt.Println(usage)
 		for name := range examples.Samples {

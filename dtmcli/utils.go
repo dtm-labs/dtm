@@ -210,6 +210,7 @@ func StandaloneDB(conf map[string]string) (*sql.DB, error) {
 
 // DBExec use raw db to exec
 func DBExec(db DB, sql string, values ...interface{}) (affected int64, rerr error) {
+	sql = makeSqlCompatible(sql)
 	r, rerr := db.Exec(sql, values...)
 	if rerr == nil {
 		affected, rerr = r.RowsAffected()
@@ -222,6 +223,7 @@ func DBExec(db DB, sql string, values ...interface{}) (affected int64, rerr erro
 
 // DBQueryRow use raw tx to query row
 func DBQueryRow(db DB, query string, args ...interface{}) *sql.Row {
+	query = makeSqlCompatible(query)
 	Logf("querying: "+query, args...)
 	return db.QueryRow(query, args...)
 }
@@ -267,4 +269,24 @@ func CheckResult(res interface{}, err error) error {
 		}
 	}
 	return err
+}
+
+func makeSqlCompatible(sql string) string {
+	if DBDriver == DriverMysql {
+		return sql
+	} else if DBDriver == DriverPostgres {
+		pos := 1
+		parts := []string{}
+		b := 0
+		for i := 0; i < len(sql); i++ {
+			if sql[i] == '?' {
+				parts = append(parts, sql[b:i])
+				b = i + 1
+				parts = append(parts, fmt.Sprintf("$%d", pos))
+				pos++
+			}
+		}
+		return strings.Join(parts, "")
+	}
+	panic(fmt.Sprintf("unknown driver %s", DBDriver))
 }

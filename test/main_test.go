@@ -6,11 +6,13 @@ import (
 	"time"
 
 	"github.com/yedf/dtm/common"
+	"github.com/yedf/dtm/dtmcli"
 	"github.com/yedf/dtm/dtmsvr"
 	"github.com/yedf/dtm/examples"
 )
 
 func TestMain(m *testing.M) {
+	dtmcli.DBDriver = common.DtmConfig.DB["driver"]
 	dtmsvr.TransProcessedTestChan = make(chan string, 1)
 	dtmsvr.CronForwardDuration = 60 * time.Second
 	common.DtmConfig.UpdateBranchSync = 1
