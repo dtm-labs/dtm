@@ -50,7 +50,7 @@ func reloadData() {
 	for i := 1; i <= total; i++ {
 		ss = append(ss, fmt.Sprintf("(%d, 1000000)", i))
 	}
-	_, err := db.Exec(s + strings.Join(ss, ","))
+	_, err := dtmcli.DBExec(db, s+strings.Join(ss, ","))
 	dtmcli.FatalIfError(err)
 	dtmcli.Logf("%d users inserted. used: %dms", total, time.Since(began).Milliseconds())
 }
