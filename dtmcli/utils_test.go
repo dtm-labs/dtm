@@ -90,11 +90,13 @@ func TestFatal(t *testing.T) {
 	assert.Error(t, err, fmt.Errorf("fatal"))
 }
 
-func TestMakeSqlCompatible(t *testing.T) {
+func TestCompatible(t *testing.T) {
 	old := DBDriver
 	DBDriver = DriverMysql
-	assert.Equal(t, "? ?", makeSqlCompatible("? ?"))
+	assert.Equal(t, "? ?", makeSQLCompatible("? ?"))
+	assert.Equal(t, "xa start 'xa1'", getXaSQL("start", "xa1"))
 	DBDriver = DriverPostgres
-	assert.Equal(t, "$1 $2", makeSqlCompatible("? ?"))
+	assert.Equal(t, "$1 $2", makeSQLCompatible("? ?"))
+	assert.Equal(t, "begin", getXaSQL("start", "xa1"))
 	DBDriver = old
 }

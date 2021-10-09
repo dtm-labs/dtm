@@ -41,11 +41,18 @@ func lockOneTrans(expireIn time.Duration) *TransGlobal {
 	trans := TransGlobal{}
 	owner := GenGid()
 	db := dbGet()
+	getTime := func(second int) string {
+		return fmt.Sprintf(map[string]string{
+			"mysql":    "date_add(now(), interval %d second)",
+			"postgres": "current_timestamp + interval '%d second'",
+		}[dtmcli.DBDriver], second)
+	}
+	expire := int(expireIn / time.Second)
+	whereTime := fmt.Sprintf("next_cron_time < %s and next_cron_time > %s and update_time < %s", getTime(expire), getTime(-3600), getTime(expire-3))
 	// 这里next_cron_time需要限定范围，否则数据量累计之后，会导致查询变慢
 	// 限定update_time < now - 3，否则会出现刚被这个应用取出，又被另一个取出
 	dbr := db.Must().Model(&trans).
-		Where("next_cron_time < date_add(now(), interval ? second) and next_cron_time > date_add(now(), interval -3600 second) and update_time < date_add(now(), interval ? second) and status in ('prepared', 'aborting', 'submitted')", int(expireIn/time.Second), -3+int(expireIn/time.Second)).
-		Limit(1).Update("owner", owner)
+		Where(whereTime+"and status in ('prepared', 'aborting', 'submitted')").Limit(1).Update("owner", owner)
 	if dbr.RowsAffected == 0 {
 		return nil
 	}

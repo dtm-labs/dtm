@@ -10,9 +10,11 @@ import (
 	"sync"
 	"time"
 
-	_ "github.com/go-sql-driver/mysql"
+	_ "github.com/go-sql-driver/mysql" // register mysql driver
+	_ "github.com/lib/pq"              // register postgres driver
 	"gopkg.in/yaml.v2"
 	"gorm.io/driver/mysql"
+	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 
 	"github.com/yedf/dtm/dtmcli"
@@ -26,10 +28,11 @@ type ModelBase struct {
 }
 
 func getGormDialetor(driver string, dsn string) gorm.Dialector {
-	if driver == "mysql" {
-		return mysql.Open(dsn)
+	if driver == dtmcli.DriverPostgres {
+		return postgres.Open(dsn)
 	}
-	panic(fmt.Errorf("unkown driver: %s", driver))
+	dtmcli.PanicIf(driver != dtmcli.DriverMysql, fmt.Errorf("unkown driver: %s", driver))
+	return mysql.Open(dsn)
 }
 
 var dbs sync.Map

@@ -11,9 +11,6 @@ import (
 )
 
 func TestGrpcXa(t *testing.T) {
-	if config.DB["driver"] != "mysql" {
-		return
-	}
 	xaGrpcType(t)
 	xaGrpcLocalError(t)
 	xaGrpcNormal(t)

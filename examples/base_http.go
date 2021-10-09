@@ -9,6 +9,7 @@ import (
 	"github.com/yedf/dtm/common"
 	"github.com/yedf/dtm/dtmcli"
 	"gorm.io/driver/mysql"
+	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )
 
@@ -129,9 +130,13 @@ func BaseAddRoute(app *gin.Engine) {
 			if reqFrom(c).TransOutResult == dtmcli.ResultFailure {
 				return dtmcli.MapFailure, nil
 			}
-			gdb, err := gorm.Open(mysql.New(mysql.Config{
-				Conn: db,
-			}), &gorm.Config{})
+			var dia gorm.Dialector = nil
+			if dtmcli.DBDriver == dtmcli.DriverMysql {
+				dia = mysql.New(mysql.Config{Conn: db})
+			} else if dtmcli.DBDriver == dtmcli.DriverPostgres {
+				dia = postgres.New(postgres.Config{Conn: db})
+			}
+			gdb, err := gorm.Open(dia, &gorm.Config{})
 			if err != nil {
 				return nil, err
 			}
