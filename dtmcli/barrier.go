@@ -57,9 +57,6 @@ func insertBarrier(tx Tx, transType string, gid string, branchID string, branchT
 func (bb *BranchBarrier) Call(tx Tx, busiCall BusiFunc) (rerr error) {
 	bb.BarrierID = bb.BarrierID + 1
 	bid := fmt.Sprintf("%02d", bb.BarrierID)
-	if rerr != nil {
-		return
-	}
 	defer func() {
 		// Logf("barrier call error is %v", rerr)
 		if x := recover(); x != nil {

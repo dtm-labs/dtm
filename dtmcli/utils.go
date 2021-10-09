@@ -226,13 +226,6 @@ func DBExec(db DB, sql string, values ...interface{}) (affected int64, rerr erro
 	return
 }
 
-// DBQueryRow use raw tx to query row
-func DBQueryRow(db DB, query string, args ...interface{}) *sql.Row {
-	query = makeSQLCompatible(query)
-	Logf("querying: "+query, args...)
-	return db.QueryRow(query, args...)
-}
-
 // GetDsn get dsn from map config
 func GetDsn(conf map[string]string) string {
 	host := MayReplaceLocalhost(conf["host"])
