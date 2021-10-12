@@ -1,13 +1,15 @@
 version: '3.3'
 services:
   api:
-    build: .
+    image: 'yedf/dtm'
     environment:
       IS_DOCKER: '1'
     ports:
       - '8080:8080'
     volumes:
-      - .:/app/dtm
+      - .:/app/work
+    command: ['/app/dtm/main', 'dev']
+    working_dir: /app/work
   mysql:
     image: 'mysql:5.7'
     environment:
