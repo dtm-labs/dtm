@@ -2,7 +2,6 @@ package dtmcli
 
 import (
 	"database/sql"
-	"fmt"
 	"strings"
 )
 
@@ -21,8 +20,9 @@ func (xc *XaClientBase) HandleCallback(gid string, branchID string, action strin
 	}
 	defer db.Close()
 	xaID := gid + "-" + branchID
-	_, err = DBExec(db, fmt.Sprintf("xa %s '%s'", action, xaID))
-	if err != nil && strings.Contains(err.Error(), "Error 1397: XAER_NOTA") { // 重复commit/rollback同一个id，报这个错误，忽略
+	_, err = DBExec(db, GetDBSpecial().GetXaSQL(action, xaID))
+	if err != nil &&
+		(strings.Contains(err.Error(), "Error 1397: XAER_NOTA") || strings.Contains(err.Error(), "does not exist")) { // 重复commit/rollback同一个id，报这个错误，忽略
 		err = nil
 	}
 	return err
@@ -39,9 +39,9 @@ func (xc *XaClientBase) HandleLocalTrans(xa *TransBase, cb func(*sql.DB) (interf
 	defer func() { db.Close() }()
 	defer func() {
 		x := recover()
-		_, err := DBExec(db, fmt.Sprintf("XA end '%s'", xaBranch))
+		_, err := DBExec(db, GetDBSpecial().GetXaSQL("end", xaBranch))
 		if x == nil && rerr == nil && err == nil {
-			_, err = DBExec(db, fmt.Sprintf("XA prepare '%s'", xaBranch))
+			_, err = DBExec(db, GetDBSpecial().GetXaSQL("prepare", xaBranch))
 		}
 		if rerr == nil {
 			rerr = err
@@ -50,7 +50,7 @@ func (xc *XaClientBase) HandleLocalTrans(xa *TransBase, cb func(*sql.DB) (interf
 			panic(x)
 		}
 	}()
-	_, rerr = DBExec(db, fmt.Sprintf("XA start '%s'", xaBranch))
+	_, rerr = DBExec(db, GetDBSpecial().GetXaSQL("start", xaBranch))
 	if rerr != nil {
 		return
 	}

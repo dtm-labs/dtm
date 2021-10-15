@@ -1,6 +1,8 @@
 package test
 
 import (
+	"context"
+	"database/sql"
 	"fmt"
 	"strings"
 	"testing"
@@ -18,7 +20,7 @@ func TestBarrierTcc(t *testing.T) {
 	tccBarrierDisorder(t)
 	tccBarrierNormal(t)
 	tccBarrierRollback(t)
-
+	barrierPanic(t)
 }
 
 func tccBarrierRollback(t *testing.T) {
@@ -96,7 +98,7 @@ func tccBarrierDisorder(t *testing.T) {
 					"branch_type": dtmcli.BranchTry,
 				}).
 				Post(tryURL)
-			assert.True(t, strings.Contains(r.String(), dtmcli.ResultFailure))
+			assert.True(t, strings.Contains(r.String(), dtmcli.ResultSuccess)) // 这个是悬挂操作，为了简单起见，依旧让他返回成功
 			finishedChan <- "1"
 		}()
 		dtmcli.Logf("cron to timeout and then call cancel")
@@ -114,4 +116,17 @@ func tccBarrierDisorder(t *testing.T) {
 	assert.Error(t, err, fmt.Errorf("a cancelled tcc"))
 	assert.Equal(t, []string{dtmcli.StatusSucceed, dtmcli.StatusPrepared, dtmcli.StatusPrepared}, getBranchesStatus(gid))
 	assert.Equal(t, dtmcli.StatusFailed, getTransStatus(gid))
+}
+
+func barrierPanic(t *testing.T) {
+	bb := &dtmcli.BranchBarrier{TransType: "saga", Gid: "gid1", BranchID: "bid1", BranchType: "action", BarrierID: 1}
+	var err error
+	func() {
+		defer dtmcli.P2E(&err)
+		tx, _ := dbGet().ToSQLDB().BeginTx(context.Background(), &sql.TxOptions{})
+		bb.Call(tx, func(db dtmcli.DB) error {
+			panic(fmt.Errorf("an error"))
+		})
+	}()
+	assert.Error(t, err, fmt.Errorf("an error"))
 }

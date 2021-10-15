@@ -8,6 +8,7 @@ import (
 	"os"
 	"path"
 	"runtime"
+	"runtime/debug"
 	"strconv"
 	"strings"
 	"sync"
@@ -135,6 +136,7 @@ var FatalExitFunc = func() { os.Exit(1) }
 
 // LogFatalf 采用红色打印错误类信息， 并退出
 func LogFatalf(fmt string, args ...interface{}) {
+	fmt += "\n" + string(debug.Stack())
 	Logf("\x1b[31m\n"+fmt+"\x1b[0m\n", args...)
 	FatalExitFunc()
 }
@@ -210,6 +212,10 @@ func StandaloneDB(conf map[string]string) (*sql.DB, error) {
 
 // DBExec use raw db to exec
 func DBExec(db DB, sql string, values ...interface{}) (affected int64, rerr error) {
+	if sql == "" {
+		return 0, nil
+	}
+	sql = GetDBSpecial().GetPlaceHoldSQL(sql)
 	r, rerr := db.Exec(sql, values...)
 	if rerr == nil {
 		affected, rerr = r.RowsAffected()
@@ -218,12 +224,6 @@ func DBExec(db DB, sql string, values ...interface{}) (affected int64, rerr erro
 		LogRedf("exec error: %v for %s %v", rerr, sql, values)
 	}
 	return
-}
-
-// DBQueryRow use raw tx to query row
-func DBQueryRow(db DB, query string, args ...interface{}) *sql.Row {
-	Logf("querying: "+query, args...)
-	return db.QueryRow(query, args...)
 }
 
 // GetDsn get dsn from map config
