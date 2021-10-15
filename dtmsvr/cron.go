@@ -14,17 +14,18 @@ import (
 var CronForwardDuration time.Duration = time.Duration(0)
 
 // CronTransOnce cron expired trans. use expireIn as expire time
-func CronTransOnce() bool {
+func CronTransOnce() (hasTrans bool) {
 	defer handlePanic(nil)
 	trans := lockOneTrans(CronForwardDuration)
 	if trans == nil {
-		return false
+		return
 	}
+	hasTrans = true
 	if TransProcessedTestChan != nil {
 		defer WaitTransProcessed(trans.Gid)
 	}
 	trans.Process(dbGet(), true)
-	return true
+	return
 }
 
 // CronExpiredTrans cron expired trans, num == -1 indicate for ever
