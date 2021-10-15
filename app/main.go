@@ -19,15 +19,14 @@ usage:
 
 Available commands:
     dtmsvr            run dtm as a server
-		dev               create all needed table and run dtm as a server
-		bench             start bench server
+    dev               create all needed table and run dtm as a server
+    bench             start bench server
 
     quick_start       run quick start example (dtm will create needed table)
     qs                same as quick_start
 `
 
 func main() {
-	dtmcli.SetCurrentDBType(common.DtmConfig.DB["driver"])
 	if len(os.Args) == 1 {
 		fmt.Println(usage)
 		for name := range examples.Samples {
@@ -35,6 +34,7 @@ func main() {
 		}
 		return
 	}
+	dtmcli.SetCurrentDBType(common.DtmConfig.DB["driver"])
 	if os.Args[1] != "dtmsvr" { // 实际线上运行，只启动dtmsvr，不准备table相关的数据
 		dtmsvr.PopulateDB(true)
 		examples.PopulateDB(true)
