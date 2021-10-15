@@ -94,3 +94,8 @@ func Result2Error(res interface{}, err error) error {
 	}
 	return e
 }
+
+// SetCurrentDBType set the current db type
+func SetCurrentDBType(dbType string) {
+	dtmcli.SetCurrentDBType(dbType)
+}
