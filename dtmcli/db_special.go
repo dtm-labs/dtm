@@ -85,7 +85,7 @@ func GetDBSpecial() DBSpecial {
 // SetCurrentDBType set currentDBType
 func SetCurrentDBType(dbType string) {
 	spec := dbSpecials[dbType]
-	PanicIf(spec == nil, fmt.Errorf("unknown db type %s", dbType))
+	PanicIf(spec == nil, fmt.Errorf("unknown db type '%s'", dbType))
 	currentDBType = dbType
 }
 
