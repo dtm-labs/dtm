@@ -44,10 +44,7 @@ func insertBarrier(tx Tx, transType string, gid string, branchID string, branchT
 	if branchType == "" {
 		return 0, nil
 	}
-	sql := map[string]string{
-		"mysql":    "insert ignore into dtm_barrier.barrier(trans_type, gid, branch_id, branch_type, barrier_id, reason) values(?,?,?,?,?,?)",
-		"postgres": "insert into dtm_barrier.barrier(trans_type, gid, branch_id, branch_type, barrier_id, reason) values(?,?,?,?,?,?) on conflict ON CONSTRAINT uniq_barrier do nothing",
-	}[DBDriver]
+	sql := GetDBSpecial().GetInsertIgnoreTemplate("dtm_barrier.barrier(trans_type, gid, branch_id, branch_type, barrier_id, reason) values(?,?,?,?,?,?)", "uniq_barrier")
 	return DBExec(tx, sql, transType, gid, branchID, branchType, barrierID, reason)
 }
 

@@ -131,9 +131,9 @@ func BaseAddRoute(app *gin.Engine) {
 				return dtmcli.MapFailure, nil
 			}
 			var dia gorm.Dialector = nil
-			if dtmcli.DBDriver == dtmcli.DriverMysql {
+			if dtmcli.GetCurrentDBType() == dtmcli.DBTypeMysql {
 				dia = mysql.New(mysql.Config{Conn: db})
-			} else if dtmcli.DBDriver == dtmcli.DriverPostgres {
+			} else if dtmcli.GetCurrentDBType() == dtmcli.DBTypePostgres {
 				dia = postgres.New(postgres.Config{Conn: db})
 			}
 			gdb, err := gorm.Open(dia, &gorm.Config{})

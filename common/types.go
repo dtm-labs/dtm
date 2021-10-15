@@ -28,10 +28,10 @@ type ModelBase struct {
 }
 
 func getGormDialetor(driver string, dsn string) gorm.Dialector {
-	if driver == dtmcli.DriverPostgres {
+	if driver == dtmcli.DBTypePostgres {
 		return postgres.Open(dsn)
 	}
-	dtmcli.PanicIf(driver != dtmcli.DriverMysql, fmt.Errorf("unkown driver: %s", driver))
+	dtmcli.PanicIf(driver != dtmcli.DBTypeMysql, fmt.Errorf("unkown driver: %s", driver))
 	return mysql.Open(dsn)
 }
 

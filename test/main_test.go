@@ -12,7 +12,7 @@ import (
 )
 
 func TestMain(m *testing.M) {
-	dtmcli.DBDriver = common.DtmConfig.DB["driver"]
+	dtmcli.SetCurrentDBType(common.DtmConfig.DB["driver"])
 	dtmsvr.TransProcessedTestChan = make(chan string, 1)
 	dtmsvr.CronForwardDuration = 60 * time.Second
 	common.DtmConfig.UpdateBranchSync = 1

@@ -27,7 +27,7 @@ Available commands:
 `
 
 func main() {
-	dtmcli.DBDriver = common.DtmConfig.DB["driver"]
+	dtmcli.SetCurrentDBType(common.DtmConfig.DB["driver"])
 	if len(os.Args) == 1 {
 		fmt.Println(usage)
 		for name := range examples.Samples {

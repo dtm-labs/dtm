@@ -30,11 +30,8 @@ const (
 	// ResultFailure for result of a trans/trans branch
 	ResultFailure = "FAILURE"
 
-	// DriverMysql const for driver mysql
-	DriverMysql = "mysql"
-	// DriverPostgres const for driver postgres
-	DriverPostgres = "postgres"
+	// DBTypeMysql const for driver mysql
+	DBTypeMysql = "mysql"
+	// DBTypePostgres const for driver postgres
+	DBTypePostgres = "postgres"
 )
-
-// DBDriver dtm和dtmcli可以支持mysql和postgres，但不支持混合，通过全局变量指定当前要支持的驱动
-var DBDriver = DriverMysql

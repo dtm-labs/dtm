@@ -1,7 +1,6 @@
 package dtmcli
 
 import (
-	"errors"
 	"fmt"
 	"strings"
 )
@@ -10,8 +9,12 @@ import (
 type DBSpecial interface {
 	TimestampAdd(second int) string
 	GetPlaceHoldSQL(sql string) string
+	GetInsertIgnoreTemplate(tableAndValues string, pgConstraint string) string
 	GetXaSQL(command string, xid string) string
 }
+
+var dbSpecials = map[string]DBSpecial{}
+var currentDBType = DBTypeMysql
 
 type mysqlDBSpecial struct{}
 
@@ -25,6 +28,14 @@ func (*mysqlDBSpecial) GetPlaceHoldSQL(sql string) string {
 
 func (*mysqlDBSpecial) GetXaSQL(command string, xid string) string {
 	return fmt.Sprintf("xa %s '%s'", command, xid)
+}
+
+func (*mysqlDBSpecial) GetInsertIgnoreTemplate(tableAndValues string, pgConstraint string) string {
+	return fmt.Sprintf("insert ignore into %s", tableAndValues)
+}
+
+func init() {
+	dbSpecials[DBTypeMysql] = &mysqlDBSpecial{}
 }
 
 type postgresDBSpecial struct{}
@@ -59,12 +70,26 @@ func (*postgresDBSpecial) GetPlaceHoldSQL(sql string) string {
 	return strings.Join(parts, "")
 }
 
-// GetDBSpecial get DBSpecial for DBDriver
+func (*postgresDBSpecial) GetInsertIgnoreTemplate(tableAndValues string, pgConstraint string) string {
+	return fmt.Sprintf("insert into %s  on conflict ON CONSTRAINT %s do nothing", tableAndValues, pgConstraint)
+}
+func init() {
+	dbSpecials[DBTypePostgres] = &postgresDBSpecial{}
+}
+
+// GetDBSpecial get DBSpecial for currentDBType
 func GetDBSpecial() DBSpecial {
-	if DBDriver == DriverMysql {
-		return &mysqlDBSpecial{}
-	} else if DBDriver == DriverPostgres {
-		return &postgresDBSpecial{}
-	}
-	panic(errors.New("unknown DBDriver, please set it to a valid driver: " + DBDriver))
+	return dbSpecials[currentDBType]
+}
+
+// SetCurrentDBType set currentDBType
+func SetCurrentDBType(dbType string) {
+	spec := dbSpecials[dbType]
+	PanicIf(spec == nil, fmt.Errorf("unknown db type %s", dbType))
+	currentDBType = dbType
+}
+
+// GetCurrentDBType get currentDBType
+func GetCurrentDBType() string {
+	return currentDBType
 }
