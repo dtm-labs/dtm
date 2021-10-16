@@ -1,0 +1,27 @@
+version: '3.3'
+services:
+  api:
+    image: golang:1.16.6-alpine3.14
+    environment:
+      IS_DOCKER: '1'
+      GOPROXY: 'https://mirrors.aliyun.com/goproxy/,direct'
+    ports:
+      - '8080:8080'
+      - '58080:58080'
+    volumes:
+      - ..:/app/work
+    command: ['go', 'run', '/app/work/app/main.go', 'dev']
+    working_dir: /app/work
+  mysql:
+    image: 'mysql:5.7'
+    environment:
+      MYSQL_ALLOW_EMPTY_PASSWORD: 1
+      TZ: Asia/shanghai
+    command:
+      [
+        '--character-set-server=utf8mb4',
+        '--collation-server=utf8mb4_unicode_ci',
+        '--default-time-zone=+8:00',
+      ]
+    ports:
+      - '3306:3306'
