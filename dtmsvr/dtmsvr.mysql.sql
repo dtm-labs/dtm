@@ -23,7 +23,7 @@ CREATE TABLE if not EXISTS dtm.trans_global (
   key `owner`(`owner`),
   KEY `create_time` (`create_time`),
   KEY `update_time` (`update_time`),
-  key `status_next_cron_time` (`status`, `next_cron_time`) commit '这个索引用于查询超时的全局事务，能够合理的走索引'
+  key `status_next_cron_time` (`status`, `next_cron_time`) comment '这个索引用于查询超时的全局事务，能够合理的走索引'
 ) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4;
 drop table IF EXISTS dtm.trans_branch;
 CREATE TABLE IF NOT EXISTS dtm.trans_branch (
