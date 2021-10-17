@@ -1,12 +1,13 @@
-CREATE DATABASE IF NOT EXISTS dtm /*!40100 DEFAULT CHARACTER SET utf8mb4 */;
-
+CREATE DATABASE IF NOT EXISTS dtm
+/*!40100 DEFAULT CHARACTER SET utf8mb4 */
+;
 drop table IF EXISTS dtm.trans_global;
 CREATE TABLE if not EXISTS dtm.trans_global (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `gid` varchar(128) NOT NULL COMMENT '事务全局id',
   `trans_type` varchar(45) not null COMMENT '事务类型: saga | xa | tcc | msg',
   -- `data` TEXT COMMENT '事务携带的数据', -- 影响性能，不必要存储
-  `status` varchar(45) NOT NULL COMMENT '全局事务的状态 prepared | submitted | finished | rollbacked',
+  `status` varchar(12) NOT NULL COMMENT '全局事务的状态 prepared | submitted | aborting | finished | rollbacked',
   `query_prepared` varchar(128) NOT NULL COMMENT 'prepared状态事务的查询api',
   `protocol` varchar(45) not null comment '通信协议 http | grpc',
   `create_time` datetime DEFAULT NULL,
@@ -22,9 +23,8 @@ CREATE TABLE if not EXISTS dtm.trans_global (
   key `owner`(`owner`),
   KEY `create_time` (`create_time`),
   KEY `update_time` (`update_time`),
-  key `next_cron_time` (`next_cron_time`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
-
+  key `status_next_cron_time` (`status`, `next_cron_time`) commit '这个索引用于查询超时的全局事务，能够合理的走索引'
+) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4;
 drop table IF EXISTS dtm.trans_branch;
 CREATE TABLE IF NOT EXISTS dtm.trans_branch (
   `id` int(11) NOT NULL AUTO_INCREMENT,
@@ -39,11 +39,10 @@ CREATE TABLE IF NOT EXISTS dtm.trans_branch (
   `create_time` datetime DEFAULT NULL,
   `update_time` datetime DEFAULT NULL,
   PRIMARY KEY (`id`),
-  UNIQUE KEY `gid_uniq` (`gid`,`branch_id`, `branch_type`),
+  UNIQUE KEY `gid_uniq` (`gid`, `branch_id`, `branch_type`),
   KEY `create_time` (`create_time`),
   KEY `update_time` (`update_time`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
-
+) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4;
 drop table IF EXISTS dtm.trans_log;
 CREATE TABLE IF NOT EXISTS dtm.trans_log (
   `id` int(11) NOT NULL AUTO_INCREMENT,
@@ -57,5 +56,4 @@ CREATE TABLE IF NOT EXISTS dtm.trans_log (
   PRIMARY KEY (`id`),
   KEY `gid` (`gid`),
   KEY `create_time` (`create_time`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
-
+) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4;
