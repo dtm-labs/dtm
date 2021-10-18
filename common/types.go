@@ -6,10 +6,14 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
+	"strconv"
 	"strings"
 	"time"
 
 	_ "github.com/go-sql-driver/mysql"
+	"github.com/nacos-group/nacos-sdk-go/clients"
+	"github.com/nacos-group/nacos-sdk-go/common/constant"
+	"github.com/nacos-group/nacos-sdk-go/vo"
 	"gopkg.in/yaml.v2"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
@@ -145,14 +149,17 @@ func init() {
 	DtmConfig.DisableLocalhost = getIntEnv("DISABLE_LOCALHOST", "0")
 	DtmConfig.RetryLimit = getIntEnv("RETRY_LIMIT", "2000000000")
 	cont := []byte{}
-	for d := MustGetwd(); d != "" && d != "/"; d = filepath.Dir(d) {
-		cont1, err := ioutil.ReadFile(d + "/conf.yml")
-		if err != nil {
-			cont1, err = ioutil.ReadFile(d + "/conf.sample.yml")
-		}
-		if cont1 != nil {
-			cont = cont1
-			break
+
+	if cont = readConfFromNacos(); cont == nil {
+		for d := MustGetwd(); d != "" && d != "/"; d = filepath.Dir(d) {
+			cont1, err := ioutil.ReadFile(d + "/conf.yml")
+			if err != nil {
+				cont1, err = ioutil.ReadFile(d + "/conf.sample.yml")
+			}
+			if cont1 != nil {
+				cont = cont1
+				break
+			}
 		}
 	}
 	if cont != nil && len(cont) != 0 {
@@ -162,4 +169,76 @@ func init() {
 	}
 	dtmcli.LogIfFatalf(DtmConfig.DB["driver"] == "" || DtmConfig.DB["user"] == "",
 		"dtm配置错误. 请访问 http://dtm.pub 查看部署运维环节. check you env, and conf.yml/conf.sample.yml in current and parent path: %s. config is: \n%v", MustGetwd(), DtmConfig)
+}
+
+func readConfFromNacos() []byte {
+	var err error
+	// nacos
+	nacosAddr := os.Getenv("NACOS_SVR")
+	if nacosAddr == "" {
+		fmt.Println("Nacos address not config, skip init nacos.")
+		return nil
+	}
+
+	addr := strings.Split(nacosAddr, ":")
+	port := 8848
+	if len(addr) > 1 {
+		port, err = strconv.Atoi(addr[1])
+		if err != nil {
+			port = 8848
+		}
+	}
+
+	nacosNamespace := os.Getenv("NACOS_NS")
+	sc := []constant.ServerConfig{{
+		IpAddr: addr[0],
+		Port:   uint64(port),
+	}}
+	cc := constant.ClientConfig{
+		NamespaceId:         nacosNamespace, // 如果需要支持多namespace，我们可以场景多个client,它们有不同的NamespaceId。当namespace是public时，此处填空字符串。
+		TimeoutMs:           uint64(MustInt(GetStr("NACOS_TIMEOUT-MS", "5000"))),
+		NotLoadCacheAtStart: true,
+		LogDir:              GetStr("NACOS_LOG-DIR", "log"),
+		CacheDir:            GetStr("NACOS_CACHE-DIR", "cache"),
+		RotateTime:          GetStr("NACOS_ROTATE-TIME", "1h"),
+		MaxAge:              MustInt(GetStr("NACOS_MAX-AGE", "3")),
+		LogLevel:            GetStr("NACOS_LOG-LEVEL", "error"),
+	}
+
+	configClient, err := clients.CreateConfigClient(map[string]interface{}{
+		"serverConfigs": sc,
+		"clientConfig":  cc,
+	})
+
+	if err != nil {
+		fmt.Println("[ERROR] Nacos client create fail, use local config only: " + err.Error())
+	}
+
+	conf := vo.ConfigParam{
+		DataId: GetStr("NACOS_DATA-ID", "dtm"),
+		Group:  GetStr("NACOS_GROUP", "DEV"),
+	}
+
+	content, err := configClient.GetConfig(conf)
+	if err != nil {
+		panic(err)
+	}
+
+	fmt.Println("read conf from nacos")
+	fmt.Println(content)
+
+	return []byte(content)
+}
+
+func GetStr(key string, defVal ...string) string {
+	ret := os.Getenv(key)
+	if ret == "" && len(defVal) > 0 {
+		return defVal[0]
+	}
+	return ret
+}
+
+func MustInt(in string) int64 {
+	n, _ := strconv.Atoi(in)
+	return int64(n)
 }

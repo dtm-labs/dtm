@@ -1,8 +1,8 @@
 DB:
   driver: 'mysql'
   host: 'localhost'
-  user: 'root'
-  password: ''
+  user: 'dtm'
+  password: 'RKgVz4q4J68v371p'
   port: '3306'
   # driver: 'postgres'
   # host: 'localhost'
