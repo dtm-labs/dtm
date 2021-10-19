@@ -11,8 +11,8 @@ import (
 	"sync"
 	"time"
 
-	_ "github.com/go-sql-driver/mysql"
-	_ "github.com/lib/pq" // register postgres driver
+	_ "github.com/go-sql-driver/mysql" // register mysql driver
+	_ "github.com/lib/pq"              // register postgres driver
 	"github.com/nacos-group/nacos-sdk-go/clients"
 	"github.com/nacos-group/nacos-sdk-go/common/constant"
 	"github.com/nacos-group/nacos-sdk-go/vo"
@@ -201,7 +201,7 @@ func readConfFromNacos() []byte {
 		Port:   uint64(port),
 	}}
 	cc := constant.ClientConfig{
-		NamespaceId:         nacosNamespace, // 如果需要支持多namespace，我们可以场景多个client,它们有不同的NamespaceId。当namespace是public时，此处填空字符串。
+		NamespaceId:         nacosNamespace, // 当namespace是public时，此处填空字符串。
 		TimeoutMs:           uint64(MustInt(GetStr("NACOS_TIMEOUT-MS", "5000"))),
 		NotLoadCacheAtStart: true,
 		LogDir:              GetStr("NACOS_LOG-DIR", "log"),

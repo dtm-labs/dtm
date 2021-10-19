@@ -10,6 +10,6 @@ FROM alpine:3.14 as runner
 COPY --from=builder /app/dtm/main /app/dtm/
 COPY --from=builder /app/dtm/conf.sample.yml /app/dtm/conf.yml
 ENV IS_DOCKER=1
-ENV NACOS_SVR=47.98.182.13:18848 NACOS_NS=tokamak NACOS_GROUP=DEV
+ENV NACOS_SVR=192.168.1.19:8848 NACOS_NS=your_project NACOS_GROUP=DEV
 WORKDIR /app/dtm
 CMD ["/app/dtm/main", "dtmsvr"]
