@@ -39,6 +39,8 @@ func (t *TransGlobal) mayQueryPrepared(db *common.DB) {
 	body := t.getURLResult(t.QueryPrepared, "", "", nil)
 	if strings.Contains(body, dtmcli.ResultSuccess) {
 		t.changeStatus(db, dtmcli.StatusSubmitted)
+	} else if strings.Contains(body, dtmcli.ResultFailure) {
+		t.changeStatus(db, dtmcli.StatusFailed)
 	} else {
 		t.touch(db, t.NextCronInterval*2)
 	}

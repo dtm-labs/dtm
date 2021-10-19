@@ -12,6 +12,7 @@ func TestMsg(t *testing.T) {
 
 	msgNormal(t)
 	msgPending(t)
+	msgPendingFailed(t)
 }
 
 func msgNormal(t *testing.T) {
@@ -36,4 +37,17 @@ func msgPending(t *testing.T) {
 	CronTransOnce()
 	assert.Equal(t, []string{dtmcli.StatusSucceed, dtmcli.StatusSucceed}, getBranchesStatus(msg.Gid))
 	assert.Equal(t, dtmcli.StatusSucceed, getTransStatus(msg.Gid))
+}
+
+func msgPendingFailed(t *testing.T) {
+	msg := genMsg("gid-msg-pending-failed")
+	msg.Prepare("")
+	assert.Equal(t, dtmcli.StatusPrepared, getTransStatus(msg.Gid))
+	examples.MainSwitch.CanSubmitResult.SetOnce("PENDING")
+	CronTransOnce()
+	assert.Equal(t, dtmcli.StatusPrepared, getTransStatus(msg.Gid))
+	examples.MainSwitch.CanSubmitResult.SetOnce(dtmcli.ResultFailure)
+	CronTransOnce()
+	assert.Equal(t, []string{dtmcli.StatusPrepared, dtmcli.StatusPrepared}, getBranchesStatus(msg.Gid))
+	assert.Equal(t, dtmcli.StatusFailed, getTransStatus(msg.Gid))
 }
