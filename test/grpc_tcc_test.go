@@ -2,7 +2,6 @@ package test
 
 import (
 	"testing"
-	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/yedf/dtm/dtmcli"
@@ -61,6 +60,6 @@ func tccGrpcRollback(t *testing.T) {
 	assert.Error(t, err)
 	WaitTransProcessed(gid)
 	assert.Equal(t, "aborting", getTransStatus(gid))
-	CronTransOnce(60 * time.Second)
+	CronTransOnce()
 	assert.Equal(t, dtmcli.StatusFailed, getTransStatus(gid))
 }

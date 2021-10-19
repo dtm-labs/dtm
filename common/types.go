@@ -8,14 +8,17 @@ import (
 	"path/filepath"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 
 	_ "github.com/go-sql-driver/mysql"
+	_ "github.com/lib/pq" // register postgres driver
 	"github.com/nacos-group/nacos-sdk-go/clients"
 	"github.com/nacos-group/nacos-sdk-go/common/constant"
 	"github.com/nacos-group/nacos-sdk-go/vo"
 	"gopkg.in/yaml.v2"
 	"gorm.io/driver/mysql"
+	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 
 	"github.com/yedf/dtm/dtmcli"
@@ -29,13 +32,14 @@ type ModelBase struct {
 }
 
 func getGormDialetor(driver string, dsn string) gorm.Dialector {
-	if driver == "mysql" {
-		return mysql.Open(dsn)
+	if driver == dtmcli.DBTypePostgres {
+		return postgres.Open(dsn)
 	}
-	panic(fmt.Errorf("unkown driver: %s", driver))
+	dtmcli.PanicIf(driver != dtmcli.DBTypeMysql, fmt.Errorf("unkown driver: %s", driver))
+	return mysql.Open(dsn)
 }
 
-var dbs = map[string]*DB{}
+var dbs sync.Map
 
 // DB provide more func over gorm.DB
 type DB struct {
@@ -108,23 +112,25 @@ func (op *tracePlugin) Initialize(db *gorm.DB) (err error) {
 // DbGet get db connection for specified conf
 func DbGet(conf map[string]string) *DB {
 	dsn := dtmcli.GetDsn(conf)
-	if dbs[dsn] == nil {
+	db, ok := dbs.Load(dsn)
+	if !ok {
 		dtmcli.Logf("connecting %s", strings.Replace(dsn, conf["password"], "****", 1))
 		db1, err := gorm.Open(getGormDialetor(conf["driver"], dsn), &gorm.Config{
 			SkipDefaultTransaction: true,
 		})
 		dtmcli.E2P(err)
 		db1.Use(&tracePlugin{})
-		dbs[dsn] = &DB{DB: db1}
+		db = &DB{DB: db1}
+		dbs.Store(dsn, db)
 	}
-	return dbs[dsn]
+	return db.(*DB)
 }
 
 type dtmConfigType struct {
 	TransCronInterval int64             `yaml:"TransCronInterval"` // 单位秒 当事务等待这个时间之后，还没有变化，则进行一轮处理，包括prepared中的任务和committed的任务
 	DB                map[string]string `yaml:"DB"`
 	DisableLocalhost  int64             `yaml:"DisableLocalhost"`
-	RetryLimit        int64             `yaml:"RetryLimit"`
+	UpdateBranchSync  int64             `yaml:"UpdateBranchSync"`
 }
 
 // DtmConfig 配置
@@ -147,7 +153,7 @@ func init() {
 		"password": os.Getenv("DB_PASSWORD"),
 	}
 	DtmConfig.DisableLocalhost = getIntEnv("DISABLE_LOCALHOST", "0")
-	DtmConfig.RetryLimit = getIntEnv("RETRY_LIMIT", "2000000000")
+	DtmConfig.UpdateBranchSync = getIntEnv("UPDATE_BRANCH_SYNC", "0")
 	cont := []byte{}
 
 	if cont = readConfFromNacos(); cont == nil {

@@ -29,4 +29,9 @@ const (
 	ResultSuccess = "SUCCESS"
 	// ResultFailure for result of a trans/trans branch
 	ResultFailure = "FAILURE"
+
+	// DBTypeMysql const for driver mysql
+	DBTypeMysql = "mysql"
+	// DBTypePostgres const for driver postgres
+	DBTypePostgres = "postgres"
 )

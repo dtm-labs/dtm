@@ -37,7 +37,7 @@ const transInUID = 1
 const transOutUID = 2
 
 func adjustTrading(db dtmcli.DB, uid int, amount int) error {
-	affected, err := dtmcli.DBExec(db, "update dtm_busi.user_account_trading set trading_balance=trading_balance + ? where user_id=? and trading_balance + ? + (select balance from dtm_busi.user_account where id=?) >= 0", amount, uid, amount, uid)
+	affected, err := dtmcli.DBExec(db, "update dtm_busi.user_account_trading set trading_balance=trading_balance + ? where user_id=? and trading_balance + ? + (select balance from dtm_busi.user_account where user_id=?) >= 0", amount, uid, amount, uid)
 	if err == nil && affected == 0 {
 		return fmt.Errorf("update error, maybe balance not enough")
 	}

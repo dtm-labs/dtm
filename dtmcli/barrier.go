@@ -1,7 +1,6 @@
 package dtmcli
 
 import (
-	"database/sql"
 	"fmt"
 	"net/url"
 )
@@ -45,7 +44,8 @@ func insertBarrier(tx Tx, transType string, gid string, branchID string, branchT
 	if branchType == "" {
 		return 0, nil
 	}
-	return DBExec(tx, "insert ignore into dtm_barrier.barrier(trans_type, gid, branch_id, branch_type, barrier_id, reason) values(?,?,?,?,?,?)", transType, gid, branchID, branchType, barrierID, reason)
+	sql := GetDBSpecial().GetInsertIgnoreTemplate("dtm_barrier.barrier(trans_type, gid, branch_id, branch_type, barrier_id, reason) values(?,?,?,?,?,?)", "uniq_barrier")
+	return DBExec(tx, sql, transType, gid, branchID, branchType, barrierID, reason)
 }
 
 // Call 子事务屏障，详细介绍见 https://zhuanlan.zhihu.com/p/388444465
@@ -54,9 +54,6 @@ func insertBarrier(tx Tx, transType string, gid string, branchID string, branchT
 func (bb *BranchBarrier) Call(tx Tx, busiCall BusiFunc) (rerr error) {
 	bb.BarrierID = bb.BarrierID + 1
 	bid := fmt.Sprintf("%02d", bb.BarrierID)
-	if rerr != nil {
-		return
-	}
 	defer func() {
 		// Logf("barrier call error is %v", rerr)
 		if x := recover(); x != nil {
@@ -76,17 +73,8 @@ func (bb *BranchBarrier) Call(tx Tx, busiCall BusiFunc) (rerr error) {
 	originAffected, _ := insertBarrier(tx, ti.TransType, ti.Gid, ti.BranchID, originType, bid, ti.BranchType)
 	currentAffected, rerr := insertBarrier(tx, ti.TransType, ti.Gid, ti.BranchID, ti.BranchType, bid, ti.BranchType)
 	Logf("originAffected: %d currentAffected: %d", originAffected, currentAffected)
-	if (ti.BranchType == BranchCancel || ti.BranchType == BranchCompensate) && originAffected > 0 { // 这个是空补偿，返回成功
-		return
-	} else if currentAffected == 0 { // 插入不成功
-		var result sql.NullString
-		err := DBQueryRow(tx, "select 1 from dtm_barrier.barrier where trans_type=? and gid=? and branch_id=? and branch_type=? and barrier_id=? and reason=?",
-			ti.TransType, ti.Gid, ti.BranchID, ti.BranchType, bid, ti.BranchType).Scan(&result)
-		if err == sql.ErrNoRows { // 不是当前分支插入的，那么是cancel插入的，因此是悬挂操作，返回失败，AP收到这个返回，会尽快回滚
-			rerr = ErrFailure
-			return
-		}
-		rerr = err //幂等和空补偿，直接返回
+	if (ti.BranchType == BranchCancel || ti.BranchType == BranchCompensate) && originAffected > 0 || // 这个是空补偿
+		currentAffected == 0 { // 这个是重复请求或者悬挂
 		return
 	}
 	rerr = busiCall(tx)

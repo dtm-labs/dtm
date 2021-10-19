@@ -24,6 +24,8 @@ func TestDbAlone(t *testing.T) {
 	assert.Nil(t, err)
 	_, err = dtmcli.DBExec(db, "select 1")
 	assert.Equal(t, nil, err)
+	_, err = dtmcli.DBExec(db, "")
+	assert.Equal(t, nil, err)
 	db.Close()
 	_, err = dtmcli.DBExec(db, "select 1")
 	assert.NotEqual(t, nil, err)

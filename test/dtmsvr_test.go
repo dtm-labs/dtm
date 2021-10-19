@@ -3,6 +3,7 @@ package test
 import (
 	"fmt"
 	"testing"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/assert"
@@ -24,34 +25,6 @@ type BarrierModel struct {
 
 // TableName gorm table name
 func (BarrierModel) TableName() string { return "dtm_barrier.barrier" }
-
-func resetXaData() {
-	if config.DB["driver"] != "mysql" {
-		return
-	}
-	db := dbGet()
-	type XaRow struct {
-		Data string
-	}
-	xas := []XaRow{}
-	db.Must().Raw("xa recover").Scan(&xas)
-	for _, xa := range xas {
-		db.Must().Exec(fmt.Sprintf("xa rollback '%s'", xa.Data))
-	}
-}
-
-func TestMain(m *testing.M) {
-	dtmsvr.TransProcessedTestChan = make(chan string, 1)
-	dtmsvr.PopulateDB(false)
-	examples.PopulateDB(false)
-	// 启动组件
-	go dtmsvr.StartSvr()
-	examples.GrpcStartup()
-	app = examples.BaseAppStartup()
-
-	resetXaData()
-	m.Run()
-}
 
 func getTransStatus(gid string) string {
 	sm := TransGlobal{}
@@ -119,7 +92,7 @@ func TestSqlDB(t *testing.T) {
 		BranchID:   "branch_id2",
 		BranchType: dtmcli.BranchAction,
 	}
-	db.Must().Exec("insert ignore into dtm_barrier.barrier(trans_type, gid, branch_id, branch_type, reason) values('saga', 'gid1', 'branch_id1', 'action', 'saga')")
+	db.Must().Exec("insert into dtm_barrier.barrier(trans_type, gid, branch_id, branch_type, reason) values('saga', 'gid1', 'branch_id1', 'action', 'saga')")
 	tx, err := db.ToSQLDB().Begin()
 	asserts.Nil(err)
 	err = barrier.Call(tx, func(db dtmcli.DB) error {
@@ -141,4 +114,17 @@ func TestSqlDB(t *testing.T) {
 	asserts.Nil(err)
 	dbr = db.Model(&BarrierModel{}).Where("gid=?", "gid2").Find(&[]BarrierModel{})
 	asserts.Equal(dbr.RowsAffected, int64(1))
+}
+
+func TestUpdateBranchAsync(t *testing.T) {
+	common.DtmConfig.UpdateBranchSync = 0
+	saga := genSaga("gid-update-branch-async", false, false)
+	saga.WaitResult = true
+	err := saga.Submit()
+	assert.Nil(t, err)
+	WaitTransProcessed(saga.Gid)
+	time.Sleep(dtmsvr.UpdateBranchAsyncInterval)
+	assert.Equal(t, []string{dtmcli.StatusPrepared, dtmcli.StatusSucceed, dtmcli.StatusPrepared, dtmcli.StatusSucceed}, getBranchesStatus(saga.Gid))
+	assert.Equal(t, dtmcli.StatusSucceed, getTransStatus(saga.Gid))
+	common.DtmConfig.UpdateBranchSync = 1
 }

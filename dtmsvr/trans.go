@@ -18,12 +18,14 @@ import (
 	"gorm.io/gorm/clause"
 )
 
+var errUniqueConflict = errors.New("unique key conflict error")
+
 // TransGlobal global transaction
 type TransGlobal struct {
 	common.ModelBase
 	Gid              string `json:"gid"`
 	TransType        string `json:"trans_type"`
-	Data             string `json:"data"`
+	Data             string `json:"data" gorm:"-"`
 	Status           string `json:"status"`
 	QueryPrepared    string `json:"query_prepared"`
 	Protocol         string `json:"protocol"`
@@ -32,6 +34,7 @@ type TransGlobal struct {
 	RollbackTime     *time.Time
 	NextCronInterval int64
 	NextCronTime     *time.Time
+	processStarted   time.Time // record the start time of process
 }
 
 // TableName TableName
@@ -89,13 +92,17 @@ func (*TransBranch) TableName() string {
 
 func (t *TransBranch) changeStatus(db *common.DB, status string) *gorm.DB {
 	writeTransLog(t.Gid, "branch change", status, t.BranchID, "")
-	dbr := db.Must().Model(t).Where("status=?", t.Status).Updates(M{
-		"status":      status,
-		"finish_time": time.Now(),
-	})
-	checkAffected(dbr)
+	if common.DtmConfig.UpdateBranchSync > 0 {
+		dbr := db.Must().Model(t).Updates(M{
+			"status":      status,
+			"finish_time": time.Now(),
+		})
+		checkAffected(dbr)
+	} else { // 为了性能优化，把branch的status更新异步化
+		updateBranchAsyncChan <- branchStatus{id: t.ID, status: status}
+	}
 	t.Status = status
-	return dbr
+	return db.DB
 }
 
 func checkAffected(db1 *gorm.DB) {
@@ -154,6 +161,7 @@ func (t *TransGlobal) processInner(db *common.DB) (rerr error) {
 	}
 	branches := []TransBranch{}
 	db.Must().Where("gid=?", t.Gid).Order("id asc").Find(&branches)
+	t.processStarted = time.Now()
 	t.getProcessor().ProcessOnce(db, branches)
 	return
 }
@@ -206,42 +214,43 @@ func (t *TransGlobal) getBranchResult(branch *TransBranch) string {
 
 func (t *TransGlobal) execBranch(db *common.DB, branch *TransBranch) {
 	body := t.getBranchResult(branch)
+	status := ""
 	if strings.Contains(body, dtmcli.ResultSuccess) {
-		t.touch(db, config.TransCronInterval)
-		branch.changeStatus(db, dtmcli.StatusSucceed)
-		branchMetrics(t, branch, true)
+		status = dtmcli.StatusSucceed
 	} else if t.TransType == "saga" && branch.BranchType == dtmcli.BranchAction && strings.Contains(body, dtmcli.ResultFailure) {
-		t.touch(db, config.TransCronInterval)
-		branch.changeStatus(db, dtmcli.StatusFailed)
-		branchMetrics(t, branch, false)
+		status = dtmcli.StatusFailed
 	} else {
 		panic(fmt.Errorf("http result should contains SUCCESS|FAILURE. grpc error should return nil|Aborted. \nrefer to: https://dtm.pub/summary/arch.html#http\nunkown result will be retried: %s", body))
 	}
+	branchMetrics(t, branch, status == dtmcli.StatusSucceed)
+	// 如果一次处理超过1500ms，那么touch一下TransGlobal，避免被Cron取出
+	if time.Since(t.processStarted)+CronForwardDuration >= 1500*time.Millisecond || t.NextCronInterval > config.TransCronInterval {
+		t.touch(db, config.TransCronInterval)
+	}
+	branch.changeStatus(db, status)
 }
 
-func (t *TransGlobal) saveNew(db *common.DB) {
-	err := db.Transaction(func(db1 *gorm.DB) error {
+func (t *TransGlobal) saveNew(db *common.DB) error {
+	return db.Transaction(func(db1 *gorm.DB) error {
 		db := &common.DB{DB: db1}
-		updates := t.setNextCron(config.TransCronInterval)
+		t.setNextCron(config.TransCronInterval)
 		writeTransLog(t.Gid, "create trans", t.Status, "", t.Data)
 		dbr := db.Must().Clauses(clause.OnConflict{
 			DoNothing: true,
 		}).Create(t)
-		if dbr.RowsAffected > 0 { // 如果这个是新事务，保存所有的分支
-			branches := t.getProcessor().GenBranches()
-			if len(branches) > 0 {
-				writeTransLog(t.Gid, "save branches", t.Status, "", dtmcli.MustMarshalString(branches))
-				checkLocalhost(branches)
-				db.Must().Clauses(clause.OnConflict{
-					DoNothing: true,
-				}).Create(&branches)
-			}
-		} else if dbr.RowsAffected == 0 && t.Status == dtmcli.StatusSubmitted { // 如果数据库已经存放了prepared的事务，则修改状态
-			dbr = db.Must().Model(t).Where("gid=? and status=?", t.Gid, dtmcli.StatusPrepared).Select(append(updates, "status")).Updates(t)
+		if dbr.RowsAffected <= 0 { // 如果这个不是新事务，返回错误
+			return errUniqueConflict
+		}
+		branches := t.getProcessor().GenBranches()
+		if len(branches) > 0 {
+			writeTransLog(t.Gid, "save branches", t.Status, "", dtmcli.MustMarshalString(branches))
+			checkLocalhost(branches)
+			db.Must().Clauses(clause.OnConflict{
+				DoNothing: true,
+			}).Create(&branches)
 		}
 		return nil
 	})
-	e2p(err)
 }
 
 // TransFromContext TransFromContext

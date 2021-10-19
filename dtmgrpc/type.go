@@ -17,6 +17,7 @@ var clients sync.Map
 
 // GetGrpcConn 1
 func GetGrpcConn(grpcServer string) (conn *grpc.ClientConn, rerr error) {
+	grpcServer = dtmcli.MayReplaceLocalhost(grpcServer)
 	v, ok := clients.Load(grpcServer)
 	if !ok {
 		dtmcli.Logf("grpc client connecting %s", grpcServer)
@@ -93,4 +94,9 @@ func Result2Error(res interface{}, err error) error {
 		return status.New(codes.Unavailable, fmt.Sprintf("failure: res: %v, err: %s", res, e.Error())).Err()
 	}
 	return e
+}
+
+// SetCurrentDBType set the current db type
+func SetCurrentDBType(dbType string) {
+	dtmcli.SetCurrentDBType(dbType)
 }

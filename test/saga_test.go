@@ -2,7 +2,6 @@ package test
 
 import (
 	"testing"
-	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/yedf/dtm/dtmcli"
@@ -10,7 +9,6 @@ import (
 )
 
 func TestSaga(t *testing.T) {
-
 	sagaNormal(t)
 	sagaCommittedPending(t)
 	sagaRollback(t)
@@ -23,6 +21,8 @@ func sagaNormal(t *testing.T) {
 	assert.Equal(t, []string{dtmcli.StatusPrepared, dtmcli.StatusSucceed, dtmcli.StatusPrepared, dtmcli.StatusSucceed}, getBranchesStatus(saga.Gid))
 	assert.Equal(t, dtmcli.StatusSucceed, getTransStatus(saga.Gid))
 	transQuery(t, saga.Gid)
+	err := saga.Submit() // 第二次提交
+	assert.Error(t, err)
 }
 
 func sagaCommittedPending(t *testing.T) {
@@ -31,7 +31,7 @@ func sagaCommittedPending(t *testing.T) {
 	saga.Submit()
 	WaitTransProcessed(saga.Gid)
 	assert.Equal(t, []string{dtmcli.StatusPrepared, dtmcli.StatusPrepared, dtmcli.StatusPrepared, dtmcli.StatusPrepared}, getBranchesStatus(saga.Gid))
-	CronTransOnce(60 * time.Second)
+	CronTransOnce()
 	assert.Equal(t, []string{dtmcli.StatusPrepared, dtmcli.StatusSucceed, dtmcli.StatusPrepared, dtmcli.StatusSucceed}, getBranchesStatus(saga.Gid))
 	assert.Equal(t, dtmcli.StatusSucceed, getTransStatus(saga.Gid))
 }
@@ -43,7 +43,7 @@ func sagaRollback(t *testing.T) {
 	assert.Nil(t, err)
 	WaitTransProcessed(saga.Gid)
 	assert.Equal(t, "aborting", getTransStatus(saga.Gid))
-	CronTransOnce(60 * time.Second)
+	CronTransOnce()
 	assert.Equal(t, dtmcli.StatusFailed, getTransStatus(saga.Gid))
 	assert.Equal(t, []string{dtmcli.StatusSucceed, dtmcli.StatusSucceed, dtmcli.StatusSucceed, dtmcli.StatusFailed}, getBranchesStatus(saga.Gid))
 	err = saga.Submit()

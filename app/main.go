@@ -5,6 +5,8 @@ import (
 	"os"
 	"strings"
 
+	"github.com/yedf/dtm/bench"
+	"github.com/yedf/dtm/common"
 	"github.com/yedf/dtm/dtmcli"
 	"github.com/yedf/dtm/dtmsvr"
 	"github.com/yedf/dtm/examples"
@@ -18,6 +20,7 @@ usage:
 Available commands:
     dtmsvr            run dtm as a server
     dev               create all needed table and run dtm as a server
+    bench             start bench server
 
     quick_start       run quick start example (dtm will create needed table)
     qs                same as quick_start
@@ -31,6 +34,7 @@ func main() {
 		}
 		return
 	}
+	dtmcli.SetCurrentDBType(common.DtmConfig.DB["driver"])
 	if os.Args[1] != "dtmsvr" { // 实际线上运行，只启动dtmsvr，不准备table相关的数据
 		dtmsvr.PopulateDB(true)
 		examples.PopulateDB(true)
@@ -43,6 +47,8 @@ func main() {
 		// quick_start 比较独立，单独作为一个例子运行，方便新人上手
 		examples.QsStartSvr()
 		examples.QsFireRequest()
+	case "bench":
+		bench.StartSvr()
 	case "dev", "dtmsvr":
 	default:
 		// 下面是各类的例子
