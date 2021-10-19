@@ -56,6 +56,8 @@ DTM是首款golang的开源分布式事务管理器，优雅的解决了幂等�
 
 从上面对比的特性来看，如果您的语言栈包含了Java之外的语言，那么dtm是您的首选。如果您的语言栈是Java，您也可以选择接入dtm，使用子事务屏障技术，简化您的业务编写。
 
+## [性能测试报告](https://dtm.pub/other/performance.html)
+
 ## [教程与文档](https://dtm.pub)
 
 ## [各语言客户端及示例](https://dtm.pub/summary/code.html#go)
