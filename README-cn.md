@@ -6,9 +6,9 @@
 [![Mentioned in Awesome Go](https://awesome.re/mentioned-badge-flat.svg)](https://github.com/avelino/awesome-go#database)
 
 # [English Docs](https://en.dtm.pub)
-# GO语言分布式事务管理服务
+# 跨语言分布式事务管理器
 
-DTM是首款golang的开源分布式事务管理器，优雅的解决了幂等、空补偿、悬挂等分布式事务难题。提供了简单易用、高性能、易水平扩展的分布式事务解决方案。
+DTM是首款golang开发的开源分布式事务管理器，解决了跨数据库、跨服务、跨语言栈更新数据的一致性。他优雅的解决了幂等、空补偿、悬挂等分布式事务难题，提供了简单易用、高性能、易水平扩展的解决方案。
 
 受邀参加中国数据库大会分享[多语言环境下分布式事务实践](http://dtcc.it168.com/yicheng.html#b9)
 
