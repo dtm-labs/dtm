@@ -50,7 +50,7 @@ func insertBarrier(tx Tx, transType string, gid string, branchID string, branchT
 
 // Call 子事务屏障，详细介绍见 https://zhuanlan.zhihu.com/p/388444465
 // tx: 本地数据库的事务对象，允许子事务屏障进行事务操作
-// bisiCall: 业务函数，仅在必要时被调用
+// busiCall: 业务函数，仅在必要时被调用
 func (bb *BranchBarrier) Call(tx Tx, busiCall BusiFunc) (rerr error) {
 	bb.BarrierID = bb.BarrierID + 1
 	bid := fmt.Sprintf("%02d", bb.BarrierID)
@@ -70,6 +70,7 @@ func (bb *BranchBarrier) Call(tx Tx, busiCall BusiFunc) (rerr error) {
 		BranchCancel:     BranchTry,
 		BranchCompensate: BranchAction,
 	}[ti.BranchType]
+
 	originAffected, _ := insertBarrier(tx, ti.TransType, ti.Gid, ti.BranchID, originType, bid, ti.BranchType)
 	currentAffected, rerr := insertBarrier(tx, ti.TransType, ti.Gid, ti.BranchID, ti.BranchType, bid, ti.BranchType)
 	Logf("originAffected: %d currentAffected: %d", originAffected, currentAffected)

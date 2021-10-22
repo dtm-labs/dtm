@@ -50,7 +50,7 @@ func handleGrpcBusiness(in *dtmgrpc.BusiRequest, result1 string, result2 string,
 	return status.New(codes.Internal, fmt.Sprintf("unknow result %s", res)).Err()
 }
 
-// busiServer is used to implement helloworld.GreeterServer.
+// busiServer is used to implement examples.BusiServer.
 type busiServer struct {
 	UnimplementedBusiServer
 }

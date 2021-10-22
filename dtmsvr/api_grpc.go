@@ -9,7 +9,7 @@ import (
 	"google.golang.org/protobuf/types/known/emptypb"
 )
 
-// dtmServer is used to implement helloworld.GreeterServer.
+// dtmServer is used to implement dtmgrpc.DtmServer.
 type dtmServer struct {
 	pb.UnimplementedDtmServer
 }
