@@ -25,7 +25,6 @@ func RunSQLScript(conf map[string]string, script string, skipDrop bool) {
 		if s == "" || (skipDrop && strings.Contains(s, "drop")) {
 			continue
 		}
-		_, err = dtmcli.DBExec(con, s)
 		for _, err = dtmcli.DBExec(con, s); err != nil; { // wait for mysql to start
 			time.Sleep(3 * time.Second)
 			_, err = dtmcli.DBExec(con, s)
