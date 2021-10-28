@@ -10,7 +10,9 @@ services:
       - .:/app/work
     command: ['/app/dtm/main', 'dev']
     working_dir: /app/work
-  mysql:
+    extra_hosts:
+      - 'host.docker.internal:host-gateway'
+  db:
     image: 'mysql:5.7'
     environment:
       MYSQL_ALLOW_EMPTY_PASSWORD: 1
