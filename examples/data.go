@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"strings"
+	"time"
 
 	"github.com/yedf/dtm/common"
 	"github.com/yedf/dtm/dtmcli"
@@ -25,6 +26,10 @@ func RunSQLScript(conf map[string]string, script string, skipDrop bool) {
 			continue
 		}
 		_, err = dtmcli.DBExec(con, s)
+		for _, err = dtmcli.DBExec(con, s); err != nil; { // wait for mysql to start
+			time.Sleep(3 * time.Second)
+			_, err = dtmcli.DBExec(con, s)
+		}
 		dtmcli.FatalIfError(err)
 	}
 }
