@@ -16,6 +16,7 @@ func TestXa(t *testing.T) {
 	xaNormal(t)
 	xaDuplicate(t)
 	xaRollback(t)
+	xaTimeout(t)
 }
 
 func xaLocalError(t *testing.T) {
@@ -74,4 +75,20 @@ func xaRollback(t *testing.T) {
 	WaitTransProcessed(gid)
 	assert.Equal(t, []string{dtmcli.StatusSucceed, dtmcli.StatusPrepared}, getBranchesStatus(gid))
 	assert.Equal(t, dtmcli.StatusFailed, getTransStatus(gid))
+}
+
+func xaTimeout(t *testing.T) {
+	xc := examples.XaClient
+	gid := "xaTimeout"
+	timeoutChan := make(chan int, 1)
+	err := xc.XaGlobalTransaction(gid, func(xa *dtmcli.Xa) (*resty.Response, error) {
+		go func() {
+			cronTransOnceForwardNow(1)
+			cronTransOnceForwardNow(300)
+			timeoutChan <- 0
+		}()
+		_ = <-timeoutChan
+		return nil, nil
+	})
+	assert.Error(t, err)
 }

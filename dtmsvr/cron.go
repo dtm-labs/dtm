@@ -2,7 +2,6 @@ package dtmsvr
 
 import (
 	"fmt"
-	"math"
 	"math/rand"
 	"runtime/debug"
 	"time"
@@ -10,7 +9,10 @@ import (
 	"github.com/yedf/dtm/dtmcli"
 )
 
-// CronForwardDuration will be set in test, cron will fetch trans which expire in CronForwardDuration
+// NowForwardDuration will be set in test, trans may be timeout
+var NowForwardDuration time.Duration = time.Duration(0)
+
+// CronForwardDuration will be set in test. cron will fetch trans which expire in CronForwardDuration
 var CronForwardDuration time.Duration = time.Duration(0)
 
 // CronTransOnce cron expired trans. use expireIn as expire time
@@ -24,7 +26,8 @@ func CronTransOnce() (hasTrans bool) {
 	if TransProcessedTestChan != nil {
 		defer WaitTransProcessed(trans.Gid)
 	}
-	trans.Process(dbGet(), true)
+	trans.WaitResult = true
+	trans.Process(dbGet())
 	return
 }
 
@@ -33,7 +36,7 @@ func CronExpiredTrans(num int) {
 	for i := 0; i < num || num == -1; i++ {
 		hasTrans := CronTransOnce()
 		if !hasTrans && num != 1 {
-			sleepCronTime(0)
+			sleepCronTime()
 		}
 	}
 }
@@ -44,7 +47,7 @@ func lockOneTrans(expireIn time.Duration) *TransGlobal {
 	db := dbGet()
 	getTime := dtmcli.GetDBSpecial().TimestampAdd
 	expire := int(expireIn / time.Second)
-	whereTime := fmt.Sprintf("next_cron_time < %s and next_cron_time > %s and update_time < %s", getTime(expire), getTime(-3600), getTime(expire-3))
+	whereTime := fmt.Sprintf("next_cron_time < %s and update_time < %s", getTime(expire), getTime(expire-3))
 	// 这里next_cron_time需要限定范围，否则数据量累计之后，会导致查询变慢
 	// 限定update_time < now - 3，否则会出现刚被这个应用取出，又被另一个取出
 	dbr := db.Must().Model(&trans).
@@ -53,7 +56,7 @@ func lockOneTrans(expireIn time.Duration) *TransGlobal {
 		return nil
 	}
 	dbr = db.Must().Where("owner=?", owner).Find(&trans)
-	updates := trans.setNextCron(trans.NextCronInterval * 2) // 下次被cron的间隔加倍
+	updates := trans.setNextCron(cronKeep)
 	db.Must().Model(&trans).Select(updates).Updates(&trans)
 	return &trans
 }
@@ -67,9 +70,9 @@ func handlePanic(perr *error) {
 	}
 }
 
-func sleepCronTime(milli int) {
-	delta := math.Min(3, float64(config.TransCronInterval))
-	interval := time.Duration((float64(config.TransCronInterval) - rand.Float64()*delta) * float64(time.Second))
-	dtmcli.Logf("sleeping for %v pass in %d milli", interval, milli)
-	time.Sleep(dtmcli.If(milli == 0, interval, time.Duration(milli*int(time.Millisecond))).(time.Duration))
+func sleepCronTime() {
+	normal := time.Duration((float64(config.TransCronInterval) - rand.Float64()) * float64(time.Second))
+	interval := dtmcli.If(CronForwardDuration > 0, 1*time.Millisecond, normal).(time.Duration)
+	dtmcli.Logf("sleeping for %v milli", interval/time.Microsecond)
+	time.Sleep(interval)
 }

@@ -32,9 +32,12 @@ type TransGlobal struct {
 	CommitTime       *time.Time
 	FinishTime       *time.Time
 	RollbackTime     *time.Time
+	Options          string
+	CustomData       string `json:"custom_data"`
 	NextCronInterval int64
 	NextCronTime     *time.Time
-	processStarted   time.Time // record the start time of process
+	dtmcli.TransOptions
+	processStarted time.Time // record the start time of process
 }
 
 // TableName TableName
@@ -44,12 +47,12 @@ func (*TransGlobal) TableName() string {
 
 type transProcessor interface {
 	GenBranches() []TransBranch
-	ProcessOnce(db *common.DB, branches []TransBranch)
+	ProcessOnce(db *common.DB, branches []TransBranch) error
 }
 
-func (t *TransGlobal) touch(db *common.DB, interval int64) *gorm.DB {
+func (t *TransGlobal) touch(db *common.DB, ctype cronType) *gorm.DB {
 	writeTransLog(t.Gid, "touch trans", "", "", "")
-	updates := t.setNextCron(interval)
+	updates := t.setNextCron(ctype)
 	return db.Model(&TransGlobal{}).Where("gid=?", t.Gid).Select(updates).Updates(t)
 }
 
@@ -57,7 +60,7 @@ func (t *TransGlobal) changeStatus(db *common.DB, status string) *gorm.DB {
 	writeTransLog(t.Gid, "change status", status, "", "")
 	old := t.Status
 	t.Status = status
-	updates := t.setNextCron(config.TransCronInterval)
+	updates := t.setNextCron(cronReset)
 	updates = append(updates, "status")
 	now := time.Now()
 	if status == dtmcli.StatusSucceed {
@@ -70,6 +73,21 @@ func (t *TransGlobal) changeStatus(db *common.DB, status string) *gorm.DB {
 	dbr := db.Must().Model(t).Where("status=?", old).Select(updates).Updates(t)
 	checkAffected(dbr)
 	return dbr
+}
+
+func (t *TransGlobal) isTimeout() bool {
+	timeout := t.TimeoutToFail
+	if t.TimeoutToFail == 0 && t.TransType != "saga" {
+		timeout = config.TimeoutToFail
+	}
+	if timeout == 0 {
+		return false
+	}
+	return time.Since(*t.CreateTime)+NowForwardDuration >= time.Duration(timeout)*time.Second
+}
+
+func (t *TransGlobal) needProcess() bool {
+	return t.Status == dtmcli.StatusSubmitted || t.Status == dtmcli.StatusAborting || t.Status == dtmcli.StatusPrepared && t.isTimeout()
 }
 
 // TransBranch branch transaction
@@ -124,14 +142,18 @@ func (t *TransGlobal) getProcessor() transProcessor {
 }
 
 // Process process global transaction once
-func (t *TransGlobal) Process(db *common.DB, waitResult bool) dtmcli.M {
-	r := t.process(db, waitResult)
+func (t *TransGlobal) Process(db *common.DB) dtmcli.M {
+	r := t.process(db)
 	transactionMetrics(t, r["dtm_result"] == dtmcli.ResultSuccess)
 	return r
 }
 
-func (t *TransGlobal) process(db *common.DB, waitResult bool) dtmcli.M {
-	if !waitResult {
+func (t *TransGlobal) process(db *common.DB) dtmcli.M {
+	if t.Options != "" {
+		dtmcli.MustUnmarshalString(t.Options, &t.TransOptions)
+	}
+
+	if !t.WaitResult {
 		go t.processInner(db)
 		return dtmcli.MapSuccess
 	}
@@ -149,6 +171,9 @@ func (t *TransGlobal) process(db *common.DB, waitResult bool) dtmcli.M {
 func (t *TransGlobal) processInner(db *common.DB) (rerr error) {
 	defer handlePanic(&rerr)
 	defer func() {
+		if rerr != nil {
+			dtmcli.LogRedf("processInner got error: %s", rerr.Error())
+		}
 		if TransProcessedTestChan != nil {
 			dtmcli.Logf("processed: %s", t.Gid)
 			TransProcessedTestChan <- t.Gid
@@ -156,24 +181,38 @@ func (t *TransGlobal) processInner(db *common.DB) (rerr error) {
 		}
 	}()
 	dtmcli.Logf("processing: %s status: %s", t.Gid, t.Status)
-	if t.Status == dtmcli.StatusPrepared && t.TransType != "msg" {
-		t.changeStatus(db, "aborting")
-	}
 	branches := []TransBranch{}
 	db.Must().Where("gid=?", t.Gid).Order("id asc").Find(&branches)
 	t.processStarted = time.Now()
-	t.getProcessor().ProcessOnce(db, branches)
+	rerr = t.getProcessor().ProcessOnce(db, branches)
 	return
 }
 
-func (t *TransGlobal) setNextCron(expireIn int64) []string {
-	t.NextCronInterval = expireIn
+type cronType int
+
+const (
+	cronBackoff cronType = iota
+	cronReset
+	cronKeep
+)
+
+func (t *TransGlobal) setNextCron(ctype cronType) []string {
+	if ctype == cronBackoff {
+		t.NextCronInterval = t.NextCronInterval * 2
+	} else if ctype == cronKeep {
+		// do nothing
+	} else if t.RetryInterval != 0 {
+		t.NextCronInterval = t.RetryInterval
+	} else {
+		t.NextCronInterval = config.RetryInterval
+	}
+
 	next := time.Now().Add(time.Duration(t.NextCronInterval) * time.Second)
 	t.NextCronTime = &next
 	return []string{"next_cron_interval", "next_cron_time"}
 }
 
-func (t *TransGlobal) getURLResult(url string, branchID, branchType string, branchData []byte) string {
+func (t *TransGlobal) getURLResult(url string, branchID, branchType string, branchData []byte) (string, error) {
 	if t.Protocol == "grpc" {
 		dtmcli.PanicIf(strings.HasPrefix(url, "http"), fmt.Errorf("bad url for grpc: %s", url))
 		server, method := dtmgrpc.GetServerAndMethod(url)
@@ -188,11 +227,17 @@ func (t *TransGlobal) getURLResult(url string, branchID, branchType string, bran
 			BusiData: branchData,
 		}, &emptypb.Empty{})
 		if err == nil {
-			return dtmcli.ResultSuccess
-		} else if status.Code(err) == codes.Aborted {
-			return dtmcli.ResultFailure
+			return dtmcli.ResultSuccess, nil
 		}
-		return err.Error()
+		st, ok := status.FromError(err)
+		if ok && st.Code() == codes.Aborted {
+			if st.Message() == dtmcli.ResultOngoing {
+				return dtmcli.ResultOngoing, nil
+			} else if st.Message() == dtmcli.ResultFailure {
+				return dtmcli.ResultFailure, nil
+			}
+		}
+		return "", err
 	}
 	dtmcli.PanicIf(!strings.HasPrefix(url, "http"), fmt.Errorf("bad url for http: %s", url))
 	resp, err := dtmcli.RestyClient.R().SetBody(string(branchData)).
@@ -204,36 +249,53 @@ func (t *TransGlobal) getURLResult(url string, branchID, branchType string, bran
 		}).
 		SetHeader("Content-type", "application/json").
 		Execute(dtmcli.If(branchData == nil, "GET", "POST").(string), url)
-	e2p(err)
-	return resp.String()
+	if err != nil {
+		return "", err
+	}
+	return resp.String(), nil
 }
 
-func (t *TransGlobal) getBranchResult(branch *TransBranch) string {
-	return t.getURLResult(branch.URL, branch.BranchID, branch.BranchType, []byte(branch.Data))
-}
-
-func (t *TransGlobal) execBranch(db *common.DB, branch *TransBranch) {
-	body := t.getBranchResult(branch)
-	status := ""
+func (t *TransGlobal) getBranchResult(branch *TransBranch) (string, error) {
+	body, err := t.getURLResult(branch.URL, branch.BranchID, branch.BranchType, []byte(branch.Data))
+	if err != nil {
+		return "", err
+	}
 	if strings.Contains(body, dtmcli.ResultSuccess) {
-		status = dtmcli.StatusSucceed
-	} else if t.TransType == "saga" && branch.BranchType == dtmcli.BranchAction && strings.Contains(body, dtmcli.ResultFailure) {
-		status = dtmcli.StatusFailed
-	} else {
-		panic(fmt.Errorf("http result should contains SUCCESS|FAILURE. grpc error should return nil|Aborted. \nrefer to: https://dtm.pub/summary/arch.html#http\nunkown result will be retried: %s", body))
+		return dtmcli.StatusSucceed, nil
+	} else if strings.HasSuffix(t.TransType, "saga") && branch.BranchType == dtmcli.BranchAction && strings.Contains(body, dtmcli.ResultFailure) {
+		return dtmcli.StatusFailed, nil
+	} else if strings.Contains(body, dtmcli.ResultOngoing) {
+		return "", dtmcli.ErrOngoing
+	}
+	return "", fmt.Errorf("http result should contains SUCCESS|FAILURE|ONGOING. grpc error should return nil|Aborted with message(FAILURE|ONGOING). \nrefer to: https://dtm.pub/summary/arch.html#http\nunkown result will be retried: %s", body)
+}
+
+func (t *TransGlobal) execBranch(db *common.DB, branch *TransBranch) error {
+	status, err := t.getBranchResult(branch)
+	if status != "" {
+		branch.changeStatus(db, status)
 	}
 	branchMetrics(t, branch, status == dtmcli.StatusSucceed)
-	// 如果一次处理超过1500ms，那么touch一下TransGlobal，避免被Cron取出
-	if time.Since(t.processStarted)+CronForwardDuration >= 1500*time.Millisecond || t.NextCronInterval > config.TransCronInterval {
-		t.touch(db, config.TransCronInterval)
+	// if time pass 1500ms and NextCronInterval is not default, then reset NextCronInterval
+	if err == nil && time.Since(t.processStarted)+NowForwardDuration >= 1500*time.Millisecond ||
+		t.NextCronInterval > config.RetryInterval && t.NextCronInterval > t.RetryInterval {
+		t.touch(db, cronReset)
+	} else if err == dtmcli.ErrOngoing {
+		t.touch(db, cronKeep)
+	} else {
+		t.touch(db, cronBackoff)
 	}
-	branch.changeStatus(db, status)
+	return err
 }
 
 func (t *TransGlobal) saveNew(db *common.DB) error {
 	return db.Transaction(func(db1 *gorm.DB) error {
 		db := &common.DB{DB: db1}
-		t.setNextCron(config.TransCronInterval)
+		t.setNextCron(cronReset)
+		t.Options = dtmcli.MustMarshalString(t.TransOptions)
+		if t.Options == "{}" {
+			t.Options = ""
+		}
 		writeTransLog(t.Gid, "create trans", t.Status, "", t.Data)
 		dbr := db.Must().Clauses(clause.OnConflict{
 			DoNothing: true,
@@ -277,27 +339,5 @@ func TransFromDtmRequest(c *dtmgrpc.DtmRequest) *TransGlobal {
 		QueryPrepared: c.QueryPrepared,
 		Data:          c.Data,
 		Protocol:      "grpc",
-	}
-}
-
-// TransFromDb construct trans from db
-func TransFromDb(db *common.DB, gid string) *TransGlobal {
-	m := TransGlobal{}
-	dbr := db.Must().Model(&m).Where("gid=?", gid).First(&m)
-	if dbr.Error == gorm.ErrRecordNotFound {
-		return nil
-	}
-	e2p(dbr.Error)
-	return &m
-}
-
-func checkLocalhost(branches []TransBranch) {
-	if config.DisableLocalhost == 0 {
-		return
-	}
-	for _, branch := range branches {
-		if strings.HasPrefix(branch.URL, "http://localhost") || strings.HasPrefix(branch.URL, "localhost") {
-			panic(errors.New("url for localhost is disabled. check for your config"))
-		}
 	}
 }

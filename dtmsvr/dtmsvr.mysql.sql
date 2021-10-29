@@ -3,7 +3,7 @@ CREATE DATABASE IF NOT EXISTS dtm
 ;
 drop table IF EXISTS dtm.trans_global;
 CREATE TABLE if not EXISTS dtm.trans_global (
-  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `id` bigint(22) NOT NULL AUTO_INCREMENT,
   `gid` varchar(128) NOT NULL COMMENT '事务全局id',
   `trans_type` varchar(45) not null COMMENT '事务类型: saga | xa | tcc | msg',
   -- `data` TEXT COMMENT '事务携带的数据', -- 影响性能，不必要存储
@@ -15,6 +15,8 @@ CREATE TABLE if not EXISTS dtm.trans_global (
   `commit_time` datetime DEFAULT NULL,
   `finish_time` datetime DEFAULT NULL,
   `rollback_time` datetime DEFAULT NULL,
+  `options` varchar(256) DEFAULT '',
+  `custom_data` varchar(256) DEFAULT '',
   `next_cron_interval` int(11) default null comment '下次定时处理的间隔',
   `next_cron_time` datetime default null comment '下次定时处理的时间',
   `owner` varchar(128) not null default '' comment '正在处理全局事务的锁定者',
@@ -27,7 +29,7 @@ CREATE TABLE if not EXISTS dtm.trans_global (
 ) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4;
 drop table IF EXISTS dtm.trans_branch;
 CREATE TABLE IF NOT EXISTS dtm.trans_branch (
-  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `id` bigint(22) NOT NULL AUTO_INCREMENT,
   `gid` varchar(128) NOT NULL COMMENT '事务全局id',
   `url` varchar(128) NOT NULL COMMENT '动作关联的url',
   `data` TEXT COMMENT '请求所携带的数据',
@@ -45,7 +47,7 @@ CREATE TABLE IF NOT EXISTS dtm.trans_branch (
 ) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4;
 drop table IF EXISTS dtm.trans_log;
 CREATE TABLE IF NOT EXISTS dtm.trans_log (
-  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `id` bigint(22) NOT NULL AUTO_INCREMENT,
   `gid` varchar(128) NOT NULL COMMENT '事务全局id',
   `branch_id` varchar(128) DEFAULT NULL COMMENT '事务分支',
   `action` varchar(45) DEFAULT NULL COMMENT '行为',

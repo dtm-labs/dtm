@@ -25,13 +25,10 @@ func TestEP(t *testing.T) {
 	})
 	assert.Equal(t, "err2", err.Error())
 	err = func() (rerr error) {
-		defer func() {
-			x := recover()
-			assert.Equal(t, 1, x)
-		}()
 		defer P2E(&rerr)
-		panic(1)
+		panic("raw_string")
 	}()
+	assert.Equal(t, "raw_string", err.Error())
 }
 
 func TestTernary(t *testing.T) {

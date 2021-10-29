@@ -2,6 +2,7 @@ package dtmsvr
 
 import (
 	"encoding/hex"
+	"errors"
 	"fmt"
 	"net"
 	"strings"
@@ -10,15 +11,16 @@ import (
 	"github.com/bwmarrin/snowflake"
 	"github.com/yedf/dtm/common"
 	"github.com/yedf/dtm/dtmcli"
+	"gorm.io/gorm"
 )
 
 // M a short name
 type M = map[string]interface{}
 
 type branchStatus struct {
-	id          uint
-	status      string
-	finish_time *time.Time
+	id         uint64
+	status     string
+	finishTime *time.Time
 }
 
 var p2e = dtmcli.P2E
@@ -90,4 +92,26 @@ func getOneHexIP() string {
 	}
 	fmt.Printf("err is: %s", err.Error())
 	return "" // 获取不到IP，则直接返回空
+}
+
+// transFromDb construct trans from db
+func transFromDb(db *common.DB, gid string) *TransGlobal {
+	m := TransGlobal{}
+	dbr := db.Must().Model(&m).Where("gid=?", gid).First(&m)
+	if dbr.Error == gorm.ErrRecordNotFound {
+		return nil
+	}
+	e2p(dbr.Error)
+	return &m
+}
+
+func checkLocalhost(branches []TransBranch) {
+	if config.DisableLocalhost == 0 {
+		return
+	}
+	for _, branch := range branches {
+		if strings.HasPrefix(branch.URL, "http://localhost") || strings.HasPrefix(branch.URL, "localhost") {
+			panic(errors.New("url for localhost is disabled. check for your config"))
+		}
+	}
 }

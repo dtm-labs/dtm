@@ -19,7 +19,7 @@ func (s *dtmServer) NewGid(ctx context.Context, in *emptypb.Empty) (*dtmgrpc.Dtm
 }
 
 func (s *dtmServer) Submit(ctx context.Context, in *pb.DtmRequest) (*emptypb.Empty, error) {
-	r, err := svcSubmit(TransFromDtmRequest(in), in.WaitResult)
+	r, err := svcSubmit(TransFromDtmRequest(in))
 	return &emptypb.Empty{}, dtmgrpc.Result2Error(r, err)
 }
 
@@ -29,7 +29,7 @@ func (s *dtmServer) Prepare(ctx context.Context, in *pb.DtmRequest) (*emptypb.Em
 }
 
 func (s *dtmServer) Abort(ctx context.Context, in *pb.DtmRequest) (*emptypb.Empty, error) {
-	r, err := svcAbort(TransFromDtmRequest(in), in.WaitResult)
+	r, err := svcAbort(TransFromDtmRequest(in))
 	return &emptypb.Empty{}, dtmgrpc.Result2Error(r, err)
 }
 

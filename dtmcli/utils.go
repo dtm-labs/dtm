@@ -17,14 +17,18 @@ import (
 	"github.com/go-resty/resty/v2"
 )
 
+// AsError wrap a panic value as an error
+func AsError(x interface{}) error {
+	if e, ok := x.(error); ok {
+		return e
+	}
+	return fmt.Errorf("%v", x)
+}
+
 // P2E panic to error
 func P2E(perr *error) {
 	if x := recover(); x != nil {
-		if e, ok := x.(error); ok {
-			*perr = e
-		} else {
-			panic(x)
-		}
+		*perr = AsError(x)
 	}
 }
 
@@ -262,8 +266,8 @@ func CheckResult(res interface{}, err error) error {
 		str := MustMarshalString(res)
 		if strings.Contains(str, ResultFailure) {
 			return ErrFailure
-		} else if strings.Contains(str, "PENDING") {
-			return ErrPending
+		} else if strings.Contains(str, ResultOngoing) {
+			return ErrOngoing
 		}
 	}
 	return err

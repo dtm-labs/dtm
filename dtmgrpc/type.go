@@ -9,7 +9,7 @@ import (
 	"github.com/yedf/dtm/dtmcli"
 	grpc "google.golang.org/grpc"
 	codes "google.golang.org/grpc/codes"
-	status "google.golang.org/grpc/status"
+	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/emptypb"
 )
 
@@ -89,9 +89,10 @@ func GrpcClientLog(ctx context.Context, method string, req, reply interface{}, c
 func Result2Error(res interface{}, err error) error {
 	e := dtmcli.CheckResult(res, err)
 	if e == dtmcli.ErrFailure {
-		return status.New(codes.Aborted, fmt.Sprintf("failure: res: %v, err: %s", res, e.Error())).Err()
-	} else if e == dtmcli.ErrPending {
-		return status.New(codes.Unavailable, fmt.Sprintf("failure: res: %v, err: %s", res, e.Error())).Err()
+		dtmcli.LogRedf("failure: res: %v, err: %v", res, e)
+		return status.New(codes.Aborted, dtmcli.ResultFailure).Err()
+	} else if e == dtmcli.ErrOngoing {
+		return status.New(codes.Aborted, dtmcli.ResultOngoing).Err()
 	}
 	return e
 }

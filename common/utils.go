@@ -43,7 +43,10 @@ func GetGinApp() *gin.Engine {
 // WrapHandler name is clear
 func WrapHandler(fn func(*gin.Context) (interface{}, error)) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		r, err := fn(c)
+		r, err := func() (r interface{}, rerr error) {
+			defer dtmcli.P2E(&rerr)
+			return fn(c)
+		}()
 		var b = []byte{}
 		if resp, ok := r.(*resty.Response); ok { // 如果是response，则取出body直接处理
 			b = resp.Body()

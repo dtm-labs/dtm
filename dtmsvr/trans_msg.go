@@ -33,23 +33,26 @@ func (t *transMsgProcessor) GenBranches() []TransBranch {
 }
 
 func (t *TransGlobal) mayQueryPrepared(db *common.DB) {
-	if t.Status != dtmcli.StatusPrepared {
+	if !t.needProcess() || t.Status == dtmcli.StatusSubmitted {
 		return
 	}
-	body := t.getURLResult(t.QueryPrepared, "", "", nil)
+	body, err := t.getURLResult(t.QueryPrepared, "", "", nil)
 	if strings.Contains(body, dtmcli.ResultSuccess) {
 		t.changeStatus(db, dtmcli.StatusSubmitted)
 	} else if strings.Contains(body, dtmcli.ResultFailure) {
 		t.changeStatus(db, dtmcli.StatusFailed)
+	} else if strings.Contains(body, dtmcli.ResultOngoing) {
+		t.touch(db, cronReset)
 	} else {
-		t.touch(db, t.NextCronInterval*2)
+		dtmcli.LogRedf("getting result failed for %s. error: %s", t.QueryPrepared, err.Error())
+		t.touch(db, cronBackoff)
 	}
 }
 
-func (t *transMsgProcessor) ProcessOnce(db *common.DB, branches []TransBranch) {
+func (t *transMsgProcessor) ProcessOnce(db *common.DB, branches []TransBranch) error {
 	t.mayQueryPrepared(db)
-	if t.Status != dtmcli.StatusSubmitted {
-		return
+	if !t.needProcess() || t.Status == dtmcli.StatusPrepared {
+		return nil
 	}
 	current := 0 // 当前正在处理的步骤
 	for ; current < len(branches); current++ {
@@ -57,14 +60,17 @@ func (t *transMsgProcessor) ProcessOnce(db *common.DB, branches []TransBranch) {
 		if branch.BranchType != dtmcli.BranchAction || branch.Status != dtmcli.StatusPrepared {
 			continue
 		}
-		t.execBranch(db, branch)
+		err := t.execBranch(db, branch)
+		if err != nil {
+			return err
+		}
 		if branch.Status != dtmcli.StatusSucceed {
 			break
 		}
 	}
 	if current == len(branches) { // msg 事务完成
 		t.changeStatus(db, dtmcli.StatusSucceed)
-		return
+		return nil
 	}
 	panic("msg go pass all branch")
 }

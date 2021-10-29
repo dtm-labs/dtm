@@ -16,7 +16,7 @@ func TestUtils(t *testing.T) {
 	assert.Error(t, err)
 
 	CronExpiredTrans(1)
-	sleepCronTime(10)
+	sleepCronTime()
 }
 
 func TestCheckLocalHost(t *testing.T) {
@@ -30,4 +30,16 @@ func TestCheckLocalHost(t *testing.T) {
 		checkLocalhost([]TransBranch{{URL: "http://localhost"}})
 	})
 	assert.Nil(t, err)
+}
+
+func TestSetNextCron(t *testing.T) {
+	tg := TransGlobal{}
+	tg.RetryInterval = 15
+	tg.setNextCron(cronReset)
+	assert.Equal(t, int64(15), tg.NextCronInterval)
+	tg.RetryInterval = 0
+	tg.setNextCron(cronReset)
+	assert.Equal(t, config.RetryInterval, tg.NextCronInterval)
+	tg.setNextCron(cronBackoff)
+	assert.Equal(t, config.RetryInterval*2, tg.NextCronInterval)
 }

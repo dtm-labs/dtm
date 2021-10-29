@@ -1,6 +1,8 @@
 package test
 
 import (
+	"time"
+
 	"github.com/yedf/dtm/common"
 	"github.com/yedf/dtm/dtmcli"
 	"github.com/yedf/dtm/dtmsvr"
@@ -27,3 +29,10 @@ type TransBranch = dtmsvr.TransBranch
 
 // M alias
 type M = dtmcli.M
+
+func cronTransOnceForwardNow(seconds int) {
+	old := dtmsvr.NowForwardDuration
+	dtmsvr.NowForwardDuration = time.Duration(seconds) * time.Second
+	CronTransOnce()
+	dtmsvr.NowForwardDuration = old
+}

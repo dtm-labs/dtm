@@ -11,8 +11,8 @@ import (
 func TestMsg(t *testing.T) {
 
 	msgNormal(t)
-	msgPending(t)
-	msgPendingFailed(t)
+	msgOngoing(t)
+	msgOngoingFailed(t)
 }
 
 func msgNormal(t *testing.T) {
@@ -22,32 +22,37 @@ func msgNormal(t *testing.T) {
 	WaitTransProcessed(msg.Gid)
 	assert.Equal(t, []string{dtmcli.StatusSucceed, dtmcli.StatusSucceed}, getBranchesStatus(msg.Gid))
 	assert.Equal(t, dtmcli.StatusSucceed, getTransStatus(msg.Gid))
+	CronTransOnce()
 }
 
-func msgPending(t *testing.T) {
+func msgOngoing(t *testing.T) {
 	msg := genMsg("gid-msg-normal-pending")
 	msg.Prepare("")
+	err := msg.Prepare("") // additional prepare to go conflict key path
+	assert.Nil(t, err)
 	assert.Equal(t, dtmcli.StatusPrepared, getTransStatus(msg.Gid))
-	examples.MainSwitch.CanSubmitResult.SetOnce("PENDING")
-	CronTransOnce()
+	examples.MainSwitch.CanSubmitResult.SetOnce(dtmcli.ResultOngoing)
+	cronTransOnceForwardNow(180)
 	assert.Equal(t, dtmcli.StatusPrepared, getTransStatus(msg.Gid))
-	examples.MainSwitch.TransInResult.SetOnce("PENDING")
-	CronTransOnce()
+	examples.MainSwitch.TransInResult.SetOnce(dtmcli.ResultOngoing)
+	cronTransOnceForwardNow(180)
 	assert.Equal(t, dtmcli.StatusSubmitted, getTransStatus(msg.Gid))
 	CronTransOnce()
 	assert.Equal(t, []string{dtmcli.StatusSucceed, dtmcli.StatusSucceed}, getBranchesStatus(msg.Gid))
 	assert.Equal(t, dtmcli.StatusSucceed, getTransStatus(msg.Gid))
+	err = msg.Prepare("")
+	assert.Error(t, err)
 }
 
-func msgPendingFailed(t *testing.T) {
+func msgOngoingFailed(t *testing.T) {
 	msg := genMsg("gid-msg-pending-failed")
 	msg.Prepare("")
 	assert.Equal(t, dtmcli.StatusPrepared, getTransStatus(msg.Gid))
-	examples.MainSwitch.CanSubmitResult.SetOnce("PENDING")
-	CronTransOnce()
+	examples.MainSwitch.CanSubmitResult.SetOnce(dtmcli.ResultOngoing)
+	cronTransOnceForwardNow(180)
 	assert.Equal(t, dtmcli.StatusPrepared, getTransStatus(msg.Gid))
 	examples.MainSwitch.CanSubmitResult.SetOnce(dtmcli.ResultFailure)
-	CronTransOnce()
+	cronTransOnceForwardNow(180)
 	assert.Equal(t, []string{dtmcli.StatusPrepared, dtmcli.StatusPrepared}, getBranchesStatus(msg.Gid))
 	assert.Equal(t, dtmcli.StatusFailed, getTransStatus(msg.Gid))
 }

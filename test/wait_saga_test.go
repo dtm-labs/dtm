@@ -11,13 +11,13 @@ import (
 func TestWaitSaga(t *testing.T) {
 
 	sagaNormalWait(t)
-	sagaCommittedPendingWait(t)
+	sagaCommittedOngoingWait(t)
 	sagaRollbackWait(t)
 }
 
 func sagaNormalWait(t *testing.T) {
 	saga := genSaga("gid-noramlSagaWait", false, false)
-	saga.WaitResult = true
+	saga.SetOptions(&dtmcli.TransOptions{WaitResult: true})
 	err := saga.Submit()
 	assert.Nil(t, err)
 	WaitTransProcessed(saga.Gid)
@@ -26,10 +26,10 @@ func sagaNormalWait(t *testing.T) {
 	transQuery(t, saga.Gid)
 }
 
-func sagaCommittedPendingWait(t *testing.T) {
-	saga := genSaga("gid-committedPendingWait", false, false)
-	examples.MainSwitch.TransOutResult.SetOnce("PENDING")
-	saga.WaitResult = true
+func sagaCommittedOngoingWait(t *testing.T) {
+	saga := genSaga("gid-committedOngoingWait", false, false)
+	examples.MainSwitch.TransOutResult.SetOnce(dtmcli.ResultOngoing)
+	saga.SetOptions(&dtmcli.TransOptions{WaitResult: true})
 	err := saga.Submit()
 	assert.Error(t, err)
 	WaitTransProcessed(saga.Gid)
@@ -41,7 +41,7 @@ func sagaCommittedPendingWait(t *testing.T) {
 
 func sagaRollbackWait(t *testing.T) {
 	saga := genSaga("gid-rollbackSaga2Wait", false, true)
-	saga.WaitResult = true
+	saga.SetOptions(&dtmcli.TransOptions{WaitResult: true})
 	err := saga.Submit()
 	assert.Error(t, err)
 	WaitTransProcessed(saga.Gid)

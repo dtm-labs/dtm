@@ -24,7 +24,7 @@ func init() {
 
 func sagaGrpcBarrierAdjustBalance(db dtmcli.DB, uid int, amount int, result string) error {
 	if result == dtmcli.ResultFailure {
-		return status.New(codes.Aborted, "user rollback").Err()
+		return status.New(codes.Aborted, dtmcli.ResultFailure).Err()
 	}
 	_, err := dtmcli.DBExec(db, "update dtm_busi.user_account set balance = balance + ? where user_id = ?", amount, uid)
 	return err
