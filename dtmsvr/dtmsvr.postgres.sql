@@ -5,7 +5,7 @@ drop table IF EXISTS dtm.trans_global;
 -- SQLINES LICENSE FOR EVALUATION USE ONLY
 CREATE SEQUENCE if not EXISTS dtm.trans_global_seq;
 CREATE TABLE if not EXISTS dtm.trans_global (
-  id int NOT NULL DEFAULT NEXTVAL ('dtm.trans_global_seq'),
+  id bigint NOT NULL DEFAULT NEXTVAL ('dtm.trans_global_seq'),
   gid varchar(128) NOT NULL,
   trans_type varchar(45) not null,
   status varchar(45) NOT NULL,
@@ -16,6 +16,8 @@ CREATE TABLE if not EXISTS dtm.trans_global (
   commit_time timestamp(0) DEFAULT NULL,
   finish_time timestamp(0) DEFAULT NULL,
   rollback_time timestamp(0) DEFAULT NULL,
+  options varchar(256) DEFAULT '',
+  custom_data varchar(256) DEFAULT '',
   next_cron_interval int default null,
   next_cron_time timestamp(0) default null,
   owner varchar(128) not null default '',
@@ -30,7 +32,7 @@ drop table IF EXISTS dtm.trans_branch;
 -- SQLINES LICENSE FOR EVALUATION USE ONLY
 CREATE SEQUENCE if not EXISTS dtm.trans_branch_seq;
 CREATE TABLE IF NOT EXISTS dtm.trans_branch (
-  id int NOT NULL DEFAULT NEXTVAL ('dtm.trans_branch_seq'),
+  id bigint NOT NULL DEFAULT NEXTVAL ('dtm.trans_branch_seq'),
   gid varchar(128) NOT NULL,
   url varchar(128) NOT NULL,
   data TEXT,
@@ -50,7 +52,7 @@ drop table IF EXISTS dtm.trans_log;
 -- SQLINES LICENSE FOR EVALUATION USE ONLY
 CREATE SEQUENCE if not EXISTS dtm.trans_log_seq;
 CREATE TABLE IF NOT EXISTS dtm.trans_log (
-  id int NOT NULL DEFAULT NEXTVAL ('dtm.trans_log_seq'),
+  id bigint NOT NULL DEFAULT NEXTVAL ('dtm.trans_log_seq'),
   gid varchar(128) NOT NULL,
   branch_id varchar(128) DEFAULT NULL,
   action varchar(45) DEFAULT NULL,
