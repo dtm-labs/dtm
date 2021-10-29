@@ -22,7 +22,7 @@ func grpcSagaBarrierNormal(t *testing.T) {
 		Add(examples.BusiGrpc+"/examples.Busi/TransInBSaga", examples.BusiGrpc+"/examples.Busi/TransInRevertBSaga", req)
 	err := saga.Submit()
 	e2p(err)
-	WaitTransProcessed(saga.Gid)
+	waitTransProcessed(saga.Gid)
 	assert.Equal(t, []string{dtmcli.StatusPrepared, dtmcli.StatusSucceed, dtmcli.StatusPrepared, dtmcli.StatusSucceed}, getBranchesStatus(saga.Gid))
 }
 
@@ -33,7 +33,7 @@ func grpcSagaBarrierRollback(t *testing.T) {
 		Add(examples.BusiGrpc+"/examples.Busi/TransInBSaga", examples.BusiGrpc+"/examples.Busi/TransInRevertBSaga", req)
 	err := saga.Submit()
 	e2p(err)
-	WaitTransProcessed(saga.Gid)
+	waitTransProcessed(saga.Gid)
 	assert.Equal(t, dtmcli.StatusFailed, getTransStatus(saga.Gid))
 	assert.Equal(t, []string{dtmcli.StatusSucceed, dtmcli.StatusSucceed, dtmcli.StatusSucceed, dtmcli.StatusFailed}, getBranchesStatus(saga.Gid))
 }

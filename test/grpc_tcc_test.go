@@ -58,8 +58,8 @@ func tccGrpcRollback(t *testing.T) {
 		return err
 	})
 	assert.Error(t, err)
-	WaitTransProcessed(gid)
+	waitTransProcessed(gid)
 	assert.Equal(t, dtmcli.StatusAborting, getTransStatus(gid))
-	CronTransOnce()
+	cronTransOnce()
 	assert.Equal(t, dtmcli.StatusFailed, getTransStatus(gid))
 }

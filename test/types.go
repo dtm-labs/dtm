@@ -14,11 +14,28 @@ func dbGet() *common.DB {
 	return common.DbGet(config.DB)
 }
 
-// WaitTransProcessed alias
-var WaitTransProcessed = dtmsvr.WaitTransProcessed
+// waitTransProcessed only for test usage. wait for transaction processed once
+func waitTransProcessed(gid string) {
+	dtmcli.Logf("waiting for gid %s", gid)
+	select {
+	case id := <-dtmsvr.TransProcessedTestChan:
+		for id != gid {
+			dtmcli.LogRedf("-------id %s not match gid %s", id, gid)
+			id = <-dtmsvr.TransProcessedTestChan
+		}
+		dtmcli.Logf("finish for gid %s", gid)
+	case <-time.After(time.Duration(time.Second * 3)):
+		dtmcli.LogFatalf("Wait Trans timeout")
+	}
+}
 
-// CronTransOnce alias
-var CronTransOnce = dtmsvr.CronTransOnce
+func cronTransOnce() {
+	gid := dtmsvr.CronTransOnce()
+	if dtmsvr.TransProcessedTestChan != nil && gid != "" {
+		waitTransProcessed(gid)
+	}
+}
+
 var e2p = dtmcli.E2P
 
 // TransGlobal alias
@@ -33,6 +50,6 @@ type M = dtmcli.M
 func cronTransOnceForwardNow(seconds int) {
 	old := dtmsvr.NowForwardDuration
 	dtmsvr.NowForwardDuration = time.Duration(seconds) * time.Second
-	CronTransOnce()
+	cronTransOnce()
 	dtmsvr.NowForwardDuration = old
 }

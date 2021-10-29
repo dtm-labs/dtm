@@ -39,7 +39,7 @@ func xaNormal(t *testing.T) {
 		return xa.CallBranch(req, examples.Busi+"/TransInXa")
 	})
 	assert.Equal(t, nil, err)
-	WaitTransProcessed(gid)
+	waitTransProcessed(gid)
 	assert.Equal(t, []string{dtmcli.StatusPrepared, dtmcli.StatusSucceed, dtmcli.StatusPrepared, dtmcli.StatusSucceed}, getBranchesStatus(gid))
 }
 
@@ -57,7 +57,7 @@ func xaDuplicate(t *testing.T) {
 		return xa.CallBranch(req, examples.Busi+"/TransInXa")
 	})
 	assert.Equal(t, nil, err)
-	WaitTransProcessed(gid)
+	waitTransProcessed(gid)
 	assert.Equal(t, []string{dtmcli.StatusPrepared, dtmcli.StatusSucceed, dtmcli.StatusPrepared, dtmcli.StatusSucceed}, getBranchesStatus(gid))
 }
 func xaRollback(t *testing.T) {
@@ -72,7 +72,7 @@ func xaRollback(t *testing.T) {
 		return xa.CallBranch(req, examples.Busi+"/TransInXa")
 	})
 	assert.Error(t, err)
-	WaitTransProcessed(gid)
+	waitTransProcessed(gid)
 	assert.Equal(t, []string{dtmcli.StatusSucceed, dtmcli.StatusPrepared}, getBranchesStatus(gid))
 	assert.Equal(t, dtmcli.StatusFailed, getTransStatus(gid))
 }

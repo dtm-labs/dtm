@@ -16,16 +16,13 @@ var NowForwardDuration time.Duration = time.Duration(0)
 var CronForwardDuration time.Duration = time.Duration(0)
 
 // CronTransOnce cron expired trans. use expireIn as expire time
-func CronTransOnce() (hasTrans bool) {
+func CronTransOnce() (gid string) {
 	defer handlePanic(nil)
 	trans := lockOneTrans(CronForwardDuration)
 	if trans == nil {
 		return
 	}
-	hasTrans = true
-	if TransProcessedTestChan != nil {
-		defer WaitTransProcessed(trans.Gid)
-	}
+	gid = trans.Gid
 	trans.WaitResult = true
 	trans.Process(dbGet())
 	return
@@ -34,8 +31,8 @@ func CronTransOnce() (hasTrans bool) {
 // CronExpiredTrans cron expired trans, num == -1 indicate for ever
 func CronExpiredTrans(num int) {
 	for i := 0; i < num || num == -1; i++ {
-		hasTrans := CronTransOnce()
-		if !hasTrans && num != 1 {
+		gid := CronTransOnce()
+		if gid == "" && num != 1 {
 			sleepCronTime()
 		}
 	}

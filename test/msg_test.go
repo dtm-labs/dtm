@@ -19,10 +19,10 @@ func msgNormal(t *testing.T) {
 	msg := genMsg("gid-msg-normal")
 	msg.Submit()
 	assert.Equal(t, dtmcli.StatusSubmitted, getTransStatus(msg.Gid))
-	WaitTransProcessed(msg.Gid)
+	waitTransProcessed(msg.Gid)
 	assert.Equal(t, []string{dtmcli.StatusSucceed, dtmcli.StatusSucceed}, getBranchesStatus(msg.Gid))
 	assert.Equal(t, dtmcli.StatusSucceed, getTransStatus(msg.Gid))
-	CronTransOnce()
+	cronTransOnce()
 }
 
 func msgOngoing(t *testing.T) {
@@ -37,7 +37,7 @@ func msgOngoing(t *testing.T) {
 	examples.MainSwitch.TransInResult.SetOnce(dtmcli.ResultOngoing)
 	cronTransOnceForwardNow(180)
 	assert.Equal(t, dtmcli.StatusSubmitted, getTransStatus(msg.Gid))
-	CronTransOnce()
+	cronTransOnce()
 	assert.Equal(t, []string{dtmcli.StatusSucceed, dtmcli.StatusSucceed}, getBranchesStatus(msg.Gid))
 	assert.Equal(t, dtmcli.StatusSucceed, getTransStatus(msg.Gid))
 	err = msg.Prepare("")

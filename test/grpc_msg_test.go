@@ -19,7 +19,7 @@ func grpcMsgNormal(t *testing.T) {
 	msg := genGrpcMsg("grpc-msg-normal")
 	err := msg.Submit()
 	assert.Nil(t, err)
-	WaitTransProcessed(msg.Gid)
+	waitTransProcessed(msg.Gid)
 	assert.Equal(t, dtmcli.StatusSucceed, getTransStatus(msg.Gid))
 }
 
@@ -33,7 +33,7 @@ func grpcMsgOngoing(t *testing.T) {
 	examples.MainSwitch.TransInResult.SetOnce(dtmcli.ResultOngoing)
 	cronTransOnceForwardNow(180)
 	assert.Equal(t, dtmcli.StatusSubmitted, getTransStatus(msg.Gid))
-	CronTransOnce()
+	cronTransOnce()
 	assert.Equal(t, dtmcli.StatusSucceed, getTransStatus(msg.Gid))
 }
 

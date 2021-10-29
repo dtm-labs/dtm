@@ -28,7 +28,7 @@ func genCSaga(gid string, outFailed bool, inFailed bool) *dtmcli.Saga {
 func csagaNormal(t *testing.T) {
 	csaga := genCSaga("gid-noraml-csaga", false, false)
 	csaga.Submit()
-	WaitTransProcessed(csaga.Gid)
+	waitTransProcessed(csaga.Gid)
 	assert.Equal(t, []string{dtmcli.StatusPrepared, dtmcli.StatusSucceed, dtmcli.StatusPrepared, dtmcli.StatusSucceed}, getBranchesStatus(csaga.Gid))
 	assert.Equal(t, dtmcli.StatusSucceed, getTransStatus(csaga.Gid))
 }
@@ -38,9 +38,9 @@ func csagaRollback(t *testing.T) {
 	examples.MainSwitch.TransOutRevertResult.SetOnce(dtmcli.ResultOngoing)
 	err := csaga.Submit()
 	assert.Nil(t, err)
-	WaitTransProcessed(csaga.Gid)
+	waitTransProcessed(csaga.Gid)
 	assert.Equal(t, dtmcli.StatusAborting, getTransStatus(csaga.Gid))
-	CronTransOnce()
+	cronTransOnce()
 	assert.Equal(t, dtmcli.StatusFailed, getTransStatus(csaga.Gid))
 	assert.Equal(t, []string{dtmcli.StatusSucceed, dtmcli.StatusFailed, dtmcli.StatusSucceed, dtmcli.StatusSucceed}, getBranchesStatus(csaga.Gid))
 	err = csaga.Submit()
@@ -52,7 +52,7 @@ func csagaRollback2(t *testing.T) {
 	csaga.AddStepOrder(1, []int{0})
 	err := csaga.Submit()
 	assert.Nil(t, err)
-	WaitTransProcessed(csaga.Gid)
+	waitTransProcessed(csaga.Gid)
 	assert.Equal(t, dtmcli.StatusFailed, getTransStatus(csaga.Gid))
 	assert.Equal(t, []string{dtmcli.StatusSucceed, dtmcli.StatusFailed, dtmcli.StatusPrepared, dtmcli.StatusPrepared}, getBranchesStatus(csaga.Gid))
 	err = csaga.Submit()
@@ -63,11 +63,11 @@ func csagaCommittedOngoing(t *testing.T) {
 	csaga := genCSaga("gid-committed-ongoing-csaga", false, false)
 	examples.MainSwitch.TransOutResult.SetOnce(dtmcli.ResultOngoing)
 	csaga.Submit()
-	WaitTransProcessed(csaga.Gid)
+	waitTransProcessed(csaga.Gid)
 	assert.Equal(t, []string{dtmcli.StatusPrepared, dtmcli.StatusPrepared, dtmcli.StatusPrepared, dtmcli.StatusSucceed}, getBranchesStatus(csaga.Gid))
 	assert.Equal(t, dtmcli.StatusSubmitted, getTransStatus(csaga.Gid))
 
-	CronTransOnce()
+	cronTransOnce()
 	assert.Equal(t, []string{dtmcli.StatusPrepared, dtmcli.StatusSucceed, dtmcli.StatusPrepared, dtmcli.StatusSucceed}, getBranchesStatus(csaga.Gid))
 	assert.Equal(t, dtmcli.StatusSucceed, getTransStatus(csaga.Gid))
 }

@@ -44,7 +44,7 @@ func getBranchesStatus(gid string) []string {
 }
 
 func assertSucceed(t *testing.T, gid string) {
-	WaitTransProcessed(gid)
+	waitTransProcessed(gid)
 	assert.Equal(t, dtmcli.StatusSucceed, getTransStatus(gid))
 }
 
@@ -88,7 +88,7 @@ func TestUpdateBranchAsync(t *testing.T) {
 	saga.SetOptions(&dtmcli.TransOptions{WaitResult: true})
 	err := saga.Submit()
 	assert.Nil(t, err)
-	WaitTransProcessed(saga.Gid)
+	waitTransProcessed(saga.Gid)
 	time.Sleep(dtmsvr.UpdateBranchAsyncInterval)
 	assert.Equal(t, []string{dtmcli.StatusPrepared, dtmcli.StatusSucceed, dtmcli.StatusPrepared, dtmcli.StatusSucceed}, getBranchesStatus(saga.Gid))
 	assert.Equal(t, dtmcli.StatusSucceed, getTransStatus(saga.Gid))
