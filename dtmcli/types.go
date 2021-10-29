@@ -90,11 +90,7 @@ func TransBaseFromQuery(qs url.Values) *TransBase {
 
 // callDtm 调用dtm服务器，返回事务的状态
 func (tb *TransBase) callDtm(body interface{}, operation string) error {
-	params := MS{}
-	if tb.WaitResult {
-		params["wait_result"] = "1"
-	}
-	resp, err := RestyClient.R().SetQueryParams(params).
+	resp, err := RestyClient.R().
 		SetResult(&TransResult{}).SetBody(body).Post(fmt.Sprintf("%s/%s", tb.Dtm, operation))
 	if err != nil {
 		return err
