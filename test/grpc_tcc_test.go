@@ -53,13 +53,13 @@ func tccGrpcRollback(t *testing.T) {
 	err := dtmgrpc.TccGlobalTransaction(examples.DtmGrpcServer, gid, func(tcc *dtmgrpc.TccGrpc) error {
 		_, err := tcc.CallBranch(data, examples.BusiGrpc+"/examples.Busi/TransOutTcc", examples.BusiGrpc+"/examples.Busi/TransOutConfirm", examples.BusiGrpc+"/examples.Busi/TransOutRevert")
 		assert.Nil(t, err)
-		examples.MainSwitch.TransOutRevertResult.SetOnce("PENDING")
+		examples.MainSwitch.TransOutRevertResult.SetOnce(dtmcli.ResultOngoing)
 		_, err = tcc.CallBranch(data, examples.BusiGrpc+"/examples.Busi/TransInTcc", examples.BusiGrpc+"/examples.Busi/TransInConfirm", examples.BusiGrpc+"/examples.Busi/TransInRevert")
 		return err
 	})
 	assert.Error(t, err)
 	WaitTransProcessed(gid)
-	assert.Equal(t, "aborting", getTransStatus(gid))
+	assert.Equal(t, dtmcli.StatusAborting, getTransStatus(gid))
 	CronTransOnce()
 	assert.Equal(t, dtmcli.StatusFailed, getTransStatus(gid))
 }

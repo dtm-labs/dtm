@@ -22,7 +22,7 @@ import (
 
 // ModelBase model base for gorm to provide base fields
 type ModelBase struct {
-	ID         uint
+	ID         uint64
 	CreateTime *time.Time `gorm:"autoCreateTime"`
 	UpdateTime *time.Time `gorm:"autoUpdateTime"`
 }
@@ -123,7 +123,9 @@ func DbGet(conf map[string]string) *DB {
 }
 
 type dtmConfigType struct {
-	TransCronInterval int64             `yaml:"TransCronInterval"` // 单位秒 当事务等待这个时间之后，还没有变化，则进行一轮处理，包括prepared中的任务和committed的任务
+	TransCronInterval int64             `yaml:"TransCronInterval"`
+	TimeoutToFail     int64             `yaml:"TimeoutToFail"`
+	RetryInterval     int64             `yaml:"RetryInterval"`
 	DB                map[string]string `yaml:"DB"`
 	DisableLocalhost  int64             `yaml:"DisableLocalhost"`
 	UpdateBranchSync  int64             `yaml:"UpdateBranchSync"`
@@ -140,7 +142,9 @@ func init() {
 	if len(os.Args) == 1 {
 		return
 	}
-	DtmConfig.TransCronInterval = getIntEnv("TRANS_CRON_INTERVAL", "10")
+	DtmConfig.TransCronInterval = getIntEnv("TRANS_CRON_INTERVAL", "3")
+	DtmConfig.TimeoutToFail = getIntEnv("TIMEOUT_TO_FAIL", "10")
+	DtmConfig.RetryInterval = getIntEnv("RETRY_INTERVAL", "10")
 	DtmConfig.DB = map[string]string{
 		"driver":   dtmcli.OrString(os.Getenv("DB_DRIVER"), "mysql"),
 		"host":     os.Getenv("DB_HOST"),
@@ -166,6 +170,24 @@ func init() {
 		err := yaml.Unmarshal(cont, &DtmConfig)
 		dtmcli.FatalIfError(err)
 	}
-	dtmcli.LogIfFatalf(DtmConfig.DB["driver"] == "" || DtmConfig.DB["user"] == "",
-		"dtm配置错误. 请访问 http://dtm.pub 查看部署运维环节. check you env, and conf.yml/conf.sample.yml in current and parent path: %s. config is: \n%v", MustGetwd(), DtmConfig)
+	errStr := checkConfig()
+	dtmcli.LogIfFatalf(errStr != "",
+		`config error: '%s'.
+check you env, and conf.yml/conf.sample.yml in current and parent path: %s.
+please visit http://d.dtm.pub to see the config document.
+loaded config is:
+%v`, MustGetwd(), DtmConfig)
+}
+
+func checkConfig() string {
+	if DtmConfig.DB["driver"] == "" {
+		return "db driver empty"
+	} else if DtmConfig.DB["user"] == "" || DtmConfig.DB["host"] == "" {
+		return "db config not valid"
+	} else if DtmConfig.RetryInterval < 10 {
+		return "RetryInterval should not be less than 10"
+	} else if DtmConfig.TimeoutToFail < DtmConfig.RetryInterval {
+		return "TimeoutToFail should not be less than RetryInterval"
+	}
+	return ""
 }

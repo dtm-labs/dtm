@@ -30,3 +30,26 @@ func TestDbAlone(t *testing.T) {
 	_, err = dtmcli.DBExec(db, "select 1")
 	assert.NotEqual(t, nil, err)
 }
+
+func TestConfig(t *testing.T) {
+	testConfigStringField(DtmConfig.DB, "driver", "", t)
+	testConfigStringField(DtmConfig.DB, "user", "", t)
+	testConfigIntField(&DtmConfig.RetryInterval, 9, t)
+	testConfigIntField(&DtmConfig.TimeoutToFail, 9, t)
+}
+
+func testConfigStringField(m map[string]string, key string, val string, t *testing.T) {
+	old := m[key]
+	m[key] = val
+	str := checkConfig()
+	assert.NotEqual(t, "", str)
+	m[key] = old
+}
+
+func testConfigIntField(fd *int64, val int64, t *testing.T) {
+	old := *fd
+	*fd = val
+	str := checkConfig()
+	assert.NotEqual(t, "", str)
+	*fd = old
+}

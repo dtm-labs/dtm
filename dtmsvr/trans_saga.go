@@ -15,7 +15,7 @@ func init() {
 	registorProcessorCreator("saga", func(trans *TransGlobal) transProcessor { return &transSagaProcessor{TransGlobal: trans} })
 }
 
-func (t *transSagaProcessor) GenBranches() []TransBranch {
+func genSagaBranches(t *TransGlobal) []TransBranch {
 	branches := []TransBranch{}
 	steps := []M{}
 	dtmcli.MustUnmarshalString(t.Data, &steps)
@@ -35,9 +35,13 @@ func (t *transSagaProcessor) GenBranches() []TransBranch {
 	return branches
 }
 
-func (t *transSagaProcessor) ProcessOnce(db *common.DB, branches []TransBranch) {
-	if t.Status == dtmcli.StatusFailed || t.Status == dtmcli.StatusSucceed {
-		return
+func (t *transSagaProcessor) GenBranches() []TransBranch {
+	return genSagaBranches(t.TransGlobal)
+}
+
+func (t *transSagaProcessor) ProcessOnce(db *common.DB, branches []TransBranch) error {
+	if !t.needProcess() {
+		return nil
 	}
 	current := 0 // 当前正在处理的步骤
 	for ; current < len(branches); current++ {
@@ -47,7 +51,10 @@ func (t *transSagaProcessor) ProcessOnce(db *common.DB, branches []TransBranch) 
 		}
 		// 找到了一个非succeed的action
 		if branch.Status == dtmcli.StatusPrepared {
-			t.execBranch(db, branch)
+			err := t.execBranch(db, branch)
+			if err != nil {
+				return err
+			}
 		}
 		if branch.Status != dtmcli.StatusSucceed {
 			break
@@ -55,17 +62,21 @@ func (t *transSagaProcessor) ProcessOnce(db *common.DB, branches []TransBranch) 
 	}
 	if current == len(branches) { // saga 事务完成
 		t.changeStatus(db, dtmcli.StatusSucceed)
-		return
+		return nil
 	}
-	if t.Status != "aborting" && t.Status != dtmcli.StatusFailed {
-		t.changeStatus(db, "aborting")
+	if t.Status != dtmcli.StatusAborting && t.Status != dtmcli.StatusFailed {
+		t.changeStatus(db, dtmcli.StatusAborting)
 	}
 	for current = current - 1; current >= 0; current-- {
 		branch := &branches[current]
 		if branch.BranchType != dtmcli.BranchCompensate || branch.Status != dtmcli.StatusPrepared {
 			continue
 		}
-		t.execBranch(db, branch)
+		err := t.execBranch(db, branch)
+		if err != nil {
+			return err
+		}
 	}
 	t.changeStatus(db, dtmcli.StatusFailed)
+	return nil
 }

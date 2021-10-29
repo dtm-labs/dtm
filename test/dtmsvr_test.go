@@ -1,7 +1,6 @@
 package test
 
 import (
-	"fmt"
 	"testing"
 	"time"
 
@@ -83,43 +82,10 @@ func transQuery(t *testing.T, gid string) {
 	assert.Nil(t, err)
 }
 
-func TestSqlDB(t *testing.T) {
-	asserts := assert.New(t)
-	db := common.DbGet(config.DB)
-	barrier := &dtmcli.BranchBarrier{
-		TransType:  "saga",
-		Gid:        "gid2",
-		BranchID:   "branch_id2",
-		BranchType: dtmcli.BranchAction,
-	}
-	db.Must().Exec("insert into dtm_barrier.barrier(trans_type, gid, branch_id, branch_type, reason) values('saga', 'gid1', 'branch_id1', 'action', 'saga')")
-	tx, err := db.ToSQLDB().Begin()
-	asserts.Nil(err)
-	err = barrier.Call(tx, func(db dtmcli.DB) error {
-		dtmcli.Logf("rollback gid2")
-		return fmt.Errorf("gid2 error")
-	})
-	asserts.Error(err, fmt.Errorf("gid2 error"))
-	dbr := db.Model(&BarrierModel{}).Where("gid=?", "gid1").Find(&[]BarrierModel{})
-	asserts.Equal(dbr.RowsAffected, int64(1))
-	dbr = db.Model(&BarrierModel{}).Where("gid=?", "gid2").Find(&[]BarrierModel{})
-	asserts.Equal(dbr.RowsAffected, int64(0))
-	barrier.BarrierID = 0
-	tx2, err := db.ToSQLDB().Begin()
-	asserts.Nil(err)
-	err = barrier.Call(tx2, func(db dtmcli.DB) error {
-		dtmcli.Logf("submit gid2")
-		return nil
-	})
-	asserts.Nil(err)
-	dbr = db.Model(&BarrierModel{}).Where("gid=?", "gid2").Find(&[]BarrierModel{})
-	asserts.Equal(dbr.RowsAffected, int64(1))
-}
-
 func TestUpdateBranchAsync(t *testing.T) {
 	common.DtmConfig.UpdateBranchSync = 0
 	saga := genSaga("gid-update-branch-async", false, false)
-	saga.WaitResult = true
+	saga.SetOptions(&dtmcli.TransOptions{WaitResult: true})
 	err := saga.Submit()
 	assert.Nil(t, err)
 	WaitTransProcessed(saga.Gid)

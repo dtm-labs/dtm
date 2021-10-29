@@ -45,7 +45,7 @@ func handleGrpcBusiness(in *dtmgrpc.BusiRequest, result1 string, result2 string,
 	if res == dtmcli.ResultSuccess {
 		return nil
 	} else if res == dtmcli.ResultFailure {
-		return status.New(codes.Aborted, "user want to rollback").Err()
+		return status.New(codes.Aborted, dtmcli.ResultFailure).Err()
 	}
 	return status.New(codes.Internal, fmt.Sprintf("unknow result %s", res)).Err()
 }
@@ -113,7 +113,7 @@ func (s *busiServer) TransInXa(ctx context.Context, in *dtmgrpc.BusiRequest) (*d
 	dtmcli.MustUnmarshal(in.BusiData, &req)
 	return &dtmgrpc.BusiReply{BusiData: []byte("reply")}, XaGrpcClient.XaLocalTransaction(in, func(db *sql.DB, xa *dtmgrpc.XaGrpc) error {
 		if req.TransInResult == dtmcli.ResultFailure {
-			return status.New(codes.Aborted, "user return failure").Err()
+			return status.New(codes.Aborted, dtmcli.ResultFailure).Err()
 		}
 		_, err := dtmcli.DBExec(db, "update dtm_busi.user_account set balance=balance+? where user_id=?", req.Amount, 2)
 		return err
@@ -125,7 +125,7 @@ func (s *busiServer) TransOutXa(ctx context.Context, in *dtmgrpc.BusiRequest) (*
 	dtmcli.MustUnmarshal(in.BusiData, &req)
 	return &dtmgrpc.BusiReply{BusiData: []byte("reply")}, XaGrpcClient.XaLocalTransaction(in, func(db *sql.DB, xa *dtmgrpc.XaGrpc) error {
 		if req.TransOutResult == dtmcli.ResultFailure {
-			return status.New(codes.Aborted, "user return failure").Err()
+			return status.New(codes.Aborted, dtmcli.ResultFailure).Err()
 		}
 		_, err := dtmcli.DBExec(db, "update dtm_busi.user_account set balance=balance-? where user_id=?", req.Amount, 1)
 		return err

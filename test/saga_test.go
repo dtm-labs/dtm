@@ -10,7 +10,7 @@ import (
 
 func TestSaga(t *testing.T) {
 	sagaNormal(t)
-	sagaCommittedPending(t)
+	sagaCommittedOngoing(t)
 	sagaRollback(t)
 }
 
@@ -25,9 +25,9 @@ func sagaNormal(t *testing.T) {
 	assert.Error(t, err)
 }
 
-func sagaCommittedPending(t *testing.T) {
-	saga := genSaga("gid-committedPending", false, false)
-	examples.MainSwitch.TransOutResult.SetOnce("PENDING")
+func sagaCommittedOngoing(t *testing.T) {
+	saga := genSaga("gid-committedOngoing", false, false)
+	examples.MainSwitch.TransOutResult.SetOnce(dtmcli.ResultOngoing)
 	saga.Submit()
 	WaitTransProcessed(saga.Gid)
 	assert.Equal(t, []string{dtmcli.StatusPrepared, dtmcli.StatusPrepared, dtmcli.StatusPrepared, dtmcli.StatusPrepared}, getBranchesStatus(saga.Gid))
@@ -38,11 +38,11 @@ func sagaCommittedPending(t *testing.T) {
 
 func sagaRollback(t *testing.T) {
 	saga := genSaga("gid-rollbackSaga2", false, true)
-	examples.MainSwitch.TransOutRevertResult.SetOnce("PENDING")
+	examples.MainSwitch.TransOutRevertResult.SetOnce(dtmcli.ResultOngoing)
 	err := saga.Submit()
 	assert.Nil(t, err)
 	WaitTransProcessed(saga.Gid)
-	assert.Equal(t, "aborting", getTransStatus(saga.Gid))
+	assert.Equal(t, dtmcli.StatusAborting, getTransStatus(saga.Gid))
 	CronTransOnce()
 	assert.Equal(t, dtmcli.StatusFailed, getTransStatus(saga.Gid))
 	assert.Equal(t, []string{dtmcli.StatusSucceed, dtmcli.StatusSucceed, dtmcli.StatusSucceed, dtmcli.StatusFailed}, getBranchesStatus(saga.Gid))

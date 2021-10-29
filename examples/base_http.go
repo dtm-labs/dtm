@@ -2,6 +2,7 @@ package examples
 
 import (
 	"database/sql"
+	"errors"
 	"fmt"
 	"time"
 
@@ -145,4 +146,12 @@ func BaseAddRoute(app *gin.Engine) {
 		})
 	}))
 
+	app.POST(BusiAPI+"/TestPanic", common.WrapHandler(func(c *gin.Context) (interface{}, error) {
+		if c.Query("panic_error") != "" {
+			panic(errors.New("panic_error"))
+		} else if c.Query("panic_string") != "" {
+			panic("panic_string")
+		}
+		return "SUCCESS", nil
+	}))
 }

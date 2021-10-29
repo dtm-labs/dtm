@@ -32,12 +32,12 @@ func tccRollback(t *testing.T) {
 	err := dtmcli.TccGlobalTransaction(examples.DtmServer, gid, func(tcc *dtmcli.Tcc) (*resty.Response, error) {
 		_, rerr := tcc.CallBranch(data, Busi+"/TransOut", Busi+"/TransOutConfirm", Busi+"/TransOutRevert")
 		assert.Nil(t, rerr)
-		examples.MainSwitch.TransOutRevertResult.SetOnce("PENDING")
+		examples.MainSwitch.TransOutRevertResult.SetOnce(dtmcli.ResultOngoing)
 		return tcc.CallBranch(data, Busi+"/TransIn", Busi+"/TransInConfirm", Busi+"/TransInRevert")
 	})
 	assert.Error(t, err)
 	WaitTransProcessed(gid)
-	assert.Equal(t, "aborting", getTransStatus(gid))
+	assert.Equal(t, dtmcli.StatusAborting, getTransStatus(gid))
 	CronTransOnce()
 	assert.Equal(t, dtmcli.StatusFailed, getTransStatus(gid))
 }

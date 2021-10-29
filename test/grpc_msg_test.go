@@ -12,7 +12,7 @@ import (
 
 func TestGrpcMsg(t *testing.T) {
 	grpcMsgNormal(t)
-	grpcMsgPending(t)
+	grpcMsgOngoing(t)
 }
 
 func grpcMsgNormal(t *testing.T) {
@@ -23,15 +23,15 @@ func grpcMsgNormal(t *testing.T) {
 	assert.Equal(t, dtmcli.StatusSucceed, getTransStatus(msg.Gid))
 }
 
-func grpcMsgPending(t *testing.T) {
+func grpcMsgOngoing(t *testing.T) {
 	msg := genGrpcMsg("grpc-msg-pending")
 	err := msg.Prepare(fmt.Sprintf("%s/examples.Busi/CanSubmit", examples.BusiGrpc))
 	assert.Nil(t, err)
-	examples.MainSwitch.CanSubmitResult.SetOnce("PENDING")
-	CronTransOnce()
+	examples.MainSwitch.CanSubmitResult.SetOnce(dtmcli.ResultOngoing)
+	cronTransOnceForwardNow(180)
 	assert.Equal(t, dtmcli.StatusPrepared, getTransStatus(msg.Gid))
-	examples.MainSwitch.TransInResult.SetOnce("PENDING")
-	CronTransOnce()
+	examples.MainSwitch.TransInResult.SetOnce(dtmcli.ResultOngoing)
+	cronTransOnceForwardNow(180)
 	assert.Equal(t, dtmcli.StatusSubmitted, getTransStatus(msg.Gid))
 	CronTransOnce()
 	assert.Equal(t, dtmcli.StatusSucceed, getTransStatus(msg.Gid))

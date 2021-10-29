@@ -16,9 +16,9 @@ import (
 type M = map[string]interface{}
 
 type branchStatus struct {
-	id          uint
-	status      string
-	finish_time *time.Time
+	id         uint64
+	status     string
+	finishTime *time.Time
 }
 
 var p2e = dtmcli.P2E

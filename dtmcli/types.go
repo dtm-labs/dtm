@@ -51,14 +51,26 @@ type TransResult struct {
 	Message   string
 }
 
+// TransOptions transaction options
+type TransOptions struct {
+	WaitResult    bool  `json:"wait_result,omitempty" gorm:"-"`
+	TimeoutToFail int64 `json:"timeout_to_fail,omitempty" gorm:"-"` // for trans type: xa, tcc
+	RetryInterval int64 `json:"retry_interval,omitempty" gorm:"-"`  // for trans type: msg saga xa tcc
+}
+
 // TransBase 事务的基础类
 type TransBase struct {
-	Gid       string `json:"gid"`
-	TransType string `json:"trans_type"`
+	Gid        string `json:"gid"`
+	TransType  string `json:"trans_type"`
+	Dtm        string `json:"-"`
+	CustomData string `json:"custom_data,omitempty"`
 	IDGenerator
-	Dtm string
-	// WaitResult 是否等待全局事务的最终结果
-	WaitResult bool
+	TransOptions
+}
+
+// SetOptions set options
+func (tb *TransBase) SetOptions(options *TransOptions) {
+	tb.TransOptions = *options
 }
 
 // NewTransBase 1
@@ -95,10 +107,10 @@ func (tb *TransBase) callDtm(body interface{}, operation string) error {
 }
 
 // ErrFailure 表示返回失败，要求回滚
-var ErrFailure = errors.New("transaction FAILURE")
+var ErrFailure = errors.New("FAILURE")
 
-// ErrPending 表示暂时失败，要求重试
-var ErrPending = errors.New("transaction PENDING")
+// ErrOngoing 表示暂时失败，要求重试
+var ErrOngoing = errors.New("ONGOING")
 
 // MapSuccess 表示返回成功，可以进行下一步
 var MapSuccess = M{"dtm_result": ResultSuccess}

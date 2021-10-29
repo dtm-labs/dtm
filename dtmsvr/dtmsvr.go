@@ -70,7 +70,7 @@ func updateBranchAsync() {
 				updates = append(updates, TransBranch{
 					ModelBase:  common.ModelBase{ID: updateBranch.id},
 					Status:     updateBranch.status,
-					FinishTime: updateBranch.finish_time,
+					FinishTime: updateBranch.finishTime,
 				})
 			case <-time.After(checkInterval):
 			}
