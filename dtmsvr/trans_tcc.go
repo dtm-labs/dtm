@@ -21,6 +21,9 @@ func (t *transTccProcessor) ProcessOnce(db *common.DB, branches []TransBranch) e
 	if !t.needProcess() {
 		return nil
 	}
+	if t.Status == dtmcli.StatusPrepared && t.isTimeout() {
+		t.changeStatus(db, dtmcli.StatusAborting)
+	}
 	branchType := dtmcli.If(t.Status == dtmcli.StatusSubmitted, dtmcli.BranchConfirm, dtmcli.BranchCancel).(string)
 	for current := len(branches) - 1; current >= 0; current-- {
 		if branches[current].BranchType == branchType && branches[current].Status == dtmcli.StatusPrepared {

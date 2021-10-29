@@ -15,12 +15,13 @@ func TestCSaga(t *testing.T) {
 	csagaCommittedOngoing(t)
 }
 
-func genCSaga(gid string, outFailed bool, inFailed bool) *dtmcli.ConcurrentSaga {
+func genCSaga(gid string, outFailed bool, inFailed bool) *dtmcli.Saga {
 	dtmcli.Logf("beginning a concurrent saga test ---------------- %s", gid)
-	csaga := dtmcli.NewConcurrentSaga(examples.DtmServer, gid)
 	req := examples.GenTransReq(30, outFailed, inFailed)
-	csaga.Add(examples.Busi+"/TransOut", examples.Busi+"/TransOutRevert", &req)
-	csaga.Add(examples.Busi+"/TransIn", examples.Busi+"/TransInRevert", &req)
+	csaga := dtmcli.NewSaga(examples.DtmServer, gid).
+		Add(examples.Busi+"/TransOut", examples.Busi+"/TransOutRevert", &req).
+		Add(examples.Busi+"/TransIn", examples.Busi+"/TransInRevert", &req).
+		EnableConcurrent()
 	return csaga
 }
 

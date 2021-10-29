@@ -77,7 +77,7 @@ func (t *TransGlobal) changeStatus(db *common.DB, status string) *gorm.DB {
 
 func (t *TransGlobal) isTimeout() bool {
 	timeout := t.TimeoutToFail
-	if t.TimeoutToFail == 0 && t.TransType != "saga" && t.TransType != "csaga" {
+	if t.TimeoutToFail == 0 && t.TransType != "saga" && t.TransType != "msg" {
 		timeout = config.TimeoutToFail
 	}
 	if timeout == 0 {
@@ -184,9 +184,6 @@ func (t *TransGlobal) processInner(db *common.DB) (rerr error) {
 		}
 	}()
 	dtmcli.Logf("processing: %s status: %s", t.Gid, t.Status)
-	if t.Status == dtmcli.StatusPrepared && t.TransType != "msg" {
-		t.changeStatus(db, dtmcli.StatusAborting)
-	}
 	branches := []TransBranch{}
 	db.Must().Where("gid=?", t.Gid).Order("id asc").Find(&branches)
 	t.processStarted = time.Now()

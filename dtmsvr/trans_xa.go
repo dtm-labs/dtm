@@ -21,6 +21,9 @@ func (t *transXaProcessor) ProcessOnce(db *common.DB, branches []TransBranch) er
 	if !t.needProcess() {
 		return nil
 	}
+	if t.Status == dtmcli.StatusPrepared && t.isTimeout() {
+		t.changeStatus(db, dtmcli.StatusAborting)
+	}
 	currentType := dtmcli.If(t.Status == dtmcli.StatusSubmitted, dtmcli.BranchCommit, dtmcli.BranchRollback).(string)
 	for _, branch := range branches {
 		if branch.BranchType == currentType && branch.Status != dtmcli.StatusSucceed {
