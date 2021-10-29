@@ -9,11 +9,11 @@ import (
 )
 
 func TestSaga(t *testing.T) {
-	// sagaNormal(t)
-	// sagaCommittedOngoing(t)
-	// sagaRollback(t)
+	sagaNormal(t)
+	sagaCommittedOngoing(t)
+	sagaRollback(t)
 	sagaRollback2(t)
-	// sagaTimeout(t)
+	sagaTimeout(t)
 }
 
 func sagaNormal(t *testing.T) {

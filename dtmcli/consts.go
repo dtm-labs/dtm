@@ -11,8 +11,6 @@ const (
 	StatusFailed = "failed"
 	// StatusAborting status for global trans status.
 	StatusAborting = "aborting"
-	// StatusDoing status for branch status
-	StatusDoing = "doing"
 
 	// BranchTry branch type for TCC
 	BranchTry = "try"

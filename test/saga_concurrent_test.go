@@ -64,7 +64,7 @@ func csagaCommittedOngoing(t *testing.T) {
 	examples.MainSwitch.TransOutResult.SetOnce(dtmcli.ResultOngoing)
 	csaga.Submit()
 	WaitTransProcessed(csaga.Gid)
-	assert.Equal(t, []string{dtmcli.StatusPrepared, dtmcli.StatusDoing, dtmcli.StatusPrepared, dtmcli.StatusSucceed}, getBranchesStatus(csaga.Gid))
+	assert.Equal(t, []string{dtmcli.StatusPrepared, dtmcli.StatusPrepared, dtmcli.StatusPrepared, dtmcli.StatusSucceed}, getBranchesStatus(csaga.Gid))
 	assert.Equal(t, dtmcli.StatusSubmitted, getTransStatus(csaga.Gid))
 
 	CronTransOnce()
