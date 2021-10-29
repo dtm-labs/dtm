@@ -43,8 +43,3 @@ func TestSetNextCron(t *testing.T) {
 	tg.setNextCron(cronBackoff)
 	assert.Equal(t, config.RetryInterval*2, tg.NextCronInterval)
 }
-func TestTransFromDB(t *testing.T) {
-	db := dbGet()
-	trans := transFromDb(db, "-1")
-	assert.Nil(t, trans)
-}

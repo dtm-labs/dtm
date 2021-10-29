@@ -7,7 +7,6 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/yedf/dtm/common"
 	"github.com/yedf/dtm/dtmcli"
-	"gorm.io/gorm"
 )
 
 func addRoute(engine *gin.Engine) {
@@ -62,13 +61,8 @@ func query(c *gin.Context) (interface{}, error) {
 	if gid == "" {
 		return nil, errors.New("no gid specified")
 	}
-	trans := TransGlobal{}
 	db := dbGet()
-	db.Begin()
-	dbr := db.Must().Where("gid", gid).First(&trans)
-	if dbr.Error == gorm.ErrRecordNotFound {
-		return M{"transaction": nil, "branches": [0]int{}}, nil
-	}
+	trans := transFromDb(db, gid)
 	branches := []TransBranch{}
 	db.Must().Where("gid", gid).Find(&branches)
 	return M{"transaction": trans, "branches": branches}, nil
