@@ -86,13 +86,6 @@ func (t *TransGlobal) isTimeout() bool {
 	return time.Since(*t.CreateTime)+NowForwardDuration >= time.Duration(timeout)*time.Second
 }
 
-func (t *TransGlobal) getRetryInterval() int64 {
-	if t.RetryInterval > 0 {
-		return t.RetryInterval
-	}
-	return config.RetryInterval
-}
-
 func (t *TransGlobal) needProcess() bool {
 	return t.Status == dtmcli.StatusSubmitted || t.Status == dtmcli.StatusAborting || t.Status == dtmcli.StatusPrepared && t.isTimeout()
 }
@@ -346,27 +339,5 @@ func TransFromDtmRequest(c *dtmgrpc.DtmRequest) *TransGlobal {
 		QueryPrepared: c.QueryPrepared,
 		Data:          c.Data,
 		Protocol:      "grpc",
-	}
-}
-
-// TransFromDb construct trans from db
-func TransFromDb(db *common.DB, gid string) *TransGlobal {
-	m := TransGlobal{}
-	dbr := db.Must().Model(&m).Where("gid=?", gid).First(&m)
-	if dbr.Error == gorm.ErrRecordNotFound {
-		return nil
-	}
-	e2p(dbr.Error)
-	return &m
-}
-
-func checkLocalhost(branches []TransBranch) {
-	if config.DisableLocalhost == 0 {
-		return
-	}
-	for _, branch := range branches {
-		if strings.HasPrefix(branch.URL, "http://localhost") || strings.HasPrefix(branch.URL, "localhost") {
-			panic(errors.New("url for localhost is disabled. check for your config"))
-		}
 	}
 }

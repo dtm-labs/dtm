@@ -2,7 +2,6 @@ package dtmsvr
 
 import (
 	"fmt"
-	"math"
 	"math/rand"
 	"runtime/debug"
 	"time"
@@ -37,7 +36,7 @@ func CronExpiredTrans(num int) {
 	for i := 0; i < num || num == -1; i++ {
 		hasTrans := CronTransOnce()
 		if !hasTrans && num != 1 {
-			sleepCronTime(0)
+			sleepCronTime()
 		}
 	}
 }
@@ -71,9 +70,9 @@ func handlePanic(perr *error) {
 	}
 }
 
-func sleepCronTime(milli int) {
-	delta := math.Min(3, float64(config.TransCronInterval))
-	interval := time.Duration((float64(config.TransCronInterval) - rand.Float64()*delta) * float64(time.Second))
-	dtmcli.Logf("sleeping for %v pass in %d milli", interval, milli)
-	time.Sleep(dtmcli.If(milli == 0, interval, time.Duration(milli*int(time.Millisecond))).(time.Duration))
+func sleepCronTime() {
+	normal := time.Duration((float64(config.TransCronInterval) - rand.Float64()) * float64(time.Second))
+	interval := dtmcli.If(CronForwardDuration > 0, 1*time.Millisecond, normal).(time.Duration)
+	dtmcli.Logf("sleeping for %v milli", interval/time.Microsecond)
+	time.Sleep(interval)
 }

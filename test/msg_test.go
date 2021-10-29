@@ -22,11 +22,14 @@ func msgNormal(t *testing.T) {
 	WaitTransProcessed(msg.Gid)
 	assert.Equal(t, []string{dtmcli.StatusSucceed, dtmcli.StatusSucceed}, getBranchesStatus(msg.Gid))
 	assert.Equal(t, dtmcli.StatusSucceed, getTransStatus(msg.Gid))
+	CronTransOnce()
 }
 
 func msgOngoing(t *testing.T) {
 	msg := genMsg("gid-msg-normal-pending")
 	msg.Prepare("")
+	err := msg.Prepare("") // additional prepare to go conflict key path
+	assert.Nil(t, err)
 	assert.Equal(t, dtmcli.StatusPrepared, getTransStatus(msg.Gid))
 	examples.MainSwitch.CanSubmitResult.SetOnce(dtmcli.ResultOngoing)
 	cronTransOnceForwardNow(180)
@@ -37,6 +40,8 @@ func msgOngoing(t *testing.T) {
 	CronTransOnce()
 	assert.Equal(t, []string{dtmcli.StatusSucceed, dtmcli.StatusSucceed}, getBranchesStatus(msg.Gid))
 	assert.Equal(t, dtmcli.StatusSucceed, getTransStatus(msg.Gid))
+	err = msg.Prepare("")
+	assert.Error(t, err)
 }
 
 func msgOngoingFailed(t *testing.T) {

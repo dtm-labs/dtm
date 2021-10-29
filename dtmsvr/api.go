@@ -13,7 +13,7 @@ func svcSubmit(t *TransGlobal) (interface{}, error) {
 	err := t.saveNew(db)
 
 	if err == errUniqueConflict {
-		dbt := TransFromDb(db, t.Gid)
+		dbt := transFromDb(db, t.Gid)
 		if dbt.Status == dtmcli.StatusPrepared {
 			updates := t.setNextCron(cronReset)
 			db.Must().Model(t).Where("gid=? and status=?", t.Gid, dtmcli.StatusPrepared).Select(append(updates, "status")).Updates(t)
@@ -28,7 +28,7 @@ func svcPrepare(t *TransGlobal) (interface{}, error) {
 	t.Status = dtmcli.StatusPrepared
 	err := t.saveNew(dbGet())
 	if err == errUniqueConflict {
-		dbt := TransFromDb(dbGet(), t.Gid)
+		dbt := transFromDb(dbGet(), t.Gid)
 		if dbt.Status != dtmcli.StatusPrepared {
 			return M{"dtm_result": dtmcli.ResultFailure, "message": fmt.Sprintf("current status '%s', cannot prepare", dbt.Status)}, nil
 		}
@@ -38,7 +38,7 @@ func svcPrepare(t *TransGlobal) (interface{}, error) {
 
 func svcAbort(t *TransGlobal) (interface{}, error) {
 	db := dbGet()
-	dbt := TransFromDb(db, t.Gid)
+	dbt := transFromDb(db, t.Gid)
 	if t.TransType != "xa" && t.TransType != "tcc" || dbt.Status != dtmcli.StatusPrepared && dbt.Status != dtmcli.StatusAborting {
 		return M{"dtm_result": dtmcli.ResultFailure, "message": fmt.Sprintf("trans type: '%s' current status '%s', cannot abort", dbt.TransType, dbt.Status)}, nil
 	}
@@ -48,7 +48,7 @@ func svcAbort(t *TransGlobal) (interface{}, error) {
 
 func svcRegisterTccBranch(branch *TransBranch, data dtmcli.MS) (interface{}, error) {
 	db := dbGet()
-	dbt := TransFromDb(db, branch.Gid)
+	dbt := transFromDb(db, branch.Gid)
 	if dbt.Status != dtmcli.StatusPrepared {
 		return M{"dtm_result": dtmcli.ResultFailure, "message": fmt.Sprintf("current status: %s cannot register branch", dbt.Status)}, nil
 	}
@@ -70,7 +70,7 @@ func svcRegisterTccBranch(branch *TransBranch, data dtmcli.MS) (interface{}, err
 func svcRegisterXaBranch(branch *TransBranch) (interface{}, error) {
 	branch.Status = dtmcli.StatusPrepared
 	db := dbGet()
-	dbt := TransFromDb(db, branch.Gid)
+	dbt := transFromDb(db, branch.Gid)
 	if dbt.Status != dtmcli.StatusPrepared {
 		return M{"dtm_result": dtmcli.ResultFailure, "message": fmt.Sprintf("current status: %s cannot register branch", dbt.Status)}, nil
 	}

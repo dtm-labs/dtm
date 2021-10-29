@@ -80,6 +80,9 @@ func handleGeneralBusiness(c *gin.Context, result1 string, result2 string, busi 
 	info := infoFromContext(c)
 	res := dtmcli.OrString(result1, result2, dtmcli.ResultSuccess)
 	dtmcli.Logf("%s %s result: %s", busi, info.String(), res)
+	if res == "ERROR" {
+		return nil, errors.New("ERROR from user")
+	}
 	return M{"dtm_result": res}, nil
 }
 

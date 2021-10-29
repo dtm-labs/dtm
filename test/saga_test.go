@@ -40,7 +40,7 @@ func sagaCommittedOngoing(t *testing.T) {
 
 func sagaRollback(t *testing.T) {
 	saga := genSaga("gid-rollback-saga", false, true)
-	examples.MainSwitch.TransOutRevertResult.SetOnce(dtmcli.ResultOngoing)
+	examples.MainSwitch.TransOutRevertResult.SetOnce("ERROR")
 	err := saga.Submit()
 	assert.Nil(t, err)
 	WaitTransProcessed(saga.Gid)
@@ -67,7 +67,7 @@ func sagaRollback2(t *testing.T) {
 func sagaTimeout(t *testing.T) {
 	saga := genSaga("gid-timeout-saga", false, false)
 	saga.TimeoutToFail = 1800
-	examples.MainSwitch.TransOutResult.SetOnce(dtmcli.ResultOngoing)
+	examples.MainSwitch.TransOutResult.SetOnce("UNKOWN")
 	saga.Submit()
 	WaitTransProcessed(saga.Gid)
 	assert.Equal(t, dtmcli.StatusSubmitted, getTransStatus(saga.Gid))

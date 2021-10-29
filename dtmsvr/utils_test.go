@@ -16,7 +16,7 @@ func TestUtils(t *testing.T) {
 	assert.Error(t, err)
 
 	CronExpiredTrans(1)
-	sleepCronTime(10)
+	sleepCronTime()
 }
 
 func TestCheckLocalHost(t *testing.T) {
@@ -42,4 +42,9 @@ func TestSetNextCron(t *testing.T) {
 	assert.Equal(t, config.RetryInterval, tg.NextCronInterval)
 	tg.setNextCron(cronBackoff)
 	assert.Equal(t, config.RetryInterval*2, tg.NextCronInterval)
+}
+func TestTransFromDB(t *testing.T) {
+	db := dbGet()
+	trans := transFromDb(db, "-1")
+	assert.Nil(t, trans)
 }
