@@ -42,6 +42,7 @@ func svcAbort(t *TransGlobal) (interface{}, error) {
 	if t.TransType != "xa" && t.TransType != "tcc" || dbt.Status != dtmcli.StatusPrepared && dbt.Status != dtmcli.StatusAborting {
 		return M{"dtm_result": dtmcli.ResultFailure, "message": fmt.Sprintf("trans type: '%s' current status '%s', cannot abort", dbt.TransType, dbt.Status)}, nil
 	}
+	dbt.changeStatus(db, dtmcli.StatusAborting)
 	return dbt.Process(db), nil
 }
 

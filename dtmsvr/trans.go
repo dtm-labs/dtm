@@ -77,7 +77,7 @@ func (t *TransGlobal) changeStatus(db *common.DB, status string) *gorm.DB {
 
 func (t *TransGlobal) isTimeout() bool {
 	timeout := t.TimeoutToFail
-	if t.TimeoutToFail == 0 && t.TransType != "saga" && t.TransType != "msg" {
+	if t.TimeoutToFail == 0 && t.TransType != "saga" {
 		timeout = config.TimeoutToFail
 	}
 	if timeout == 0 {
