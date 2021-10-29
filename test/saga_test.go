@@ -33,7 +33,7 @@ func sagaCommittedOngoing(t *testing.T) {
 	saga.Submit()
 	WaitTransProcessed(saga.Gid)
 	assert.Equal(t, []string{dtmcli.StatusPrepared, dtmcli.StatusPrepared, dtmcli.StatusPrepared, dtmcli.StatusPrepared}, getBranchesStatus(saga.Gid))
-	CronTransOnce()
+	cronTransOnce()
 	assert.Equal(t, []string{dtmcli.StatusPrepared, dtmcli.StatusSucceed, dtmcli.StatusPrepared, dtmcli.StatusSucceed}, getBranchesStatus(saga.Gid))
 	assert.Equal(t, dtmcli.StatusSucceed, getTransStatus(saga.Gid))
 }
@@ -45,7 +45,7 @@ func sagaRollback(t *testing.T) {
 	assert.Nil(t, err)
 	WaitTransProcessed(saga.Gid)
 	assert.Equal(t, dtmcli.StatusAborting, getTransStatus(saga.Gid))
-	CronTransOnce()
+	cronTransOnce()
 	assert.Equal(t, dtmcli.StatusFailed, getTransStatus(saga.Gid))
 	assert.Equal(t, []string{dtmcli.StatusSucceed, dtmcli.StatusSucceed, dtmcli.StatusSucceed, dtmcli.StatusFailed}, getBranchesStatus(saga.Gid))
 	err = saga.Submit()

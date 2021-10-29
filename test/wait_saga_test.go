@@ -34,7 +34,7 @@ func sagaCommittedOngoingWait(t *testing.T) {
 	assert.Error(t, err)
 	WaitTransProcessed(saga.Gid)
 	assert.Equal(t, []string{dtmcli.StatusPrepared, dtmcli.StatusPrepared, dtmcli.StatusPrepared, dtmcli.StatusPrepared}, getBranchesStatus(saga.Gid))
-	CronTransOnce()
+	cronTransOnce()
 	assert.Equal(t, []string{dtmcli.StatusPrepared, dtmcli.StatusSucceed, dtmcli.StatusPrepared, dtmcli.StatusSucceed}, getBranchesStatus(saga.Gid))
 	assert.Equal(t, dtmcli.StatusSucceed, getTransStatus(saga.Gid))
 }

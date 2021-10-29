@@ -40,7 +40,7 @@ func csagaRollback(t *testing.T) {
 	assert.Nil(t, err)
 	WaitTransProcessed(csaga.Gid)
 	assert.Equal(t, dtmcli.StatusAborting, getTransStatus(csaga.Gid))
-	CronTransOnce()
+	cronTransOnce()
 	assert.Equal(t, dtmcli.StatusFailed, getTransStatus(csaga.Gid))
 	assert.Equal(t, []string{dtmcli.StatusSucceed, dtmcli.StatusFailed, dtmcli.StatusSucceed, dtmcli.StatusSucceed}, getBranchesStatus(csaga.Gid))
 	err = csaga.Submit()
@@ -67,7 +67,7 @@ func csagaCommittedOngoing(t *testing.T) {
 	assert.Equal(t, []string{dtmcli.StatusPrepared, dtmcli.StatusPrepared, dtmcli.StatusPrepared, dtmcli.StatusSucceed}, getBranchesStatus(csaga.Gid))
 	assert.Equal(t, dtmcli.StatusSubmitted, getTransStatus(csaga.Gid))
 
-	CronTransOnce()
+	cronTransOnce()
 	assert.Equal(t, []string{dtmcli.StatusPrepared, dtmcli.StatusSucceed, dtmcli.StatusPrepared, dtmcli.StatusSucceed}, getBranchesStatus(csaga.Gid))
 	assert.Equal(t, dtmcli.StatusSucceed, getTransStatus(csaga.Gid))
 }

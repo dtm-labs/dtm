@@ -47,21 +47,6 @@ func writeTransLog(gid string, action string, status string, branch string, deta
 // TransProcessedTestChan only for test usage. when transaction processed once, write gid to this chan
 var TransProcessedTestChan chan string = nil
 
-// WaitTransProcessed only for test usage. wait for transaction processed once
-func WaitTransProcessed(gid string) {
-	dtmcli.Logf("waiting for gid %s", gid)
-	select {
-	case id := <-TransProcessedTestChan:
-		for id != gid {
-			dtmcli.LogRedf("-------id %s not match gid %s", id, gid)
-			id = <-TransProcessedTestChan
-		}
-		dtmcli.Logf("finish for gid %s", gid)
-	case <-time.After(time.Duration(time.Second * 3)):
-		dtmcli.LogFatalf("Wait Trans timeout")
-	}
-}
-
 var gNode *snowflake.Node = nil
 
 func init() {

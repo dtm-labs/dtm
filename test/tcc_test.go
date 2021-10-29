@@ -38,6 +38,6 @@ func tccRollback(t *testing.T) {
 	assert.Error(t, err)
 	WaitTransProcessed(gid)
 	assert.Equal(t, dtmcli.StatusAborting, getTransStatus(gid))
-	CronTransOnce()
+	cronTransOnce()
 	assert.Equal(t, dtmcli.StatusFailed, getTransStatus(gid))
 }

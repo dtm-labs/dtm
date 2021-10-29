@@ -33,7 +33,7 @@ func grpcMsgOngoing(t *testing.T) {
 	examples.MainSwitch.TransInResult.SetOnce(dtmcli.ResultOngoing)
 	cronTransOnceForwardNow(180)
 	assert.Equal(t, dtmcli.StatusSubmitted, getTransStatus(msg.Gid))
-	CronTransOnce()
+	cronTransOnce()
 	assert.Equal(t, dtmcli.StatusSucceed, getTransStatus(msg.Gid))
 }
 
