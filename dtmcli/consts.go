@@ -1,14 +1,18 @@
 package dtmcli
 
 const (
-	// StatusPrepared status for global trans status. exists only in tran message
+	// StatusPrepared status for global/branch trans status.
 	StatusPrepared = "prepared"
-	// StatusSubmitted StatusSubmitted status for global trans status.
+	// StatusSubmitted status for global trans status.
 	StatusSubmitted = "submitted"
-	// StatusSucceed status for global trans status.
+	// StatusSucceed status for global/branch trans status.
 	StatusSucceed = "succeed"
-	// StatusFailed status for global trans status.
+	// StatusFailed status for global/branch trans status.
 	StatusFailed = "failed"
+	// StatusAborting status for global trans status.
+	StatusAborting = "aborting"
+	// StatusDoing status for branch status
+	StatusDoing = "doing"
 
 	// BranchTry branch type for TCC
 	BranchTry = "try"
@@ -29,6 +33,8 @@ const (
 	ResultSuccess = "SUCCESS"
 	// ResultFailure for result of a trans/trans branch
 	ResultFailure = "FAILURE"
+	// ResultOngoing for result of a trans/trans branch
+	ResultOngoing = "ONGOING"
 
 	// DBTypeMysql const for driver mysql
 	DBTypeMysql = "mysql"
