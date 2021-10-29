@@ -156,6 +156,10 @@ func (t *TransGlobal) Process(db *common.DB) dtmcli.M {
 }
 
 func (t *TransGlobal) process(db *common.DB) dtmcli.M {
+	if t.Options != "" {
+		dtmcli.MustUnmarshalString(t.Options, &t.TransOptions)
+	}
+
 	if !t.WaitResult {
 		go t.processInner(db)
 		return dtmcli.MapSuccess
@@ -295,6 +299,10 @@ func (t *TransGlobal) saveNew(db *common.DB) error {
 	return db.Transaction(func(db1 *gorm.DB) error {
 		db := &common.DB{DB: db1}
 		t.setNextCron(cronReset)
+		t.Options = dtmcli.MustMarshalString(t.TransOptions)
+		if t.Options == "{}" {
+			t.Options = ""
+		}
 		writeTransLog(t.Gid, "create trans", t.Status, "", t.Data)
 		dbr := db.Must().Clauses(clause.OnConflict{
 			DoNothing: true,
@@ -326,10 +334,6 @@ func TransFromContext(c *gin.Context) *TransGlobal {
 	}
 	m := TransGlobal{}
 	dtmcli.MustRemarshal(data, &m)
-	m.Options = dtmcli.MustMarshalString(m.TransOptions)
-	if m.Options == "{}" {
-		m.Options = ""
-	}
 	m.Protocol = "http"
 	return &m
 }
@@ -353,9 +357,6 @@ func TransFromDb(db *common.DB, gid string) *TransGlobal {
 		return nil
 	}
 	e2p(dbr.Error)
-	if m.Options != "" {
-		dtmcli.MustUnmarshalString(m.Options, &m.TransOptions)
-	}
 	return &m
 }
 

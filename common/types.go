@@ -143,7 +143,7 @@ func init() {
 		return
 	}
 	DtmConfig.TransCronInterval = getIntEnv("TRANS_CRON_INTERVAL", "3")
-	DtmConfig.TimeoutToFail = getIntEnv("TIMEOUT_TO_FAIL", "10")
+	DtmConfig.TimeoutToFail = getIntEnv("TIMEOUT_TO_FAIL", "35")
 	DtmConfig.RetryInterval = getIntEnv("RETRY_INTERVAL", "10")
 	DtmConfig.DB = map[string]string{
 		"driver":   dtmcli.OrString(os.Getenv("DB_DRIVER"), "mysql"),
