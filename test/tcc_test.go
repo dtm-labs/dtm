@@ -36,7 +36,7 @@ func tccRollback(t *testing.T) {
 		return tcc.CallBranch(data, Busi+"/TransIn", Busi+"/TransInConfirm", Busi+"/TransInRevert")
 	})
 	assert.Error(t, err)
-	WaitTransProcessed(gid)
+	waitTransProcessed(gid)
 	assert.Equal(t, dtmcli.StatusAborting, getTransStatus(gid))
 	cronTransOnce()
 	assert.Equal(t, dtmcli.StatusFailed, getTransStatus(gid))

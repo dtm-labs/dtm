@@ -31,7 +31,7 @@ func tccBarrierRollback(t *testing.T) {
 		return tcc.CallBranch(&examples.TransReq{Amount: 30, TransInResult: dtmcli.ResultFailure}, Busi+"/TccBTransInTry", Busi+"/TccBTransInConfirm", Busi+"/TccBTransInCancel")
 	})
 	assert.Error(t, err)
-	WaitTransProcessed(gid)
+	waitTransProcessed(gid)
 	assert.Equal(t, dtmcli.StatusFailed, getTransStatus(gid))
 }
 
@@ -43,7 +43,7 @@ func tccBarrierNormal(t *testing.T) {
 		return tcc.CallBranch(&examples.TransReq{Amount: 30}, Busi+"/TccBTransInTry", Busi+"/TccBTransInConfirm", Busi+"/TccBTransInCancel")
 	})
 	assert.Nil(t, err)
-	WaitTransProcessed(gid)
+	waitTransProcessed(gid)
 	assert.Equal(t, dtmcli.StatusSucceed, getTransStatus(gid))
 }
 

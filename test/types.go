@@ -14,8 +14,8 @@ func dbGet() *common.DB {
 	return common.DbGet(config.DB)
 }
 
-// WaitTransProcessed only for test usage. wait for transaction processed once
-func WaitTransProcessed(gid string) {
+// waitTransProcessed only for test usage. wait for transaction processed once
+func waitTransProcessed(gid string) {
 	dtmcli.Logf("waiting for gid %s", gid)
 	select {
 	case id := <-dtmsvr.TransProcessedTestChan:
@@ -32,7 +32,7 @@ func WaitTransProcessed(gid string) {
 func cronTransOnce() {
 	gid := dtmsvr.CronTransOnce()
 	if dtmsvr.TransProcessedTestChan != nil && gid != "" {
-		WaitTransProcessed(gid)
+		waitTransProcessed(gid)
 	}
 }
 
