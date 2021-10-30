@@ -49,7 +49,7 @@ func csagaRollback(t *testing.T) {
 
 func csagaRollback2(t *testing.T) {
 	csaga := genCSaga("gid-rollback-csaga2", true, false)
-	csaga.AddStepOrder(1, []int{0})
+	csaga.AddBranchOrder(1, []int{0})
 	err := csaga.Submit()
 	assert.Nil(t, err)
 	waitTransProcessed(csaga.Gid)

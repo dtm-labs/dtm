@@ -32,10 +32,10 @@ func (s *Saga) Add(action string, compensate string, postData interface{}) *Saga
 	return s
 }
 
-// AddStepOrder specify that step should be after preSteps. Step is larger than all the element in preSteps
-func (s *Saga) AddStepOrder(step int, preSteps []int) *Saga {
-	PanicIf(step > len(s.Steps), fmt.Errorf("step value: %d is invalid. which cannot be larger than total steps: %d", step, len(s.Steps)))
-	s.orders[step] = preSteps
+// AddBranchOrder specify that branch should be after preBranches. branch should is larger than all the element in preBranches
+func (s *Saga) AddBranchOrder(branch int, preBranches []int) *Saga {
+	PanicIf(branch > len(s.Steps), fmt.Errorf("step value: %d is invalid. which cannot be larger than total steps: %d", branch, len(s.Steps)))
+	s.orders[branch] = preBranches
 	return s
 }
 

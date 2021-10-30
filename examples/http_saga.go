@@ -38,8 +38,8 @@ func init() {
 			Add(Busi+"/TransIn", Busi+"/TransInRevert", req).
 			Add(Busi+"/TransIn", Busi+"/TransInRevert", req).
 			EnableConcurrent().
-			AddStepOrder(2, []int{0, 1}).
-			AddStepOrder(3, []int{0, 1})
+			AddBranchOrder(2, []int{0, 1}).
+			AddBranchOrder(3, []int{0, 1})
 		dtmcli.Logf("concurrent saga busi trans submit")
 		err := csaga.Submit()
 		dtmcli.Logf("result gid is: %s", csaga.Gid)
