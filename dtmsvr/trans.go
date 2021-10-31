@@ -37,7 +37,7 @@ type TransGlobal struct {
 	NextCronInterval int64
 	NextCronTime     *time.Time
 	dtmcli.TransOptions
-	processStarted time.Time // record the start time of process
+	lastTouched time.Time // record the start time of process
 }
 
 // TableName TableName
@@ -52,6 +52,7 @@ type transProcessor interface {
 
 func (t *TransGlobal) touch(db *common.DB, ctype cronType) *gorm.DB {
 	writeTransLog(t.Gid, "touch trans", "", "", "")
+	t.lastTouched = time.Now()
 	updates := t.setNextCron(ctype)
 	return db.Model(&TransGlobal{}).Where("gid=?", t.Gid).Select(updates).Updates(t)
 }
@@ -183,7 +184,7 @@ func (t *TransGlobal) processInner(db *common.DB) (rerr error) {
 	dtmcli.Logf("processing: %s status: %s", t.Gid, t.Status)
 	branches := []TransBranch{}
 	db.Must().Where("gid=?", t.Gid).Order("id asc").Find(&branches)
-	t.processStarted = time.Now()
+	t.lastTouched = time.Now()
 	rerr = t.getProcessor().ProcessOnce(db, branches)
 	return
 }
@@ -277,7 +278,7 @@ func (t *TransGlobal) execBranch(db *common.DB, branch *TransBranch) error {
 	}
 	branchMetrics(t, branch, status == dtmcli.StatusSucceed)
 	// if time pass 1500ms and NextCronInterval is not default, then reset NextCronInterval
-	if err == nil && time.Since(t.processStarted)+NowForwardDuration >= 1500*time.Millisecond ||
+	if err == nil && time.Since(t.lastTouched)+NowForwardDuration >= 1500*time.Millisecond ||
 		t.NextCronInterval > config.RetryInterval && t.NextCronInterval > t.RetryInterval {
 		t.touch(db, cronReset)
 	} else if err == dtmcli.ErrOngoing {
