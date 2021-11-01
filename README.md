@@ -74,7 +74,7 @@ DTM是一款golang开发的分布式事务管理器，解决了跨数据库、�
 
 安装[docker 20.04+](https://docs.docker.com/get-docker/)之后
 
-`docker-compose helper/compose.mysql.yml`
+`docker-compose helper/compose.mysql.yml up`
 
 > 您也可以配置使用现有的mysql，需要高级权限，允许dtm创建数据库
 >
