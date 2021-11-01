@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"net/url"
+	"strings"
 )
 
 // M a short name
@@ -43,12 +44,6 @@ func (g *IDGenerator) NewBranchID() string {
 // CurrentBranchID return current branchID
 func (g *IDGenerator) CurrentBranchID() string {
 	return g.parentID + fmt.Sprintf("%02d", g.branchID)
-}
-
-// TransResult dtm 返回的结果
-type TransResult struct {
-	DtmResult string `json:"dtm_result"`
-	Message   string
 }
 
 // TransOptions transaction options
@@ -91,13 +86,12 @@ func TransBaseFromQuery(qs url.Values) *TransBase {
 // callDtm 调用dtm服务器，返回事务的状态
 func (tb *TransBase) callDtm(body interface{}, operation string) error {
 	resp, err := RestyClient.R().
-		SetResult(&TransResult{}).SetBody(body).Post(fmt.Sprintf("%s/%s", tb.Dtm, operation))
+		SetBody(body).Post(fmt.Sprintf("%s/%s", tb.Dtm, operation))
 	if err != nil {
 		return err
 	}
-	tr := resp.Result().(*TransResult)
-	if tr.DtmResult == ResultFailure {
-		return errors.New("FAILURE: " + tr.Message)
+	if strings.Contains(resp.String(), ResultFailure) {
+		return errors.New(resp.String())
 	}
 	return nil
 }
