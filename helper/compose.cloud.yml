@@ -2,6 +2,11 @@ version: '3.3'
 services:
   api:
     build: ..
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - /etc/timezone:/etc/timezone:ro
+    extra_hosts:
+      - 'host.docker.internal:host-gateway'
     environment:
       IS_DOCKER: 1
       DISABLE_LOCALHOST: 1
@@ -12,14 +17,15 @@ services:
       - ..:/app/dtm
   mysql:
     image: 'mysql:5.7'
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - /etc/timezone:/etc/timezone:ro
     environment:
       MYSQL_ALLOW_EMPTY_PASSWORD: 1
-      TZ: Asia/shanghai
     command:
       [
         '--character-set-server=utf8mb4',
         '--collation-server=utf8mb4_unicode_ci',
-        '--default-time-zone=+8:00',
       ]
     ports:
       - '3306:3306'

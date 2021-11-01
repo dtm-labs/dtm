@@ -1,12 +1,24 @@
 version: '3.3'
 services:
-  mysql:
-    image: 'mysql:5.7'
+  api:
+    image: 'yedf/dtm'
+    environment:
+      IS_DOCKER: '1'
+    ports:
+      - '8080:8080'
     volumes:
       - /etc/localtime:/etc/localtime:ro
       - /etc/timezone:/etc/timezone:ro
+    command: ['/app/dtm/main', 'qs']
+    extra_hosts:
+      - 'host.docker.internal:host-gateway'
+  db:
+    image: 'mysql:5.7'
     environment:
       MYSQL_ALLOW_EMPTY_PASSWORD: 1
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - /etc/timezone:/etc/timezone:ro
     command:
       [
         '--character-set-server=utf8mb4',
