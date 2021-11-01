@@ -7,9 +7,11 @@ services:
     ports:
       - '8080:8080'
     volumes:
+      - ..:/app/work
       - /etc/localtime:/etc/localtime:ro
       - /etc/timezone:/etc/timezone:ro
     command: ['/app/dtm/main', 'qs']
+    working_dir: /app/work
     extra_hosts:
       - 'host.docker.internal:host-gateway'
   db:
