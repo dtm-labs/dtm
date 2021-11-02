@@ -165,7 +165,7 @@ func init() {
 			break
 		}
 	}
-	if cont != nil && len(cont) != 0 {
+	if len(cont) != 0 {
 		dtmcli.Logf("cont is: \n%s", string(cont))
 		err := yaml.Unmarshal(cont, &DtmConfig)
 		dtmcli.FatalIfError(err)
