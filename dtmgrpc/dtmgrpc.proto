@@ -15,7 +15,7 @@ service Dtm {
   rpc RegisterXaBranch(DtmXaBranchRequest) returns (google.protobuf.Empty) {}
 }
 
-// DtmRequest 发给dtm服务器的消息，响应为Emtpy，error == nil为成功，== Aborted 为失败 == 其他 可以重试
+// DtmRequest 发给dtm服务器的消息，响应为Empty，error == nil为成功，== Aborted 为失败 == 其他 可以重试
 message DtmRequest {
   string Gid = 1;
   string TransType = 2;
