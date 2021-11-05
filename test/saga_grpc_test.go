@@ -29,6 +29,25 @@ func TestSagaGrpcRollback(t *testing.T) {
 	assert.Equal(t, []string{StatusSucceed, StatusSucceed, StatusSucceed, StatusFailed}, getBranchesStatus(saga.Gid))
 }
 
+func TestSagaGrpcCurrent(t *testing.T) {
+	saga := genSagaGrpc(dtmimp.GetFuncName(), false, false).
+		EnableConcurrent()
+	saga.Submit()
+	waitTransProcessed(saga.Gid)
+	assert.Equal(t, []string{StatusPrepared, StatusSucceed, StatusPrepared, StatusSucceed}, getBranchesStatus(saga.Gid))
+	assert.Equal(t, StatusSucceed, getTransStatus(saga.Gid))
+}
+
+func TestSagaGrpcCurrentOrder(t *testing.T) {
+	saga := genSagaGrpc(dtmimp.GetFuncName(), false, false).
+		EnableConcurrent().
+		AddBranchOrder(1, []int{0})
+	saga.Submit()
+	waitTransProcessed(saga.Gid)
+	assert.Equal(t, []string{StatusPrepared, StatusSucceed, StatusPrepared, StatusSucceed}, getBranchesStatus(saga.Gid))
+	assert.Equal(t, StatusSucceed, getTransStatus(saga.Gid))
+}
+
 func TestSagaGrpcCommittedOngoing(t *testing.T) {
 	saga := genSagaGrpc(dtmimp.GetFuncName(), false, false)
 	examples.MainSwitch.TransOutResult.SetOnce(dtmcli.ResultOngoing)

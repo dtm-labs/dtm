@@ -92,3 +92,26 @@ func TestXaTimeout(t *testing.T) {
 	assert.Equal(t, StatusFailed, getTransStatus(gid))
 	assert.Equal(t, []string{}, getBranchesStatus(gid))
 }
+
+func TestXaNotTimeout(t *testing.T) {
+	gid := dtmimp.GetFuncName()
+	timeoutChan := make(chan int, 1)
+	err := getXc().XaGlobalTransaction(gid, func(xa *dtmcli.Xa) (*resty.Response, error) {
+		go func() {
+			cronTransOnceForwardNow(0) // not timeout,
+			timeoutChan <- 0
+		}()
+		_ = <-timeoutChan
+		req := examples.GenTransReq(30, false, false)
+		_, err := xa.CallBranch(req, examples.Busi+"/TransOutXa")
+		assert.Nil(t, err)
+		examples.MainSwitch.NextResult.SetOnce(dtmcli.ResultOngoing) // make commit temp error
+		return nil, nil
+	})
+	assert.Nil(t, err)
+	waitTransProcessed(gid)
+	assert.Equal(t, StatusSubmitted, getTransStatus(gid))
+	cronTransOnce()
+	assert.Equal(t, StatusSucceed, getTransStatus(gid))
+	assert.Equal(t, []string{StatusPrepared, StatusSucceed}, getBranchesStatus(gid))
+}

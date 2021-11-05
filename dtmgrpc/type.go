@@ -21,3 +21,8 @@ func MustGenGid(grpcServer string) string {
 func SetCurrentDBType(dbType string) {
 	dtmcli.SetCurrentDBType(dbType)
 }
+
+// GetCurrentDBType set the current db type
+func GetCurrentDBType() string {
+	return dtmcli.GetCurrentDBType()
+}

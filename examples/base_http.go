@@ -35,6 +35,16 @@ var Busi string = fmt.Sprintf("http://localhost:%d%s", BusiPort, BusiAPI)
 func BaseAppStartup() *gin.Engine {
 	dtmimp.Logf("examples starting")
 	app := common.GetGinApp()
+	app.Use(func(c *gin.Context) {
+		v := MainSwitch.NextResult.Fetch()
+		if v != "" {
+			c.JSON(200, gin.H{"dtm_result": v})
+			c.Abort()
+			return
+		}
+		c.Next()
+	})
+
 	BaseAddRoute(app)
 	for k, v := range setupFuncs {
 		dtmimp.Logf("initing %s", k)
@@ -73,6 +83,7 @@ type mainSwitchType struct {
 	TransInRevertResult   AutoEmptyString
 	TransOutRevertResult  AutoEmptyString
 	CanSubmitResult       AutoEmptyString
+	NextResult            AutoEmptyString
 }
 
 // MainSwitch controls busi success or fail
