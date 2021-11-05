@@ -13,7 +13,7 @@ import (
 	"google.golang.org/protobuf/types/known/emptypb"
 )
 
-func TestGrpcXaType(t *testing.T) {
+func TestXaGrpcType(t *testing.T) {
 	_, err := dtmgrpc.XaGrpcFromRequest(context.Background())
 	assert.Error(t, err)
 
@@ -26,7 +26,7 @@ func TestGrpcXaType(t *testing.T) {
 	assert.Error(t, err)
 }
 
-func TestGrpcXaLocalError(t *testing.T) {
+func TestXaGrpcLocalError(t *testing.T) {
 	xc := examples.XaGrpcClient
 	err := xc.XaGlobalTransaction(dtmimp.GetFuncName(), func(xa *dtmgrpc.XaGrpc) error {
 		return fmt.Errorf("an error")
@@ -34,7 +34,7 @@ func TestGrpcXaLocalError(t *testing.T) {
 	assert.Error(t, err, fmt.Errorf("an error"))
 }
 
-func TestGrpcXaNormal(t *testing.T) {
+func TestXaGrpcNormal(t *testing.T) {
 	xc := examples.XaGrpcClient
 	gid := dtmimp.GetFuncName()
 	err := xc.XaGlobalTransaction(gid, func(xa *dtmgrpc.XaGrpc) error {
@@ -52,7 +52,7 @@ func TestGrpcXaNormal(t *testing.T) {
 	assert.Equal(t, []string{StatusPrepared, StatusSucceed, StatusPrepared, StatusSucceed}, getBranchesStatus(gid))
 }
 
-func TestGrpcXaRollback(t *testing.T) {
+func TestXaGrpcRollback(t *testing.T) {
 	xc := examples.XaGrpcClient
 	gid := dtmimp.GetFuncName()
 	err := xc.XaGlobalTransaction(gid, func(xa *dtmgrpc.XaGrpc) error {

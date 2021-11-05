@@ -11,7 +11,7 @@ import (
 	"github.com/yedf/dtm/examples"
 )
 
-func TestGrpcMsgNormal(t *testing.T) {
+func TestMsgGrpcNormal(t *testing.T) {
 	msg := genGrpcMsg(dtmimp.GetFuncName())
 	err := msg.Submit()
 	assert.Nil(t, err)
@@ -19,7 +19,7 @@ func TestGrpcMsgNormal(t *testing.T) {
 	assert.Equal(t, StatusSucceed, getTransStatus(msg.Gid))
 }
 
-func TestGrpcMsgOngoingSuccess(t *testing.T) {
+func TestMsgGrpcOngoingSuccess(t *testing.T) {
 	msg := genGrpcMsg(dtmimp.GetFuncName())
 	err := msg.Prepare("")
 	assert.Nil(t, err)
@@ -33,7 +33,7 @@ func TestGrpcMsgOngoingSuccess(t *testing.T) {
 	assert.Equal(t, StatusSucceed, getTransStatus(msg.Gid))
 }
 
-func TestGrpcMsgOngoingFailed(t *testing.T) {
+func TestMsgGrpcOngoingFailed(t *testing.T) {
 	msg := genGrpcMsg(dtmimp.GetFuncName())
 	msg.Prepare("")
 	assert.Equal(t, StatusPrepared, getTransStatus(msg.Gid))

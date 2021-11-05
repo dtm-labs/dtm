@@ -10,7 +10,7 @@ import (
 	"github.com/yedf/dtm/examples"
 )
 
-func TestGrpcSagaNormal(t *testing.T) {
+func TestSagaGrpcNormal(t *testing.T) {
 	saga := genSagaGrpc(dtmimp.GetFuncName(), false, false)
 	saga.Submit()
 	waitTransProcessed(saga.Gid)
@@ -18,7 +18,7 @@ func TestGrpcSagaNormal(t *testing.T) {
 	assert.Equal(t, StatusSucceed, getTransStatus(saga.Gid))
 }
 
-func TestGrpcSagaCommittedOngoing(t *testing.T) {
+func TestSagaGrpcCommittedOngoing(t *testing.T) {
 	saga := genSagaGrpc(dtmimp.GetFuncName(), false, false)
 	examples.MainSwitch.TransOutResult.SetOnce(dtmcli.ResultOngoing)
 	saga.Submit()
@@ -29,7 +29,7 @@ func TestGrpcSagaCommittedOngoing(t *testing.T) {
 	assert.Equal(t, StatusSucceed, getTransStatus(saga.Gid))
 }
 
-func TestGrpcSagaRollback(t *testing.T) {
+func TestSagaGrpcRollback(t *testing.T) {
 	saga := genSagaGrpc(dtmimp.GetFuncName(), false, true)
 	examples.MainSwitch.TransOutRevertResult.SetOnce(dtmcli.ResultOngoing)
 	saga.Submit()

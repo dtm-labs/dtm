@@ -12,14 +12,14 @@ import (
 	"google.golang.org/protobuf/types/known/emptypb"
 )
 
-func TestGrpcTccType(t *testing.T) {
+func TestTccGrpcType(t *testing.T) {
 	_, err := dtmgrpc.TccFromGrpc(context.Background())
 	assert.Error(t, err)
 	dtmimp.Logf("expecting dtmgrpcserver error")
 	err = dtmgrpc.TccGlobalTransaction("-", "", func(tcc *dtmgrpc.TccGrpc) error { return nil })
 	assert.Error(t, err)
 }
-func TestGrpcTccNormal(t *testing.T) {
+func TestTccGrpcNormal(t *testing.T) {
 	data := &examples.BusiReq{Amount: 30}
 	gid := dtmimp.GetFuncName()
 	err := dtmgrpc.TccGlobalTransaction(examples.DtmGrpcServer, gid, func(tcc *dtmgrpc.TccGrpc) error {
@@ -45,7 +45,7 @@ func TestGrpcTestNested(t *testing.T) {
 	assert.Nil(t, err)
 }
 
-func TestGrpcTccRollback(t *testing.T) {
+func TestTccGrpcRollback(t *testing.T) {
 	gid := dtmimp.GetFuncName()
 	data := &examples.BusiReq{Amount: 30, TransInResult: dtmcli.ResultFailure}
 	err := dtmgrpc.TccGlobalTransaction(examples.DtmGrpcServer, gid, func(tcc *dtmgrpc.TccGrpc) error {
