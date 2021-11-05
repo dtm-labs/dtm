@@ -40,3 +40,25 @@ func TestTccRollback(t *testing.T) {
 	assert.Equal(t, StatusFailed, getTransStatus(gid))
 	assert.Equal(t, []string{StatusSucceed, StatusPrepared, StatusSucceed, StatusPrepared}, getBranchesStatus(gid))
 }
+
+func TestTccTimeout(t *testing.T) {
+	req := examples.GenTransReq(30, false, false)
+	gid := dtmimp.GetFuncName()
+	timeoutChan := make(chan int, 1)
+
+	err := dtmcli.TccGlobalTransaction(examples.DtmServer, gid, func(tcc *dtmcli.Tcc) (*resty.Response, error) {
+		_, err := tcc.CallBranch(req, Busi+"/TransOut", Busi+"/TransOutConfirm", Busi+"/TransOutRevert")
+		assert.Nil(t, err)
+		go func() {
+			cronTransOnceForwardNow(300)
+			timeoutChan <- 0
+		}()
+		<-timeoutChan
+		_, err = tcc.CallBranch(req, Busi+"/TransIn", Busi+"/TransInConfirm", Busi+"/TransInRevert")
+		assert.Error(t, err)
+		return nil, err
+	})
+	assert.Error(t, err)
+	assert.Equal(t, StatusFailed, getTransStatus(gid))
+	assert.Equal(t, []string{StatusSucceed, StatusPrepared}, getBranchesStatus(gid))
+}
