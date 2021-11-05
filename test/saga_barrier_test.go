@@ -32,5 +32,4 @@ func genSagaBarrier(gid string, outFailed, inFailed bool) *dtmcli.Saga {
 	return dtmcli.NewSaga(DtmServer, gid).
 		Add(Busi+"/SagaBTransOut", Busi+"/SagaBTransOutCompensate", req).
 		Add(Busi+"/SagaBTransIn", Busi+"/SagaBTransInCompensate", req)
-
 }

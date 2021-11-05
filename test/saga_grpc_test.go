@@ -18,17 +18,6 @@ func TestSagaGrpcNormal(t *testing.T) {
 	assert.Equal(t, StatusSucceed, getTransStatus(saga.Gid))
 }
 
-func TestSagaGrpcCommittedOngoing(t *testing.T) {
-	saga := genSagaGrpc(dtmimp.GetFuncName(), false, false)
-	examples.MainSwitch.TransOutResult.SetOnce(dtmcli.ResultOngoing)
-	saga.Submit()
-	waitTransProcessed(saga.Gid)
-	assert.Equal(t, []string{StatusPrepared, StatusPrepared, StatusPrepared, StatusPrepared}, getBranchesStatus(saga.Gid))
-	cronTransOnce()
-	assert.Equal(t, []string{StatusPrepared, StatusSucceed, StatusPrepared, StatusSucceed}, getBranchesStatus(saga.Gid))
-	assert.Equal(t, StatusSucceed, getTransStatus(saga.Gid))
-}
-
 func TestSagaGrpcRollback(t *testing.T) {
 	saga := genSagaGrpc(dtmimp.GetFuncName(), false, true)
 	examples.MainSwitch.TransOutRevertResult.SetOnce(dtmcli.ResultOngoing)
@@ -40,8 +29,19 @@ func TestSagaGrpcRollback(t *testing.T) {
 	assert.Equal(t, []string{StatusSucceed, StatusSucceed, StatusSucceed, StatusFailed}, getBranchesStatus(saga.Gid))
 }
 
+func TestSagaGrpcCommittedOngoing(t *testing.T) {
+	saga := genSagaGrpc(dtmimp.GetFuncName(), false, false)
+	examples.MainSwitch.TransOutResult.SetOnce(dtmcli.ResultOngoing)
+	saga.Submit()
+	waitTransProcessed(saga.Gid)
+	assert.Equal(t, StatusSubmitted, getTransStatus(saga.Gid))
+	assert.Equal(t, []string{StatusPrepared, StatusPrepared, StatusPrepared, StatusPrepared}, getBranchesStatus(saga.Gid))
+	cronTransOnce()
+	assert.Equal(t, StatusSucceed, getTransStatus(saga.Gid))
+	assert.Equal(t, []string{StatusPrepared, StatusSucceed, StatusPrepared, StatusSucceed}, getBranchesStatus(saga.Gid))
+}
+
 func genSagaGrpc(gid string, outFailed bool, inFailed bool) *dtmgrpc.SagaGrpc {
-	dtmimp.Logf("beginning a grpc saga test ---------------- %s", gid)
 	saga := dtmgrpc.NewSagaGrpc(examples.DtmGrpcServer, gid)
 	req := examples.GenBusiReq(30, outFailed, inFailed)
 	saga.Add(examples.BusiGrpc+"/examples.Busi/TransOut", examples.BusiGrpc+"/examples.Busi/TransOutRevert", req)
