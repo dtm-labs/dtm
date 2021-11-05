@@ -28,6 +28,7 @@ func TestTccBarrierNormal(t *testing.T) {
 	assert.Nil(t, err)
 	waitTransProcessed(gid)
 	assert.Equal(t, StatusSucceed, getTransStatus(gid))
+	assert.Equal(t, []string{StatusPrepared, StatusSucceed, StatusPrepared, StatusPrepared, StatusSucceed, StatusPrepared}, getBranchesStatus(gid))
 }
 
 func TestTccBarrierRollback(t *testing.T) {
@@ -41,6 +42,7 @@ func TestTccBarrierRollback(t *testing.T) {
 	assert.Error(t, err)
 	waitTransProcessed(gid)
 	assert.Equal(t, StatusFailed, getTransStatus(gid))
+	assert.Equal(t, []string{StatusSucceed, StatusPrepared, StatusPrepared, StatusSucceed, StatusPrepared, StatusPrepared}, getBranchesStatus(gid))
 }
 
 func TestTccBarrierDisorder(t *testing.T) {
