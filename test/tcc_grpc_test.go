@@ -12,53 +12,59 @@ import (
 	"google.golang.org/protobuf/types/known/emptypb"
 )
 
-func TestTccGrpcType(t *testing.T) {
-	_, err := dtmgrpc.TccFromGrpc(context.Background())
-	assert.Error(t, err)
-	dtmimp.Logf("expecting dtmgrpcserver error")
-	err = dtmgrpc.TccGlobalTransaction("-", "", func(tcc *dtmgrpc.TccGrpc) error { return nil })
-	assert.Error(t, err)
-}
 func TestTccGrpcNormal(t *testing.T) {
-	data := &examples.BusiReq{Amount: 30}
+	req := examples.GenBusiReq(30, false, false)
 	gid := dtmimp.GetFuncName()
 	err := dtmgrpc.TccGlobalTransaction(examples.DtmGrpcServer, gid, func(tcc *dtmgrpc.TccGrpc) error {
 		r := &emptypb.Empty{}
-		err := tcc.CallBranch(data, examples.BusiGrpc+"/examples.Busi/TransOut", examples.BusiGrpc+"/examples.Busi/TransOutConfirm", examples.BusiGrpc+"/examples.Busi/TransOutRevert", r)
+		err := tcc.CallBranch(req, examples.BusiGrpc+"/examples.Busi/TransOut", examples.BusiGrpc+"/examples.Busi/TransOutConfirm", examples.BusiGrpc+"/examples.Busi/TransOutRevert", r)
 		assert.Nil(t, err)
-		err = tcc.CallBranch(data, examples.BusiGrpc+"/examples.Busi/TransIn", examples.BusiGrpc+"/examples.Busi/TransInConfirm", examples.BusiGrpc+"/examples.Busi/TransInRevert", r)
-		return err
+		return tcc.CallBranch(req, examples.BusiGrpc+"/examples.Busi/TransIn", examples.BusiGrpc+"/examples.Busi/TransInConfirm", examples.BusiGrpc+"/examples.Busi/TransInRevert", r)
 	})
 	assert.Nil(t, err)
-}
+	waitTransProcessed(gid)
+	assert.Equal(t, StatusSucceed, getTransStatus(gid))
+	assert.Equal(t, []string{StatusPrepared, StatusSucceed, StatusPrepared, StatusPrepared, StatusSucceed, StatusPrepared}, getBranchesStatus(gid))
 
-func TestGrpcTestNested(t *testing.T) {
-	data := &examples.BusiReq{Amount: 30}
-	gid := dtmimp.GetFuncName()
-	err := dtmgrpc.TccGlobalTransaction(examples.DtmGrpcServer, gid, func(tcc *dtmgrpc.TccGrpc) error {
-		r := &emptypb.Empty{}
-		err := tcc.CallBranch(data, examples.BusiGrpc+"/examples.Busi/TransOutTcc", examples.BusiGrpc+"/examples.Busi/TransOutConfirm", examples.BusiGrpc+"/examples.Busi/TransOutRevert", r)
-		assert.Nil(t, err)
-		err = tcc.CallBranch(data, examples.BusiGrpc+"/examples.Busi/TransInTccNested", examples.BusiGrpc+"/examples.Busi/TransInConfirm", examples.BusiGrpc+"/examples.Busi/TransInRevert", r)
-		return err
-	})
-	assert.Nil(t, err)
 }
 
 func TestTccGrpcRollback(t *testing.T) {
 	gid := dtmimp.GetFuncName()
-	data := &examples.BusiReq{Amount: 30, TransInResult: dtmcli.ResultFailure}
+	req := examples.GenBusiReq(30, false, true)
 	err := dtmgrpc.TccGlobalTransaction(examples.DtmGrpcServer, gid, func(tcc *dtmgrpc.TccGrpc) error {
 		r := &emptypb.Empty{}
-		err := tcc.CallBranch(data, examples.BusiGrpc+"/examples.Busi/TransOutTcc", examples.BusiGrpc+"/examples.Busi/TransOutConfirm", examples.BusiGrpc+"/examples.Busi/TransOutRevert", r)
+		err := tcc.CallBranch(req, examples.BusiGrpc+"/examples.Busi/TransOutTcc", examples.BusiGrpc+"/examples.Busi/TransOutConfirm", examples.BusiGrpc+"/examples.Busi/TransOutRevert", r)
 		assert.Nil(t, err)
 		examples.MainSwitch.TransOutRevertResult.SetOnce(dtmcli.ResultOngoing)
-		err = tcc.CallBranch(data, examples.BusiGrpc+"/examples.Busi/TransInTcc", examples.BusiGrpc+"/examples.Busi/TransInConfirm", examples.BusiGrpc+"/examples.Busi/TransInRevert", r)
-		return err
+		return tcc.CallBranch(req, examples.BusiGrpc+"/examples.Busi/TransInTcc", examples.BusiGrpc+"/examples.Busi/TransInConfirm", examples.BusiGrpc+"/examples.Busi/TransInRevert", r)
 	})
 	assert.Error(t, err)
 	waitTransProcessed(gid)
 	assert.Equal(t, StatusAborting, getTransStatus(gid))
 	cronTransOnce()
 	assert.Equal(t, StatusFailed, getTransStatus(gid))
+	assert.Equal(t, []string{StatusSucceed, StatusPrepared, StatusPrepared, StatusSucceed, StatusPrepared, StatusPrepared}, getBranchesStatus(gid))
+}
+
+func TestTccGrpcNested(t *testing.T) {
+	req := examples.GenBusiReq(30, false, false)
+	gid := dtmimp.GetFuncName()
+	err := dtmgrpc.TccGlobalTransaction(examples.DtmGrpcServer, gid, func(tcc *dtmgrpc.TccGrpc) error {
+		r := &emptypb.Empty{}
+		err := tcc.CallBranch(req, examples.BusiGrpc+"/examples.Busi/TransOutTcc", examples.BusiGrpc+"/examples.Busi/TransOutConfirm", examples.BusiGrpc+"/examples.Busi/TransOutRevert", r)
+		assert.Nil(t, err)
+		return tcc.CallBranch(req, examples.BusiGrpc+"/examples.Busi/TransInTccNested", examples.BusiGrpc+"/examples.Busi/TransInConfirm", examples.BusiGrpc+"/examples.Busi/TransInRevert", r)
+	})
+	assert.Nil(t, err)
+	waitTransProcessed(gid)
+	assert.Equal(t, StatusSucceed, getTransStatus(gid))
+	assert.Equal(t, []string{StatusPrepared, StatusSucceed, StatusPrepared, StatusPrepared, StatusSucceed, StatusPrepared, StatusPrepared, StatusSucceed, StatusPrepared}, getBranchesStatus(gid))
+}
+
+func TestTccGrpcType(t *testing.T) {
+	_, err := dtmgrpc.TccFromGrpc(context.Background())
+	assert.Error(t, err)
+	dtmimp.Logf("expecting dtmgrpcserver error")
+	err = dtmgrpc.TccGlobalTransaction("-", "", func(tcc *dtmgrpc.TccGrpc) error { return nil })
+	assert.Error(t, err)
 }

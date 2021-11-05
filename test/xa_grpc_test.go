@@ -6,12 +6,48 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"github.com/yedf/dtm/dtmcli"
 	"github.com/yedf/dtm/dtmcli/dtmimp"
 	"github.com/yedf/dtm/dtmgrpc"
 	"github.com/yedf/dtm/examples"
 	"google.golang.org/protobuf/types/known/emptypb"
 )
+
+func getXcg() *dtmgrpc.XaGrpcClient {
+	return examples.XaGrpcClient
+}
+func TestXaGrpcNormal(t *testing.T) {
+	gid := dtmimp.GetFuncName()
+	err := getXcg().XaGlobalTransaction(gid, func(xa *dtmgrpc.XaGrpc) error {
+		req := examples.GenBusiReq(30, false, false)
+		r := &emptypb.Empty{}
+		err := xa.CallBranch(req, examples.BusiGrpc+"/examples.Busi/TransOutXa", r)
+		if err != nil {
+			return err
+		}
+		return xa.CallBranch(req, examples.BusiGrpc+"/examples.Busi/TransInXa", r)
+	})
+	assert.Equal(t, nil, err)
+	waitTransProcessed(gid)
+	assert.Equal(t, StatusSucceed, getTransStatus(gid))
+	assert.Equal(t, []string{StatusPrepared, StatusSucceed, StatusPrepared, StatusSucceed}, getBranchesStatus(gid))
+}
+
+func TestXaGrpcRollback(t *testing.T) {
+	gid := dtmimp.GetFuncName()
+	err := getXcg().XaGlobalTransaction(gid, func(xa *dtmgrpc.XaGrpc) error {
+		req := examples.GenBusiReq(30, false, true)
+		r := &emptypb.Empty{}
+		err := xa.CallBranch(req, examples.BusiGrpc+"/examples.Busi/TransOutXa", r)
+		if err != nil {
+			return err
+		}
+		return xa.CallBranch(req, examples.BusiGrpc+"/examples.Busi/TransInXa", r)
+	})
+	assert.Error(t, err)
+	waitTransProcessed(gid)
+	assert.Equal(t, []string{StatusSucceed, StatusPrepared}, getBranchesStatus(gid))
+	assert.Equal(t, StatusFailed, getTransStatus(gid))
+}
 
 func TestXaGrpcType(t *testing.T) {
 	_, err := dtmgrpc.XaGrpcFromRequest(context.Background())
@@ -32,41 +68,4 @@ func TestXaGrpcLocalError(t *testing.T) {
 		return fmt.Errorf("an error")
 	})
 	assert.Error(t, err, fmt.Errorf("an error"))
-}
-
-func TestXaGrpcNormal(t *testing.T) {
-	xc := examples.XaGrpcClient
-	gid := dtmimp.GetFuncName()
-	err := xc.XaGlobalTransaction(gid, func(xa *dtmgrpc.XaGrpc) error {
-		req := &examples.BusiReq{Amount: 30}
-		r := &emptypb.Empty{}
-		err := xa.CallBranch(req, examples.BusiGrpc+"/examples.Busi/TransOutXa", r)
-		if err != nil {
-			return err
-		}
-		err = xa.CallBranch(req, examples.BusiGrpc+"/examples.Busi/TransInXa", r)
-		return err
-	})
-	assert.Equal(t, nil, err)
-	waitTransProcessed(gid)
-	assert.Equal(t, []string{StatusPrepared, StatusSucceed, StatusPrepared, StatusSucceed}, getBranchesStatus(gid))
-}
-
-func TestXaGrpcRollback(t *testing.T) {
-	xc := examples.XaGrpcClient
-	gid := dtmimp.GetFuncName()
-	err := xc.XaGlobalTransaction(gid, func(xa *dtmgrpc.XaGrpc) error {
-		req := &examples.BusiReq{Amount: 30, TransInResult: dtmcli.ResultFailure}
-		r := &emptypb.Empty{}
-		err := xa.CallBranch(req, examples.BusiGrpc+"/examples.Busi/TransOutXa", r)
-		if err != nil {
-			return err
-		}
-		err = xa.CallBranch(req, examples.BusiGrpc+"/examples.Busi/TransInXa", r)
-		return err
-	})
-	assert.Error(t, err)
-	waitTransProcessed(gid)
-	assert.Equal(t, []string{StatusSucceed, StatusPrepared}, getBranchesStatus(gid))
-	assert.Equal(t, StatusFailed, getTransStatus(gid))
 }

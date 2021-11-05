@@ -28,6 +28,7 @@ func (t *transTccProcessor) ProcessOnce(db *common.DB, branches []TransBranch) e
 	branchType := dtmimp.If(t.Status == dtmcli.StatusSubmitted, dtmcli.BranchConfirm, dtmcli.BranchCancel).(string)
 	for current := len(branches) - 1; current >= 0; current-- {
 		if branches[current].BranchType == branchType && branches[current].Status == dtmcli.StatusPrepared {
+			dtmimp.Logf("branch info: current: %d ID: %d", current, branches[current].ID)
 			err := t.execBranch(db, &branches[current])
 			if err != nil {
 				return err
