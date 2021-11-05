@@ -13,7 +13,6 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/go-resty/resty/v2"
 
-	"github.com/yedf/dtm/dtmcli"
 	"github.com/yedf/dtm/dtmcli/dtmimp"
 )
 
@@ -51,9 +50,6 @@ func WrapHandler(fn func(*gin.Context) (interface{}, error)) gin.HandlerFunc {
 		var b = []byte{}
 		if resp, ok := r.(*resty.Response); ok { // 如果是response，则取出body直接处理
 			b = resp.Body()
-		} else if err != nil && (strings.Contains(err.Error(), dtmcli.ResultFailure) || strings.Contains(err.Error(), dtmcli.ResultOngoing)) {
-			b = []byte(err.Error())
-			err = nil
 		} else if err == nil {
 			b, err = json.Marshal(r)
 		}

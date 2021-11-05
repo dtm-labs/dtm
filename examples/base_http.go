@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -99,6 +100,16 @@ func handleGeneralBusiness(c *gin.Context, result1 string, result2 string, busi 
 	return map[string]interface{}{"dtm_result": res}, nil
 }
 
+func error2Resp(err error) (interface{}, error) {
+	if err != nil {
+		s := err.Error()
+		if strings.Contains(s, dtmcli.ResultFailure) || strings.Contains(s, dtmcli.ResultOngoing) {
+			return gin.H{"dtm_result": s}, nil
+		}
+	}
+	return nil, nil
+}
+
 // BaseAddRoute add base route handler
 func BaseAddRoute(app *gin.Engine) {
 	app.POST(BusiAPI+"/TransIn", common.WrapHandler(func(c *gin.Context) (interface{}, error) {
@@ -124,26 +135,28 @@ func BaseAddRoute(app *gin.Engine) {
 		return dtmimp.OrString(MainSwitch.CanSubmitResult.Fetch(), dtmcli.ResultSuccess), nil
 	}))
 	app.POST(BusiAPI+"/TransInXa", common.WrapHandler(func(c *gin.Context) (interface{}, error) {
-		return dtmcli.MapSuccess, XaClient.XaLocalTransaction(c.Request.URL.Query(), func(db *sql.DB, xa *dtmcli.Xa) error {
+		err := XaClient.XaLocalTransaction(c.Request.URL.Query(), func(db *sql.DB, xa *dtmcli.Xa) error {
 			if reqFrom(c).TransInResult == dtmcli.ResultFailure {
 				return dtmcli.ErrFailure
 			}
 			_, err := dtmimp.DBExec(db, "update dtm_busi.user_account set balance=balance+? where user_id=?", reqFrom(c).Amount, 2)
 			return err
 		})
+		return error2Resp(err)
 	}))
 	app.POST(BusiAPI+"/TransOutXa", common.WrapHandler(func(c *gin.Context) (interface{}, error) {
-		return dtmcli.MapSuccess, XaClient.XaLocalTransaction(c.Request.URL.Query(), func(db *sql.DB, xa *dtmcli.Xa) error {
+		err := XaClient.XaLocalTransaction(c.Request.URL.Query(), func(db *sql.DB, xa *dtmcli.Xa) error {
 			if reqFrom(c).TransOutResult == dtmcli.ResultFailure {
 				return dtmcli.ErrFailure
 			}
 			_, err := dtmimp.DBExec(db, "update dtm_busi.user_account set balance=balance-? where user_id=?", reqFrom(c).Amount, 1)
 			return err
 		})
+		return error2Resp(err)
 	}))
 
 	app.POST(BusiAPI+"/TransOutXaGorm", common.WrapHandler(func(c *gin.Context) (interface{}, error) {
-		return dtmcli.MapSuccess, XaClient.XaLocalTransaction(c.Request.URL.Query(), func(db *sql.DB, xa *dtmcli.Xa) error {
+		err := XaClient.XaLocalTransaction(c.Request.URL.Query(), func(db *sql.DB, xa *dtmcli.Xa) error {
 			if reqFrom(c).TransOutResult == dtmcli.ResultFailure {
 				return dtmcli.ErrFailure
 			}
@@ -160,6 +173,7 @@ func BaseAddRoute(app *gin.Engine) {
 			dbr := gdb.Exec("update dtm_busi.user_account set balance=balance-? where user_id=?", reqFrom(c).Amount, 1)
 			return dbr.Error
 		})
+		return error2Resp(err)
 	}))
 
 	app.POST(BusiAPI+"/TestPanic", common.WrapHandler(func(c *gin.Context) (interface{}, error) {
