@@ -28,7 +28,7 @@ func TestTccBarrierNormal(t *testing.T) {
 	assert.Nil(t, err)
 	waitTransProcessed(gid)
 	assert.Equal(t, StatusSucceed, getTransStatus(gid))
-	assert.Equal(t, []string{StatusPrepared, StatusSucceed, StatusPrepared, StatusPrepared, StatusSucceed, StatusPrepared}, getBranchesStatus(gid))
+	assert.Equal(t, []string{StatusPrepared, StatusSucceed, StatusPrepared, StatusSucceed}, getBranchesStatus(gid))
 }
 
 func TestTccBarrierRollback(t *testing.T) {
@@ -42,7 +42,7 @@ func TestTccBarrierRollback(t *testing.T) {
 	assert.Error(t, err)
 	waitTransProcessed(gid)
 	assert.Equal(t, StatusFailed, getTransStatus(gid))
-	assert.Equal(t, []string{StatusSucceed, StatusPrepared, StatusPrepared, StatusSucceed, StatusPrepared, StatusPrepared}, getBranchesStatus(gid))
+	assert.Equal(t, []string{StatusSucceed, StatusPrepared, StatusSucceed, StatusPrepared}, getBranchesStatus(gid))
 }
 
 func TestTccBarrierDisorder(t *testing.T) {
@@ -75,7 +75,6 @@ func TestTccBarrierDisorder(t *testing.T) {
 				"trans_type":         "tcc",
 				"status":             StatusPrepared,
 				"data":               string(dtmimp.MustMarshal(body)),
-				dtmcli.BranchTry:     tryURL,
 				dtmcli.BranchConfirm: confirmURL,
 				dtmcli.BranchCancel:  cancelURL,
 			}).Post(fmt.Sprintf("%s/%s", tcc.Dtm, "registerTccBranch"))
@@ -111,7 +110,7 @@ func TestTccBarrierDisorder(t *testing.T) {
 		return nil, fmt.Errorf("a cancelled tcc")
 	})
 	assert.Error(t, err, fmt.Errorf("a cancelled tcc"))
-	assert.Equal(t, []string{StatusSucceed, StatusPrepared, StatusPrepared}, getBranchesStatus(gid))
+	assert.Equal(t, []string{StatusSucceed, StatusPrepared}, getBranchesStatus(gid))
 	assert.Equal(t, StatusFailed, getTransStatus(gid))
 }
 

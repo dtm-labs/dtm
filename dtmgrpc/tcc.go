@@ -73,7 +73,6 @@ func (t *TccGrpc) CallBranch(busiMsg proto.Message, tryURL string, confirmURL st
 			BranchID:  branchID,
 		},
 		BusiPayload: bd,
-		Try:         tryURL,
 		Confirm:     confirmURL,
 		Cancel:      cancelURL,
 	})

@@ -53,8 +53,8 @@ func svcRegisterTccBranch(branch *TransBranch, data map[string]string) (interfac
 		return map[string]interface{}{"dtm_result": dtmcli.ResultFailure, "message": fmt.Sprintf("current status: %s cannot register branch", dbt.Status)}, nil
 	}
 
-	branches := []TransBranch{*branch, *branch, *branch}
-	for i, b := range []string{dtmcli.BranchCancel, dtmcli.BranchConfirm, dtmcli.BranchTry} {
+	branches := []TransBranch{*branch, *branch}
+	for i, b := range []string{dtmcli.BranchCancel, dtmcli.BranchConfirm} {
 		branches[i].BranchType = b
 		branches[i].URL = data[b]
 	}

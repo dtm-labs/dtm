@@ -42,7 +42,6 @@ func (s *dtmServer) RegisterTccBranch(ctx context.Context, in *pb.DtmTccBranchRe
 	}, map[string]string{
 		dtmcli.BranchCancel:  in.Cancel,
 		dtmcli.BranchConfirm: in.Confirm,
-		dtmcli.BranchTry:     in.Try,
 	})
 	return &emptypb.Empty{}, dtmgimp.Result2Error(r, err)
 }

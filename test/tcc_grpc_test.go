@@ -24,7 +24,7 @@ func TestTccGrpcNormal(t *testing.T) {
 	assert.Nil(t, err)
 	waitTransProcessed(gid)
 	assert.Equal(t, StatusSucceed, getTransStatus(gid))
-	assert.Equal(t, []string{StatusPrepared, StatusSucceed, StatusPrepared, StatusPrepared, StatusSucceed, StatusPrepared}, getBranchesStatus(gid))
+	assert.Equal(t, []string{StatusPrepared, StatusSucceed, StatusPrepared, StatusSucceed}, getBranchesStatus(gid))
 
 }
 
@@ -43,7 +43,7 @@ func TestTccGrpcRollback(t *testing.T) {
 	assert.Equal(t, StatusAborting, getTransStatus(gid))
 	cronTransOnce()
 	assert.Equal(t, StatusFailed, getTransStatus(gid))
-	assert.Equal(t, []string{StatusSucceed, StatusPrepared, StatusPrepared, StatusSucceed, StatusPrepared, StatusPrepared}, getBranchesStatus(gid))
+	assert.Equal(t, []string{StatusSucceed, StatusPrepared, StatusSucceed, StatusPrepared}, getBranchesStatus(gid))
 }
 
 func TestTccGrpcNested(t *testing.T) {
@@ -58,7 +58,7 @@ func TestTccGrpcNested(t *testing.T) {
 	assert.Nil(t, err)
 	waitTransProcessed(gid)
 	assert.Equal(t, StatusSucceed, getTransStatus(gid))
-	assert.Equal(t, []string{StatusPrepared, StatusSucceed, StatusPrepared, StatusPrepared, StatusSucceed, StatusPrepared, StatusPrepared, StatusSucceed, StatusPrepared}, getBranchesStatus(gid))
+	assert.Equal(t, []string{StatusPrepared, StatusSucceed, StatusPrepared, StatusSucceed, StatusPrepared, StatusSucceed}, getBranchesStatus(gid))
 }
 
 func TestTccGrpcType(t *testing.T) {

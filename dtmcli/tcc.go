@@ -58,7 +58,6 @@ func (t *Tcc) CallBranch(body interface{}, tryURL string, confirmURL string, can
 	err := dtmimp.TransRegisterBranch(&t.TransBase, map[string]string{
 		"data":        dtmimp.MustMarshalString(body),
 		"branch_id":   branchID,
-		BranchTry:     tryURL,
 		BranchConfirm: confirmURL,
 		BranchCancel:  cancelURL,
 	}, "registerTccBranch")

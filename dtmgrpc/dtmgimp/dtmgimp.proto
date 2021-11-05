@@ -46,9 +46,8 @@ message DtmBranchInfo {
 message DtmTccBranchRequest {
   DtmBranchInfo Info = 1;
   bytes BusiPayload = 2;
-  string Try = 3;
-  string Confirm = 4;
-  string Cancel = 5;
+  string Confirm = 3;
+  string Cancel = 4;
 }
 
 message DtmXaBranchRequest {
