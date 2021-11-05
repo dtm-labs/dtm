@@ -17,23 +17,26 @@ func TestMsgGrpcNormal(t *testing.T) {
 	assert.Nil(t, err)
 	waitTransProcessed(msg.Gid)
 	assert.Equal(t, StatusSucceed, getTransStatus(msg.Gid))
+	assert.Equal(t, []string{StatusSucceed, StatusSucceed}, getBranchesStatus(msg.Gid))
 }
 
-func TestMsgGrpcOngoingSuccess(t *testing.T) {
+func TestMsgGrpcTimeoutSuccess(t *testing.T) {
 	msg := genGrpcMsg(dtmimp.GetFuncName())
 	err := msg.Prepare("")
 	assert.Nil(t, err)
 	examples.MainSwitch.CanSubmitResult.SetOnce(dtmcli.ResultOngoing)
 	cronTransOnceForwardNow(180)
 	assert.Equal(t, StatusPrepared, getTransStatus(msg.Gid))
-	examples.MainSwitch.TransInResult.SetOnce(dtmcli.ResultOngoing)
+	examples.MainSwitch.TransOutResult.SetOnce(dtmcli.ResultOngoing)
 	cronTransOnceForwardNow(180)
 	assert.Equal(t, StatusSubmitted, getTransStatus(msg.Gid))
+	assert.Equal(t, []string{StatusPrepared, StatusPrepared}, getBranchesStatus(msg.Gid))
 	cronTransOnce()
 	assert.Equal(t, StatusSucceed, getTransStatus(msg.Gid))
+	assert.Equal(t, []string{StatusSucceed, StatusSucceed}, getBranchesStatus(msg.Gid))
 }
 
-func TestMsgGrpcOngoingFailed(t *testing.T) {
+func TestMsgGrpcTimeoutFailed(t *testing.T) {
 	msg := genGrpcMsg(dtmimp.GetFuncName())
 	msg.Prepare("")
 	assert.Equal(t, StatusPrepared, getTransStatus(msg.Gid))
@@ -42,8 +45,8 @@ func TestMsgGrpcOngoingFailed(t *testing.T) {
 	assert.Equal(t, StatusPrepared, getTransStatus(msg.Gid))
 	examples.MainSwitch.CanSubmitResult.SetOnce(dtmcli.ResultFailure)
 	cronTransOnceForwardNow(180)
-	assert.Equal(t, []string{StatusPrepared, StatusPrepared}, getBranchesStatus(msg.Gid))
 	assert.Equal(t, StatusFailed, getTransStatus(msg.Gid))
+	assert.Equal(t, []string{StatusPrepared, StatusPrepared}, getBranchesStatus(msg.Gid))
 }
 
 func genGrpcMsg(gid string) *dtmgrpc.MsgGrpc {

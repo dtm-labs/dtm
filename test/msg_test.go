@@ -18,7 +18,7 @@ func TestMsgNormal(t *testing.T) {
 	assert.Equal(t, StatusSucceed, getTransStatus(msg.Gid))
 }
 
-func TestMsgOngoingSuccess(t *testing.T) {
+func TestMsgTimeoutSuccess(t *testing.T) {
 	msg := genMsg(dtmimp.GetFuncName())
 	msg.Prepare("")
 	assert.Equal(t, StatusPrepared, getTransStatus(msg.Gid))
@@ -33,7 +33,7 @@ func TestMsgOngoingSuccess(t *testing.T) {
 	assert.Equal(t, StatusSucceed, getTransStatus(msg.Gid))
 }
 
-func TestMsgOngoingFailed(t *testing.T) {
+func TestMsgTimeoutFailed(t *testing.T) {
 	msg := genMsg(dtmimp.GetFuncName())
 	msg.Prepare("")
 	assert.Equal(t, StatusPrepared, getTransStatus(msg.Gid))
