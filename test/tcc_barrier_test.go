@@ -17,28 +17,30 @@ import (
 	"github.com/yedf/dtm/examples"
 )
 
-func TestTccBarrierRollback(t *testing.T) {
-	gid := dtmimp.GetFuncName()
-	err := dtmcli.TccGlobalTransaction(DtmServer, gid, func(tcc *dtmcli.Tcc) (*resty.Response, error) {
-		_, err := tcc.CallBranch(&examples.TransReq{Amount: 30}, Busi+"/TccBTransOutTry", Busi+"/TccBTransOutConfirm", Busi+"/TccBTransOutCancel")
-		assert.Nil(t, err)
-		return tcc.CallBranch(&examples.TransReq{Amount: 30, TransInResult: dtmcli.ResultFailure}, Busi+"/TccBTransInTry", Busi+"/TccBTransInConfirm", Busi+"/TccBTransInCancel")
-	})
-	assert.Error(t, err)
-	waitTransProcessed(gid)
-	assert.Equal(t, dtmcli.StatusFailed, getTransStatus(gid))
-}
-
 func TestTccBarrierNormal(t *testing.T) {
+	req := examples.GenTransReq(30, false, false)
 	gid := dtmimp.GetFuncName()
 	err := dtmcli.TccGlobalTransaction(DtmServer, gid, func(tcc *dtmcli.Tcc) (*resty.Response, error) {
-		_, err := tcc.CallBranch(&examples.TransReq{Amount: 30}, Busi+"/TccBTransOutTry", Busi+"/TccBTransOutConfirm", Busi+"/TccBTransOutCancel")
+		_, err := tcc.CallBranch(req, Busi+"/TccBTransOutTry", Busi+"/TccBTransOutConfirm", Busi+"/TccBTransOutCancel")
 		assert.Nil(t, err)
-		return tcc.CallBranch(&examples.TransReq{Amount: 30}, Busi+"/TccBTransInTry", Busi+"/TccBTransInConfirm", Busi+"/TccBTransInCancel")
+		return tcc.CallBranch(req, Busi+"/TccBTransInTry", Busi+"/TccBTransInConfirm", Busi+"/TccBTransInCancel")
 	})
 	assert.Nil(t, err)
 	waitTransProcessed(gid)
-	assert.Equal(t, dtmcli.StatusSucceed, getTransStatus(gid))
+	assert.Equal(t, StatusSucceed, getTransStatus(gid))
+}
+
+func TestTccBarrierRollback(t *testing.T) {
+	req := examples.GenTransReq(30, false, true)
+	gid := dtmimp.GetFuncName()
+	err := dtmcli.TccGlobalTransaction(DtmServer, gid, func(tcc *dtmcli.Tcc) (*resty.Response, error) {
+		_, err := tcc.CallBranch(req, Busi+"/TccBTransOutTry", Busi+"/TccBTransOutConfirm", Busi+"/TccBTransOutCancel")
+		assert.Nil(t, err)
+		return tcc.CallBranch(req, Busi+"/TccBTransInTry", Busi+"/TccBTransInConfirm", Busi+"/TccBTransInCancel")
+	})
+	assert.Error(t, err)
+	waitTransProcessed(gid)
+	assert.Equal(t, StatusFailed, getTransStatus(gid))
 }
 
 func TestTccBarrierDisorder(t *testing.T) {
@@ -69,7 +71,7 @@ func TestTccBarrierDisorder(t *testing.T) {
 				"gid":                tcc.Gid,
 				"branch_id":          branchID,
 				"trans_type":         "tcc",
-				"status":             dtmcli.StatusPrepared,
+				"status":             StatusPrepared,
 				"data":               string(dtmimp.MustMarshal(body)),
 				dtmcli.BranchTry:     tryURL,
 				dtmcli.BranchConfirm: confirmURL,
@@ -107,8 +109,8 @@ func TestTccBarrierDisorder(t *testing.T) {
 		return nil, fmt.Errorf("a cancelled tcc")
 	})
 	assert.Error(t, err, fmt.Errorf("a cancelled tcc"))
-	assert.Equal(t, []string{dtmcli.StatusSucceed, dtmcli.StatusPrepared, dtmcli.StatusPrepared}, getBranchesStatus(gid))
-	assert.Equal(t, dtmcli.StatusFailed, getTransStatus(gid))
+	assert.Equal(t, []string{StatusSucceed, StatusPrepared, StatusPrepared}, getBranchesStatus(gid))
+	assert.Equal(t, StatusFailed, getTransStatus(gid))
 }
 
 func TestTccBarrierPanic(t *testing.T) {

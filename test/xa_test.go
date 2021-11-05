@@ -33,7 +33,7 @@ func TestXaNormal(t *testing.T) {
 	})
 	assert.Equal(t, nil, err)
 	waitTransProcessed(gid)
-	assert.Equal(t, []string{dtmcli.StatusPrepared, dtmcli.StatusSucceed, dtmcli.StatusPrepared, dtmcli.StatusSucceed}, getBranchesStatus(gid))
+	assert.Equal(t, []string{StatusPrepared, StatusSucceed, StatusPrepared, StatusSucceed}, getBranchesStatus(gid))
 }
 
 func TestXaDuplicate(t *testing.T) {
@@ -51,7 +51,7 @@ func TestXaDuplicate(t *testing.T) {
 	})
 	assert.Equal(t, nil, err)
 	waitTransProcessed(gid)
-	assert.Equal(t, []string{dtmcli.StatusPrepared, dtmcli.StatusSucceed, dtmcli.StatusPrepared, dtmcli.StatusSucceed}, getBranchesStatus(gid))
+	assert.Equal(t, []string{StatusPrepared, StatusSucceed, StatusPrepared, StatusSucceed}, getBranchesStatus(gid))
 }
 func TestXaRollback(t *testing.T) {
 	xc := examples.XaClient
@@ -66,8 +66,8 @@ func TestXaRollback(t *testing.T) {
 	})
 	assert.Error(t, err)
 	waitTransProcessed(gid)
-	assert.Equal(t, []string{dtmcli.StatusSucceed, dtmcli.StatusPrepared}, getBranchesStatus(gid))
-	assert.Equal(t, dtmcli.StatusFailed, getTransStatus(gid))
+	assert.Equal(t, []string{StatusSucceed, StatusPrepared}, getBranchesStatus(gid))
+	assert.Equal(t, StatusFailed, getTransStatus(gid))
 }
 
 func TestXaTimeout(t *testing.T) {

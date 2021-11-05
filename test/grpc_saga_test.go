@@ -14,8 +14,8 @@ func TestGrpcSagaNormal(t *testing.T) {
 	saga := genSagaGrpc(dtmimp.GetFuncName(), false, false)
 	saga.Submit()
 	waitTransProcessed(saga.Gid)
-	assert.Equal(t, []string{dtmcli.StatusPrepared, dtmcli.StatusSucceed, dtmcli.StatusPrepared, dtmcli.StatusSucceed}, getBranchesStatus(saga.Gid))
-	assert.Equal(t, dtmcli.StatusSucceed, getTransStatus(saga.Gid))
+	assert.Equal(t, []string{StatusPrepared, StatusSucceed, StatusPrepared, StatusSucceed}, getBranchesStatus(saga.Gid))
+	assert.Equal(t, StatusSucceed, getTransStatus(saga.Gid))
 }
 
 func TestGrpcSagaCommittedOngoing(t *testing.T) {
@@ -23,10 +23,10 @@ func TestGrpcSagaCommittedOngoing(t *testing.T) {
 	examples.MainSwitch.TransOutResult.SetOnce(dtmcli.ResultOngoing)
 	saga.Submit()
 	waitTransProcessed(saga.Gid)
-	assert.Equal(t, []string{dtmcli.StatusPrepared, dtmcli.StatusPrepared, dtmcli.StatusPrepared, dtmcli.StatusPrepared}, getBranchesStatus(saga.Gid))
+	assert.Equal(t, []string{StatusPrepared, StatusPrepared, StatusPrepared, StatusPrepared}, getBranchesStatus(saga.Gid))
 	cronTransOnce()
-	assert.Equal(t, []string{dtmcli.StatusPrepared, dtmcli.StatusSucceed, dtmcli.StatusPrepared, dtmcli.StatusSucceed}, getBranchesStatus(saga.Gid))
-	assert.Equal(t, dtmcli.StatusSucceed, getTransStatus(saga.Gid))
+	assert.Equal(t, []string{StatusPrepared, StatusSucceed, StatusPrepared, StatusSucceed}, getBranchesStatus(saga.Gid))
+	assert.Equal(t, StatusSucceed, getTransStatus(saga.Gid))
 }
 
 func TestGrpcSagaRollback(t *testing.T) {
@@ -34,10 +34,10 @@ func TestGrpcSagaRollback(t *testing.T) {
 	examples.MainSwitch.TransOutRevertResult.SetOnce(dtmcli.ResultOngoing)
 	saga.Submit()
 	waitTransProcessed(saga.Gid)
-	assert.Equal(t, dtmcli.StatusAborting, getTransStatus(saga.Gid))
+	assert.Equal(t, StatusAborting, getTransStatus(saga.Gid))
 	cronTransOnce()
-	assert.Equal(t, dtmcli.StatusFailed, getTransStatus(saga.Gid))
-	assert.Equal(t, []string{dtmcli.StatusSucceed, dtmcli.StatusSucceed, dtmcli.StatusSucceed, dtmcli.StatusFailed}, getBranchesStatus(saga.Gid))
+	assert.Equal(t, StatusFailed, getTransStatus(saga.Gid))
+	assert.Equal(t, []string{StatusSucceed, StatusSucceed, StatusSucceed, StatusFailed}, getBranchesStatus(saga.Gid))
 }
 
 func genSagaGrpc(gid string, outFailed bool, inFailed bool) *dtmgrpc.SagaGrpc {

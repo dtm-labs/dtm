@@ -11,28 +11,30 @@ import (
 )
 
 func TestTccNormal(t *testing.T) {
-	data := &examples.TransReq{Amount: 30}
+	req := examples.GenTransReq(30, false, false)
 	gid := dtmimp.GetFuncName()
 	err := dtmcli.TccGlobalTransaction(examples.DtmServer, gid, func(tcc *dtmcli.Tcc) (*resty.Response, error) {
-		_, err := tcc.CallBranch(data, Busi+"/TransOut", Busi+"/TransOutConfirm", Busi+"/TransOutRevert")
+		_, err := tcc.CallBranch(req, Busi+"/TransOut", Busi+"/TransOutConfirm", Busi+"/TransOutRevert")
 		assert.Nil(t, err)
-		return tcc.CallBranch(data, Busi+"/TransIn", Busi+"/TransInConfirm", Busi+"/TransInRevert")
+		return tcc.CallBranch(req, Busi+"/TransIn", Busi+"/TransInConfirm", Busi+"/TransInRevert")
 	})
 	assert.Nil(t, err)
+	waitTransProcessed(gid)
+	assert.Equal(t, StatusSucceed, getTransStatus(gid))
 }
 
 func TestTccRollback(t *testing.T) {
 	gid := dtmimp.GetFuncName()
-	data := &examples.TransReq{Amount: 30, TransInResult: dtmcli.ResultFailure}
+	req := examples.GenTransReq(30, false, true)
 	err := dtmcli.TccGlobalTransaction(examples.DtmServer, gid, func(tcc *dtmcli.Tcc) (*resty.Response, error) {
-		_, rerr := tcc.CallBranch(data, Busi+"/TransOut", Busi+"/TransOutConfirm", Busi+"/TransOutRevert")
+		_, rerr := tcc.CallBranch(req, Busi+"/TransOut", Busi+"/TransOutConfirm", Busi+"/TransOutRevert")
 		assert.Nil(t, rerr)
 		examples.MainSwitch.TransOutRevertResult.SetOnce(dtmcli.ResultOngoing)
-		return tcc.CallBranch(data, Busi+"/TransIn", Busi+"/TransInConfirm", Busi+"/TransInRevert")
+		return tcc.CallBranch(req, Busi+"/TransIn", Busi+"/TransInConfirm", Busi+"/TransInRevert")
 	})
 	assert.Error(t, err)
 	waitTransProcessed(gid)
-	assert.Equal(t, dtmcli.StatusAborting, getTransStatus(gid))
+	assert.Equal(t, StatusAborting, getTransStatus(gid))
 	cronTransOnce()
-	assert.Equal(t, dtmcli.StatusFailed, getTransStatus(gid))
+	assert.Equal(t, StatusFailed, getTransStatus(gid))
 }

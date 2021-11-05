@@ -12,38 +12,38 @@ import (
 func TestMsgNormal(t *testing.T) {
 	msg := genMsg(dtmimp.GetFuncName())
 	msg.Submit()
-	assert.Equal(t, dtmcli.StatusSubmitted, getTransStatus(msg.Gid))
+	assert.Equal(t, StatusSubmitted, getTransStatus(msg.Gid))
 	waitTransProcessed(msg.Gid)
-	assert.Equal(t, []string{dtmcli.StatusSucceed, dtmcli.StatusSucceed}, getBranchesStatus(msg.Gid))
-	assert.Equal(t, dtmcli.StatusSucceed, getTransStatus(msg.Gid))
+	assert.Equal(t, []string{StatusSucceed, StatusSucceed}, getBranchesStatus(msg.Gid))
+	assert.Equal(t, StatusSucceed, getTransStatus(msg.Gid))
 }
 
 func TestMsgOngoingSuccess(t *testing.T) {
 	msg := genMsg(dtmimp.GetFuncName())
 	msg.Prepare("")
-	assert.Equal(t, dtmcli.StatusPrepared, getTransStatus(msg.Gid))
+	assert.Equal(t, StatusPrepared, getTransStatus(msg.Gid))
 	examples.MainSwitch.CanSubmitResult.SetOnce(dtmcli.ResultOngoing)
 	cronTransOnceForwardNow(180)
-	assert.Equal(t, dtmcli.StatusPrepared, getTransStatus(msg.Gid))
+	assert.Equal(t, StatusPrepared, getTransStatus(msg.Gid))
 	examples.MainSwitch.TransInResult.SetOnce(dtmcli.ResultOngoing)
 	cronTransOnceForwardNow(180)
-	assert.Equal(t, dtmcli.StatusSubmitted, getTransStatus(msg.Gid))
+	assert.Equal(t, StatusSubmitted, getTransStatus(msg.Gid))
 	cronTransOnce()
-	assert.Equal(t, []string{dtmcli.StatusSucceed, dtmcli.StatusSucceed}, getBranchesStatus(msg.Gid))
-	assert.Equal(t, dtmcli.StatusSucceed, getTransStatus(msg.Gid))
+	assert.Equal(t, []string{StatusSucceed, StatusSucceed}, getBranchesStatus(msg.Gid))
+	assert.Equal(t, StatusSucceed, getTransStatus(msg.Gid))
 }
 
 func TestMsgOngoingFailed(t *testing.T) {
 	msg := genMsg(dtmimp.GetFuncName())
 	msg.Prepare("")
-	assert.Equal(t, dtmcli.StatusPrepared, getTransStatus(msg.Gid))
+	assert.Equal(t, StatusPrepared, getTransStatus(msg.Gid))
 	examples.MainSwitch.CanSubmitResult.SetOnce(dtmcli.ResultOngoing)
 	cronTransOnceForwardNow(180)
-	assert.Equal(t, dtmcli.StatusPrepared, getTransStatus(msg.Gid))
+	assert.Equal(t, StatusPrepared, getTransStatus(msg.Gid))
 	examples.MainSwitch.CanSubmitResult.SetOnce(dtmcli.ResultFailure)
 	cronTransOnceForwardNow(180)
-	assert.Equal(t, []string{dtmcli.StatusPrepared, dtmcli.StatusPrepared}, getBranchesStatus(msg.Gid))
-	assert.Equal(t, dtmcli.StatusFailed, getTransStatus(msg.Gid))
+	assert.Equal(t, []string{StatusPrepared, StatusPrepared}, getBranchesStatus(msg.Gid))
+	assert.Equal(t, StatusFailed, getTransStatus(msg.Gid))
 }
 
 func TestMsgAbnormal(t *testing.T) {

@@ -49,7 +49,7 @@ func TestGrpcXaNormal(t *testing.T) {
 	})
 	assert.Equal(t, nil, err)
 	waitTransProcessed(gid)
-	assert.Equal(t, []string{dtmcli.StatusPrepared, dtmcli.StatusSucceed, dtmcli.StatusPrepared, dtmcli.StatusSucceed}, getBranchesStatus(gid))
+	assert.Equal(t, []string{StatusPrepared, StatusSucceed, StatusPrepared, StatusSucceed}, getBranchesStatus(gid))
 }
 
 func TestGrpcXaRollback(t *testing.T) {
@@ -67,6 +67,6 @@ func TestGrpcXaRollback(t *testing.T) {
 	})
 	assert.Error(t, err)
 	waitTransProcessed(gid)
-	assert.Equal(t, []string{dtmcli.StatusSucceed, dtmcli.StatusPrepared}, getBranchesStatus(gid))
-	assert.Equal(t, dtmcli.StatusFailed, getTransStatus(gid))
+	assert.Equal(t, []string{StatusSucceed, StatusPrepared}, getBranchesStatus(gid))
+	assert.Equal(t, StatusFailed, getTransStatus(gid))
 }

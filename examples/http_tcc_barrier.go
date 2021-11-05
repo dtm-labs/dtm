@@ -81,8 +81,8 @@ func tccBarrierTransInCancel(c *gin.Context) (interface{}, error) {
 
 func tccBarrierTransOutTry(c *gin.Context) (interface{}, error) {
 	req := reqFrom(c)
-	if req.TransInResult != "" {
-		return req.TransInResult, nil
+	if req.TransOutResult != "" {
+		return req.TransOutResult, nil
 	}
 	return dtmcli.MapSuccess, MustBarrierFromGin(c).Call(txGet(), func(db dtmcli.DB) error {
 		return adjustTrading(db, transOutUID, -req.Amount)

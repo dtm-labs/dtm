@@ -13,8 +13,8 @@ func TestSagaNormal(t *testing.T) {
 	saga := genSaga(dtmimp.GetFuncName(), false, false)
 	saga.Submit()
 	waitTransProcessed(saga.Gid)
-	assert.Equal(t, []string{dtmcli.StatusPrepared, dtmcli.StatusSucceed, dtmcli.StatusPrepared, dtmcli.StatusSucceed}, getBranchesStatus(saga.Gid))
-	assert.Equal(t, dtmcli.StatusSucceed, getTransStatus(saga.Gid))
+	assert.Equal(t, []string{StatusPrepared, StatusSucceed, StatusPrepared, StatusSucceed}, getBranchesStatus(saga.Gid))
+	assert.Equal(t, StatusSucceed, getTransStatus(saga.Gid))
 }
 
 func TestSagaOngoingSucceed(t *testing.T) {
@@ -22,11 +22,11 @@ func TestSagaOngoingSucceed(t *testing.T) {
 	examples.MainSwitch.TransOutResult.SetOnce(dtmcli.ResultOngoing)
 	saga.Submit()
 	waitTransProcessed(saga.Gid)
-	assert.Equal(t, []string{dtmcli.StatusPrepared, dtmcli.StatusPrepared, dtmcli.StatusPrepared, dtmcli.StatusPrepared}, getBranchesStatus(saga.Gid))
-	assert.Equal(t, dtmcli.StatusSubmitted, getTransStatus(saga.Gid))
+	assert.Equal(t, []string{StatusPrepared, StatusPrepared, StatusPrepared, StatusPrepared}, getBranchesStatus(saga.Gid))
+	assert.Equal(t, StatusSubmitted, getTransStatus(saga.Gid))
 	cronTransOnce()
-	assert.Equal(t, []string{dtmcli.StatusPrepared, dtmcli.StatusSucceed, dtmcli.StatusPrepared, dtmcli.StatusSucceed}, getBranchesStatus(saga.Gid))
-	assert.Equal(t, dtmcli.StatusSucceed, getTransStatus(saga.Gid))
+	assert.Equal(t, []string{StatusPrepared, StatusSucceed, StatusPrepared, StatusSucceed}, getBranchesStatus(saga.Gid))
+	assert.Equal(t, StatusSucceed, getTransStatus(saga.Gid))
 }
 
 func TestSagaFailed(t *testing.T) {
@@ -35,10 +35,10 @@ func TestSagaFailed(t *testing.T) {
 	err := saga.Submit()
 	assert.Nil(t, err)
 	waitTransProcessed(saga.Gid)
-	assert.Equal(t, dtmcli.StatusAborting, getTransStatus(saga.Gid))
+	assert.Equal(t, StatusAborting, getTransStatus(saga.Gid))
 	cronTransOnce()
-	assert.Equal(t, dtmcli.StatusFailed, getTransStatus(saga.Gid))
-	assert.Equal(t, []string{dtmcli.StatusSucceed, dtmcli.StatusSucceed, dtmcli.StatusSucceed, dtmcli.StatusFailed}, getBranchesStatus(saga.Gid))
+	assert.Equal(t, StatusFailed, getTransStatus(saga.Gid))
+	assert.Equal(t, []string{StatusSucceed, StatusSucceed, StatusSucceed, StatusFailed}, getBranchesStatus(saga.Gid))
 }
 
 func TestSagaAbnormal(t *testing.T) {

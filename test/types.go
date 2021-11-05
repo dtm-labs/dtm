@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"github.com/yedf/dtm/common"
+	"github.com/yedf/dtm/dtmcli"
 	"github.com/yedf/dtm/dtmcli/dtmimp"
 	"github.com/yedf/dtm/dtmsvr"
 )
@@ -57,3 +58,16 @@ func cronTransOnceForwardCron(seconds int) {
 	cronTransOnce()
 	dtmsvr.CronForwardDuration = old
 }
+
+const (
+	// StatusPrepared status for global/branch trans status.
+	StatusPrepared = dtmcli.StatusPrepared
+	// StatusSubmitted status for global trans status.
+	StatusSubmitted = dtmcli.StatusSubmitted
+	// StatusSucceed status for global/branch trans status.
+	StatusSucceed = dtmcli.StatusSucceed
+	// StatusFailed status for global/branch trans status.
+	StatusFailed = dtmcli.StatusFailed
+	// StatusAborting status for global trans status.
+	StatusAborting = dtmcli.StatusAborting
+)

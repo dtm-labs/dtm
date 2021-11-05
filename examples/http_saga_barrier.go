@@ -53,8 +53,8 @@ func sagaBarrierTransInCompensate(c *gin.Context) (interface{}, error) {
 
 func sagaBarrierTransOut(c *gin.Context) (interface{}, error) {
 	req := reqFrom(c)
-	if req.TransInResult != "" {
-		return req.TransInResult, nil
+	if req.TransOutResult != "" {
+		return req.TransOutResult, nil
 	}
 	barrier := MustBarrierFromGin(c)
 	return dtmcli.MapSuccess, barrier.Call(txGet(), func(db dtmcli.DB) error {

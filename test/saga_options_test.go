@@ -17,8 +17,8 @@ func TestSagaOptionsRetryOngoing(t *testing.T) {
 	assert.Nil(t, err)
 	waitTransProcessed(saga.Gid)
 	cronTransOnce()
-	assert.Equal(t, dtmcli.StatusSucceed, getTransStatus(saga.Gid))
-	assert.Equal(t, []string{dtmcli.StatusPrepared, dtmcli.StatusSucceed}, getBranchesStatus(saga.Gid))
+	assert.Equal(t, StatusSucceed, getTransStatus(saga.Gid))
+	assert.Equal(t, []string{StatusPrepared, StatusSucceed}, getBranchesStatus(saga.Gid))
 }
 
 func TestSagaOptionsRetryError(t *testing.T) {
@@ -29,11 +29,11 @@ func TestSagaOptionsRetryError(t *testing.T) {
 	assert.Nil(t, err)
 	waitTransProcessed(saga.Gid)
 	cronTransOnce()
-	assert.Equal(t, dtmcli.StatusSubmitted, getTransStatus(saga.Gid))
-	assert.Equal(t, []string{dtmcli.StatusPrepared, dtmcli.StatusPrepared}, getBranchesStatus(saga.Gid))
+	assert.Equal(t, StatusSubmitted, getTransStatus(saga.Gid))
+	assert.Equal(t, []string{StatusPrepared, StatusPrepared}, getBranchesStatus(saga.Gid))
 	cronTransOnceForwardCron(360)
-	assert.Equal(t, dtmcli.StatusSucceed, getTransStatus(saga.Gid))
-	assert.Equal(t, []string{dtmcli.StatusPrepared, dtmcli.StatusSucceed}, getBranchesStatus(saga.Gid))
+	assert.Equal(t, StatusSucceed, getTransStatus(saga.Gid))
+	assert.Equal(t, []string{StatusPrepared, StatusSucceed}, getBranchesStatus(saga.Gid))
 }
 
 func TestSagaOptionsTimeout(t *testing.T) {
@@ -42,9 +42,9 @@ func TestSagaOptionsTimeout(t *testing.T) {
 	examples.MainSwitch.TransOutResult.SetOnce(dtmcli.ResultOngoing)
 	saga.Submit()
 	waitTransProcessed(saga.Gid)
-	assert.Equal(t, dtmcli.StatusSubmitted, getTransStatus(saga.Gid))
+	assert.Equal(t, StatusSubmitted, getTransStatus(saga.Gid))
 	cronTransOnceForwardNow(3600)
-	assert.Equal(t, dtmcli.StatusFailed, getTransStatus(saga.Gid))
+	assert.Equal(t, StatusFailed, getTransStatus(saga.Gid))
 }
 
 func TestSagaOptionsNormalWait(t *testing.T) {
@@ -53,8 +53,8 @@ func TestSagaOptionsNormalWait(t *testing.T) {
 	err := saga.Submit()
 	assert.Nil(t, err)
 	waitTransProcessed(saga.Gid)
-	assert.Equal(t, []string{dtmcli.StatusPrepared, dtmcli.StatusSucceed, dtmcli.StatusPrepared, dtmcli.StatusSucceed}, getBranchesStatus(saga.Gid))
-	assert.Equal(t, dtmcli.StatusSucceed, getTransStatus(saga.Gid))
+	assert.Equal(t, []string{StatusPrepared, StatusSucceed, StatusPrepared, StatusSucceed}, getBranchesStatus(saga.Gid))
+	assert.Equal(t, StatusSucceed, getTransStatus(saga.Gid))
 }
 
 func TestSagaOptionsCommittedOngoingWait(t *testing.T) {
@@ -63,12 +63,12 @@ func TestSagaOptionsCommittedOngoingWait(t *testing.T) {
 	saga.SetOptions(&dtmimp.TransOptions{WaitResult: true})
 	err := saga.Submit()
 	assert.Error(t, err)
-	assert.Equal(t, []string{dtmcli.StatusPrepared, dtmcli.StatusPrepared, dtmcli.StatusPrepared, dtmcli.StatusPrepared}, getBranchesStatus(saga.Gid))
-	assert.Equal(t, dtmcli.StatusSubmitted, getTransStatus(saga.Gid))
+	assert.Equal(t, []string{StatusPrepared, StatusPrepared, StatusPrepared, StatusPrepared}, getBranchesStatus(saga.Gid))
+	assert.Equal(t, StatusSubmitted, getTransStatus(saga.Gid))
 	waitTransProcessed(saga.Gid)
 	cronTransOnce()
-	assert.Equal(t, []string{dtmcli.StatusPrepared, dtmcli.StatusSucceed, dtmcli.StatusPrepared, dtmcli.StatusSucceed}, getBranchesStatus(saga.Gid))
-	assert.Equal(t, dtmcli.StatusSucceed, getTransStatus(saga.Gid))
+	assert.Equal(t, []string{StatusPrepared, StatusSucceed, StatusPrepared, StatusSucceed}, getBranchesStatus(saga.Gid))
+	assert.Equal(t, StatusSucceed, getTransStatus(saga.Gid))
 }
 
 func TestSagaOptionsRollbackWait(t *testing.T) {
@@ -77,6 +77,6 @@ func TestSagaOptionsRollbackWait(t *testing.T) {
 	err := saga.Submit()
 	assert.Error(t, err)
 	waitTransProcessed(saga.Gid)
-	assert.Equal(t, dtmcli.StatusFailed, getTransStatus(saga.Gid))
-	assert.Equal(t, []string{dtmcli.StatusSucceed, dtmcli.StatusSucceed, dtmcli.StatusSucceed, dtmcli.StatusFailed}, getBranchesStatus(saga.Gid))
+	assert.Equal(t, StatusFailed, getTransStatus(saga.Gid))
+	assert.Equal(t, []string{StatusSucceed, StatusSucceed, StatusSucceed, StatusFailed}, getBranchesStatus(saga.Gid))
 }
