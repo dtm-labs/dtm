@@ -10,12 +10,9 @@ import (
 
 	"github.com/bwmarrin/snowflake"
 	"github.com/yedf/dtm/common"
-	"github.com/yedf/dtm/dtmcli"
+	"github.com/yedf/dtm/dtmcli/dtmimp"
 	"gorm.io/gorm"
 )
-
-// M a short name
-type M = map[string]interface{}
 
 type branchStatus struct {
 	id         uint64
@@ -23,25 +20,13 @@ type branchStatus struct {
 	finishTime *time.Time
 }
 
-var p2e = dtmcli.P2E
-var e2p = dtmcli.E2P
+var p2e = dtmimp.P2E
+var e2p = dtmimp.E2P
 
 var config = common.DtmConfig
 
 func dbGet() *common.DB {
 	return common.DbGet(config.DB)
-}
-func writeTransLog(gid string, action string, status string, branch string, detail string) {
-	// if detail == "" {
-	// 	detail = "{}"
-	// }
-	// dbGet().Must().Table("trans_log").Create(M{
-	// 	"gid":        gid,
-	// 	dtmcli.BranchAction:     action,
-	// 	"new_status": status,
-	// 	"branch":     branch,
-	// 	"detail":     detail,
-	// })
 }
 
 // TransProcessedTestChan only for test usage. when transaction processed once, write gid to this chan
@@ -69,7 +54,7 @@ func getOneHexIP() string {
 				ns := strings.Split(ip, ".")
 				r := []byte{}
 				for _, n := range ns {
-					r = append(r, byte(dtmcli.MustAtoi(n)))
+					r = append(r, byte(dtmimp.MustAtoi(n)))
 				}
 				return hex.EncodeToString(r)
 			}

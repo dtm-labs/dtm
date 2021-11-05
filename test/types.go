@@ -4,7 +4,7 @@ import (
 	"time"
 
 	"github.com/yedf/dtm/common"
-	"github.com/yedf/dtm/dtmcli"
+	"github.com/yedf/dtm/dtmcli/dtmimp"
 	"github.com/yedf/dtm/dtmsvr"
 )
 
@@ -16,16 +16,16 @@ func dbGet() *common.DB {
 
 // waitTransProcessed only for test usage. wait for transaction processed once
 func waitTransProcessed(gid string) {
-	dtmcli.Logf("waiting for gid %s", gid)
+	dtmimp.Logf("waiting for gid %s", gid)
 	select {
 	case id := <-dtmsvr.TransProcessedTestChan:
 		for id != gid {
-			dtmcli.LogRedf("-------id %s not match gid %s", id, gid)
+			dtmimp.LogRedf("-------id %s not match gid %s", id, gid)
 			id = <-dtmsvr.TransProcessedTestChan
 		}
-		dtmcli.Logf("finish for gid %s", gid)
+		dtmimp.Logf("finish for gid %s", gid)
 	case <-time.After(time.Duration(time.Second * 3)):
-		dtmcli.LogFatalf("Wait Trans timeout")
+		dtmimp.LogFatalf("Wait Trans timeout")
 	}
 }
 
@@ -36,7 +36,7 @@ func cronTransOnce() {
 	}
 }
 
-var e2p = dtmcli.E2P
+var e2p = dtmimp.E2P
 
 // TransGlobal alias
 type TransGlobal = dtmsvr.TransGlobal
@@ -44,12 +44,16 @@ type TransGlobal = dtmsvr.TransGlobal
 // TransBranch alias
 type TransBranch = dtmsvr.TransBranch
 
-// M alias
-type M = dtmcli.M
-
 func cronTransOnceForwardNow(seconds int) {
 	old := dtmsvr.NowForwardDuration
 	dtmsvr.NowForwardDuration = time.Duration(seconds) * time.Second
 	cronTransOnce()
 	dtmsvr.NowForwardDuration = old
+}
+
+func cronTransOnceForwardCron(seconds int) {
+	old := dtmsvr.CronForwardDuration
+	dtmsvr.CronForwardDuration = time.Duration(seconds) * time.Second
+	cronTransOnce()
+	dtmsvr.CronForwardDuration = old
 }

@@ -3,6 +3,7 @@ package dtmsvr
 import (
 	"github.com/yedf/dtm/common"
 	"github.com/yedf/dtm/dtmcli"
+	"github.com/yedf/dtm/dtmcli/dtmimp"
 )
 
 type transXaProcessor struct {
@@ -24,7 +25,7 @@ func (t *transXaProcessor) ProcessOnce(db *common.DB, branches []TransBranch) er
 	if t.Status == dtmcli.StatusPrepared && t.isTimeout() {
 		t.changeStatus(db, dtmcli.StatusAborting)
 	}
-	currentType := dtmcli.If(t.Status == dtmcli.StatusSubmitted, dtmcli.BranchCommit, dtmcli.BranchRollback).(string)
+	currentType := dtmimp.If(t.Status == dtmcli.StatusSubmitted, dtmcli.BranchCommit, dtmcli.BranchRollback).(string)
 	for _, branch := range branches {
 		if branch.BranchType == currentType && branch.Status != dtmcli.StatusSucceed {
 			err := t.execBranch(db, &branch)
@@ -33,6 +34,6 @@ func (t *transXaProcessor) ProcessOnce(db *common.DB, branches []TransBranch) er
 			}
 		}
 	}
-	t.changeStatus(db, dtmcli.If(t.Status == dtmcli.StatusSubmitted, dtmcli.StatusSucceed, dtmcli.StatusFailed).(string))
+	t.changeStatus(db, dtmimp.If(t.Status == dtmcli.StatusSubmitted, dtmcli.StatusSucceed, dtmcli.StatusFailed).(string))
 	return nil
 }

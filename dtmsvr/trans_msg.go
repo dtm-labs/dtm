@@ -1,10 +1,12 @@
 package dtmsvr
 
 import (
+	"fmt"
 	"strings"
 
 	"github.com/yedf/dtm/common"
 	"github.com/yedf/dtm/dtmcli"
+	"github.com/yedf/dtm/dtmcli/dtmimp"
 )
 
 type transMsgProcessor struct {
@@ -17,17 +19,16 @@ func init() {
 
 func (t *transMsgProcessor) GenBranches() []TransBranch {
 	branches := []TransBranch{}
-	steps := []M{}
-	dtmcli.MustUnmarshalString(t.Data, &steps)
-	for _, step := range steps {
-		branches = append(branches, TransBranch{
+	for i, step := range t.Steps {
+		b := &TransBranch{
 			Gid:        t.Gid,
-			BranchID:   GenGid(),
-			Data:       step["data"].(string),
-			URL:        step[dtmcli.BranchAction].(string),
+			BranchID:   fmt.Sprintf("%02d", i+1),
+			BinData:    t.BinPayloads[i],
+			URL:        step[dtmcli.BranchAction],
 			BranchType: dtmcli.BranchAction,
 			Status:     dtmcli.StatusPrepared,
-		})
+		}
+		branches = append(branches, *b)
 	}
 	return branches
 }
@@ -44,7 +45,7 @@ func (t *TransGlobal) mayQueryPrepared(db *common.DB) {
 	} else if strings.Contains(body, dtmcli.ResultOngoing) {
 		t.touch(db, cronReset)
 	} else {
-		dtmcli.LogRedf("getting result failed for %s. error: %s", t.QueryPrepared, err.Error())
+		dtmimp.LogRedf("getting result failed for %s. error: %s", t.QueryPrepared, err.Error())
 		t.touch(db, cronBackoff)
 	}
 }

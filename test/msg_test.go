@@ -5,31 +5,22 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/yedf/dtm/dtmcli"
+	"github.com/yedf/dtm/dtmcli/dtmimp"
 	"github.com/yedf/dtm/examples"
 )
 
-func TestMsg(t *testing.T) {
-
-	msgNormal(t)
-	msgOngoing(t)
-	msgOngoingFailed(t)
-}
-
-func msgNormal(t *testing.T) {
-	msg := genMsg("gid-msg-normal")
+func TestMsgNormal(t *testing.T) {
+	msg := genMsg(dtmimp.GetFuncName())
 	msg.Submit()
 	assert.Equal(t, dtmcli.StatusSubmitted, getTransStatus(msg.Gid))
 	waitTransProcessed(msg.Gid)
 	assert.Equal(t, []string{dtmcli.StatusSucceed, dtmcli.StatusSucceed}, getBranchesStatus(msg.Gid))
 	assert.Equal(t, dtmcli.StatusSucceed, getTransStatus(msg.Gid))
-	cronTransOnce()
 }
 
-func msgOngoing(t *testing.T) {
-	msg := genMsg("gid-msg-normal-pending")
+func TestMsgOngoingSuccess(t *testing.T) {
+	msg := genMsg(dtmimp.GetFuncName())
 	msg.Prepare("")
-	err := msg.Prepare("") // additional prepare to go conflict key path
-	assert.Nil(t, err)
 	assert.Equal(t, dtmcli.StatusPrepared, getTransStatus(msg.Gid))
 	examples.MainSwitch.CanSubmitResult.SetOnce(dtmcli.ResultOngoing)
 	cronTransOnceForwardNow(180)
@@ -40,12 +31,10 @@ func msgOngoing(t *testing.T) {
 	cronTransOnce()
 	assert.Equal(t, []string{dtmcli.StatusSucceed, dtmcli.StatusSucceed}, getBranchesStatus(msg.Gid))
 	assert.Equal(t, dtmcli.StatusSucceed, getTransStatus(msg.Gid))
-	err = msg.Prepare("")
-	assert.Error(t, err)
 }
 
-func msgOngoingFailed(t *testing.T) {
-	msg := genMsg("gid-msg-pending-failed")
+func TestMsgOngoingFailed(t *testing.T) {
+	msg := genMsg(dtmimp.GetFuncName())
 	msg.Prepare("")
 	assert.Equal(t, dtmcli.StatusPrepared, getTransStatus(msg.Gid))
 	examples.MainSwitch.CanSubmitResult.SetOnce(dtmcli.ResultOngoing)
@@ -55,4 +44,27 @@ func msgOngoingFailed(t *testing.T) {
 	cronTransOnceForwardNow(180)
 	assert.Equal(t, []string{dtmcli.StatusPrepared, dtmcli.StatusPrepared}, getBranchesStatus(msg.Gid))
 	assert.Equal(t, dtmcli.StatusFailed, getTransStatus(msg.Gid))
+}
+
+func TestMsgAbnormal(t *testing.T) {
+	msg := genMsg(dtmimp.GetFuncName())
+	msg.Prepare("")
+	err := msg.Prepare("")
+	assert.Nil(t, err)
+	err = msg.Submit()
+	assert.Nil(t, err)
+	err = msg.Submit()
+	assert.Nil(t, err)
+
+	err = msg.Prepare("")
+	assert.Error(t, err)
+}
+
+func genMsg(gid string) *dtmcli.Msg {
+	req := examples.GenTransReq(30, false, false)
+	msg := dtmcli.NewMsg(examples.DtmServer, gid).
+		Add(examples.Busi+"/TransOut", &req).
+		Add(examples.Busi+"/TransIn", &req)
+	msg.QueryPrepared = examples.Busi + "/CanSubmit"
+	return msg
 }

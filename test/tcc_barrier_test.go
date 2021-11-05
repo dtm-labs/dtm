@@ -13,18 +13,12 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/yedf/dtm/common"
 	"github.com/yedf/dtm/dtmcli"
+	"github.com/yedf/dtm/dtmcli/dtmimp"
 	"github.com/yedf/dtm/examples"
 )
 
-func TestBarrierTcc(t *testing.T) {
-	tccBarrierDisorder(t)
-	tccBarrierNormal(t)
-	tccBarrierRollback(t)
-	barrierPanic(t)
-}
-
-func tccBarrierRollback(t *testing.T) {
-	gid := "tccBarrierRollback"
+func TestTccBarrierRollback(t *testing.T) {
+	gid := dtmimp.GetFuncName()
 	err := dtmcli.TccGlobalTransaction(DtmServer, gid, func(tcc *dtmcli.Tcc) (*resty.Response, error) {
 		_, err := tcc.CallBranch(&examples.TransReq{Amount: 30}, Busi+"/TccBTransOutTry", Busi+"/TccBTransOutConfirm", Busi+"/TccBTransOutCancel")
 		assert.Nil(t, err)
@@ -35,8 +29,8 @@ func tccBarrierRollback(t *testing.T) {
 	assert.Equal(t, dtmcli.StatusFailed, getTransStatus(gid))
 }
 
-func tccBarrierNormal(t *testing.T) {
-	gid := "tccBarrierNormal"
+func TestTccBarrierNormal(t *testing.T) {
+	gid := dtmimp.GetFuncName()
 	err := dtmcli.TccGlobalTransaction(DtmServer, gid, func(tcc *dtmcli.Tcc) (*resty.Response, error) {
 		_, err := tcc.CallBranch(&examples.TransReq{Amount: 30}, Busi+"/TccBTransOutTry", Busi+"/TccBTransOutConfirm", Busi+"/TccBTransOutCancel")
 		assert.Nil(t, err)
@@ -47,36 +41,36 @@ func tccBarrierNormal(t *testing.T) {
 	assert.Equal(t, dtmcli.StatusSucceed, getTransStatus(gid))
 }
 
-func tccBarrierDisorder(t *testing.T) {
+func TestTccBarrierDisorder(t *testing.T) {
 	timeoutChan := make(chan string, 2)
 	finishedChan := make(chan string, 2)
-	gid := "tccBarrierDisorder"
+	gid := dtmimp.GetFuncName()
 	err := dtmcli.TccGlobalTransaction(DtmServer, gid, func(tcc *dtmcli.Tcc) (*resty.Response, error) {
 		body := &examples.TransReq{Amount: 30}
 		tryURL := Busi + "/TccBTransOutTry"
 		confirmURL := Busi + "/TccBTransOutConfirm"
 		cancelURL := Busi + "/TccBSleepCancel"
 		// 请参见子事务屏障里的时序图，这里为了模拟该时序图，手动拆解了callbranch
-		branchID := tcc.NewBranchID()
+		branchID := tcc.NewSubBranchID()
 		sleeped := false
 		app.POST(examples.BusiAPI+"/TccBSleepCancel", common.WrapHandler(func(c *gin.Context) (interface{}, error) {
 			res, err := examples.TccBarrierTransOutCancel(c)
 			if !sleeped {
 				sleeped = true
-				dtmcli.Logf("sleep before cancel return")
+				dtmimp.Logf("sleep before cancel return")
 				<-timeoutChan
 				finishedChan <- "1"
 			}
 			return res, err
 		}))
 		// 注册子事务
-		resp, err := dtmcli.RestyClient.R().
-			SetBody(M{
+		resp, err := dtmimp.RestyClient.R().
+			SetBody(map[string]interface{}{
 				"gid":                tcc.Gid,
 				"branch_id":          branchID,
 				"trans_type":         "tcc",
 				"status":             dtmcli.StatusPrepared,
-				"data":               string(dtmcli.MustMarshal(body)),
+				"data":               string(dtmimp.MustMarshal(body)),
 				dtmcli.BranchTry:     tryURL,
 				dtmcli.BranchConfirm: confirmURL,
 				dtmcli.BranchCancel:  cancelURL,
@@ -85,11 +79,11 @@ func tccBarrierDisorder(t *testing.T) {
 		assert.Contains(t, resp.String(), dtmcli.ResultSuccess)
 
 		go func() {
-			dtmcli.Logf("sleeping to wait for tcc try timeout")
+			dtmimp.Logf("sleeping to wait for tcc try timeout")
 			<-timeoutChan
-			r, _ := dtmcli.RestyClient.R().
+			r, _ := dtmimp.RestyClient.R().
 				SetBody(body).
-				SetQueryParams(dtmcli.MS{
+				SetQueryParams(map[string]string{
 					"dtm":         tcc.Dtm,
 					"gid":         tcc.Gid,
 					"branch_id":   branchID,
@@ -100,10 +94,10 @@ func tccBarrierDisorder(t *testing.T) {
 			assert.True(t, strings.Contains(r.String(), dtmcli.ResultSuccess)) // 这个是悬挂操作，为了简单起见，依旧让他返回成功
 			finishedChan <- "1"
 		}()
-		dtmcli.Logf("cron to timeout and then call cancel")
+		dtmimp.Logf("cron to timeout and then call cancel")
 		go cronTransOnceForwardNow(300)
 		time.Sleep(100 * time.Millisecond)
-		dtmcli.Logf("cron to timeout and then call cancelled twice")
+		dtmimp.Logf("cron to timeout and then call cancelled twice")
 		cronTransOnceForwardNow(300)
 		timeoutChan <- "wake"
 		timeoutChan <- "wake"
@@ -117,11 +111,11 @@ func tccBarrierDisorder(t *testing.T) {
 	assert.Equal(t, dtmcli.StatusFailed, getTransStatus(gid))
 }
 
-func barrierPanic(t *testing.T) {
+func TestTccBarrierPanic(t *testing.T) {
 	bb := &dtmcli.BranchBarrier{TransType: "saga", Gid: "gid1", BranchID: "bid1", BranchType: "action", BarrierID: 1}
 	var err error
 	func() {
-		defer dtmcli.P2E(&err)
+		defer dtmimp.P2E(&err)
 		tx, _ := dbGet().ToSQLDB().BeginTx(context.Background(), &sql.TxOptions{})
 		bb.Call(tx, func(db dtmcli.DB) error {
 			panic(fmt.Errorf("an error"))

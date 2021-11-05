@@ -1,0 +1,58 @@
+syntax = "proto3";
+
+option go_package = "github.com/yedf/dtm/dtmgrpc/dtmgimp";
+import "google/protobuf/empty.proto";
+
+package dtmgimp;
+
+// The dtm service definition.
+service Dtm {
+  rpc NewGid(google.protobuf.Empty) returns (DtmGidReply) {}
+  rpc Submit(DtmRequest) returns (google.protobuf.Empty) {}
+  rpc Prepare(DtmRequest) returns (google.protobuf.Empty) {}
+  rpc Abort(DtmRequest) returns (google.protobuf.Empty) {}
+  rpc RegisterTccBranch(DtmTccBranchRequest) returns (google.protobuf.Empty) {}
+  rpc RegisterXaBranch(DtmXaBranchRequest) returns (google.protobuf.Empty) {}
+}
+
+message DtmTransOptions {
+  bool WaitResult = 1;
+  int64 TimeoutToFail = 2;
+  int64 RetryInterval = 3;
+}
+
+// DtmRequest request sent to dtm server
+message DtmRequest {
+  string Gid = 1;
+  string TransType = 2;
+  DtmTransOptions TransOptions = 3;
+  string CustomedData = 4;
+  repeated bytes BinPayloads = 5; // for MSG/SAGA branch payloads
+  string QueryPrepared = 6; // for MSG
+  string Steps = 7;
+}
+
+message DtmGidReply {
+  string Gid = 1;
+}
+
+message DtmBranchInfo {
+  string Gid = 1;
+  string TransType = 2;
+  string BranchID = 3;
+  string BranchType = 4;
+}
+
+message DtmTccBranchRequest {
+  DtmBranchInfo Info = 1;
+  bytes BusiPayload = 2;
+  string Try = 3;
+  string Confirm = 4;
+  string Cancel = 5;
+}
+
+message DtmXaBranchRequest {
+  DtmBranchInfo Info = 1;
+  bytes BusiPayload = 2;
+  string Notify = 3; // dtm will call this url to commit/rollback
+}

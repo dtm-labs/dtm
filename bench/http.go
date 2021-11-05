@@ -10,6 +10,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/yedf/dtm/common"
 	"github.com/yedf/dtm/dtmcli"
+	"github.com/yedf/dtm/dtmcli/dtmimp"
 	"github.com/yedf/dtm/dtmsvr"
 	"github.com/yedf/dtm/examples"
 )
@@ -24,15 +25,15 @@ const total = 200000
 var benchBusi = fmt.Sprintf("http://localhost:%d%s", benchPort, benchAPI)
 
 func sdbGet() *sql.DB {
-	db, err := dtmcli.PooledDB(common.DtmConfig.DB)
-	dtmcli.FatalIfError(err)
+	db, err := dtmimp.PooledDB(common.DtmConfig.DB)
+	dtmimp.FatalIfError(err)
 	return db
 }
 
 func txGet() *sql.Tx {
 	db := sdbGet()
 	tx, err := db.Begin()
-	dtmcli.FatalIfError(err)
+	dtmimp.FatalIfError(err)
 	return tx
 }
 
@@ -42,17 +43,17 @@ func reloadData() {
 	db := sdbGet()
 	tables := []string{"dtm_busi.user_account", "dtm_busi.user_account_log", "dtm.trans_global", "dtm.trans_branch", "dtm_barrier.barrier"}
 	for _, t := range tables {
-		_, err := dtmcli.DBExec(db, fmt.Sprintf("truncate %s", t))
-		dtmcli.FatalIfError(err)
+		_, err := dtmimp.DBExec(db, fmt.Sprintf("truncate %s", t))
+		dtmimp.FatalIfError(err)
 	}
 	s := "insert ignore into dtm_busi.user_account(user_id, balance) values "
 	ss := []string{}
 	for i := 1; i <= total; i++ {
 		ss = append(ss, fmt.Sprintf("(%d, 1000000)", i))
 	}
-	_, err := dtmcli.DBExec(db, s+strings.Join(ss, ","))
-	dtmcli.FatalIfError(err)
-	dtmcli.Logf("%d users inserted. used: %dms", total, time.Since(began).Milliseconds())
+	_, err := dtmimp.DBExec(db, s+strings.Join(ss, ","))
+	dtmimp.FatalIfError(err)
+	dtmimp.Logf("%d users inserted. used: %dms", total, time.Since(began).Milliseconds())
 }
 
 var uidCounter int32 = 0
@@ -63,12 +64,12 @@ var sqls int = 1
 func StartSvr() {
 	app := common.GetGinApp()
 	benchAddRoute(app)
-	dtmcli.Logf("bench listening at %d", benchPort)
+	dtmimp.Logf("bench listening at %d", benchPort)
 	go app.Run(fmt.Sprintf(":%d", benchPort))
 	db := sdbGet()
-	_, err := dtmcli.DBExec(db, "drop table if exists dtm_busi.user_account_log")
-	dtmcli.FatalIfError(err)
-	_, err = dtmcli.DBExec(db, `create table if not exists dtm_busi.user_account_log (
+	_, err := dtmimp.DBExec(db, "drop table if exists dtm_busi.user_account_log")
+	dtmimp.FatalIfError(err)
+	_, err = dtmimp.DBExec(db, `create table if not exists dtm_busi.user_account_log (
 	id      INT(11) AUTO_INCREMENT PRIMARY KEY,
 	user_id INT(11) NOT NULL,
 	delta DECIMAL(11, 2) not null,
@@ -82,33 +83,33 @@ func StartSvr() {
 	key(create_time)
 )
 `)
-	dtmcli.FatalIfError(err)
+	dtmimp.FatalIfError(err)
 }
 
 func qsAdjustBalance(uid int, amount int, c *gin.Context) (interface{}, error) {
 	if strings.Contains(mode, "empty") {
 		return dtmcli.MapSuccess, nil
 	}
-	tb := dtmcli.TransBaseFromQuery(c.Request.URL.Query())
+	tb := dtmimp.TransBaseFromQuery(c.Request.URL.Query())
 	f := func(tx dtmcli.DB) error {
 		for i := 0; i < sqls; i++ {
-			_, err := dtmcli.DBExec(tx, "insert into dtm_busi.user_account_log(user_id, delta, gid, branch_id, branch_type, reason)  values(?,?,?,?,?,?)",
+			_, err := dtmimp.DBExec(tx, "insert into dtm_busi.user_account_log(user_id, delta, gid, branch_id, branch_type, reason)  values(?,?,?,?,?,?)",
 				uid, amount, tb.Gid, c.Query("branch_id"), tb.TransType, fmt.Sprintf("inserted by dtm transaction %s %s", tb.Gid, c.Query("branch_id")))
-			dtmcli.FatalIfError(err)
-			_, err = dtmcli.DBExec(tx, "update dtm_busi.user_account set balance = balance + ?, update_time = now() where user_id = ?", amount, uid)
-			dtmcli.FatalIfError(err)
+			dtmimp.FatalIfError(err)
+			_, err = dtmimp.DBExec(tx, "update dtm_busi.user_account set balance = balance + ?, update_time = now() where user_id = ?", amount, uid)
+			dtmimp.FatalIfError(err)
 		}
 		return nil
 	}
 	if strings.Contains(mode, "barrier") {
 		barrier, err := dtmcli.BarrierFromQuery(c.Request.URL.Query())
-		dtmcli.FatalIfError(err)
+		dtmimp.FatalIfError(err)
 		barrier.Call(txGet(), f)
 	} else {
 		tx := txGet()
 		f(tx)
 		err := tx.Commit()
-		dtmcli.FatalIfError(err)
+		dtmimp.FatalIfError(err)
 	}
 
 	return dtmcli.MapSuccess, nil
@@ -116,23 +117,23 @@ func qsAdjustBalance(uid int, amount int, c *gin.Context) (interface{}, error) {
 
 func benchAddRoute(app *gin.Engine) {
 	app.POST(benchAPI+"/TransIn", common.WrapHandler(func(c *gin.Context) (interface{}, error) {
-		return qsAdjustBalance(dtmcli.MustAtoi(c.Query("uid")), 1, c)
+		return qsAdjustBalance(dtmimp.MustAtoi(c.Query("uid")), 1, c)
 	}))
 	app.POST(benchAPI+"/TransInCompensate", common.WrapHandler(func(c *gin.Context) (interface{}, error) {
-		return qsAdjustBalance(dtmcli.MustAtoi(c.Query("uid")), -1, c)
+		return qsAdjustBalance(dtmimp.MustAtoi(c.Query("uid")), -1, c)
 	}))
 	app.POST(benchAPI+"/TransOut", common.WrapHandler(func(c *gin.Context) (interface{}, error) {
-		return qsAdjustBalance(dtmcli.MustAtoi(c.Query("uid")), -1, c)
+		return qsAdjustBalance(dtmimp.MustAtoi(c.Query("uid")), -1, c)
 	}))
 	app.POST(benchAPI+"/TransOutCompensate", common.WrapHandler(func(c *gin.Context) (interface{}, error) {
-		return qsAdjustBalance(dtmcli.MustAtoi(c.Query("uid")), 30, c)
+		return qsAdjustBalance(dtmimp.MustAtoi(c.Query("uid")), 30, c)
 	}))
 	app.Any(benchAPI+"/reloadData", common.WrapHandler(func(c *gin.Context) (interface{}, error) {
 		reloadData()
 		mode = c.Query("m")
 		s := c.Query("sqls")
 		if s != "" {
-			sqls = dtmcli.MustAtoi(s)
+			sqls = dtmimp.MustAtoi(s)
 		}
 		return nil, nil
 	}))
@@ -143,19 +144,19 @@ func benchAddRoute(app *gin.Engine) {
 		req := gin.H{}
 		params := fmt.Sprintf("?uid=%s", suid)
 		params2 := fmt.Sprintf("?uid=%s", suid2)
-		dtmcli.Logf("mode: %s contains dtm: %t", mode, strings.Contains(mode, "dtm"))
+		dtmimp.Logf("mode: %s contains dtm: %t", mode, strings.Contains(mode, "dtm"))
 		if strings.Contains(mode, "dtm") {
 			saga := dtmcli.NewSaga(examples.DtmServer, fmt.Sprintf("bench-%d", uid)).
 				Add(benchBusi+"/TransOut"+params, benchBusi+"/TransOutCompensate"+params, req).
 				Add(benchBusi+"/TransIn"+params2, benchBusi+"/TransInCompensate"+params2, req)
 			saga.WaitResult = true
 			err := saga.Submit()
-			dtmcli.E2P(err)
+			dtmimp.E2P(err)
 		} else {
-			_, err := dtmcli.RestyClient.R().SetBody(gin.H{}).SetQueryParam("uid", suid2).Post(benchBusi + "/TransOut")
-			dtmcli.E2P(err)
-			_, err = dtmcli.RestyClient.R().SetBody(gin.H{}).SetQueryParam("uid", suid).Post(benchBusi + "/TransIn")
-			dtmcli.E2P(err)
+			_, err := dtmimp.RestyClient.R().SetBody(gin.H{}).SetQueryParam("uid", suid2).Post(benchBusi + "/TransOut")
+			dtmimp.E2P(err)
+			_, err = dtmimp.RestyClient.R().SetBody(gin.H{}).SetQueryParam("uid", suid).Post(benchBusi + "/TransIn")
+			dtmimp.E2P(err)
 		}
 		return nil, nil
 	}))

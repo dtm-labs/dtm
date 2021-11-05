@@ -1,18 +1,14 @@
 package dtmgrpc
 
 import (
+	"context"
+
 	"github.com/yedf/dtm/dtmcli"
+	"github.com/yedf/dtm/dtmgrpc/dtmgimp"
 )
 
-// BranchBarrier 子事务屏障
-type BranchBarrier struct {
-	*dtmcli.BranchBarrier
-}
-
-// BarrierFromGrpc 从BusiRequest生成一个Barrier
-func BarrierFromGrpc(in *BusiRequest) (*BranchBarrier, error) {
-	b, err := dtmcli.BarrierFrom(in.Info.TransType, in.Info.Gid, in.Info.BranchID, in.Info.BranchType)
-	return &BranchBarrier{
-		BranchBarrier: b,
-	}, err
+// BarrierFromGrpc generate a Barrier from grpc context
+func BarrierFromGrpc(ctx context.Context) (*dtmcli.BranchBarrier, error) {
+	tb := dtmgimp.TransBaseFromGrpc(ctx)
+	return dtmcli.BarrierFrom(tb.TransType, tb.Gid, tb.BranchID, tb.BranchType)
 }

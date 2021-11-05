@@ -1,7 +1,6 @@
 package dtmsvr
 
 import (
-	"context"
 	"errors"
 	"fmt"
 	"strings"
@@ -10,10 +9,10 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/yedf/dtm/common"
 	"github.com/yedf/dtm/dtmcli"
-	"github.com/yedf/dtm/dtmgrpc"
+	"github.com/yedf/dtm/dtmcli/dtmimp"
+	"github.com/yedf/dtm/dtmgrpc/dtmgimp"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
-	"google.golang.org/protobuf/types/known/emptypb"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 )
@@ -23,12 +22,14 @@ var errUniqueConflict = errors.New("unique key conflict error")
 // TransGlobal global transaction
 type TransGlobal struct {
 	common.ModelBase
-	Gid              string `json:"gid"`
-	TransType        string `json:"trans_type"`
-	Data             string `json:"data" gorm:"-"`
-	Status           string `json:"status"`
-	QueryPrepared    string `json:"query_prepared"`
-	Protocol         string `json:"protocol"`
+	Gid              string              `json:"gid"`
+	TransType        string              `json:"trans_type"`
+	Steps            []map[string]string `json:"steps" gorm:"-"`
+	Payloads         []string            `json:"payloads" gorm:"-"`
+	BinPayloads      [][]byte            `json:"-" gorm:"-"`
+	Status           string              `json:"status"`
+	QueryPrepared    string              `json:"query_prepared"`
+	Protocol         string              `json:"protocol"`
 	CommitTime       *time.Time
 	FinishTime       *time.Time
 	RollbackTime     *time.Time
@@ -36,7 +37,7 @@ type TransGlobal struct {
 	CustomData       string `json:"custom_data"`
 	NextCronInterval int64
 	NextCronTime     *time.Time
-	dtmcli.TransOptions
+	dtmimp.TransOptions
 	lastTouched time.Time // record the start time of process
 }
 
@@ -51,14 +52,12 @@ type transProcessor interface {
 }
 
 func (t *TransGlobal) touch(db *common.DB, ctype cronType) *gorm.DB {
-	writeTransLog(t.Gid, "touch trans", "", "", "")
 	t.lastTouched = time.Now()
 	updates := t.setNextCron(ctype)
 	return db.Model(&TransGlobal{}).Where("gid=?", t.Gid).Select(updates).Updates(t)
 }
 
 func (t *TransGlobal) changeStatus(db *common.DB, status string) *gorm.DB {
-	writeTransLog(t.Gid, "change status", status, "", "")
 	old := t.Status
 	t.Status = status
 	updates := t.setNextCron(cronReset)
@@ -96,7 +95,7 @@ type TransBranch struct {
 	common.ModelBase
 	Gid          string
 	URL          string `json:"url"`
-	Data         string
+	BinData      []byte
 	BranchID     string `json:"branch_id"`
 	BranchType   string
 	Status       string
@@ -110,9 +109,8 @@ func (*TransBranch) TableName() string {
 }
 
 func (t *TransBranch) changeStatus(db *common.DB, status string) *gorm.DB {
-	writeTransLog(t.Gid, "branch change", status, t.BranchID, "")
 	if common.DtmConfig.UpdateBranchSync > 0 {
-		dbr := db.Must().Model(t).Updates(M{
+		dbr := db.Must().Model(t).Updates(map[string]interface{}{
 			"status":      status,
 			"finish_time": time.Now(),
 		})
@@ -126,7 +124,7 @@ func (t *TransBranch) changeStatus(db *common.DB, status string) *gorm.DB {
 
 func checkAffected(db1 *gorm.DB) {
 	if db1.RowsAffected == 0 {
-		panic(fmt.Errorf("duplicate updating"))
+		panic(fmt.Errorf("rows affected 0, please check for abnormal trans"))
 	}
 }
 
@@ -143,15 +141,15 @@ func (t *TransGlobal) getProcessor() transProcessor {
 }
 
 // Process process global transaction once
-func (t *TransGlobal) Process(db *common.DB) dtmcli.M {
+func (t *TransGlobal) Process(db *common.DB) map[string]interface{} {
 	r := t.process(db)
 	transactionMetrics(t, r["dtm_result"] == dtmcli.ResultSuccess)
 	return r
 }
 
-func (t *TransGlobal) process(db *common.DB) dtmcli.M {
+func (t *TransGlobal) process(db *common.DB) map[string]interface{} {
 	if t.Options != "" {
-		dtmcli.MustUnmarshalString(t.Options, &t.TransOptions)
+		dtmimp.MustUnmarshalString(t.Options, &t.TransOptions)
 	}
 
 	if !t.WaitResult {
@@ -161,10 +159,10 @@ func (t *TransGlobal) process(db *common.DB) dtmcli.M {
 	submitting := t.Status == dtmcli.StatusSubmitted
 	err := t.processInner(db)
 	if err != nil {
-		return dtmcli.M{"dtm_result": dtmcli.ResultFailure, "message": err.Error()}
+		return map[string]interface{}{"dtm_result": dtmcli.ResultFailure, "message": err.Error()}
 	}
 	if submitting && t.Status != dtmcli.StatusSucceed {
-		return dtmcli.M{"dtm_result": dtmcli.ResultFailure, "message": "trans failed by user"}
+		return map[string]interface{}{"dtm_result": dtmcli.ResultFailure, "message": "trans failed by user"}
 	}
 	return dtmcli.MapSuccess
 }
@@ -173,15 +171,15 @@ func (t *TransGlobal) processInner(db *common.DB) (rerr error) {
 	defer handlePanic(&rerr)
 	defer func() {
 		if rerr != nil {
-			dtmcli.LogRedf("processInner got error: %s", rerr.Error())
+			dtmimp.LogRedf("processInner got error: %s", rerr.Error())
 		}
 		if TransProcessedTestChan != nil {
-			dtmcli.Logf("processed: %s", t.Gid)
+			dtmimp.Logf("processed: %s", t.Gid)
 			TransProcessedTestChan <- t.Gid
-			dtmcli.Logf("notified: %s", t.Gid)
+			dtmimp.Logf("notified: %s", t.Gid)
 		}
 	}()
-	dtmcli.Logf("processing: %s status: %s", t.Gid, t.Status)
+	dtmimp.Logf("processing: %s status: %s", t.Gid, t.Status)
 	branches := []TransBranch{}
 	db.Must().Where("gid=?", t.Gid).Order("id asc").Find(&branches)
 	t.lastTouched = time.Now()
@@ -213,20 +211,13 @@ func (t *TransGlobal) setNextCron(ctype cronType) []string {
 	return []string{"next_cron_interval", "next_cron_time"}
 }
 
-func (t *TransGlobal) getURLResult(url string, branchID, branchType string, branchData []byte) (string, error) {
+func (t *TransGlobal) getURLResult(url string, branchID, branchType string, branchPayload []byte) (string, error) {
 	if t.Protocol == "grpc" {
-		dtmcli.PanicIf(strings.HasPrefix(url, "http"), fmt.Errorf("bad url for grpc: %s", url))
-		server, method := dtmgrpc.GetServerAndMethod(url)
-		conn := dtmgrpc.MustGetGrpcConn(server)
-		err := conn.Invoke(context.Background(), method, &dtmgrpc.BusiRequest{
-			Info: &dtmgrpc.BranchInfo{
-				Gid:        t.Gid,
-				TransType:  t.TransType,
-				BranchID:   branchID,
-				BranchType: branchType,
-			},
-			BusiData: branchData,
-		}, &emptypb.Empty{})
+		dtmimp.PanicIf(strings.HasPrefix(url, "http"), fmt.Errorf("bad url for grpc: %s", url))
+		server, method := dtmgimp.GetServerAndMethod(url)
+		conn := dtmgimp.MustGetGrpcConn(server, true)
+		ctx := dtmgimp.TransInfo2Ctx(t.Gid, t.TransType, branchID, branchType, "")
+		err := conn.Invoke(ctx, method, branchPayload, []byte{})
 		if err == nil {
 			return dtmcli.ResultSuccess, nil
 		}
@@ -240,16 +231,16 @@ func (t *TransGlobal) getURLResult(url string, branchID, branchType string, bran
 		}
 		return "", err
 	}
-	dtmcli.PanicIf(!strings.HasPrefix(url, "http"), fmt.Errorf("bad url for http: %s", url))
-	resp, err := dtmcli.RestyClient.R().SetBody(string(branchData)).
-		SetQueryParams(dtmcli.MS{
+	dtmimp.PanicIf(!strings.HasPrefix(url, "http"), fmt.Errorf("bad url for http: %s", url))
+	resp, err := dtmimp.RestyClient.R().SetBody(string(branchPayload)).
+		SetQueryParams(map[string]string{
 			"gid":         t.Gid,
 			"trans_type":  t.TransType,
 			"branch_id":   branchID,
 			"branch_type": branchType,
 		}).
 		SetHeader("Content-type", "application/json").
-		Execute(dtmcli.If(branchData == nil, "GET", "POST").(string), url)
+		Execute(dtmimp.If(branchPayload != nil || t.TransType == "xa", "POST", "GET").(string), url)
 	if err != nil {
 		return "", err
 	}
@@ -257,7 +248,7 @@ func (t *TransGlobal) getURLResult(url string, branchID, branchType string, bran
 }
 
 func (t *TransGlobal) getBranchResult(branch *TransBranch) (string, error) {
-	body, err := t.getURLResult(branch.URL, branch.BranchID, branch.BranchType, []byte(branch.Data))
+	body, err := t.getURLResult(branch.URL, branch.BranchID, branch.BranchType, branch.BinData)
 	if err != nil {
 		return "", err
 	}
@@ -266,7 +257,7 @@ func (t *TransGlobal) getBranchResult(branch *TransBranch) (string, error) {
 	} else if strings.HasSuffix(t.TransType, "saga") && branch.BranchType == dtmcli.BranchAction && strings.Contains(body, dtmcli.ResultFailure) {
 		return dtmcli.StatusFailed, nil
 	} else if strings.Contains(body, dtmcli.ResultOngoing) {
-		return "", dtmcli.ErrOngoing
+		return "", dtmimp.ErrOngoing
 	}
 	return "", fmt.Errorf("http result should contains SUCCESS|FAILURE|ONGOING. grpc error should return nil|Aborted with message(FAILURE|ONGOING). \nrefer to: https://dtm.pub/summary/arch.html#http\nunkown result will be retried: %s", body)
 }
@@ -281,7 +272,7 @@ func (t *TransGlobal) execBranch(db *common.DB, branch *TransBranch) error {
 	if err == nil && time.Since(t.lastTouched)+NowForwardDuration >= 1500*time.Millisecond ||
 		t.NextCronInterval > config.RetryInterval && t.NextCronInterval > t.RetryInterval {
 		t.touch(db, cronReset)
-	} else if err == dtmcli.ErrOngoing {
+	} else if err == dtmimp.ErrOngoing {
 		t.touch(db, cronKeep)
 	} else {
 		t.touch(db, cronBackoff)
@@ -293,11 +284,10 @@ func (t *TransGlobal) saveNew(db *common.DB) error {
 	return db.Transaction(func(db1 *gorm.DB) error {
 		db := &common.DB{DB: db1}
 		t.setNextCron(cronReset)
-		t.Options = dtmcli.MustMarshalString(t.TransOptions)
+		t.Options = dtmimp.MustMarshalString(t.TransOptions)
 		if t.Options == "{}" {
 			t.Options = ""
 		}
-		writeTransLog(t.Gid, "create trans", t.Status, "", t.Data)
 		dbr := db.Must().Clauses(clause.OnConflict{
 			DoNothing: true,
 		}).Create(t)
@@ -306,7 +296,6 @@ func (t *TransGlobal) saveNew(db *common.DB) error {
 		}
 		branches := t.getProcessor().GenBranches()
 		if len(branches) > 0 {
-			writeTransLog(t.Gid, "save branches", t.Status, "", dtmcli.MustMarshalString(branches))
 			checkLocalhost(branches)
 			db.Must().Clauses(clause.OnConflict{
 				DoNothing: true,
@@ -318,27 +307,35 @@ func (t *TransGlobal) saveNew(db *common.DB) error {
 
 // TransFromContext TransFromContext
 func TransFromContext(c *gin.Context) *TransGlobal {
-	data := M{}
 	b, err := c.GetRawData()
 	e2p(err)
-	dtmcli.MustUnmarshal(b, &data)
-	dtmcli.Logf("creating trans in prepare")
-	if data["steps"] != nil {
-		data["data"] = dtmcli.MustMarshalString(data["steps"])
-	}
 	m := TransGlobal{}
-	dtmcli.MustRemarshal(data, &m)
+	dtmimp.MustUnmarshal(b, &m)
+	dtmimp.Logf("creating trans in prepare")
+	// Payloads will be store in BinPayloads, Payloads is only used to Unmarshal
+	for _, p := range m.Payloads {
+		m.BinPayloads = append(m.BinPayloads, []byte(p))
+	}
+	for _, d := range m.Steps {
+		if d["data"] != "" {
+			m.BinPayloads = append(m.BinPayloads, []byte(d["data"]))
+		}
+	}
 	m.Protocol = "http"
 	return &m
 }
 
 // TransFromDtmRequest TransFromContext
-func TransFromDtmRequest(c *dtmgrpc.DtmRequest) *TransGlobal {
-	return &TransGlobal{
+func TransFromDtmRequest(c *dtmgimp.DtmRequest) *TransGlobal {
+	r := TransGlobal{
 		Gid:           c.Gid,
 		TransType:     c.TransType,
 		QueryPrepared: c.QueryPrepared,
-		Data:          c.Data,
 		Protocol:      "grpc",
+		BinPayloads:   c.BinPayloads,
 	}
+	if c.Steps != "" {
+		dtmimp.MustUnmarshalString(c.Steps, &r.Steps)
+	}
+	return &r
 }

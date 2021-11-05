@@ -18,6 +18,7 @@ import (
 	"gorm.io/gorm"
 
 	"github.com/yedf/dtm/dtmcli"
+	"github.com/yedf/dtm/dtmcli/dtmimp"
 )
 
 // ModelBase model base for gorm to provide base fields
@@ -31,7 +32,7 @@ func getGormDialetor(driver string, dsn string) gorm.Dialector {
 	if driver == dtmcli.DBTypePostgres {
 		return postgres.Open(dsn)
 	}
-	dtmcli.PanicIf(driver != dtmcli.DBTypeMysql, fmt.Errorf("unkown driver: %s", driver))
+	dtmimp.PanicIf(driver != dtmcli.DBTypeMysql, fmt.Errorf("unkown driver: %s", driver))
 	return mysql.Open(dsn)
 }
 
@@ -57,7 +58,7 @@ func (m *DB) NoMust() *DB {
 // ToSQLDB get the sql.DB
 func (m *DB) ToSQLDB() *sql.DB {
 	d, err := m.DB.DB()
-	dtmcli.E2P(err)
+	dtmimp.E2P(err)
 	return d
 }
 
@@ -75,7 +76,7 @@ func (op *tracePlugin) Initialize(db *gorm.DB) (err error) {
 	after := func(db *gorm.DB) {
 		_ts, _ := db.InstanceGet("ivy.startTime")
 		sql := db.Dialector.Explain(db.Statement.SQL.String(), db.Statement.Vars...)
-		dtmcli.Logf("used: %d ms affected: %d sql is: %s", time.Since(_ts.(time.Time)).Milliseconds(), db.RowsAffected, sql)
+		dtmimp.Logf("used: %d ms affected: %d sql is: %s", time.Since(_ts.(time.Time)).Milliseconds(), db.RowsAffected, sql)
 		if v, ok := db.InstanceGet("ivy.must"); ok && v.(bool) {
 			if db.Error != nil && db.Error != gorm.ErrRecordNotFound {
 				panic(db.Error)
@@ -86,7 +87,7 @@ func (op *tracePlugin) Initialize(db *gorm.DB) (err error) {
 	beforeName := "cb_before"
 	afterName := "cb_after"
 
-	dtmcli.Logf("installing db plugin: %s", op.Name())
+	dtmimp.Logf("installing db plugin: %s", op.Name())
 	// 开始前
 	_ = db.Callback().Create().Before("gorm:before_create").Register(beforeName, before)
 	_ = db.Callback().Query().Before("gorm:query").Register(beforeName, before)
@@ -107,14 +108,14 @@ func (op *tracePlugin) Initialize(db *gorm.DB) (err error) {
 
 // DbGet get db connection for specified conf
 func DbGet(conf map[string]string) *DB {
-	dsn := dtmcli.GetDsn(conf)
+	dsn := dtmimp.GetDsn(conf)
 	db, ok := dbs.Load(dsn)
 	if !ok {
-		dtmcli.Logf("connecting %s", strings.Replace(dsn, conf["password"], "****", 1))
+		dtmimp.Logf("connecting %s", strings.Replace(dsn, conf["password"], "****", 1))
 		db1, err := gorm.Open(getGormDialetor(conf["driver"], dsn), &gorm.Config{
 			SkipDefaultTransaction: true,
 		})
-		dtmcli.E2P(err)
+		dtmimp.E2P(err)
 		db1.Use(&tracePlugin{})
 		db = &DB{DB: db1}
 		dbs.Store(dsn, db)
@@ -135,7 +136,7 @@ type dtmConfigType struct {
 var DtmConfig = dtmConfigType{}
 
 func getIntEnv(key string, defaultV string) int64 {
-	return int64(dtmcli.MustAtoi(dtmcli.OrString(os.Getenv(key), defaultV)))
+	return int64(dtmimp.MustAtoi(dtmimp.OrString(os.Getenv(key), defaultV)))
 }
 
 func init() {
@@ -146,9 +147,9 @@ func init() {
 	DtmConfig.TimeoutToFail = getIntEnv("TIMEOUT_TO_FAIL", "35")
 	DtmConfig.RetryInterval = getIntEnv("RETRY_INTERVAL", "10")
 	DtmConfig.DB = map[string]string{
-		"driver":   dtmcli.OrString(os.Getenv("DB_DRIVER"), "mysql"),
+		"driver":   dtmimp.OrString(os.Getenv("DB_DRIVER"), "mysql"),
 		"host":     os.Getenv("DB_HOST"),
-		"port":     dtmcli.OrString(os.Getenv("DB_PORT"), "3306"),
+		"port":     dtmimp.OrString(os.Getenv("DB_PORT"), "3306"),
 		"user":     os.Getenv("DB_USER"),
 		"password": os.Getenv("DB_PASSWORD"),
 	}
@@ -166,12 +167,12 @@ func init() {
 		}
 	}
 	if cont != nil && len(cont) != 0 {
-		dtmcli.Logf("cont is: \n%s", string(cont))
+		dtmimp.Logf("cont is: \n%s", string(cont))
 		err := yaml.Unmarshal(cont, &DtmConfig)
-		dtmcli.FatalIfError(err)
+		dtmimp.FatalIfError(err)
 	}
 	errStr := checkConfig()
-	dtmcli.LogIfFatalf(errStr != "",
+	dtmimp.LogIfFatalf(errStr != "",
 		`config error: '%s'.
 check you env, and conf.yml/conf.sample.yml in current and parent path: %s.
 please visit http://d.dtm.pub to see the config document.

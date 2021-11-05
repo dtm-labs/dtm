@@ -36,6 +36,7 @@ CREATE TABLE IF NOT EXISTS dtm.trans_branch (
   gid varchar(128) NOT NULL,
   url varchar(128) NOT NULL,
   data TEXT,
+  bin_data BLOB,
   branch_id VARCHAR(128) NOT NULL,
   branch_type varchar(45) NOT NULL,
   status varchar(45) NOT NULL,

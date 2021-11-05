@@ -4,12 +4,14 @@ import (
 	context "context"
 	"fmt"
 
-	"github.com/yedf/dtm/dtmcli"
+	"github.com/yedf/dtm/dtmcli/dtmimp"
+	"github.com/yedf/dtm/dtmgrpc/dtmgimp"
+	"google.golang.org/protobuf/proto"
 )
 
 // TccGrpc struct of tcc
 type TccGrpc struct {
-	dtmcli.TransBase
+	dtmimp.TransBase
 }
 
 // TccGlobalFunc type of global tcc call
@@ -20,9 +22,9 @@ type TccGlobalFunc func(tcc *TccGrpc) error
 // gid 全局事务id
 // tccFunc tcc事务函数，里面会定义全局事务的分支
 func TccGlobalTransaction(dtm string, gid string, tccFunc TccGlobalFunc) (rerr error) {
-	tcc := &TccGrpc{TransBase: *dtmcli.NewTransBase(gid, "tcc", dtm, "")}
-	dc := MustGetDtmClient(tcc.Dtm)
-	dr := &DtmRequest{
+	tcc := &TccGrpc{TransBase: *dtmimp.NewTransBase(gid, "tcc", dtm, "")}
+	dc := dtmgimp.MustGetDtmClient(tcc.Dtm)
+	dr := &dtmgimp.DtmRequest{
 		Gid:       tcc.Gid,
 		TransType: tcc.TransType,
 	}
@@ -48,46 +50,37 @@ func TccGlobalTransaction(dtm string, gid string, tccFunc TccGlobalFunc) (rerr e
 	return tccFunc(tcc)
 }
 
-// TccFromRequest tcc from request info
-func TccFromRequest(br *BusiRequest) (*TccGrpc, error) {
+// TccFromGrpc tcc from request info
+func TccFromGrpc(ctx context.Context) (*TccGrpc, error) {
 	tcc := &TccGrpc{
-		TransBase: *dtmcli.NewTransBase(br.Info.Gid, br.Info.TransType, br.Dtm, br.Info.BranchID),
+		TransBase: *dtmgimp.TransBaseFromGrpc(ctx),
 	}
 	if tcc.Dtm == "" || tcc.Gid == "" {
-		return nil, fmt.Errorf("bad tcc info. dtm: %s, gid: %s parentID: %s", tcc.Dtm, tcc.Gid, br.Info.BranchID)
+		return nil, fmt.Errorf("bad tcc info. dtm: %s, gid: %s branchid: %s", tcc.Dtm, tcc.Gid, tcc.BranchID)
 	}
 	return tcc, nil
 }
 
 // CallBranch call a tcc branch
 // 函数首先注册子事务的所有分支，成功后调用try分支，返回try分支的调用结果
-func (t *TccGrpc) CallBranch(busiData []byte, tryURL string, confirmURL string, cancelURL string) (*BusiReply, error) {
-	branchID := t.NewBranchID()
-	_, err := MustGetDtmClient(t.Dtm).RegisterTccBranch(context.Background(), &DtmTccBranchRequest{
-		Info: &BranchInfo{
+func (t *TccGrpc) CallBranch(busiMsg proto.Message, tryURL string, confirmURL string, cancelURL string, reply interface{}) error {
+	branchID := t.NewSubBranchID()
+	bd, err := proto.Marshal(busiMsg)
+	_, err = dtmgimp.MustGetDtmClient(t.Dtm).RegisterTccBranch(context.Background(), &dtmgimp.DtmTccBranchRequest{
+		Info: &dtmgimp.DtmBranchInfo{
 			Gid:       t.Gid,
 			TransType: t.TransType,
 			BranchID:  branchID,
 		},
-		BusiData: string(busiData),
-		Try:      tryURL,
-		Confirm:  confirmURL,
-		Cancel:   cancelURL,
+		BusiPayload: bd,
+		Try:         tryURL,
+		Confirm:     confirmURL,
+		Cancel:      cancelURL,
 	})
 	if err != nil {
-		return nil, err
+		return err
 	}
-	server, method := GetServerAndMethod(tryURL)
-	reply := &BusiReply{}
-	err = MustGetGrpcConn(server).Invoke(context.Background(), method, &BusiRequest{
-		Info: &BranchInfo{
-			Gid:        t.Gid,
-			TransType:  t.TransType,
-			BranchID:   branchID,
-			BranchType: t.TransType,
-		},
-		BusiData: busiData,
-		Dtm:      t.Dtm,
-	}, reply)
-	return reply, err
+	server, method := dtmgimp.GetServerAndMethod(tryURL)
+	return dtmgimp.MustGetGrpcConn(server, false).Invoke(
+		dtmgimp.TransInfo2Ctx(t.Gid, t.TransType, branchID, "try", t.Dtm), method, busiMsg, reply)
 }

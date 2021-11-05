@@ -3,10 +3,12 @@ package dtmcli
 import (
 	"fmt"
 	"net/url"
+
+	"github.com/yedf/dtm/dtmcli/dtmimp"
 )
 
-// BusiFunc type for busi func
-type BusiFunc func(db DB) error
+// BarrierBusiFunc type for busi func
+type BarrierBusiFunc func(db DB) error
 
 // BranchBarrier every branch info
 type BranchBarrier struct {
@@ -44,14 +46,14 @@ func insertBarrier(tx Tx, transType string, gid string, branchID string, branchT
 	if branchType == "" {
 		return 0, nil
 	}
-	sql := GetDBSpecial().GetInsertIgnoreTemplate("dtm_barrier.barrier(trans_type, gid, branch_id, branch_type, barrier_id, reason) values(?,?,?,?,?,?)", "uniq_barrier")
-	return DBExec(tx, sql, transType, gid, branchID, branchType, barrierID, reason)
+	sql := dtmimp.GetDBSpecial().GetInsertIgnoreTemplate("dtm_barrier.barrier(trans_type, gid, branch_id, branch_type, barrier_id, reason) values(?,?,?,?,?,?)", "uniq_barrier")
+	return dtmimp.DBExec(tx, sql, transType, gid, branchID, branchType, barrierID, reason)
 }
 
 // Call 子事务屏障，详细介绍见 https://zhuanlan.zhihu.com/p/388444465
 // tx: 本地数据库的事务对象，允许子事务屏障进行事务操作
 // busiCall: 业务函数，仅在必要时被调用
-func (bb *BranchBarrier) Call(tx Tx, busiCall BusiFunc) (rerr error) {
+func (bb *BranchBarrier) Call(tx Tx, busiCall BarrierBusiFunc) (rerr error) {
 	bb.BarrierID = bb.BarrierID + 1
 	bid := fmt.Sprintf("%02d", bb.BarrierID)
 	defer func() {
@@ -73,7 +75,7 @@ func (bb *BranchBarrier) Call(tx Tx, busiCall BusiFunc) (rerr error) {
 
 	originAffected, _ := insertBarrier(tx, ti.TransType, ti.Gid, ti.BranchID, originType, bid, ti.BranchType)
 	currentAffected, rerr := insertBarrier(tx, ti.TransType, ti.Gid, ti.BranchID, ti.BranchType, bid, ti.BranchType)
-	Logf("originAffected: %d currentAffected: %d", originAffected, currentAffected)
+	dtmimp.Logf("originAffected: %d currentAffected: %d", originAffected, currentAffected)
 	if (ti.BranchType == BranchCancel || ti.BranchType == BranchCompensate) && originAffected > 0 || // 这个是空补偿
 		currentAffected == 0 { // 这个是重复请求或者悬挂
 		return

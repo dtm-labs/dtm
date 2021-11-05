@@ -6,6 +6,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/yedf/dtm/common"
 	"github.com/yedf/dtm/dtmcli"
+	"github.com/yedf/dtm/dtmcli/dtmimp"
 )
 
 func init() {
@@ -13,14 +14,14 @@ func init() {
 		app.POST(BusiAPI+"/SagaBTransOutGorm", common.WrapHandler(sagaGormBarrierTransOut))
 	}
 	addSample("saga_gorm_barrier", func() string {
-		dtmcli.Logf("a busi transaction begin")
+		dtmimp.Logf("a busi transaction begin")
 		req := &TransReq{Amount: 30}
 		saga := dtmcli.NewSaga(DtmServer, dtmcli.MustGenGid(DtmServer)).
 			Add(Busi+"/SagaBTransOutGorm", Busi+"/SagaBTransOutCompensate", req).
 			Add(Busi+"/SagaBTransIn", Busi+"/SagaBTransInCompensate", req)
-		dtmcli.Logf("busi trans submit")
+		dtmimp.Logf("busi trans submit")
 		err := saga.Submit()
-		dtmcli.FatalIfError(err)
+		dtmimp.FatalIfError(err)
 		return saga.Gid
 	})
 

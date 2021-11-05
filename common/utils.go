@@ -14,6 +14,7 @@ import (
 	"github.com/go-resty/resty/v2"
 
 	"github.com/yedf/dtm/dtmcli"
+	"github.com/yedf/dtm/dtmcli/dtmimp"
 )
 
 // GetGinApp init and return gin
@@ -24,19 +25,19 @@ func GetGinApp() *gin.Engine {
 		body := ""
 		if c.Request.Body != nil {
 			rb, err := c.GetRawData()
-			dtmcli.E2P(err)
+			dtmimp.E2P(err)
 			if len(rb) > 0 {
 				body = string(rb)
 				c.Request.Body = ioutil.NopCloser(bytes.NewBuffer(rb))
 			}
 		}
 		began := time.Now()
-		dtmcli.Logf("begin %s %s query: %s body: %s", c.Request.Method, c.FullPath(), c.Request.URL.RawQuery, body)
+		dtmimp.Logf("begin %s %s query: %s body: %s", c.Request.Method, c.FullPath(), c.Request.URL.RawQuery, body)
 		c.Next()
-		dtmcli.Logf("used %d ms %s %s query: %s body: %s", time.Since(began).Milliseconds(), c.Request.Method, c.FullPath(), c.Request.URL.RawQuery, body)
+		dtmimp.Logf("used %d ms %s %s query: %s body: %s", time.Since(began).Milliseconds(), c.Request.Method, c.FullPath(), c.Request.URL.RawQuery, body)
 
 	})
-	app.Any("/api/ping", func(c *gin.Context) { c.JSON(200, dtmcli.M{"msg": "pong"}) })
+	app.Any("/api/ping", func(c *gin.Context) { c.JSON(200, map[string]interface{}{"msg": "pong"}) })
 	return app
 }
 
@@ -44,24 +45,27 @@ func GetGinApp() *gin.Engine {
 func WrapHandler(fn func(*gin.Context) (interface{}, error)) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		r, err := func() (r interface{}, rerr error) {
-			defer dtmcli.P2E(&rerr)
+			defer dtmimp.P2E(&rerr)
 			return fn(c)
 		}()
 		var b = []byte{}
 		if resp, ok := r.(*resty.Response); ok { // 如果是response，则取出body直接处理
 			b = resp.Body()
+		} else if err != nil && (strings.Contains(err.Error(), dtmcli.ResultFailure) || strings.Contains(err.Error(), dtmcli.ResultOngoing)) {
+			b = []byte(err.Error())
+			err = nil
 		} else if err == nil {
 			b, err = json.Marshal(r)
 		}
 		if err != nil {
-			dtmcli.Logf("status: 500, code: 500 message: %s", err.Error())
-			c.JSON(500, dtmcli.M{"code": 500, "message": err.Error()})
+			dtmimp.Logf("status: 500, code: 500 message: %s", err.Error())
+			c.JSON(500, map[string]interface{}{"code": 500, "message": err.Error()})
 		} else {
-			dtmcli.Logf("status: 200, content: %s", string(b))
+			dtmimp.Logf("status: 200, content: %s", string(b))
 			c.Status(200)
 			c.Writer.Header().Add("Content-Type", "application/json")
 			_, err = c.Writer.Write(b)
-			dtmcli.E2P(err)
+			dtmimp.E2P(err)
 		}
 	}
 }
@@ -69,7 +73,7 @@ func WrapHandler(fn func(*gin.Context) (interface{}, error)) gin.HandlerFunc {
 // MustGetwd must version of os.Getwd
 func MustGetwd() string {
 	wd, err := os.Getwd()
-	dtmcli.E2P(err)
+	dtmimp.E2P(err)
 	return wd
 }
 

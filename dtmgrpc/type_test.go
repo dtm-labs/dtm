@@ -1,15 +1,16 @@
 package dtmgrpc
 
 import (
+	"context"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 )
 
 func TestType(t *testing.T) {
-	_, err := BarrierFromGrpc(&BusiRequest{Info: &BranchInfo{}})
+	_, err := BarrierFromGrpc(context.Background())
 	assert.Error(t, err)
 
-	_, err = TccFromRequest(&BusiRequest{Info: &BranchInfo{}})
+	_, err = TccFromGrpc(context.Background())
 	assert.Error(t, err)
 }

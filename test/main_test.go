@@ -1,7 +1,6 @@
 package test
 
 import (
-	"fmt"
 	"testing"
 	"time"
 
@@ -24,21 +23,5 @@ func TestMain(m *testing.M) {
 	examples.GrpcStartup()
 	app = examples.BaseAppStartup()
 
-	resetXaData()
 	m.Run()
-}
-
-func resetXaData() {
-	if config.DB["driver"] != "mysql" {
-		return
-	}
-	db := dbGet()
-	type XaRow struct {
-		Data string
-	}
-	xas := []XaRow{}
-	db.Must().Raw("xa recover").Scan(&xas)
-	for _, xa := range xas {
-		db.Must().Exec(fmt.Sprintf("xa rollback '%s'", xa.Data))
-	}
 }

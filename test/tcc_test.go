@@ -6,18 +6,13 @@ import (
 	"github.com/go-resty/resty/v2"
 	"github.com/stretchr/testify/assert"
 	"github.com/yedf/dtm/dtmcli"
+	"github.com/yedf/dtm/dtmcli/dtmimp"
 	"github.com/yedf/dtm/examples"
 )
 
-func TestTcc(t *testing.T) {
-	tccNormal(t)
-	tccRollback(t)
-
-}
-
-func tccNormal(t *testing.T) {
+func TestTccNormal(t *testing.T) {
 	data := &examples.TransReq{Amount: 30}
-	gid := "tccNormal"
+	gid := dtmimp.GetFuncName()
 	err := dtmcli.TccGlobalTransaction(examples.DtmServer, gid, func(tcc *dtmcli.Tcc) (*resty.Response, error) {
 		_, err := tcc.CallBranch(data, Busi+"/TransOut", Busi+"/TransOutConfirm", Busi+"/TransOutRevert")
 		assert.Nil(t, err)
@@ -26,8 +21,8 @@ func tccNormal(t *testing.T) {
 	assert.Nil(t, err)
 }
 
-func tccRollback(t *testing.T) {
-	gid := "tccRollback"
+func TestTccRollback(t *testing.T) {
+	gid := dtmimp.GetFuncName()
 	data := &examples.TransReq{Amount: 30, TransInResult: dtmcli.ResultFailure}
 	err := dtmcli.TccGlobalTransaction(examples.DtmServer, gid, func(tcc *dtmcli.Tcc) (*resty.Response, error) {
 		_, rerr := tcc.CallBranch(data, Busi+"/TransOut", Busi+"/TransOutConfirm", Busi+"/TransOutRevert")

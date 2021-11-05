@@ -1,53 +1,50 @@
 package test
 
 import (
+	"context"
 	"fmt"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/yedf/dtm/dtmcli"
+	"github.com/yedf/dtm/dtmcli/dtmimp"
 	"github.com/yedf/dtm/dtmgrpc"
 	"github.com/yedf/dtm/examples"
+	"google.golang.org/protobuf/types/known/emptypb"
 )
 
-func TestGrpcXa(t *testing.T) {
-	xaGrpcType(t)
-	xaGrpcLocalError(t)
-	xaGrpcNormal(t)
-	xaGrpcRollback(t)
-}
-
-func xaGrpcType(t *testing.T) {
-	_, err := dtmgrpc.XaGrpcFromRequest(&dtmgrpc.BusiRequest{Info: &dtmgrpc.BranchInfo{}})
+func TestGrpcXaType(t *testing.T) {
+	_, err := dtmgrpc.XaGrpcFromRequest(context.Background())
 	assert.Error(t, err)
 
-	err = examples.XaGrpcClient.XaLocalTransaction(&dtmgrpc.BusiRequest{Info: &dtmgrpc.BranchInfo{}}, nil)
+	err = examples.XaGrpcClient.XaLocalTransaction(context.Background(), nil, nil)
 	assert.Error(t, err)
 
-	err = dtmcli.CatchP(func() {
+	err = dtmimp.CatchP(func() {
 		examples.XaGrpcClient.XaGlobalTransaction("id1", func(xa *dtmgrpc.XaGrpc) error { panic(fmt.Errorf("hello")) })
 	})
 	assert.Error(t, err)
 }
 
-func xaGrpcLocalError(t *testing.T) {
+func TestGrpcXaLocalError(t *testing.T) {
 	xc := examples.XaGrpcClient
-	err := xc.XaGlobalTransaction("xaGrpcLocalError", func(xa *dtmgrpc.XaGrpc) error {
+	err := xc.XaGlobalTransaction(dtmimp.GetFuncName(), func(xa *dtmgrpc.XaGrpc) error {
 		return fmt.Errorf("an error")
 	})
 	assert.Error(t, err, fmt.Errorf("an error"))
 }
 
-func xaGrpcNormal(t *testing.T) {
+func TestGrpcXaNormal(t *testing.T) {
 	xc := examples.XaGrpcClient
-	gid := "xaGrpcNormal"
+	gid := dtmimp.GetFuncName()
 	err := xc.XaGlobalTransaction(gid, func(xa *dtmgrpc.XaGrpc) error {
-		req := dtmcli.MustMarshal(examples.GenTransReq(30, false, false))
-		_, err := xa.CallBranch(req, examples.BusiGrpc+"/examples.Busi/TransOutXa")
+		req := &examples.BusiReq{Amount: 30}
+		r := &emptypb.Empty{}
+		err := xa.CallBranch(req, examples.BusiGrpc+"/examples.Busi/TransOutXa", r)
 		if err != nil {
 			return err
 		}
-		_, err = xa.CallBranch(req, examples.BusiGrpc+"/examples.Busi/TransInXa")
+		err = xa.CallBranch(req, examples.BusiGrpc+"/examples.Busi/TransInXa", r)
 		return err
 	})
 	assert.Equal(t, nil, err)
@@ -55,16 +52,17 @@ func xaGrpcNormal(t *testing.T) {
 	assert.Equal(t, []string{dtmcli.StatusPrepared, dtmcli.StatusSucceed, dtmcli.StatusPrepared, dtmcli.StatusSucceed}, getBranchesStatus(gid))
 }
 
-func xaGrpcRollback(t *testing.T) {
+func TestGrpcXaRollback(t *testing.T) {
 	xc := examples.XaGrpcClient
-	gid := "xaGrpcRollback"
+	gid := dtmimp.GetFuncName()
 	err := xc.XaGlobalTransaction(gid, func(xa *dtmgrpc.XaGrpc) error {
-		req := dtmcli.MustMarshal(&examples.TransReq{Amount: 30, TransInResult: dtmcli.ResultFailure})
-		_, err := xa.CallBranch(req, examples.BusiGrpc+"/examples.Busi/TransOutXa")
+		req := &examples.BusiReq{Amount: 30, TransInResult: dtmcli.ResultFailure}
+		r := &emptypb.Empty{}
+		err := xa.CallBranch(req, examples.BusiGrpc+"/examples.Busi/TransOutXa", r)
 		if err != nil {
 			return err
 		}
-		_, err = xa.CallBranch(req, examples.BusiGrpc+"/examples.Busi/TransInXa")
+		err = xa.CallBranch(req, examples.BusiGrpc+"/examples.Busi/TransInXa", r)
 		return err
 	})
 	assert.Error(t, err)

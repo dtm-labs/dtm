@@ -18,7 +18,7 @@ func svcSubmit(t *TransGlobal) (interface{}, error) {
 			updates := t.setNextCron(cronReset)
 			db.Must().Model(t).Where("gid=? and status=?", t.Gid, dtmcli.StatusPrepared).Select(append(updates, "status")).Updates(t)
 		} else if dbt.Status != dtmcli.StatusSubmitted {
-			return M{"dtm_result": dtmcli.ResultFailure, "message": fmt.Sprintf("current status '%s', cannot sumbmit", dbt.Status)}, nil
+			return map[string]interface{}{"dtm_result": dtmcli.ResultFailure, "message": fmt.Sprintf("current status '%s', cannot sumbmit", dbt.Status)}, nil
 		}
 	}
 	return t.Process(db), nil
@@ -30,7 +30,7 @@ func svcPrepare(t *TransGlobal) (interface{}, error) {
 	if err == errUniqueConflict {
 		dbt := transFromDb(dbGet(), t.Gid)
 		if dbt.Status != dtmcli.StatusPrepared {
-			return M{"dtm_result": dtmcli.ResultFailure, "message": fmt.Sprintf("current status '%s', cannot prepare", dbt.Status)}, nil
+			return map[string]interface{}{"dtm_result": dtmcli.ResultFailure, "message": fmt.Sprintf("current status '%s', cannot prepare", dbt.Status)}, nil
 		}
 	}
 	return dtmcli.MapSuccess, nil
@@ -40,17 +40,17 @@ func svcAbort(t *TransGlobal) (interface{}, error) {
 	db := dbGet()
 	dbt := transFromDb(db, t.Gid)
 	if t.TransType != "xa" && t.TransType != "tcc" || dbt.Status != dtmcli.StatusPrepared && dbt.Status != dtmcli.StatusAborting {
-		return M{"dtm_result": dtmcli.ResultFailure, "message": fmt.Sprintf("trans type: '%s' current status '%s', cannot abort", dbt.TransType, dbt.Status)}, nil
+		return map[string]interface{}{"dtm_result": dtmcli.ResultFailure, "message": fmt.Sprintf("trans type: '%s' current status '%s', cannot abort", dbt.TransType, dbt.Status)}, nil
 	}
 	dbt.changeStatus(db, dtmcli.StatusAborting)
 	return dbt.Process(db), nil
 }
 
-func svcRegisterTccBranch(branch *TransBranch, data dtmcli.MS) (interface{}, error) {
+func svcRegisterTccBranch(branch *TransBranch, data map[string]string) (interface{}, error) {
 	db := dbGet()
 	dbt := transFromDb(db, branch.Gid)
 	if dbt.Status != dtmcli.StatusPrepared {
-		return M{"dtm_result": dtmcli.ResultFailure, "message": fmt.Sprintf("current status: %s cannot register branch", dbt.Status)}, nil
+		return map[string]interface{}{"dtm_result": dtmcli.ResultFailure, "message": fmt.Sprintf("current status: %s cannot register branch", dbt.Status)}, nil
 	}
 
 	branches := []TransBranch{*branch, *branch, *branch}
@@ -72,7 +72,7 @@ func svcRegisterXaBranch(branch *TransBranch) (interface{}, error) {
 	db := dbGet()
 	dbt := transFromDb(db, branch.Gid)
 	if dbt.Status != dtmcli.StatusPrepared {
-		return M{"dtm_result": dtmcli.ResultFailure, "message": fmt.Sprintf("current status: %s cannot register branch", dbt.Status)}, nil
+		return map[string]interface{}{"dtm_result": dtmcli.ResultFailure, "message": fmt.Sprintf("current status: %s cannot register branch", dbt.Status)}, nil
 	}
 	branches := []TransBranch{*branch, *branch}
 	branches[0].BranchType = dtmcli.BranchRollback

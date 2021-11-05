@@ -7,6 +7,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/yedf/dtm/common"
 	"github.com/yedf/dtm/dtmcli"
+	"github.com/yedf/dtm/dtmcli/dtmimp"
 )
 
 // 启动命令：go run app/main.go qs
@@ -21,7 +22,7 @@ var qsBusi = fmt.Sprintf("http://localhost:%d%s", qsBusiPort, qsBusiAPI)
 func QsStartSvr() {
 	app := common.GetGinApp()
 	qsAddRoute(app)
-	dtmcli.Logf("quick qs examples listening at %d", qsBusiPort)
+	dtmimp.Logf("quick qs examples listening at %d", qsBusiPort)
 	go app.Run(fmt.Sprintf(":%d", qsBusiPort))
 	time.Sleep(100 * time.Millisecond)
 }
@@ -37,12 +38,12 @@ func QsFireRequest() string {
 		Add(qsBusi+"/TransIn", qsBusi+"/TransInCompensate", req)
 	// 提交saga事务，dtm会完成所有的子事务/回滚所有的子事务
 	err := saga.Submit()
-	dtmcli.FatalIfError(err)
+	dtmimp.FatalIfError(err)
 	return saga.Gid
 }
 
 func qsAdjustBalance(uid int, amount int) (interface{}, error) {
-	_, err := dtmcli.DBExec(sdbGet(), "update dtm_busi.user_account set balance = balance + ? where user_id = ?", amount, uid)
+	_, err := dtmimp.DBExec(sdbGet(), "update dtm_busi.user_account set balance = balance + ? where user_id = ?", amount, uid)
 	return dtmcli.MapSuccess, err
 }
 

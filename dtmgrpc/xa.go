@@ -5,8 +5,10 @@ import (
 	"database/sql"
 	"fmt"
 
-	"github.com/yedf/dtm/dtmcli"
+	"github.com/yedf/dtm/dtmcli/dtmimp"
+	"github.com/yedf/dtm/dtmgrpc/dtmgimp"
 	grpc "google.golang.org/grpc"
+	"google.golang.org/protobuf/proto"
 	emptypb "google.golang.org/protobuf/types/known/emptypb"
 )
 
@@ -18,28 +20,28 @@ type XaGrpcLocalFunc func(db *sql.DB, xa *XaGrpc) error
 
 // XaGrpcClient xa client
 type XaGrpcClient struct {
-	dtmcli.XaClientBase
+	dtmimp.XaClientBase
 }
 
 // XaGrpc xa transaction
 type XaGrpc struct {
-	dtmcli.TransBase
+	dtmimp.TransBase
 }
 
 // XaGrpcFromRequest construct xa info from request
-func XaGrpcFromRequest(br *BusiRequest) (*XaGrpc, error) {
+func XaGrpcFromRequest(ctx context.Context) (*XaGrpc, error) {
 	xa := &XaGrpc{
-		TransBase: *dtmcli.NewTransBase(br.Info.Gid, br.Info.TransType, br.Dtm, br.Info.BranchID),
+		TransBase: *dtmgimp.TransBaseFromGrpc(ctx),
 	}
-	if xa.Gid == "" || br.Info.BranchID == "" {
-		return nil, fmt.Errorf("bad xa info: gid: %s parentid: %s", xa.Gid, br.Info.BranchID)
+	if xa.Gid == "" || xa.BranchID == "" {
+		return nil, fmt.Errorf("bad xa info: gid: %s branchid: %s", xa.Gid, xa.BranchID)
 	}
 	return xa, nil
 }
 
 // NewXaGrpcClient construct a xa client
 func NewXaGrpcClient(server string, mysqlConf map[string]string, notifyURL string) *XaGrpcClient {
-	xa := &XaGrpcClient{XaClientBase: dtmcli.XaClientBase{
+	xa := &XaGrpcClient{XaClientBase: dtmimp.XaClientBase{
 		Server:    server,
 		Conf:      mysqlConf,
 		NotifyURL: notifyURL,
@@ -48,45 +50,49 @@ func NewXaGrpcClient(server string, mysqlConf map[string]string, notifyURL strin
 }
 
 // HandleCallback 处理commit/rollback的回调
-func (xc *XaGrpcClient) HandleCallback(gid string, branchID string, action string) error {
-	return xc.XaClientBase.HandleCallback(gid, branchID, action)
+func (xc *XaGrpcClient) HandleCallback(ctx context.Context) (*emptypb.Empty, error) {
+	tb := dtmgimp.TransBaseFromGrpc(ctx)
+	return &emptypb.Empty{}, xc.XaClientBase.HandleCallback(tb.Gid, tb.BranchID, tb.BranchType)
 }
 
 // XaLocalTransaction start a xa local transaction
-func (xc *XaGrpcClient) XaLocalTransaction(br *BusiRequest, xaFunc XaGrpcLocalFunc) (rerr error) {
-	xa, rerr := XaGrpcFromRequest(br)
-	if rerr != nil {
-		return
+func (xc *XaGrpcClient) XaLocalTransaction(ctx context.Context, msg proto.Message, xaFunc XaGrpcLocalFunc) error {
+	xa, err := XaGrpcFromRequest(ctx)
+	if err != nil {
+		return err
 	}
-	_, rerr = xc.HandleLocalTrans(&xa.TransBase, func(db *sql.DB) (interface{}, error) {
-		rerr := xaFunc(db, xa)
-		if rerr != nil {
-			return nil, rerr
+	data, err := proto.Marshal(msg)
+	if err != nil {
+		return err
+	}
+	return xc.HandleLocalTrans(&xa.TransBase, func(db *sql.DB) error {
+		err := xaFunc(db, xa)
+		if err != nil {
+			return err
 		}
-		_, rerr = MustGetDtmClient(xa.Dtm).RegisterXaBranch(context.Background(), &DtmXaBranchRequest{
-			Info: &BranchInfo{
+		_, err = dtmgimp.MustGetDtmClient(xa.Dtm).RegisterXaBranch(context.Background(), &dtmgimp.DtmXaBranchRequest{
+			Info: &dtmgimp.DtmBranchInfo{
 				Gid:       xa.Gid,
-				BranchID:  xa.CurrentBranchID(),
+				BranchID:  xa.BranchID,
 				TransType: xa.TransType,
 			},
-			BusiData: "",
-			Notify:   xc.NotifyURL,
+			BusiPayload: data,
+			Notify:      xc.NotifyURL,
 		})
-		return nil, rerr
+		return err
 	})
-	return
 }
 
 // XaGlobalTransaction start a xa global transaction
-func (xc *XaGrpcClient) XaGlobalTransaction(gid string, xaFunc XaGrpcGlobalFunc) (rerr error) {
-	xa := XaGrpc{TransBase: *dtmcli.NewTransBase(gid, "xa", xc.Server, "")}
-	dc := MustGetDtmClient(xa.Dtm)
-	req := &DtmRequest{
+func (xc *XaGrpcClient) XaGlobalTransaction(gid string, xaFunc XaGrpcGlobalFunc) error {
+	xa := XaGrpc{TransBase: *dtmimp.NewTransBase(gid, "xa", xc.Server, "")}
+	dc := dtmgimp.MustGetDtmClient(xa.Dtm)
+	req := &dtmgimp.DtmRequest{
 		Gid:       gid,
 		TransType: xa.TransType,
 	}
 	return xc.HandleGlobalTrans(&xa.TransBase, func(action string) error {
-		f := map[string]func(context.Context, *DtmRequest, ...grpc.CallOption) (*emptypb.Empty, error){
+		f := map[string]func(context.Context, *dtmgimp.DtmRequest, ...grpc.CallOption) (*emptypb.Empty, error){
 			"prepare": dc.Prepare,
 			"submit":  dc.Submit,
 			"abort":   dc.Abort,
@@ -99,20 +105,10 @@ func (xc *XaGrpcClient) XaGlobalTransaction(gid string, xaFunc XaGrpcGlobalFunc)
 }
 
 // CallBranch call a xa branch
-func (x *XaGrpc) CallBranch(busiData []byte, url string) (*BusiReply, error) {
-	branchID := x.NewBranchID()
-	server, method := GetServerAndMethod(url)
-	reply := &BusiReply{}
-	err := MustGetGrpcConn(server).Invoke(context.Background(), method, &BusiRequest{
-		Info: &BranchInfo{
-			Gid:        x.Gid,
-			TransType:  x.TransType,
-			BranchID:   branchID,
-			BranchType: "",
-		},
-		Dtm:      x.Dtm,
-		BusiData: busiData,
-	}, reply)
-	return reply, err
+func (x *XaGrpc) CallBranch(msg proto.Message, url string, reply interface{}) error {
+	server, method := dtmgimp.GetServerAndMethod(url)
+	err := dtmgimp.MustGetGrpcConn(server, false).Invoke(
+		dtmgimp.TransInfo2Ctx(x.Gid, x.TransType, x.NewSubBranchID(), "action", x.Dtm), method, msg, reply)
+	return err
 
 }
