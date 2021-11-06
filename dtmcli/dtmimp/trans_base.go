@@ -53,7 +53,7 @@ type TransBase struct {
 	BranchIDGen `json:"-"`          // used in XA/TCC
 	BranchType  string              `json:"-"` // used in XA/TCC
 
-	QueryPrepared string `json:"query_prepared"` // used in MSG
+	QueryPrepared string `json:"query_prepared,omitempty"` // used in MSG
 }
 
 // SetOptions set options
