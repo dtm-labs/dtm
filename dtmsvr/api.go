@@ -46,7 +46,7 @@ func svcAbort(t *TransGlobal) (interface{}, error) {
 	return dbt.Process(db), nil
 }
 
-func svcRegisterTccBranch(branch *TransBranch, data map[string]string) (interface{}, error) {
+func svcRegisterBranch(branch *TransBranch, data map[string]string) (interface{}, error) {
 	db := dbGet()
 	dbt := transFromDb(db, branch.Gid)
 	if dbt.Status != dtmcli.StatusPrepared {
@@ -54,9 +54,18 @@ func svcRegisterTccBranch(branch *TransBranch, data map[string]string) (interfac
 	}
 
 	branches := []TransBranch{*branch, *branch}
-	for i, b := range []string{dtmcli.BranchCancel, dtmcli.BranchConfirm} {
-		branches[i].BranchType = b
-		branches[i].URL = data[b]
+	if dbt.TransType == "tcc" {
+		for i, b := range []string{dtmcli.BranchCancel, dtmcli.BranchConfirm} {
+			branches[i].BranchType = b
+			branches[i].URL = data[b]
+		}
+	} else if dbt.TransType == "xa" {
+		branches[0].BranchType = dtmcli.BranchRollback
+		branches[0].URL = data["url"]
+		branches[1].BranchType = dtmcli.BranchCommit
+		branches[1].URL = data["url"]
+	} else {
+		return nil, fmt.Errorf("unknow trans type: %s", dbt.TransType)
 	}
 
 	db.Must().Clauses(clause.OnConflict{
@@ -64,23 +73,5 @@ func svcRegisterTccBranch(branch *TransBranch, data map[string]string) (interfac
 	}).Create(branches)
 	global := TransGlobal{Gid: branch.Gid}
 	global.touch(dbGet(), cronKeep)
-	return dtmcli.MapSuccess, nil
-}
-
-func svcRegisterXaBranch(branch *TransBranch) (interface{}, error) {
-	branch.Status = dtmcli.StatusPrepared
-	db := dbGet()
-	dbt := transFromDb(db, branch.Gid)
-	if dbt.Status != dtmcli.StatusPrepared {
-		return map[string]interface{}{"dtm_result": dtmcli.ResultFailure, "message": fmt.Sprintf("current status: %s cannot register branch", dbt.Status)}, nil
-	}
-	branches := []TransBranch{*branch, *branch}
-	branches[0].BranchType = dtmcli.BranchRollback
-	branches[1].BranchType = dtmcli.BranchCommit
-	db.Must().Clauses(clause.OnConflict{
-		DoNothing: true,
-	}).Create(branches)
-	global := TransGlobal{Gid: branch.Gid}
-	global.touch(db, cronKeep)
 	return dtmcli.MapSuccess, nil
 }

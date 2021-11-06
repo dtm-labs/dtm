@@ -66,15 +66,12 @@ func TccFromGrpc(ctx context.Context) (*TccGrpc, error) {
 func (t *TccGrpc) CallBranch(busiMsg proto.Message, tryURL string, confirmURL string, cancelURL string, reply interface{}) error {
 	branchID := t.NewSubBranchID()
 	bd, err := proto.Marshal(busiMsg)
-	_, err = dtmgimp.MustGetDtmClient(t.Dtm).RegisterTccBranch(context.Background(), &dtmgimp.DtmTccBranchRequest{
-		Info: &dtmgimp.DtmBranchInfo{
-			Gid:       t.Gid,
-			TransType: t.TransType,
-			BranchID:  branchID,
-		},
+	_, err = dtmgimp.MustGetDtmClient(t.Dtm).RegisterBranch(context.Background(), &dtmgimp.DtmBranchRequest{
+		Gid:         t.Gid,
+		TransType:   t.TransType,
+		BranchID:    branchID,
 		BusiPayload: bd,
-		Confirm:     confirmURL,
-		Cancel:      cancelURL,
+		Data:        map[string]string{"confirm": confirmURL, "cancel": cancelURL},
 	})
 	if err != nil {
 		return err

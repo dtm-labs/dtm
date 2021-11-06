@@ -33,26 +33,12 @@ func (s *dtmServer) Abort(ctx context.Context, in *pb.DtmRequest) (*emptypb.Empt
 	return &emptypb.Empty{}, dtmgimp.Result2Error(r, err)
 }
 
-func (s *dtmServer) RegisterTccBranch(ctx context.Context, in *pb.DtmTccBranchRequest) (*emptypb.Empty, error) {
-	r, err := svcRegisterTccBranch(&TransBranch{
-		Gid:      in.Info.Gid,
-		BranchID: in.Info.BranchID,
+func (s *dtmServer) RegisterBranch(ctx context.Context, in *pb.DtmBranchRequest) (*emptypb.Empty, error) {
+	r, err := svcRegisterBranch(&TransBranch{
+		Gid:      in.Gid,
+		BranchID: in.BranchID,
 		Status:   dtmcli.StatusPrepared,
 		BinData:  in.BusiPayload,
-	}, map[string]string{
-		dtmcli.BranchCancel:  in.Cancel,
-		dtmcli.BranchConfirm: in.Confirm,
-	})
-	return &emptypb.Empty{}, dtmgimp.Result2Error(r, err)
-}
-
-func (s *dtmServer) RegisterXaBranch(ctx context.Context, in *pb.DtmXaBranchRequest) (*emptypb.Empty, error) {
-	r, err := svcRegisterXaBranch(&TransBranch{
-		Gid:      in.Info.Gid,
-		BranchID: in.Info.BranchID,
-		Status:   dtmcli.StatusPrepared,
-		BinData:  in.BusiPayload,
-		URL:      in.Notify,
-	})
+	}, in.Data)
 	return &emptypb.Empty{}, dtmgimp.Result2Error(r, err)
 }

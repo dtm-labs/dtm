@@ -70,14 +70,12 @@ func (xc *XaGrpcClient) XaLocalTransaction(ctx context.Context, msg proto.Messag
 		if err != nil {
 			return err
 		}
-		_, err = dtmgimp.MustGetDtmClient(xa.Dtm).RegisterXaBranch(context.Background(), &dtmgimp.DtmXaBranchRequest{
-			Info: &dtmgimp.DtmBranchInfo{
-				Gid:       xa.Gid,
-				BranchID:  xa.BranchID,
-				TransType: xa.TransType,
-			},
+		_, err = dtmgimp.MustGetDtmClient(xa.Dtm).RegisterBranch(context.Background(), &dtmgimp.DtmBranchRequest{
+			Gid:         xa.Gid,
+			BranchID:    xa.BranchID,
+			TransType:   xa.TransType,
 			BusiPayload: data,
-			Notify:      xc.NotifyURL,
+			Data:        map[string]string{"url": xc.NotifyURL},
 		})
 		return err
 	})

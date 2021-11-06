@@ -15,8 +15,9 @@ func addRoute(engine *gin.Engine) {
 	engine.POST("/api/dtmsvr/prepare", common.WrapHandler(prepare))
 	engine.POST("/api/dtmsvr/submit", common.WrapHandler(submit))
 	engine.POST("/api/dtmsvr/abort", common.WrapHandler(abort))
-	engine.POST("/api/dtmsvr/registerXaBranch", common.WrapHandler(registerXaBranch))
-	engine.POST("/api/dtmsvr/registerTccBranch", common.WrapHandler(registerTccBranch))
+	engine.POST("/api/dtmsvr/registerBranch", common.WrapHandler(registerBranch))
+	engine.POST("/api/dtmsvr/registerXaBranch", common.WrapHandler(registerBranch))  // compatible for old sdk
+	engine.POST("/api/dtmsvr/registerTccBranch", common.WrapHandler(registerBranch)) // compatible for old sdk
 	engine.GET("/api/dtmsvr/query", common.WrapHandler(query))
 	engine.GET("/api/dtmsvr/all", common.WrapHandler(all))
 }
@@ -37,14 +38,7 @@ func abort(c *gin.Context) (interface{}, error) {
 	return svcAbort(TransFromContext(c))
 }
 
-func registerXaBranch(c *gin.Context) (interface{}, error) {
-	branch := TransBranch{}
-	err := c.BindJSON(&branch)
-	e2p(err)
-	return svcRegisterXaBranch(&branch)
-}
-
-func registerTccBranch(c *gin.Context) (interface{}, error) {
+func registerBranch(c *gin.Context) (interface{}, error) {
 	data := map[string]string{}
 	err := c.BindJSON(&data)
 	e2p(err)
@@ -54,7 +48,7 @@ func registerTccBranch(c *gin.Context) (interface{}, error) {
 		Status:   dtmcli.StatusPrepared,
 		BinData:  []byte(data["data"]),
 	}
-	return svcRegisterTccBranch(&branch, data)
+	return svcRegisterBranch(&branch, data)
 }
 
 func query(c *gin.Context) (interface{}, error) {

@@ -11,8 +11,7 @@ service Dtm {
   rpc Submit(DtmRequest) returns (google.protobuf.Empty) {}
   rpc Prepare(DtmRequest) returns (google.protobuf.Empty) {}
   rpc Abort(DtmRequest) returns (google.protobuf.Empty) {}
-  rpc RegisterTccBranch(DtmTccBranchRequest) returns (google.protobuf.Empty) {}
-  rpc RegisterXaBranch(DtmXaBranchRequest) returns (google.protobuf.Empty) {}
+  rpc RegisterBranch(DtmBranchRequest) returns (google.protobuf.Empty) {}
 }
 
 message DtmTransOptions {
@@ -37,21 +36,14 @@ message DtmGidReply {
 }
 
 message DtmBranchInfo {
+}
+
+message DtmBranchRequest {
   string Gid = 1;
   string TransType = 2;
   string BranchID = 3;
   string BranchType = 4;
+  map<string, string> Data = 5;
+  bytes BusiPayload = 6;
 }
 
-message DtmTccBranchRequest {
-  DtmBranchInfo Info = 1;
-  bytes BusiPayload = 2;
-  string Confirm = 3;
-  string Cancel = 4;
-}
-
-message DtmXaBranchRequest {
-  DtmBranchInfo Info = 1;
-  bytes BusiPayload = 2;
-  string Notify = 3; // dtm will call this url to commit/rollback
-}
