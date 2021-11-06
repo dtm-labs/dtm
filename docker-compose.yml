@@ -8,6 +8,8 @@ services:
       - '8080:8080'
     volumes:
       - .:/app/work
+      - /etc/localtime:/etc/localtime:ro
+      - /etc/timezone:/etc/timezone:ro
     command: ['/app/dtm/main', 'dev']
     working_dir: /app/work
     extra_hosts:
@@ -16,12 +18,13 @@ services:
     image: 'mysql:5.7'
     environment:
       MYSQL_ALLOW_EMPTY_PASSWORD: 1
-      TZ: Asia/shanghai
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - /etc/timezone:/etc/timezone:ro
     command:
       [
         '--character-set-server=utf8mb4',
         '--collation-server=utf8mb4_unicode_ci',
-        '--default-time-zone=+8:00',
       ]
     ports:
       - '3306:3306'

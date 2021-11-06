@@ -1,20 +1,23 @@
 version: '3.3'
 services:
   api:
-    build: ..
+    image: golang:1.16.6-alpine3.14
+    extra_hosts:
+      - 'host.docker.internal:host-gateway'
     volumes:
       - /etc/localtime:/etc/localtime:ro
       - /etc/timezone:/etc/timezone:ro
-    extra_hosts:
-      - 'host.docker.internal:host-gateway'
     environment:
-      IS_DOCKER: 1
-      DISABLE_LOCALHOST: 1
-      RETRY_LIMIT: 6
+      IS_DOCKER: '1'
+      GOPROXY: 'https://mirrors.aliyun.com/goproxy/,direct'
     ports:
-      - '9080:8080'
+      - '8080:8080'
+      - '8082:8082'
+      - '58080:58080'
     volumes:
-      - ..:/app/dtm
+      - ..:/app/work
+    command: ['go', 'run', '/app/work/app/main.go', 'dev']
+    working_dir: /app/work
   mysql:
     image: 'mysql:5.7'
     volumes:
