@@ -56,13 +56,13 @@ func svcRegisterBranch(branch *TransBranch, data map[string]string) (interface{}
 	branches := []TransBranch{*branch, *branch}
 	if dbt.TransType == "tcc" {
 		for i, b := range []string{dtmcli.BranchCancel, dtmcli.BranchConfirm} {
-			branches[i].BranchType = b
+			branches[i].Op = b
 			branches[i].URL = data[b]
 		}
 	} else if dbt.TransType == "xa" {
-		branches[0].BranchType = dtmcli.BranchRollback
+		branches[0].Op = dtmcli.BranchRollback
 		branches[0].URL = data["url"]
-		branches[1].BranchType = dtmcli.BranchCommit
+		branches[1].Op = dtmcli.BranchCommit
 		branches[1].URL = data["url"]
 	} else {
 		return nil, fmt.Errorf("unknow trans type: %s", dbt.TransType)

@@ -21,12 +21,12 @@ func (t *transMsgProcessor) GenBranches() []TransBranch {
 	branches := []TransBranch{}
 	for i, step := range t.Steps {
 		b := &TransBranch{
-			Gid:        t.Gid,
-			BranchID:   fmt.Sprintf("%02d", i+1),
-			BinData:    t.BinPayloads[i],
-			URL:        step[dtmcli.BranchAction],
-			BranchType: dtmcli.BranchAction,
-			Status:     dtmcli.StatusPrepared,
+			Gid:      t.Gid,
+			BranchID: fmt.Sprintf("%02d", i+1),
+			BinData:  t.BinPayloads[i],
+			URL:      step[dtmcli.BranchAction],
+			Op:       dtmcli.BranchAction,
+			Status:   dtmcli.StatusPrepared,
 		}
 		branches = append(branches, *b)
 	}
@@ -58,7 +58,7 @@ func (t *transMsgProcessor) ProcessOnce(db *common.DB, branches []TransBranch) e
 	current := 0 // 当前正在处理的步骤
 	for ; current < len(branches); current++ {
 		branch := &branches[current]
-		if branch.BranchType != dtmcli.BranchAction || branch.Status != dtmcli.StatusPrepared {
+		if branch.Op != dtmcli.BranchAction || branch.Status != dtmcli.StatusPrepared {
 			continue
 		}
 		err := t.execBranch(db, branch)

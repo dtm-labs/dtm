@@ -52,7 +52,6 @@ func TccFromQuery(qs url.Values) (*Tcc, error) {
 }
 
 // CallBranch call a tcc branch
-// 函数首先注册子事务的所有分支，成功后调用try分支，返回try分支的调用结果
 func (t *Tcc) CallBranch(body interface{}, tryURL string, confirmURL string, cancelURL string) (*resty.Response, error) {
 	branchID := t.NewSubBranchID()
 	err := dtmimp.TransRegisterBranch(&t.TransBase, map[string]string{

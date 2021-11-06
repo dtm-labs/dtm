@@ -51,7 +51,7 @@ type TransBase struct {
 	Payloads    []string            `json:"payloads,omitempty"` // used in MSG/SAGA
 	BinPayloads [][]byte            `json:"-"`
 	BranchIDGen `json:"-"`          // used in XA/TCC
-	BranchType  string              `json:"-"` // used in XA/TCC
+	Op          string              `json:"-"` // used in XA/TCC
 
 	QueryPrepared string `json:"query_prepared,omitempty"` // used in MSG
 }
@@ -102,15 +102,15 @@ func TransRegisterBranch(tb *TransBase, added map[string]string, operation strin
 }
 
 // TransRequestBranch TransBAse request branch result
-func TransRequestBranch(t *TransBase, body interface{}, branchID string, branchType string, url string) (*resty.Response, error) {
+func TransRequestBranch(t *TransBase, body interface{}, branchID string, op string, url string) (*resty.Response, error) {
 	resp, err := RestyClient.R().
 		SetBody(body).
 		SetQueryParams(map[string]string{
-			"dtm":         t.Dtm,
-			"gid":         t.Gid,
-			"branch_id":   branchID,
-			"trans_type":  t.TransType,
-			"branch_type": branchType,
+			"dtm":        t.Dtm,
+			"gid":        t.Gid,
+			"branch_id":  branchID,
+			"trans_type": t.TransType,
+			"op":         op,
 		}).
 		Post(url)
 	return resp, CheckResponse(resp, err)

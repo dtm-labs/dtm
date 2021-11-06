@@ -38,14 +38,14 @@ CREATE TABLE IF NOT EXISTS dtm.trans_branch (
   data TEXT,
   bin_data BLOB,
   branch_id VARCHAR(128) NOT NULL,
-  branch_type varchar(45) NOT NULL,
+  op varchar(45) NOT NULL,
   status varchar(45) NOT NULL,
   finish_time timestamp(0) DEFAULT NULL,
   rollback_time timestamp(0) DEFAULT NULL,
   create_time timestamp(0) DEFAULT NULL,
   update_time timestamp(0) DEFAULT NULL,
   PRIMARY KEY (id),
-  CONSTRAINT gid_uniq UNIQUE (gid, branch_id, branch_type)
+  CONSTRAINT gid_uniq UNIQUE (gid, branch_id, op)
 );
 CREATE INDEX if not EXISTS create_time ON dtm.trans_branch (create_time);
 CREATE INDEX if not EXISTS update_time ON dtm.trans_branch (update_time);

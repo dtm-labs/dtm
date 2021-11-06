@@ -97,7 +97,7 @@ type TransBranch struct {
 	URL          string `json:"url"`
 	BinData      []byte
 	BranchID     string `json:"branch_id"`
-	BranchType   string
+	Op           string
 	Status       string
 	FinishTime   *time.Time
 	RollbackTime *time.Time
@@ -211,12 +211,12 @@ func (t *TransGlobal) setNextCron(ctype cronType) []string {
 	return []string{"next_cron_interval", "next_cron_time"}
 }
 
-func (t *TransGlobal) getURLResult(url string, branchID, branchType string, branchPayload []byte) (string, error) {
+func (t *TransGlobal) getURLResult(url string, branchID, op string, branchPayload []byte) (string, error) {
 	if t.Protocol == "grpc" {
 		dtmimp.PanicIf(strings.HasPrefix(url, "http"), fmt.Errorf("bad url for grpc: %s", url))
 		server, method := dtmgimp.GetServerAndMethod(url)
 		conn := dtmgimp.MustGetGrpcConn(server, true)
-		ctx := dtmgimp.TransInfo2Ctx(t.Gid, t.TransType, branchID, branchType, "")
+		ctx := dtmgimp.TransInfo2Ctx(t.Gid, t.TransType, branchID, op, "")
 		err := conn.Invoke(ctx, method, branchPayload, []byte{})
 		if err == nil {
 			return dtmcli.ResultSuccess, nil
@@ -234,10 +234,10 @@ func (t *TransGlobal) getURLResult(url string, branchID, branchType string, bran
 	dtmimp.PanicIf(!strings.HasPrefix(url, "http"), fmt.Errorf("bad url for http: %s", url))
 	resp, err := dtmimp.RestyClient.R().SetBody(string(branchPayload)).
 		SetQueryParams(map[string]string{
-			"gid":         t.Gid,
-			"trans_type":  t.TransType,
-			"branch_id":   branchID,
-			"branch_type": branchType,
+			"gid":        t.Gid,
+			"trans_type": t.TransType,
+			"branch_id":  branchID,
+			"op":         op,
 		}).
 		SetHeader("Content-type", "application/json").
 		Execute(dtmimp.If(branchPayload != nil || t.TransType == "xa", "POST", "GET").(string), url)
@@ -248,13 +248,13 @@ func (t *TransGlobal) getURLResult(url string, branchID, branchType string, bran
 }
 
 func (t *TransGlobal) getBranchResult(branch *TransBranch) (string, error) {
-	body, err := t.getURLResult(branch.URL, branch.BranchID, branch.BranchType, branch.BinData)
+	body, err := t.getURLResult(branch.URL, branch.BranchID, branch.Op, branch.BinData)
 	if err != nil {
 		return "", err
 	}
 	if strings.Contains(body, dtmcli.ResultSuccess) {
 		return dtmcli.StatusSucceed, nil
-	} else if strings.HasSuffix(t.TransType, "saga") && branch.BranchType == dtmcli.BranchAction && strings.Contains(body, dtmcli.ResultFailure) {
+	} else if strings.HasSuffix(t.TransType, "saga") && branch.Op == dtmcli.BranchAction && strings.Contains(body, dtmcli.ResultFailure) {
 		return dtmcli.StatusFailed, nil
 	} else if strings.Contains(body, dtmcli.ResultOngoing) {
 		return "", dtmimp.ErrOngoing

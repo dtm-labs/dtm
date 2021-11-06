@@ -12,42 +12,42 @@ type BarrierBusiFunc func(db DB) error
 
 // BranchBarrier every branch info
 type BranchBarrier struct {
-	TransType  string
-	Gid        string
-	BranchID   string
-	BranchType string
-	BarrierID  int
+	TransType string
+	Gid       string
+	BranchID  string
+	Op        string
+	BarrierID int
 }
 
 func (bb *BranchBarrier) String() string {
-	return fmt.Sprintf("transInfo: %s %s %s %s", bb.TransType, bb.Gid, bb.BranchID, bb.BranchType)
+	return fmt.Sprintf("transInfo: %s %s %s %s", bb.TransType, bb.Gid, bb.BranchID, bb.Op)
 }
 
 // BarrierFromQuery construct transaction info from request
 func BarrierFromQuery(qs url.Values) (*BranchBarrier, error) {
-	return BarrierFrom(qs.Get("trans_type"), qs.Get("gid"), qs.Get("branch_id"), qs.Get("branch_type"))
+	return BarrierFrom(qs.Get("trans_type"), qs.Get("gid"), qs.Get("branch_id"), qs.Get("op"))
 }
 
 // BarrierFrom construct transaction info from request
-func BarrierFrom(transType, gid, branchID, branchType string) (*BranchBarrier, error) {
+func BarrierFrom(transType, gid, branchID, op string) (*BranchBarrier, error) {
 	ti := &BranchBarrier{
-		TransType:  transType,
-		Gid:        gid,
-		BranchID:   branchID,
-		BranchType: branchType,
+		TransType: transType,
+		Gid:       gid,
+		BranchID:  branchID,
+		Op:        op,
 	}
-	if ti.TransType == "" || ti.Gid == "" || ti.BranchID == "" || ti.BranchType == "" {
+	if ti.TransType == "" || ti.Gid == "" || ti.BranchID == "" || ti.Op == "" {
 		return nil, fmt.Errorf("invlid trans info: %v", ti)
 	}
 	return ti, nil
 }
 
-func insertBarrier(tx Tx, transType string, gid string, branchID string, branchType string, barrierID string, reason string) (int64, error) {
-	if branchType == "" {
+func insertBarrier(tx Tx, transType string, gid string, branchID string, op string, barrierID string, reason string) (int64, error) {
+	if op == "" {
 		return 0, nil
 	}
-	sql := dtmimp.GetDBSpecial().GetInsertIgnoreTemplate("dtm_barrier.barrier(trans_type, gid, branch_id, branch_type, barrier_id, reason) values(?,?,?,?,?,?)", "uniq_barrier")
-	return dtmimp.DBExec(tx, sql, transType, gid, branchID, branchType, barrierID, reason)
+	sql := dtmimp.GetDBSpecial().GetInsertIgnoreTemplate("dtm_barrier.barrier(trans_type, gid, branch_id, op, barrier_id, reason) values(?,?,?,?,?,?)", "uniq_barrier")
+	return dtmimp.DBExec(tx, sql, transType, gid, branchID, op, barrierID, reason)
 }
 
 // Call 子事务屏障，详细介绍见 https://zhuanlan.zhihu.com/p/388444465
@@ -71,12 +71,12 @@ func (bb *BranchBarrier) Call(tx Tx, busiCall BarrierBusiFunc) (rerr error) {
 	originType := map[string]string{
 		BranchCancel:     BranchTry,
 		BranchCompensate: BranchAction,
-	}[ti.BranchType]
+	}[ti.Op]
 
-	originAffected, _ := insertBarrier(tx, ti.TransType, ti.Gid, ti.BranchID, originType, bid, ti.BranchType)
-	currentAffected, rerr := insertBarrier(tx, ti.TransType, ti.Gid, ti.BranchID, ti.BranchType, bid, ti.BranchType)
+	originAffected, _ := insertBarrier(tx, ti.TransType, ti.Gid, ti.BranchID, originType, bid, ti.Op)
+	currentAffected, rerr := insertBarrier(tx, ti.TransType, ti.Gid, ti.BranchID, ti.Op, bid, ti.Op)
 	dtmimp.Logf("originAffected: %d currentAffected: %d", originAffected, currentAffected)
-	if (ti.BranchType == BranchCancel || ti.BranchType == BranchCompensate) && originAffected > 0 || // 这个是空补偿
+	if (ti.Op == BranchCancel || ti.Op == BranchCompensate) && originAffected > 0 || // 这个是空补偿
 		currentAffected == 0 { // 这个是重复请求或者悬挂
 		return
 	}

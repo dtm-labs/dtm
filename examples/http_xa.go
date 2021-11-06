@@ -16,7 +16,7 @@ func init() {
 		var err error
 		XaClient, err = dtmcli.NewXaClient(DtmServer, config.DB, Busi+"/xa", func(path string, xa *dtmcli.XaClient) {
 			app.POST(path, common.WrapHandler(func(c *gin.Context) (interface{}, error) {
-				return xa.HandleCallback(c.Query("gid"), c.Query("branch_id"), c.Query("branch_type"))
+				return xa.HandleCallback(c.Query("gid"), c.Query("branch_id"), c.Query("op"))
 			}))
 		})
 		dtmimp.FatalIfError(err)

@@ -62,7 +62,6 @@ func TccFromGrpc(ctx context.Context) (*TccGrpc, error) {
 }
 
 // CallBranch call a tcc branch
-// 函数首先注册子事务的所有分支，成功后调用try分支，返回try分支的调用结果
 func (t *TccGrpc) CallBranch(busiMsg proto.Message, tryURL string, confirmURL string, cancelURL string, reply interface{}) error {
 	branchID := t.NewSubBranchID()
 	bd, err := proto.Marshal(busiMsg)

@@ -75,7 +75,7 @@ func StartSvr() {
 	delta DECIMAL(11, 2) not null,
 	gid varchar(45) not null,
 	branch_id varchar(45) not null,
-	branch_type varchar(45) not null,
+	op varchar(45) not null,
 	reason varchar(45),
 	create_time datetime not null default now(),
 	update_time datetime not null default now(),
@@ -93,7 +93,7 @@ func qsAdjustBalance(uid int, amount int, c *gin.Context) (interface{}, error) {
 	tb := dtmimp.TransBaseFromQuery(c.Request.URL.Query())
 	f := func(tx dtmcli.DB) error {
 		for i := 0; i < sqls; i++ {
-			_, err := dtmimp.DBExec(tx, "insert into dtm_busi.user_account_log(user_id, delta, gid, branch_id, branch_type, reason)  values(?,?,?,?,?,?)",
+			_, err := dtmimp.DBExec(tx, "insert into dtm_busi.user_account_log(user_id, delta, gid, branch_id, op, reason)  values(?,?,?,?,?,?)",
 				uid, amount, tb.Gid, c.Query("branch_id"), tb.TransType, fmt.Sprintf("inserted by dtm transaction %s %s", tb.Gid, c.Query("branch_id")))
 			dtmimp.FatalIfError(err)
 			_, err = dtmimp.DBExec(tx, "update dtm_busi.user_account set balance = balance + ?, update_time = now() where user_id = ?", amount, uid)

@@ -27,7 +27,7 @@ func (t *transXaProcessor) ProcessOnce(db *common.DB, branches []TransBranch) er
 	}
 	currentType := dtmimp.If(t.Status == dtmcli.StatusSubmitted, dtmcli.BranchCommit, dtmcli.BranchRollback).(string)
 	for _, branch := range branches {
-		if branch.BranchType == currentType && branch.Status != dtmcli.StatusSucceed {
+		if branch.Op == currentType && branch.Status != dtmcli.StatusSucceed {
 			err := t.execBranch(db, &branch)
 			if err != nil {
 				return err

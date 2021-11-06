@@ -24,12 +24,12 @@ func TestBaseSqlDB(t *testing.T) {
 	asserts := assert.New(t)
 	db := common.DbGet(config.DB)
 	barrier := &dtmcli.BranchBarrier{
-		TransType:  "saga",
-		Gid:        "gid2",
-		BranchID:   "branch_id2",
-		BranchType: dtmcli.BranchAction,
+		TransType: "saga",
+		Gid:       "gid2",
+		BranchID:  "branch_id2",
+		Op:        dtmcli.BranchAction,
 	}
-	db.Must().Exec("insert into dtm_barrier.barrier(trans_type, gid, branch_id, branch_type, reason) values('saga', 'gid1', 'branch_id1', 'action', 'saga')")
+	db.Must().Exec("insert into dtm_barrier.barrier(trans_type, gid, branch_id, op, reason) values('saga', 'gid1', 'branch_id1', 'action', 'saga')")
 	tx, err := db.ToSQLDB().Begin()
 	asserts.Nil(err)
 	err = barrier.Call(tx, func(db dtmcli.DB) error {

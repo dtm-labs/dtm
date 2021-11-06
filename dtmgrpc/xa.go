@@ -52,7 +52,7 @@ func NewXaGrpcClient(server string, mysqlConf map[string]string, notifyURL strin
 // HandleCallback 处理commit/rollback的回调
 func (xc *XaGrpcClient) HandleCallback(ctx context.Context) (*emptypb.Empty, error) {
 	tb := dtmgimp.TransBaseFromGrpc(ctx)
-	return &emptypb.Empty{}, xc.XaClientBase.HandleCallback(tb.Gid, tb.BranchID, tb.BranchType)
+	return &emptypb.Empty{}, xc.XaClientBase.HandleCallback(tb.Gid, tb.BranchID, tb.Op)
 }
 
 // XaLocalTransaction start a xa local transaction

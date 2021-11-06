@@ -273,7 +273,7 @@ type DtmBranchRequest struct {
 	Gid         string            `protobuf:"bytes,1,opt,name=Gid,proto3" json:"Gid,omitempty"`
 	TransType   string            `protobuf:"bytes,2,opt,name=TransType,proto3" json:"TransType,omitempty"`
 	BranchID    string            `protobuf:"bytes,3,opt,name=BranchID,proto3" json:"BranchID,omitempty"`
-	BranchType  string            `protobuf:"bytes,4,opt,name=BranchType,proto3" json:"BranchType,omitempty"`
+	Op          string            `protobuf:"bytes,4,opt,name=Op,proto3" json:"Op,omitempty"`
 	Data        map[string]string `protobuf:"bytes,5,rep,name=Data,proto3" json:"Data,omitempty" protobuf_key:"bytes,1,opt,name=key,proto3" protobuf_val:"bytes,2,opt,name=value,proto3"`
 	BusiPayload []byte            `protobuf:"bytes,6,opt,name=BusiPayload,proto3" json:"BusiPayload,omitempty"`
 }
@@ -333,7 +333,7 @@ func (x *DtmBranchRequest) GetBranchID() string {
 
 func (x *DtmBranchRequest) GetBranchType() string {
 	if x != nil {
-		return x.BranchType
+		return x.Op
 	}
 	return ""
 }

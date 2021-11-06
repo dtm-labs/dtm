@@ -39,7 +39,7 @@ message DtmBranchRequest {
   string Gid = 1;
   string TransType = 2;
   string BranchID = 3;
-  string BranchType = 4;
+  string Op = 4;
   map<string, string> Data = 5;
   bytes BusiPayload = 6;
 }

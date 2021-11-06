@@ -37,12 +37,12 @@ func DtmGrpcCall(s *dtmimp.TransBase, operation string) error {
 const mdpre string = "dtm-"
 
 // TransInfo2Ctx add trans info to grpc context
-func TransInfo2Ctx(gid, transType, branchID, branchType, dtm string) context.Context {
+func TransInfo2Ctx(gid, transType, branchID, op, dtm string) context.Context {
 	md := metadata.Pairs(
 		mdpre+"gid", gid,
 		mdpre+"trans_type", transType,
 		mdpre+"branch_id", branchID,
-		mdpre+"branch_type", branchType,
+		mdpre+"op", op,
 		mdpre+"dtm", dtm,
 	)
 	return metadata.NewOutgoingContext(context.Background(), md)
@@ -52,7 +52,7 @@ func TransInfo2Ctx(gid, transType, branchID, branchType, dtm string) context.Con
 func LogDtmCtx(ctx context.Context) {
 	tb := TransBaseFromGrpc(ctx)
 	if tb.Gid != "" {
-		dtmimp.Logf("gid: %s trans_type: %s branch_id: %s branch_type: %s dtm: %s", tb.Gid, tb.TransType, tb.BranchID, tb.BranchType, tb.Dtm)
+		dtmimp.Logf("gid: %s trans_type: %s branch_id: %s op: %s dtm: %s", tb.Gid, tb.TransType, tb.BranchID, tb.Op, tb.Dtm)
 	}
 }
 
@@ -68,6 +68,6 @@ func mdGet(md metadata.MD, key string) string {
 func TransBaseFromGrpc(ctx context.Context) *dtmimp.TransBase {
 	md, _ := metadata.FromIncomingContext(ctx)
 	tb := dtmimp.NewTransBase(mdGet(md, "gid"), mdGet(md, "trans_type"), mdGet(md, "dtm"), mdGet(md, "branch_id"))
-	tb.BranchType = mdGet(md, "branch_type")
+	tb.Op = mdGet(md, "op")
 	return tb
 }

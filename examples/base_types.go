@@ -61,10 +61,10 @@ func reqFrom(c *gin.Context) *TransReq {
 
 func infoFromContext(c *gin.Context) *dtmcli.BranchBarrier {
 	info := dtmcli.BranchBarrier{
-		TransType:  c.Query("trans_type"),
-		Gid:        c.Query("gid"),
-		BranchID:   c.Query("branch_id"),
-		BranchType: c.Query("branch_type"),
+		TransType: c.Query("trans_type"),
+		Gid:       c.Query("gid"),
+		BranchID:  c.Query("branch_id"),
+		Op:        c.Query("op"),
 	}
 	return &info
 }

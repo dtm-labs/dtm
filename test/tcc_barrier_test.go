@@ -87,11 +87,11 @@ func TestTccBarrierDisorder(t *testing.T) {
 			r, _ := dtmimp.RestyClient.R().
 				SetBody(body).
 				SetQueryParams(map[string]string{
-					"dtm":         tcc.Dtm,
-					"gid":         tcc.Gid,
-					"branch_id":   branchID,
-					"trans_type":  "tcc",
-					"branch_type": dtmcli.BranchTry,
+					"dtm":        tcc.Dtm,
+					"gid":        tcc.Gid,
+					"branch_id":  branchID,
+					"trans_type": "tcc",
+					"op":         dtmcli.BranchTry,
 				}).
 				Post(tryURL)
 			assert.True(t, strings.Contains(r.String(), dtmcli.ResultSuccess)) // 这个是悬挂操作，为了简单起见，依旧让他返回成功
@@ -115,7 +115,7 @@ func TestTccBarrierDisorder(t *testing.T) {
 }
 
 func TestTccBarrierPanic(t *testing.T) {
-	bb := &dtmcli.BranchBarrier{TransType: "saga", Gid: "gid1", BranchID: "bid1", BranchType: "action", BarrierID: 1}
+	bb := &dtmcli.BranchBarrier{TransType: "saga", Gid: "gid1", BranchID: "bid1", Op: "action", BarrierID: 1}
 	var err error
 	func() {
 		defer dtmimp.P2E(&err)
