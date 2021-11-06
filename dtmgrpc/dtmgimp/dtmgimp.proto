@@ -35,9 +35,6 @@ message DtmGidReply {
   string Gid = 1;
 }
 
-message DtmBranchInfo {
-}
-
 message DtmBranchRequest {
   string Gid = 1;
   string TransType = 2;
