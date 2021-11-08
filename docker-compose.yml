@@ -6,6 +6,7 @@ services:
       IS_DOCKER: '1'
     ports:
       - '8080:8080'
+      - '58080:58080'
     volumes:
       - .:/app/work
       - /etc/localtime:/etc/localtime:ro
