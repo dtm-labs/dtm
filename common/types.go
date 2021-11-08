@@ -166,7 +166,7 @@ func init() {
 			break
 		}
 	}
-	if cont != nil && len(cont) != 0 {
+	if len(cont) != 0 {
 		dtmimp.Logf("cont is: \n%s", string(cont))
 		err := yaml.Unmarshal(cont, &DtmConfig)
 		dtmimp.FatalIfError(err)
