@@ -105,7 +105,7 @@ type TransBranch struct {
 
 // TableName TableName
 func (*TransBranch) TableName() string {
-	return "dtm.trans_branch"
+	return "dtm.trans_branch_op"
 }
 
 func (t *TransBranch) changeStatus(db *common.DB, status string) *gorm.DB {

@@ -41,7 +41,7 @@ func reloadData() {
 	time.Sleep(dtmsvr.UpdateBranchAsyncInterval * 2)
 	began := time.Now()
 	db := sdbGet()
-	tables := []string{"dtm_busi.user_account", "dtm_busi.user_account_log", "dtm.trans_global", "dtm.trans_branch", "dtm_barrier.barrier"}
+	tables := []string{"dtm_busi.user_account", "dtm_busi.user_account_log", "dtm.trans_global", "dtm.trans_branch_op", "dtm_barrier.barrier"}
 	for _, t := range tables {
 		_, err := dtmimp.DBExec(db, fmt.Sprintf("truncate %s", t))
 		dtmimp.FatalIfError(err)
