@@ -2,13 +2,14 @@ package dtmsvr
 
 import (
 	"context"
+	"net/http"
+	"strings"
+
 	"github.com/gin-gonic/gin"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promauto"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"google.golang.org/grpc"
-	"net/http"
-	"strings"
 )
 
 var (
@@ -87,9 +88,9 @@ func transactionMetrics(global *TransGlobal, status bool) {
 
 func branchMetrics(global *TransGlobal, branch *TransBranch, status bool) {
 	if status {
-		branchTotal.WithLabelValues(global.TransType, global.Gid, branch.BranchID, branch.BranchType, "ok").Inc()
+		branchTotal.WithLabelValues(global.TransType, global.Gid, branch.BranchID, branch.Op, "ok").Inc()
 	} else {
-		branchTotal.WithLabelValues(global.TransType, global.Gid, branch.BranchID, branch.BranchType, "fail").Inc()
+		branchTotal.WithLabelValues(global.TransType, global.Gid, branch.BranchID, branch.Op, "fail").Inc()
 	}
 }
 

@@ -5,19 +5,11 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/yedf/dtm/dtmcli/dtmimp"
 )
 
 func TestTypes(t *testing.T) {
-	err := CatchP(func() {
-		idGen := IDGenerator{parentID: "12345678901234567890123"}
-		idGen.NewBranchID()
-	})
-	assert.Error(t, err)
-	err = CatchP(func() {
-		idGen := IDGenerator{branchID: 99}
-		idGen.NewBranchID()
-	})
-	err = CatchP(func() {
+	err := dtmimp.CatchP(func() {
 		MustGenGid("http://localhost:8080/api/no")
 	})
 	assert.Error(t, err)

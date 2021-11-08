@@ -8,6 +8,7 @@ import (
 	"github.com/yedf/dtm/bench"
 	"github.com/yedf/dtm/common"
 	"github.com/yedf/dtm/dtmcli"
+	"github.com/yedf/dtm/dtmcli/dtmimp"
 	"github.com/yedf/dtm/dtmsvr"
 	"github.com/yedf/dtm/examples"
 )
@@ -56,7 +57,7 @@ func main() {
 		examples.BaseAppStartup()
 
 		sample := examples.Samples[os.Args[1]]
-		dtmcli.LogIfFatalf(sample == nil, "no sample name for %s", os.Args[1])
+		dtmimp.LogIfFatalf(sample == nil, "no sample name for %s", os.Args[1])
 		sample.Action()
 	}
 	select {}

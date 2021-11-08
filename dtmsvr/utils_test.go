@@ -4,13 +4,13 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"github.com/yedf/dtm/dtmcli"
+	"github.com/yedf/dtm/dtmcli/dtmimp"
 )
 
 func TestUtils(t *testing.T) {
 	db := dbGet()
 	db.NoMust()
-	err := dtmcli.CatchP(func() {
+	err := dtmimp.CatchP(func() {
 		checkAffected(db.DB)
 	})
 	assert.Error(t, err)
@@ -21,12 +21,12 @@ func TestUtils(t *testing.T) {
 
 func TestCheckLocalHost(t *testing.T) {
 	config.DisableLocalhost = 1
-	err := dtmcli.CatchP(func() {
+	err := dtmimp.CatchP(func() {
 		checkLocalhost([]TransBranch{{URL: "http://localhost"}})
 	})
 	assert.Error(t, err)
 	config.DisableLocalhost = 0
-	err = dtmcli.CatchP(func() {
+	err = dtmimp.CatchP(func() {
 		checkLocalhost([]TransBranch{{URL: "http://localhost"}})
 	})
 	assert.Nil(t, err)

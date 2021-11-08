@@ -6,8 +6,8 @@ import (
 	"time"
 
 	"github.com/yedf/dtm/common"
-	"github.com/yedf/dtm/dtmcli"
-	"github.com/yedf/dtm/dtmgrpc"
+	"github.com/yedf/dtm/dtmcli/dtmimp"
+	"github.com/yedf/dtm/dtmgrpc/dtmgimp"
 	"gorm.io/gorm/clause"
 
 	grpc_middleware "github.com/grpc-ecosystem/go-grpc-middleware"
@@ -22,29 +22,29 @@ var metricsPort = 8889
 
 // StartSvr StartSvr
 func StartSvr() {
-	dtmcli.Logf("start dtmsvr")
+	dtmimp.Logf("start dtmsvr")
 	app := common.GetGinApp()
 	app = httpMetrics(app)
 	addRoute(app)
-	dtmcli.Logf("dtmsvr listen at: %d", dtmsvrPort)
+	dtmimp.Logf("dtmsvr listen at: %d", dtmsvrPort)
 	go app.Run(fmt.Sprintf(":%d", dtmsvrPort))
 
 	lis, err := net.Listen("tcp", fmt.Sprintf(":%d", dtmsvrGrpcPort))
-	dtmcli.FatalIfError(err)
+	dtmimp.FatalIfError(err)
 	s := grpc.NewServer(
 		grpc.UnaryInterceptor(grpc_middleware.ChainUnaryServer(
-			grpc.UnaryServerInterceptor(grpcMetrics), grpc.UnaryServerInterceptor(dtmgrpc.GrpcServerLog)),
+			grpc.UnaryServerInterceptor(grpcMetrics), grpc.UnaryServerInterceptor(dtmgimp.GrpcServerLog)),
 		))
-	dtmgrpc.RegisterDtmServer(s, &dtmServer{})
-	dtmcli.Logf("grpc listening at %v", lis.Addr())
+	dtmgimp.RegisterDtmServer(s, &dtmServer{})
+	dtmimp.Logf("grpc listening at %v", lis.Addr())
 	go func() {
 		err := s.Serve(lis)
-		dtmcli.FatalIfError(err)
+		dtmimp.FatalIfError(err)
 	}()
 	go updateBranchAsync()
 
 	// prometheus exporter
-	dtmcli.Logf("prometheus exporter listen at: %d", metricsPort)
+	dtmimp.Logf("prometheus exporter listen at: %d", metricsPort)
 	prometheusHTTPRun(fmt.Sprintf("%d", metricsPort))
 	time.Sleep(100 * time.Millisecond)
 }
@@ -77,12 +77,12 @@ func updateBranchAsync() {
 		}
 		for len(updates) > 0 {
 			dbr := dbGet().Clauses(clause.OnConflict{
-				OnConstraint: "trans_branch_pkey",
+				OnConstraint: "trans_branch_op_pkey",
 				DoUpdates:    clause.AssignmentColumns([]string{"status", "finish_time"}),
 			}).Create(updates)
-			dtmcli.Logf("flushed %d branch status to db. affected: %d", len(updates), dbr.RowsAffected)
+			dtmimp.Logf("flushed %d branch status to db. affected: %d", len(updates), dbr.RowsAffected)
 			if dbr.Error != nil {
-				dtmcli.LogRedf("async update branch status error: %v", dbr.Error)
+				dtmimp.LogRedf("async update branch status error: %v", dbr.Error)
 				time.Sleep(1 * time.Second)
 			} else {
 				updates = []TransBranch{}

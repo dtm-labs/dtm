@@ -1,4 +1,4 @@
-package dtmcli
+package dtmimp
 
 import (
 	"database/sql"
@@ -29,9 +29,8 @@ func (xc *XaClientBase) HandleCallback(gid string, branchID string, action strin
 }
 
 // HandleLocalTrans http/grpc 处理LocalTransaction的公共方法
-func (xc *XaClientBase) HandleLocalTrans(xa *TransBase, cb func(*sql.DB) (interface{}, error)) (ret interface{}, rerr error) {
-	branchID := xa.NewBranchID()
-	xaBranch := xa.Gid + "-" + branchID
+func (xc *XaClientBase) HandleLocalTrans(xa *TransBase, cb func(*sql.DB) error) (rerr error) {
+	xaBranch := xa.Gid + "-" + xa.BranchID
 	db, rerr := StandaloneDB(xc.Conf)
 	if rerr != nil {
 		return
@@ -54,7 +53,7 @@ func (xc *XaClientBase) HandleLocalTrans(xa *TransBase, cb func(*sql.DB) (interf
 	if rerr != nil {
 		return
 	}
-	ret, rerr = cb(db)
+	rerr = cb(db)
 	return
 }
 

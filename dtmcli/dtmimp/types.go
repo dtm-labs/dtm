@@ -1,8 +1,6 @@
-package dtmcli
+package dtmimp
 
-import (
-	"database/sql"
-)
+import "database/sql"
 
 // DB inteface of dtmcli db
 type DB interface {

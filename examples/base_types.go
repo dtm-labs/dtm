@@ -1,17 +1,16 @@
 package examples
 
 import (
+	"context"
 	"database/sql"
 	"fmt"
 
 	"github.com/gin-gonic/gin"
 	"github.com/yedf/dtm/common"
 	"github.com/yedf/dtm/dtmcli"
+	"github.com/yedf/dtm/dtmcli/dtmimp"
 	"github.com/yedf/dtm/dtmgrpc"
 )
-
-// M alias
-type M = map[string]interface{}
 
 // DtmServer dtm service address
 const DtmServer = "http://localhost:8080/api/dtmsvr"
@@ -34,8 +33,17 @@ func (t *TransReq) String() string {
 func GenTransReq(amount int, outFailed bool, inFailed bool) *TransReq {
 	return &TransReq{
 		Amount:         amount,
-		TransOutResult: dtmcli.If(outFailed, dtmcli.ResultFailure, dtmcli.ResultSuccess).(string),
-		TransInResult:  dtmcli.If(inFailed, dtmcli.ResultFailure, dtmcli.ResultSuccess).(string),
+		TransOutResult: dtmimp.If(outFailed, dtmcli.ResultFailure, dtmcli.ResultSuccess).(string),
+		TransInResult:  dtmimp.If(inFailed, dtmcli.ResultFailure, dtmcli.ResultSuccess).(string),
+	}
+}
+
+// GenBusiReq 1
+func GenBusiReq(amount int, outFailed bool, inFailed bool) *BusiReq {
+	return &BusiReq{
+		Amount:         int64(amount),
+		TransOutResult: dtmimp.If(outFailed, dtmcli.ResultFailure, dtmcli.ResultSuccess).(string),
+		TransInResult:  dtmimp.If(inFailed, dtmcli.ResultFailure, dtmcli.ResultSuccess).(string),
 	}
 }
 
@@ -44,7 +52,7 @@ func reqFrom(c *gin.Context) *TransReq {
 	if !ok {
 		req := TransReq{}
 		err := c.BindJSON(&req)
-		dtmcli.FatalIfError(err)
+		dtmimp.FatalIfError(err)
 		c.Set("trans_req", &req)
 		v = &req
 	}
@@ -53,10 +61,10 @@ func reqFrom(c *gin.Context) *TransReq {
 
 func infoFromContext(c *gin.Context) *dtmcli.BranchBarrier {
 	info := dtmcli.BranchBarrier{
-		TransType:  c.Query("trans_type"),
-		Gid:        c.Query("gid"),
-		BranchID:   c.Query("branch_id"),
-		BranchType: c.Query("branch_type"),
+		TransType: c.Query("trans_type"),
+		Gid:       c.Query("gid"),
+		BranchID:  c.Query("branch_id"),
+		Op:        c.Query("op"),
 	}
 	return &info
 }
@@ -66,28 +74,28 @@ func dbGet() *common.DB {
 }
 
 func sdbGet() *sql.DB {
-	db, err := dtmcli.PooledDB(config.DB)
-	dtmcli.FatalIfError(err)
+	db, err := dtmimp.PooledDB(config.DB)
+	dtmimp.FatalIfError(err)
 	return db
 }
 
 func txGet() *sql.Tx {
 	db := sdbGet()
 	tx, err := db.Begin()
-	dtmcli.FatalIfError(err)
+	dtmimp.FatalIfError(err)
 	return tx
 }
 
 // MustBarrierFromGin 1
 func MustBarrierFromGin(c *gin.Context) *dtmcli.BranchBarrier {
 	ti, err := dtmcli.BarrierFromQuery(c.Request.URL.Query())
-	dtmcli.FatalIfError(err)
+	dtmimp.FatalIfError(err)
 	return ti
 }
 
 // MustBarrierFromGrpc 1
-func MustBarrierFromGrpc(in *dtmgrpc.BusiRequest) *dtmgrpc.BranchBarrier {
-	ti, err := dtmgrpc.BarrierFromGrpc(in)
-	dtmcli.FatalIfError(err)
+func MustBarrierFromGrpc(ctx context.Context) *dtmcli.BranchBarrier {
+	ti, err := dtmgrpc.BarrierFromGrpc(ctx)
+	dtmimp.FatalIfError(err)
 	return ti
 }

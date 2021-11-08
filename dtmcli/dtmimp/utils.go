@@ -1,4 +1,4 @@
-package dtmcli
+package dtmimp
 
 import (
 	"database/sql"
@@ -19,6 +19,7 @@ import (
 
 // AsError wrap a panic value as an error
 func AsError(x interface{}) error {
+	LogRedf("panic to error: '%v', stack: \n%s", x, debug.Stack())
 	if e, ok := x.(error); ok {
 		return e
 	}
@@ -111,7 +112,7 @@ func MustRemarshal(from interface{}, to interface{}) {
 	E2P(err)
 }
 
-var layout = "2006-01-02 15:04:05.999"
+var layout = "2006/01/02 15:04:05.999"
 
 // Logf 输出日志
 func Logf(format string, args ...interface{}) {
@@ -157,29 +158,11 @@ func FatalIfError(err error) {
 	LogIfFatalf(err != nil, "Fatal error: %v", err)
 }
 
-// RestyClient the resty object
-var RestyClient = resty.New()
-
-func init() {
-	// RestyClient.SetTimeout(3 * time.Second)
-	// RestyClient.SetRetryCount(2)
-	// RestyClient.SetRetryWaitTime(1 * time.Second)
-	RestyClient.OnBeforeRequest(func(c *resty.Client, r *resty.Request) error {
-		r.URL = MayReplaceLocalhost(r.URL)
-		Logf("requesting: %s %s %v %v", r.Method, r.URL, r.Body, r.QueryParam)
-		return nil
-	})
-	RestyClient.OnAfterResponse(func(c *resty.Client, resp *resty.Response) error {
-		r := resp.Request
-		Logf("requested: %s %s %s", r.Method, r.URL, resp.String())
-		return nil
-	})
-}
-
 // GetFuncName get current call func name
 func GetFuncName() string {
 	pc, _, _, _ := runtime.Caller(1)
-	return runtime.FuncForPC(pc).Name()
+	nm := runtime.FuncForPC(pc).Name()
+	return nm[strings.LastIndex(nm, ".")+1:]
 }
 
 // MayReplaceLocalhost when run in docker compose, change localhost to host.docker.internal for accessing host network
@@ -234,7 +217,7 @@ func DBExec(db DB, sql string, values ...interface{}) (affected int64, rerr erro
 func GetDsn(conf map[string]string) string {
 	host := MayReplaceLocalhost(conf["host"])
 	driver := conf["driver"]
-	dsn := MS{
+	dsn := map[string]string{
 		"mysql": fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?charset=utf8mb4&parseTime=true&loc=Local",
 			conf["user"], conf["password"], host, conf["port"], conf["database"]),
 		"postgres": fmt.Sprintf("host=%s user=%s password=%s dbname='%s' port=%s sslmode=disable TimeZone=Asia/Shanghai",
@@ -251,6 +234,8 @@ func CheckResponse(resp *resty.Response, err error) error {
 			return errors.New(resp.String())
 		} else if strings.Contains(resp.String(), ResultFailure) {
 			return ErrFailure
+		} else if strings.Contains(resp.String(), ResultOngoing) {
+			return ErrOngoing
 		}
 	}
 	return err
@@ -258,6 +243,9 @@ func CheckResponse(resp *resty.Response, err error) error {
 
 // CheckResult 检查Result，返回错误
 func CheckResult(res interface{}, err error) error {
+	if err != nil {
+		return err
+	}
 	resp, ok := res.(*resty.Response)
 	if ok {
 		return CheckResponse(resp, err)

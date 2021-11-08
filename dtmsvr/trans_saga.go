@@ -6,6 +6,7 @@ import (
 
 	"github.com/yedf/dtm/common"
 	"github.com/yedf/dtm/dtmcli"
+	"github.com/yedf/dtm/dtmcli/dtmimp"
 )
 
 type transSagaProcessor struct {
@@ -18,18 +19,16 @@ func init() {
 
 func (t *transSagaProcessor) GenBranches() []TransBranch {
 	branches := []TransBranch{}
-	steps := []M{}
-	dtmcli.MustUnmarshalString(t.Data, &steps)
-	for i, step := range steps {
+	for i, step := range t.Steps {
 		branch := fmt.Sprintf("%02d", i+1)
-		for _, branchType := range []string{dtmcli.BranchCompensate, dtmcli.BranchAction} {
+		for _, op := range []string{dtmcli.BranchCompensate, dtmcli.BranchAction} {
 			branches = append(branches, TransBranch{
-				Gid:        t.Gid,
-				BranchID:   branch,
-				Data:       step["data"].(string),
-				URL:        step[branchType].(string),
-				BranchType: branchType,
-				Status:     dtmcli.StatusPrepared,
+				Gid:      t.Gid,
+				BranchID: branch,
+				BinData:  t.BinPayloads[i],
+				URL:      step[op],
+				Op:       op,
+				Status:   dtmcli.StatusPrepared,
 			})
 		}
 	}
@@ -42,15 +41,15 @@ type cSagaCustom struct {
 }
 
 type branchResult struct {
-	index      int
-	status     string
-	started    bool
-	branchType string
+	index   int
+	status  string
+	started bool
+	op      string
 }
 
 func (t *transSagaProcessor) ProcessOnce(db *common.DB, branches []TransBranch) error {
 	// when saga tasks is fetched, it always need to process
-	dtmcli.Logf("status: %s timeout: %t", t.Status, t.isTimeout())
+	dtmimp.Logf("status: %s timeout: %t", t.Status, t.isTimeout())
 	if t.Status == dtmcli.StatusSubmitted && t.isTimeout() {
 		t.changeStatus(db, dtmcli.StatusAborting)
 	}
@@ -58,21 +57,21 @@ func (t *transSagaProcessor) ProcessOnce(db *common.DB, branches []TransBranch) 
 
 	csc := cSagaCustom{Orders: map[int][]int{}}
 	if t.CustomData != "" {
-		dtmcli.MustUnmarshalString(t.CustomData, &csc)
+		dtmimp.MustUnmarshalString(t.CustomData, &csc)
 	}
 	// resultStats
 	var rsAToStart, rsAStarted, rsADone, rsAFailed, rsASucceed, rsCToStart, rsCDone, rsCSucceed int
 	branchResults := make([]branchResult, n) // save the branch result
 	for i := 0; i < n; i++ {
 		b := branches[i]
-		if b.BranchType == dtmcli.BranchAction {
+		if b.Op == dtmcli.BranchAction {
 			if b.Status == dtmcli.StatusPrepared {
 				rsAToStart++
 			} else if b.Status == dtmcli.StatusFailed {
 				rsAFailed++
 			}
 		}
-		branchResults[i] = branchResult{status: branches[i].Status, branchType: branches[i].BranchType}
+		branchResults[i] = branchResult{status: branches[i].Status, op: branches[i].Op}
 	}
 	isPreconditionsSucceed := func(current int) bool {
 		// if !csc.Concurrent，then check the branch in previous step is succeed
@@ -93,11 +92,11 @@ func (t *transSagaProcessor) ProcessOnce(db *common.DB, branches []TransBranch) 
 		var err error
 		defer func() {
 			if x := recover(); x != nil {
-				err = dtmcli.AsError(x)
+				err = dtmimp.AsError(x)
 			}
-			resultChan <- branchResult{index: i, status: branches[i].Status, branchType: branches[i].BranchType}
+			resultChan <- branchResult{index: i, status: branches[i].Status, op: branches[i].Op}
 			if err != nil {
-				dtmcli.LogRedf("exec branch error: %v", err)
+				dtmimp.LogRedf("exec branch error: %v", err)
 			}
 		}()
 		err = t.execBranch(db, &branches[i])
@@ -106,17 +105,17 @@ func (t *transSagaProcessor) ProcessOnce(db *common.DB, branches []TransBranch) 
 		toRun := []int{}
 		for current := 0; current < n; current++ {
 			br := &branchResults[current]
-			if br.branchType == dtmcli.BranchAction && !br.started && isPreconditionsSucceed(current) && br.status == dtmcli.StatusPrepared {
+			if br.op == dtmcli.BranchAction && !br.started && isPreconditionsSucceed(current) && br.status == dtmcli.StatusPrepared {
 				toRun = append(toRun, current)
 			}
 		}
-		dtmcli.Logf("toRun picked for action is: %v", toRun)
+		dtmimp.Logf("toRun picked for action is: %v", toRun)
 		return toRun
 	}
 	runBranches := func(toRun []int) {
 		for _, b := range toRun {
 			branchResults[b].started = true
-			if branchResults[b].branchType == dtmcli.BranchAction {
+			if branchResults[b].op == dtmcli.BranchAction {
 				rsAStarted++
 			}
 			go asyncExecBranch(b)
@@ -128,7 +127,7 @@ func (t *transSagaProcessor) ProcessOnce(db *common.DB, branches []TransBranch) 
 			branchResults[b].status = dtmcli.StatusSucceed
 		}
 		for i, b := range branchResults {
-			if b.branchType == dtmcli.BranchCompensate && b.status != dtmcli.StatusSucceed && branchResults[i+1].status != dtmcli.StatusPrepared {
+			if b.op == dtmcli.BranchCompensate && b.status != dtmcli.StatusSucceed && branchResults[i+1].status != dtmcli.StatusPrepared {
 				rsCToStart++
 				go asyncExecBranch(i)
 			}
@@ -139,7 +138,7 @@ func (t *transSagaProcessor) ProcessOnce(db *common.DB, branches []TransBranch) 
 		case r := <-resultChan:
 			br := &branchResults[r.index]
 			br.status = r.status
-			if r.branchType == dtmcli.BranchAction {
+			if r.op == dtmcli.BranchAction {
 				rsADone++
 				if r.status == dtmcli.StatusFailed {
 					rsAFailed++
@@ -152,9 +151,9 @@ func (t *transSagaProcessor) ProcessOnce(db *common.DB, branches []TransBranch) 
 					rsCSucceed++
 				}
 			}
-			dtmcli.Logf("branch done: %v", r)
+			dtmimp.Logf("branch done: %v", r)
 		case <-time.After(time.Duration(time.Second * 3)):
-			dtmcli.Logf("wait once for done")
+			dtmimp.Logf("wait once for done")
 		}
 	}
 

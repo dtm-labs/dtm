@@ -3,6 +3,7 @@ package examples
 import (
 	"github.com/go-resty/resty/v2"
 	"github.com/yedf/dtm/dtmcli"
+	"github.com/yedf/dtm/dtmcli/dtmimp"
 )
 
 func init() {
@@ -15,7 +16,7 @@ func init() {
 			}
 			return xa.CallBranch(&TransReq{Amount: 30}, Busi+"/TransInXa")
 		})
-		dtmcli.FatalIfError(err)
+		dtmimp.FatalIfError(err)
 		return gid
 	})
 

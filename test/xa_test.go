@@ -8,29 +8,17 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/yedf/dtm/common"
 	"github.com/yedf/dtm/dtmcli"
+	"github.com/yedf/dtm/dtmcli/dtmimp"
 	"github.com/yedf/dtm/examples"
 )
 
-func TestXa(t *testing.T) {
-	xaLocalError(t)
-	xaNormal(t)
-	xaDuplicate(t)
-	xaRollback(t)
-	xaTimeout(t)
+func getXc() *dtmcli.XaClient {
+	return examples.XaClient
 }
 
-func xaLocalError(t *testing.T) {
-	xc := examples.XaClient
-	err := xc.XaGlobalTransaction("xaLocalError", func(xa *dtmcli.Xa) (*resty.Response, error) {
-		return nil, fmt.Errorf("an error")
-	})
-	assert.Error(t, err, fmt.Errorf("an error"))
-}
-
-func xaNormal(t *testing.T) {
-	xc := examples.XaClient
-	gid := "xaNormal"
-	err := xc.XaGlobalTransaction(gid, func(xa *dtmcli.Xa) (*resty.Response, error) {
+func TestXaNormal(t *testing.T) {
+	gid := dtmimp.GetFuncName()
+	err := getXc().XaGlobalTransaction(gid, func(xa *dtmcli.Xa) (*resty.Response, error) {
 		req := examples.GenTransReq(30, false, false)
 		resp, err := xa.CallBranch(req, examples.Busi+"/TransOutXa")
 		if err != nil {
@@ -40,31 +28,34 @@ func xaNormal(t *testing.T) {
 	})
 	assert.Equal(t, nil, err)
 	waitTransProcessed(gid)
-	assert.Equal(t, []string{dtmcli.StatusPrepared, dtmcli.StatusSucceed, dtmcli.StatusPrepared, dtmcli.StatusSucceed}, getBranchesStatus(gid))
+	assert.Equal(t, StatusSucceed, getTransStatus(gid))
+	assert.Equal(t, []string{StatusPrepared, StatusSucceed, StatusPrepared, StatusSucceed}, getBranchesStatus(gid))
 }
 
-func xaDuplicate(t *testing.T) {
-	xc := examples.XaClient
-	gid := "xaDuplicate"
-	err := xc.XaGlobalTransaction(gid, func(xa *dtmcli.Xa) (*resty.Response, error) {
+func TestXaDuplicate(t *testing.T) {
+	gid := dtmimp.GetFuncName()
+	err := getXc().XaGlobalTransaction(gid, func(xa *dtmcli.Xa) (*resty.Response, error) {
 		req := examples.GenTransReq(30, false, false)
 		_, err := xa.CallBranch(req, examples.Busi+"/TransOutXa")
 		assert.Nil(t, err)
-		sdb, err := dtmcli.StandaloneDB(common.DtmConfig.DB)
+		sdb, err := dtmimp.StandaloneDB(common.DtmConfig.DB)
 		assert.Nil(t, err)
-		dtmcli.DBExec(sdb, "xa recover")
-		dtmcli.DBExec(sdb, "xa commit 'xaDuplicate-0101'") // 先把某一个事务提交，模拟重复请求
+		_, err = dtmimp.DBExec(sdb, "xa recover")
+		assert.Nil(t, err)
+		_, err = dtmimp.DBExec(sdb, fmt.Sprintf("xa commit '%s-01'", gid)) // 先把某一个事务提交，模拟重复请求
+		assert.Nil(t, err)
 		return xa.CallBranch(req, examples.Busi+"/TransInXa")
 	})
-	assert.Equal(t, nil, err)
+	assert.Nil(t, err)
 	waitTransProcessed(gid)
-	assert.Equal(t, []string{dtmcli.StatusPrepared, dtmcli.StatusSucceed, dtmcli.StatusPrepared, dtmcli.StatusSucceed}, getBranchesStatus(gid))
+	assert.Equal(t, StatusSucceed, getTransStatus(gid))
+	assert.Equal(t, []string{StatusPrepared, StatusSucceed, StatusPrepared, StatusSucceed}, getBranchesStatus(gid))
 }
-func xaRollback(t *testing.T) {
-	xc := examples.XaClient
-	gid := "xaRollback"
-	err := xc.XaGlobalTransaction(gid, func(xa *dtmcli.Xa) (*resty.Response, error) {
-		req := &examples.TransReq{Amount: 30, TransInResult: dtmcli.ResultFailure}
+
+func TestXaRollback(t *testing.T) {
+	gid := dtmimp.GetFuncName()
+	err := getXc().XaGlobalTransaction(gid, func(xa *dtmcli.Xa) (*resty.Response, error) {
+		req := examples.GenTransReq(30, false, true)
 		resp, err := xa.CallBranch(req, examples.Busi+"/TransOutXa")
 		if err != nil {
 			return resp, err
@@ -73,17 +64,24 @@ func xaRollback(t *testing.T) {
 	})
 	assert.Error(t, err)
 	waitTransProcessed(gid)
-	assert.Equal(t, []string{dtmcli.StatusSucceed, dtmcli.StatusPrepared}, getBranchesStatus(gid))
-	assert.Equal(t, dtmcli.StatusFailed, getTransStatus(gid))
+	assert.Equal(t, []string{StatusSucceed, StatusPrepared}, getBranchesStatus(gid))
+	assert.Equal(t, StatusFailed, getTransStatus(gid))
 }
 
-func xaTimeout(t *testing.T) {
-	xc := examples.XaClient
-	gid := "xaTimeout"
+func TestXaLocalError(t *testing.T) {
+	gid := dtmimp.GetFuncName()
+	err := getXc().XaGlobalTransaction(gid, func(xa *dtmcli.Xa) (*resty.Response, error) {
+		return nil, fmt.Errorf("an error")
+	})
+	assert.Error(t, err, fmt.Errorf("an error"))
+	waitTransProcessed(gid)
+}
+
+func TestXaTimeout(t *testing.T) {
+	gid := dtmimp.GetFuncName()
 	timeoutChan := make(chan int, 1)
-	err := xc.XaGlobalTransaction(gid, func(xa *dtmcli.Xa) (*resty.Response, error) {
+	err := getXc().XaGlobalTransaction(gid, func(xa *dtmcli.Xa) (*resty.Response, error) {
 		go func() {
-			cronTransOnceForwardNow(1)
 			cronTransOnceForwardNow(300)
 			timeoutChan <- 0
 		}()
@@ -91,4 +89,29 @@ func xaTimeout(t *testing.T) {
 		return nil, nil
 	})
 	assert.Error(t, err)
+	assert.Equal(t, StatusFailed, getTransStatus(gid))
+	assert.Equal(t, []string{}, getBranchesStatus(gid))
+}
+
+func TestXaNotTimeout(t *testing.T) {
+	gid := dtmimp.GetFuncName()
+	timeoutChan := make(chan int, 1)
+	err := getXc().XaGlobalTransaction(gid, func(xa *dtmcli.Xa) (*resty.Response, error) {
+		go func() {
+			cronTransOnceForwardNow(0) // not timeout,
+			timeoutChan <- 0
+		}()
+		_ = <-timeoutChan
+		req := examples.GenTransReq(30, false, false)
+		_, err := xa.CallBranch(req, examples.Busi+"/TransOutXa")
+		assert.Nil(t, err)
+		examples.MainSwitch.NextResult.SetOnce(dtmcli.ResultOngoing) // make commit temp error
+		return nil, nil
+	})
+	assert.Nil(t, err)
+	waitTransProcessed(gid)
+	assert.Equal(t, StatusSubmitted, getTransStatus(gid))
+	cronTransOnce()
+	assert.Equal(t, StatusSucceed, getTransStatus(gid))
+	assert.Equal(t, []string{StatusPrepared, StatusSucceed}, getBranchesStatus(gid))
 }

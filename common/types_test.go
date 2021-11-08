@@ -4,13 +4,13 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"github.com/yedf/dtm/dtmcli"
+	"github.com/yedf/dtm/dtmcli/dtmimp"
 )
 
 func TestDb(t *testing.T) {
 	db := DbGet(DtmConfig.DB)
 	err := func() (rerr error) {
-		defer dtmcli.P2E(&rerr)
+		defer dtmimp.P2E(&rerr)
 		dbr := db.NoMust().Exec("select a")
 		assert.NotEqual(t, nil, dbr.Error)
 		db.Must().Exec("select a")
@@ -20,14 +20,14 @@ func TestDb(t *testing.T) {
 }
 
 func TestDbAlone(t *testing.T) {
-	db, err := dtmcli.StandaloneDB(DtmConfig.DB)
+	db, err := dtmimp.StandaloneDB(DtmConfig.DB)
 	assert.Nil(t, err)
-	_, err = dtmcli.DBExec(db, "select 1")
+	_, err = dtmimp.DBExec(db, "select 1")
 	assert.Equal(t, nil, err)
-	_, err = dtmcli.DBExec(db, "")
+	_, err = dtmimp.DBExec(db, "")
 	assert.Equal(t, nil, err)
 	db.Close()
-	_, err = dtmcli.DBExec(db, "select 1")
+	_, err = dtmimp.DBExec(db, "select 1")
 	assert.NotEqual(t, nil, err)
 }
 

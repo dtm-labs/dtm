@@ -6,7 +6,7 @@ import (
 	"runtime/debug"
 	"time"
 
-	"github.com/yedf/dtm/dtmcli"
+	"github.com/yedf/dtm/dtmcli/dtmimp"
 )
 
 // NowForwardDuration will be set in test, trans may be timeout
@@ -42,7 +42,7 @@ func lockOneTrans(expireIn time.Duration) *TransGlobal {
 	trans := TransGlobal{}
 	owner := GenGid()
 	db := dbGet()
-	getTime := dtmcli.GetDBSpecial().TimestampAdd
+	getTime := dtmimp.GetDBSpecial().TimestampAdd
 	expire := int(expireIn / time.Second)
 	whereTime := fmt.Sprintf("next_cron_time < %s and update_time < %s", getTime(expire), getTime(expire-3))
 	// 这里next_cron_time需要限定范围，否则数据量累计之后，会导致查询变慢
@@ -60,7 +60,7 @@ func lockOneTrans(expireIn time.Duration) *TransGlobal {
 
 func handlePanic(perr *error) {
 	if err := recover(); err != nil {
-		dtmcli.LogRedf("----recovered panic %v\n%s", err, string(debug.Stack()))
+		dtmimp.LogRedf("----recovered panic %v\n%s", err, string(debug.Stack()))
 		if perr != nil {
 			*perr = fmt.Errorf("dtm panic: %v", err)
 		}
@@ -69,7 +69,7 @@ func handlePanic(perr *error) {
 
 func sleepCronTime() {
 	normal := time.Duration((float64(config.TransCronInterval) - rand.Float64()) * float64(time.Second))
-	interval := dtmcli.If(CronForwardDuration > 0, 1*time.Millisecond, normal).(time.Duration)
-	dtmcli.Logf("sleeping for %v milli", interval/time.Microsecond)
+	interval := dtmimp.If(CronForwardDuration > 0, 1*time.Millisecond, normal).(time.Duration)
+	dtmimp.Logf("sleeping for %v milli", interval/time.Microsecond)
 	time.Sleep(interval)
 }

@@ -7,6 +7,7 @@ import (
 	"github.com/go-resty/resty/v2"
 	"github.com/yedf/dtm/common"
 	"github.com/yedf/dtm/dtmcli"
+	"github.com/yedf/dtm/dtmcli/dtmimp"
 )
 
 func init() {
@@ -19,16 +20,17 @@ func init() {
 		app.POST(BusiAPI+"/TccBTransOutCancel", common.WrapHandler(TccBarrierTransOutCancel))
 	}
 	addSample("tcc_barrier", func() string {
-		dtmcli.Logf("tcc transaction begin")
+		dtmimp.Logf("tcc transaction begin")
 		gid := dtmcli.MustGenGid(DtmServer)
 		err := dtmcli.TccGlobalTransaction(DtmServer, gid, func(tcc *dtmcli.Tcc) (*resty.Response, error) {
-			resp, err := tcc.CallBranch(&TransReq{Amount: 30}, Busi+"/TccBTransOutTry", Busi+"/TccBTransOutConfirm", Busi+"/TccBTransOutCancel")
+			resp, err := tcc.CallBranch(&TransReq{Amount: 30}, Busi+"/TccBTransOutTry",
+				Busi+"/TccBTransOutConfirm", Busi+"/TccBTransOutCancel")
 			if err != nil {
 				return resp, err
 			}
 			return tcc.CallBranch(&TransReq{Amount: 30}, Busi+"/TccBTransInTry", Busi+"/TccBTransInConfirm", Busi+"/TccBTransInCancel")
 		})
-		dtmcli.FatalIfError(err)
+		dtmimp.FatalIfError(err)
 		return gid
 	})
 }
@@ -37,7 +39,8 @@ const transInUID = 1
 const transOutUID = 2
 
 func adjustTrading(db dtmcli.DB, uid int, amount int) error {
-	affected, err := dtmcli.DBExec(db, "update dtm_busi.user_account set trading_balance=trading_balance+? where user_id=? and trading_balance + ? + balance >= 0", amount, uid, amount)
+	affected, err := dtmimp.DBExec(db, `update dtm_busi.user_account set trading_balance=trading_balance+?
+		where user_id=? and trading_balance + ? + balance >= 0`, amount, uid, amount)
 	if err == nil && affected == 0 {
 		return fmt.Errorf("update error, maybe balance not enough")
 	}
@@ -45,7 +48,8 @@ func adjustTrading(db dtmcli.DB, uid int, amount int) error {
 }
 
 func adjustBalance(db dtmcli.DB, uid int, amount int) error {
-	affected, err := dtmcli.DBExec(db, "update dtm_busi.user_account set trading_balance=trading_balance-?, balance=balance+? where user_id=?;", amount, amount, uid)
+	affected, err := dtmimp.DBExec(db, `update dtm_busi.user_account set trading_balance=trading_balance-?,
+	  balance=balance+? where user_id=?`, amount, amount, uid)
 	if err == nil && affected == 0 {
 		return fmt.Errorf("update user_account 0 rows")
 	}
@@ -77,8 +81,8 @@ func tccBarrierTransInCancel(c *gin.Context) (interface{}, error) {
 
 func tccBarrierTransOutTry(c *gin.Context) (interface{}, error) {
 	req := reqFrom(c)
-	if req.TransInResult != "" {
-		return req.TransInResult, nil
+	if req.TransOutResult != "" {
+		return req.TransOutResult, nil
 	}
 	return dtmcli.MapSuccess, MustBarrierFromGin(c).Call(txGet(), func(db dtmcli.DB) error {
 		return adjustTrading(db, transOutUID, -req.Amount)

@@ -7,6 +7,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/yedf/dtm/common"
 	"github.com/yedf/dtm/dtmcli"
+	"github.com/yedf/dtm/dtmcli/dtmimp"
 )
 
 func addRoute(engine *gin.Engine) {
@@ -14,14 +15,15 @@ func addRoute(engine *gin.Engine) {
 	engine.POST("/api/dtmsvr/prepare", common.WrapHandler(prepare))
 	engine.POST("/api/dtmsvr/submit", common.WrapHandler(submit))
 	engine.POST("/api/dtmsvr/abort", common.WrapHandler(abort))
-	engine.POST("/api/dtmsvr/registerXaBranch", common.WrapHandler(registerXaBranch))
-	engine.POST("/api/dtmsvr/registerTccBranch", common.WrapHandler(registerTccBranch))
+	engine.POST("/api/dtmsvr/registerBranch", common.WrapHandler(registerBranch))
+	engine.POST("/api/dtmsvr/registerXaBranch", common.WrapHandler(registerBranch))  // compatible for old sdk
+	engine.POST("/api/dtmsvr/registerTccBranch", common.WrapHandler(registerBranch)) // compatible for old sdk
 	engine.GET("/api/dtmsvr/query", common.WrapHandler(query))
 	engine.GET("/api/dtmsvr/all", common.WrapHandler(all))
 }
 
 func newGid(c *gin.Context) (interface{}, error) {
-	return M{"gid": GenGid(), "dtm_result": dtmcli.ResultSuccess}, nil
+	return map[string]interface{}{"gid": GenGid(), "dtm_result": dtmcli.ResultSuccess}, nil
 }
 
 func prepare(c *gin.Context) (interface{}, error) {
@@ -36,24 +38,17 @@ func abort(c *gin.Context) (interface{}, error) {
 	return svcAbort(TransFromContext(c))
 }
 
-func registerXaBranch(c *gin.Context) (interface{}, error) {
-	branch := TransBranch{}
-	err := c.BindJSON(&branch)
-	e2p(err)
-	return svcRegisterXaBranch(&branch)
-}
-
-func registerTccBranch(c *gin.Context) (interface{}, error) {
-	data := dtmcli.MS{}
+func registerBranch(c *gin.Context) (interface{}, error) {
+	data := map[string]string{}
 	err := c.BindJSON(&data)
 	e2p(err)
 	branch := TransBranch{
 		Gid:      data["gid"],
 		BranchID: data["branch_id"],
 		Status:   dtmcli.StatusPrepared,
-		Data:     data["data"],
+		BinData:  []byte(data["data"]),
 	}
-	return svcRegisterTccBranch(&branch, data)
+	return svcRegisterBranch(&branch, data)
 }
 
 func query(c *gin.Context) (interface{}, error) {
@@ -65,16 +60,16 @@ func query(c *gin.Context) (interface{}, error) {
 	trans := transFromDb(db, gid)
 	branches := []TransBranch{}
 	db.Must().Where("gid", gid).Find(&branches)
-	return M{"transaction": trans, "branches": branches}, nil
+	return map[string]interface{}{"transaction": trans, "branches": branches}, nil
 }
 
 func all(c *gin.Context) (interface{}, error) {
 	lastID := c.Query("last_id")
 	lid := math.MaxInt64
 	if lastID != "" {
-		lid = dtmcli.MustAtoi(lastID)
+		lid = dtmimp.MustAtoi(lastID)
 	}
 	trans := []TransGlobal{}
 	dbGet().Must().Where("id < ?", lid).Order("id desc").Limit(100).Find(&trans)
-	return M{"transactions": trans}, nil
+	return map[string]interface{}{"transactions": trans}, nil
 }

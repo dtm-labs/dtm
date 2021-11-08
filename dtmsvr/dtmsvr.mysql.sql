@@ -23,39 +23,22 @@ CREATE TABLE if not EXISTS dtm.trans_global (
   PRIMARY KEY (`id`),
   UNIQUE KEY `gid` (`gid`),
   key `owner`(`owner`),
-  KEY `create_time` (`create_time`),
-  KEY `update_time` (`update_time`),
   key `status_next_cron_time` (`status`, `next_cron_time`) comment '这个索引用于查询超时的全局事务，能够合理的走索引'
 ) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4;
-drop table IF EXISTS dtm.trans_branch;
-CREATE TABLE IF NOT EXISTS dtm.trans_branch (
+drop table IF EXISTS dtm.trans_branch_op;
+CREATE TABLE IF NOT EXISTS dtm.trans_branch_op (
   `id` bigint(22) NOT NULL AUTO_INCREMENT,
   `gid` varchar(128) NOT NULL COMMENT '事务全局id',
   `url` varchar(128) NOT NULL COMMENT '动作关联的url',
   `data` TEXT COMMENT '请求所携带的数据',
-  `branch_id` VARCHAR(128) NOT NULL COMMENT '事务分支名称',
-  `branch_type` varchar(45) NOT NULL COMMENT '事务分支类型 saga_action | saga_compensate | xa',
+  `bin_data` BLOB COMMENT 'grpc的二进制数据',
+  `branch_id` VARCHAR(128) NOT NULL COMMENT '事务分支ID',
+  `op` varchar(45) NOT NULL COMMENT '事务分支类型 saga_action | saga_compensate | xa',
   `status` varchar(45) NOT NULL COMMENT '步骤的状态 submitted | finished | rollbacked',
   `finish_time` datetime DEFAULT NULL,
   `rollback_time` datetime DEFAULT NULL,
   `create_time` datetime DEFAULT NULL,
   `update_time` datetime DEFAULT NULL,
   PRIMARY KEY (`id`),
-  UNIQUE KEY `gid_uniq` (`gid`, `branch_id`, `branch_type`),
-  KEY `create_time` (`create_time`),
-  KEY `update_time` (`update_time`)
-) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4;
-drop table IF EXISTS dtm.trans_log;
-CREATE TABLE IF NOT EXISTS dtm.trans_log (
-  `id` bigint(22) NOT NULL AUTO_INCREMENT,
-  `gid` varchar(128) NOT NULL COMMENT '事务全局id',
-  `branch_id` varchar(128) DEFAULT NULL COMMENT '事务分支',
-  `action` varchar(45) DEFAULT NULL COMMENT '行为',
-  `old_status` varchar(45) NOT NULL DEFAULT '' COMMENT '旧状态',
-  `new_status` varchar(45) NOT NULL COMMENT '新状态',
-  `detail` TEXT NOT NULL COMMENT '行为记录的数据',
-  `create_time` datetime DEFAULT CURRENT_TIMESTAMP,
-  PRIMARY KEY (`id`),
-  KEY `gid` (`gid`),
-  KEY `create_time` (`create_time`)
+  UNIQUE KEY `gid_uniq` (`gid`, `branch_id`, `op`)
 ) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4;

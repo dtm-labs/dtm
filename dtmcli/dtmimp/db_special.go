@@ -1,4 +1,4 @@
-package dtmcli
+package dtmimp
 
 import (
 	"fmt"

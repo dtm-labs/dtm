@@ -3,6 +3,7 @@ package dtmsvr
 import (
 	"github.com/yedf/dtm/common"
 	"github.com/yedf/dtm/dtmcli"
+	"github.com/yedf/dtm/dtmcli/dtmimp"
 )
 
 type transTccProcessor struct {
@@ -24,15 +25,16 @@ func (t *transTccProcessor) ProcessOnce(db *common.DB, branches []TransBranch) e
 	if t.Status == dtmcli.StatusPrepared && t.isTimeout() {
 		t.changeStatus(db, dtmcli.StatusAborting)
 	}
-	branchType := dtmcli.If(t.Status == dtmcli.StatusSubmitted, dtmcli.BranchConfirm, dtmcli.BranchCancel).(string)
+	op := dtmimp.If(t.Status == dtmcli.StatusSubmitted, dtmcli.BranchConfirm, dtmcli.BranchCancel).(string)
 	for current := len(branches) - 1; current >= 0; current-- {
-		if branches[current].BranchType == branchType && branches[current].Status == dtmcli.StatusPrepared {
+		if branches[current].Op == op && branches[current].Status == dtmcli.StatusPrepared {
+			dtmimp.Logf("branch info: current: %d ID: %d", current, branches[current].ID)
 			err := t.execBranch(db, &branches[current])
 			if err != nil {
 				return err
 			}
 		}
 	}
-	t.changeStatus(db, dtmcli.If(t.Status == dtmcli.StatusSubmitted, dtmcli.StatusSucceed, dtmcli.StatusFailed).(string))
+	t.changeStatus(db, dtmimp.If(t.Status == dtmcli.StatusSubmitted, dtmcli.StatusSucceed, dtmcli.StatusFailed).(string))
 	return nil
 }

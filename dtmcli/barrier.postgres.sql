@@ -6,11 +6,11 @@ create table if not exists dtm_barrier.barrier(
   trans_type varchar(45) default '',
   gid varchar(128) default '',
   branch_id varchar(128) default '',
-  branch_type varchar(45) default '',
+  op varchar(45) default '',
   barrier_id varchar(45) default '',
   reason varchar(45) default '',
   create_time timestamp(0) DEFAULT NULL,
   update_time timestamp(0) DEFAULT NULL,
   PRIMARY KEY(id),
-  CONSTRAINT uniq_barrier unique(gid, branch_id, branch_type, barrier_id)
+  CONSTRAINT uniq_barrier unique(gid, branch_id, op, barrier_id)
 );
