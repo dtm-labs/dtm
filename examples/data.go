@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"io/ioutil"
 	"strings"
-	"time"
 
 	"github.com/yedf/dtm/common"
 	"github.com/yedf/dtm/dtmcli/dtmimp"
@@ -48,12 +47,6 @@ func resetXaData() {
 
 // PopulateDB populate example mysql data
 func PopulateDB(skipDrop bool) {
-	sdb := sdbGet()
-	for _, err := dtmimp.DBExec(sdb, "select 1"); err != nil; { // wait for mysql to start
-		time.Sleep(3 * time.Second)
-		_, err = dtmimp.DBExec(sdb, "select 1")
-	}
-
 	resetXaData()
 	file := fmt.Sprintf("%s/examples.%s.sql", common.GetCallerCodeDir(), config.DB["driver"])
 	RunSQLScript(config.DB, file, skipDrop)

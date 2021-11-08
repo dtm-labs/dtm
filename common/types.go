@@ -192,3 +192,13 @@ func checkConfig() string {
 	}
 	return ""
 }
+
+// WaitDBUp wait for db to go up
+func WaitDBUp() {
+	sdb, err := dtmimp.StandaloneDB(DtmConfig.DB)
+	dtmimp.FatalIfError(err)
+	for _, err := dtmimp.DBExec(sdb, "select 1"); err != nil; { // wait for mysql to start
+		time.Sleep(3 * time.Second)
+		_, err = dtmimp.DBExec(sdb, "select 1")
+	}
+}
