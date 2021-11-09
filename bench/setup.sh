@@ -1,6 +1,7 @@
 # !/bin/bash
 
 # install all commands needed
+apt update
 apt install -y git sysbench apache2-utils mysql-client-core-8.0
 
 # install docker and docker-compose
@@ -11,4 +12,4 @@ chmod +x /usr/local/bin/docker-compose
 
 # install go
 wget https://golang.org/dl/go1.17.1.linux-amd64.tar.gz
-rm -rf /usr/local/go && tar -C /usr/local -xzf go1.17.1.linux-amd64.tar.gz
+rm -rf /usr/local/go && tar -C /usr/local -xzf go1.17.1.linux-amd64.tar.gz && cp -f /usr/local/bin/go /usr/local/go/bin/go

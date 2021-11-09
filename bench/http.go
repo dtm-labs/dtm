@@ -87,7 +87,7 @@ func StartSvr() {
 }
 
 func qsAdjustBalance(uid int, amount int, c *gin.Context) (interface{}, error) {
-	if strings.Contains(mode, "empty") {
+	if strings.Contains(mode, "empty") || sqls == 0 {
 		return dtmcli.MapSuccess, nil
 	}
 	tb := dtmimp.TransBaseFromQuery(c.Request.URL.Query())

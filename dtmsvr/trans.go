@@ -274,7 +274,7 @@ func (t *TransGlobal) execBranch(db *common.DB, branch *TransBranch) error {
 		t.touch(db, cronReset)
 	} else if err == dtmimp.ErrOngoing {
 		t.touch(db, cronKeep)
-	} else {
+	} else if err != nil {
 		t.touch(db, cronBackoff)
 	}
 	return err
