@@ -33,7 +33,8 @@ type TransGlobal struct {
 	NextCronInterval int64
 	NextCronTime     *time.Time
 	dtmimp.TransOptions
-	lastTouched time.Time // record the start time of process
+	lastTouched      time.Time // record the start time of process
+	updateBranchSync bool
 }
 
 // TableName TableName
