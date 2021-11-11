@@ -57,7 +57,7 @@ func query(c *gin.Context) (interface{}, error) {
 		return nil, errors.New("no gid specified")
 	}
 	db := dbGet()
-	trans := transFromDb(db, gid)
+	trans := transFromDb(db.DB, gid, false)
 	branches := []TransBranch{}
 	db.Must().Where("gid", gid).Find(&branches)
 	return map[string]interface{}{"transaction": trans, "branches": branches}, nil

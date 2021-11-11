@@ -12,6 +12,7 @@ import (
 	"github.com/yedf/dtm/common"
 	"github.com/yedf/dtm/dtmcli/dtmimp"
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 )
 
 type branchStatus struct {
@@ -65,9 +66,12 @@ func getOneHexIP() string {
 }
 
 // transFromDb construct trans from db
-func transFromDb(db *common.DB, gid string) *TransGlobal {
+func transFromDb(db *gorm.DB, gid string, lock bool) *TransGlobal {
 	m := TransGlobal{}
-	dbr := db.Must().Model(&m).Where("gid=?", gid).First(&m)
+	if lock {
+		db = db.Clauses(clause.Locking{Strength: "UPDATE"})
+	}
+	dbr := db.Model(&m).Where("gid=?", gid).First(&m)
 	if dbr.Error == gorm.ErrRecordNotFound {
 		return nil
 	}

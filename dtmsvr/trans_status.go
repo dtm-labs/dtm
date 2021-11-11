@@ -12,6 +12,7 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 )
 
 func (t *TransGlobal) touch(db *common.DB, ctype cronType) *gorm.DB {
@@ -33,23 +34,28 @@ func (t *TransGlobal) changeStatus(db *common.DB, status string) *gorm.DB {
 		t.RollbackTime = &now
 		updates = append(updates, "rollback_time")
 	}
-	dbr := db.Must().Model(t).Where("status=?", old).Select(updates).Updates(t)
+	dbr := db.Must().Model(&TransGlobal{}).Where("status=? and gid=?", old, t.Gid).Select(updates).Updates(t)
 	checkAffected(dbr)
 	return dbr
 }
 
-func (t *TransGlobal) changeBranchStatus(db *common.DB, b *TransBranch, status string) *gorm.DB {
+func (t *TransGlobal) changeBranchStatus(db *common.DB, b *TransBranch, status string) {
 	if common.DtmConfig.UpdateBranchSync > 0 || t.TransType == "saga" && t.TimeoutToFail > 0 {
-		dbr := db.Must().Model(b).Updates(map[string]interface{}{
-			"status":      status,
-			"finish_time": time.Now(),
+		err := db.Transaction(func(tx *gorm.DB) error {
+			dbr := tx.Clauses(clause.Locking{Strength: "UPDATE"}).Model(&TransGlobal{}).Where("gid=? and status=?", t.Gid, t.Status).Find(&[]TransGlobal{})
+			checkAffected(dbr) // check TransGlobal is not modified
+			dbr = tx.Model(b).Updates(map[string]interface{}{
+				"status":      status,
+				"finish_time": time.Now(),
+			})
+			checkAffected(dbr)
+			return dbr.Error
 		})
-		checkAffected(dbr)
+		e2p(err)
 	} else { // 为了性能优化，把branch的status更新异步化
 		updateBranchAsyncChan <- branchStatus{id: b.ID, status: status}
 	}
 	b.Status = status
-	return db.DB
 }
 
 func (t *TransGlobal) isTimeout() bool {
