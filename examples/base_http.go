@@ -70,7 +70,6 @@ func (s *AutoEmptyString) SetOnce(v string) {
 
 // Fetch fetch the stored value, then reset the value to empty
 func (s *AutoEmptyString) Fetch() string {
-	dtmimp.Logf("fetch result is: %s", s.value)
 	v := s.value
 	s.value = ""
 	return v

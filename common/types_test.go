@@ -19,6 +19,10 @@ func TestDb(t *testing.T) {
 	assert.NotEqual(t, nil, err)
 }
 
+func TestWaitDBUp(t *testing.T) {
+	WaitDBUp()
+}
+
 func TestDbAlone(t *testing.T) {
 	db, err := dtmimp.StandaloneDB(DtmConfig.DB)
 	assert.Nil(t, err)

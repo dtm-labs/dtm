@@ -59,6 +59,9 @@ func (t *transSagaProcessor) ProcessOnce(db *common.DB, branches []TransBranch) 
 	if t.CustomData != "" {
 		dtmimp.MustUnmarshalString(t.CustomData, &csc)
 	}
+	if csc.Concurrent || t.TimeoutToFail > 0 { // when saga is not normal, update branch sync
+		t.updateBranchSync = true
+	}
 	// resultStats
 	var rsAToStart, rsAStarted, rsADone, rsAFailed, rsASucceed, rsCToStart, rsCDone, rsCSucceed int
 	branchResults := make([]branchResult, n) // save the branch result
