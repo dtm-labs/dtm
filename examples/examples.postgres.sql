@@ -9,8 +9,8 @@ create table if not exists dtm_busi.user_account(
   user_id int UNIQUE,
   balance DECIMAL(10, 2) not null default '0',
   trading_balance DECIMAL(10, 2) not null default '0',
-  create_time timestamp(0) DEFAULT now(),
-  update_time timestamp(0) DEFAULT now()
+  create_time timestamp(0) with time zone DEFAULT now(),
+  update_time timestamp(0) with time zone DEFAULT now()
 );
 -- SQLINES LICENSE FOR EVALUATION USE ONLY
 create index if not exists create_idx on dtm_busi.user_account(create_time);

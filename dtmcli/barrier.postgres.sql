@@ -9,8 +9,8 @@ create table if not exists dtm_barrier.barrier(
   op varchar(45) default '',
   barrier_id varchar(45) default '',
   reason varchar(45) default '',
-  create_time timestamp(0) DEFAULT NULL,
-  update_time timestamp(0) DEFAULT NULL,
+  create_time timestamp(0) with time zone DEFAULT NULL,
+  update_time timestamp(0) with time zone DEFAULT NULL,
   PRIMARY KEY(id),
   CONSTRAINT uniq_barrier unique(gid, branch_id, op, barrier_id)
 );

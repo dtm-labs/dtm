@@ -220,7 +220,7 @@ func GetDsn(conf map[string]string) string {
 	dsn := map[string]string{
 		"mysql": fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?charset=utf8mb4&parseTime=true&loc=Local",
 			conf["user"], conf["password"], host, conf["port"], conf["database"]),
-		"postgres": fmt.Sprintf("host=%s user=%s password=%s dbname='%s' port=%s sslmode=disable TimeZone=Asia/Shanghai",
+		"postgres": fmt.Sprintf("host=%s user=%s password=%s dbname='%s' port=%s sslmode=disable",
 			host, conf["user"], conf["password"], conf["database"], conf["port"]),
 	}[driver]
 	PanicIf(dsn == "", fmt.Errorf("unknow driver: %s", driver))
