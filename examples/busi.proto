@@ -3,7 +3,7 @@ syntax = "proto3";
 package examples;
 import "google/protobuf/empty.proto";
 
-option go_package = "github.com/yedf/dtm/examples";
+option go_package = "./examples";
 
 // DtmRequest request sent to dtm server
 message BusiReq {
