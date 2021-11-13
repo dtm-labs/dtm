@@ -3,8 +3,7 @@ WORKDIR /app/dtm
 # RUN go env -w GOPROXY=https://mirrors.aliyun.com/goproxy/,direct
 EXPOSE 8080
 COPY . .
-RUN CGO_ENABLED=0 GOOS=linux go build -ldflags="-s -w" app/main.go
-RUN apk add upx && upx main
+RUN CGO_ENABLED=0 GOOS=linux go build -ldflags="-s -w" app/main.go && apk add upx && upx main
 
 FROM alpine:3.14 as runner
 COPY --from=builder /app/dtm/main /app/dtm/

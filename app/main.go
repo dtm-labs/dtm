@@ -13,12 +13,15 @@ import (
 	"github.com/yedf/dtm/examples"
 )
 
+var Version, Commit, Date string
+
 var usage = `dtm is a lightweight distributed transaction manager.
 
 usage:
     dtm [command]
 
 Available commands:
+    version           print dtm version
     dtmsvr            run dtm as a server
     dev               create all needed table and run dtm as a server
     bench             start bench server
@@ -33,6 +36,10 @@ func main() {
 		for name := range examples.Samples {
 			fmt.Printf("%4s%-18srun a sample includes %s\n", "", name, strings.ReplaceAll(name, "_", " "))
 		}
+		return
+	}
+	if os.Args[1] == "version" {
+		fmt.Printf("version: %s commit: %s built at: %s\n", Version, Commit, Date)
 		return
 	}
 	dtmcli.SetCurrentDBType(common.DtmConfig.DB["driver"])

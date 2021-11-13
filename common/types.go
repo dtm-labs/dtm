@@ -140,7 +140,7 @@ func getIntEnv(key string, defaultV string) int64 {
 }
 
 func init() {
-	if len(os.Args) == 1 {
+	if len(os.Args) == 1 || os.Args[1] == "version" {
 		return
 	}
 	DtmConfig.TransCronInterval = getIntEnv("TRANS_CRON_INTERVAL", "3")
@@ -167,7 +167,7 @@ func init() {
 		}
 	}
 	if len(cont) != 0 {
-		dtmimp.Logf("cont is: \n%s", string(cont))
+		dtmimp.Logf("config is: \n%s", string(cont))
 		err := yaml.Unmarshal(cont, &DtmConfig)
 		dtmimp.FatalIfError(err)
 	}
