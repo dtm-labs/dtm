@@ -37,3 +37,13 @@ func SetCurrentDBType(dbType string) {
 func GetCurrentDBType() string {
 	return dtmimp.GetCurrentDBType()
 }
+
+// SetXaSqlTimeoutMs set XaSqlTimeoutMs
+func XaSqlTimeoutMs(ms int) {
+	dtmimp.XaSqlTimeoutMs = ms
+}
+
+// GetXaSqlTimeoutMs get XaSqlTimeoutMs
+func GetXaSqlTimeoutMs() int {
+	return dtmimp.XaSqlTimeoutMs
+}

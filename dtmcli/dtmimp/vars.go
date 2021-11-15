@@ -18,6 +18,9 @@ var ErrFailure = errors.New("FAILURE")
 // ErrOngoing error of ONGOING
 var ErrOngoing = errors.New("ONGOING")
 
+// XaSqlTimeoutMs milliseconds for Xa sql to timeout
+var XaSqlTimeoutMs = 15000
+
 // MapSuccess HTTP result of SUCCESS
 var MapSuccess = map[string]interface{}{"dtm_result": ResultSuccess}
 
