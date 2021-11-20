@@ -28,7 +28,7 @@ func (xc *XaClientBase) HandleCallback(gid string, branchID string, action strin
 	xaID := gid + "-" + branchID
 	_, err = DBExec(db, GetDBSpecial().GetXaSQL(action, xaID))
 	if err != nil &&
-		(strings.Contains(err.Error(), "Error 1397: XAER_NOTA") || strings.Contains(err.Error(), "does not exist")) { // 重复commit/rollback同一个id，报这个错误，忽略
+		(strings.Contains(err.Error(), "XAER_NOTA") || strings.Contains(err.Error(), "does not exist")) { // 重复commit/rollback同一个id，报这个错误，忽略
 		err = nil
 	}
 	return err
