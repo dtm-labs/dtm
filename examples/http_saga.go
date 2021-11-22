@@ -30,7 +30,7 @@ func init() {
 		saga := dtmcli.NewSaga(DtmServer, dtmcli.MustGenGid(DtmServer)).
 			Add(Busi+"/TransOut", Busi+"/TransOutRevert", req).
 			Add(Busi+"/TransIn", Busi+"/TransInRevert", req)
-		saga.SetOptions(&dtmimp.TransOptions{WaitResult: true})
+		saga.SetOptions(&dtmcli.TransOptions{WaitResult: true})
 		err := saga.Submit()
 		dtmimp.Logf("result gid is: %s", saga.Gid)
 		dtmimp.FatalIfError(err)

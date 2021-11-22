@@ -13,6 +13,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/yedf/dtm/common"
+	"github.com/yedf/dtm/dtmcli"
 	"github.com/yedf/dtm/dtmcli/dtmimp"
 	"github.com/yedf/dtm/dtmgrpc/dtmgimp"
 	"gorm.io/gorm"
@@ -38,7 +39,7 @@ type TransGlobal struct {
 	CustomData       string `json:"custom_data"`
 	NextCronInterval int64
 	NextCronTime     *time.Time
-	dtmimp.TransOptions
+	dtmcli.TransOptions
 	lastTouched      time.Time // record the start time of process
 	updateBranchSync bool
 }

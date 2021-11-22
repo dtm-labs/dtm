@@ -55,7 +55,7 @@ func TestSagaOptionsTimeout(t *testing.T) {
 
 func TestSagaOptionsNormalWait(t *testing.T) {
 	saga := genSaga(dtmimp.GetFuncName(), false, false)
-	saga.SetOptions(&dtmimp.TransOptions{WaitResult: true})
+	saga.SetOptions(&dtmcli.TransOptions{WaitResult: true})
 	err := saga.Submit()
 	assert.Nil(t, err)
 	waitTransProcessed(saga.Gid)
@@ -66,7 +66,7 @@ func TestSagaOptionsNormalWait(t *testing.T) {
 func TestSagaOptionsCommittedOngoingWait(t *testing.T) {
 	saga := genSaga(dtmimp.GetFuncName(), false, false)
 	examples.MainSwitch.TransOutResult.SetOnce(dtmcli.ResultOngoing)
-	saga.SetOptions(&dtmimp.TransOptions{WaitResult: true})
+	saga.SetOptions(&dtmcli.TransOptions{WaitResult: true})
 	err := saga.Submit()
 	assert.Error(t, err)
 	assert.Equal(t, []string{StatusPrepared, StatusPrepared, StatusPrepared, StatusPrepared}, getBranchesStatus(saga.Gid))
@@ -79,7 +79,7 @@ func TestSagaOptionsCommittedOngoingWait(t *testing.T) {
 
 func TestSagaOptionsRollbackWait(t *testing.T) {
 	saga := genSaga(dtmimp.GetFuncName(), false, true)
-	saga.SetOptions(&dtmimp.TransOptions{WaitResult: true})
+	saga.SetOptions(&dtmcli.TransOptions{WaitResult: true})
 	err := saga.Submit()
 	assert.Error(t, err)
 	waitTransProcessed(saga.Gid)

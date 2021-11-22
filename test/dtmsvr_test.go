@@ -13,6 +13,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/assert"
 	"github.com/yedf/dtm/common"
+	"github.com/yedf/dtm/dtmcli"
 	"github.com/yedf/dtm/dtmcli/dtmimp"
 	"github.com/yedf/dtm/dtmsvr"
 	"github.com/yedf/dtm/examples"
@@ -48,7 +49,7 @@ func assertSucceed(t *testing.T, gid string) {
 func TestUpdateBranchAsync(t *testing.T) {
 	common.DtmConfig.UpdateBranchSync = 0
 	saga := genSaga1(dtmimp.GetFuncName(), false, false)
-	saga.SetOptions(&dtmimp.TransOptions{WaitResult: true})
+	saga.SetOptions(&dtmcli.TransOptions{WaitResult: true})
 	err := saga.Submit()
 	assert.Nil(t, err)
 	waitTransProcessed(saga.Gid)
