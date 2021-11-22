@@ -48,7 +48,7 @@ const (
 var MapSuccess = dtmimp.MapSuccess
 
 // MapFailure HTTP result of FAILURE
-var MapFailure = dtmimp.MapSuccess
+var MapFailure = dtmimp.MapFailure
 
 // ErrFailure error for returned failure
 var ErrFailure = dtmimp.ErrFailure
