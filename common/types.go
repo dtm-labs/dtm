@@ -12,6 +12,7 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
+	"strconv"
 	"strings"
 	"sync"
 	"time"
@@ -112,6 +113,23 @@ func (op *tracePlugin) Initialize(db *gorm.DB) (err error) {
 	return
 }
 
+// SetDBConn set db connection conf
+func SetDBConn(db *DB) {
+	sqldb,_ := db.DB.DB()
+	maxOpenCons, err := strconv.Atoi(DtmConfig.DB["max_open_conns"])
+	if err == nil {
+		sqldb.SetMaxOpenConns(maxOpenCons)
+	}
+	maxIdleCons, err := strconv.Atoi(DtmConfig.DB["max_idle_conns"])
+	if err == nil {
+		sqldb.SetMaxIdleConns(maxIdleCons)
+	}
+	connMaxLifeTime, err := strconv.ParseInt(DtmConfig.DB["conn_max_life_time"], 10, 64)
+	if err == nil {
+		sqldb.SetConnMaxLifetime(time.Duration(connMaxLifeTime) * time.Minute)
+	}
+}
+
 // DbGet get db connection for specified conf
 func DbGet(conf map[string]string) *DB {
 	dsn := dtmimp.GetDsn(conf)
@@ -124,6 +142,7 @@ func DbGet(conf map[string]string) *DB {
 		dtmimp.E2P(err)
 		db1.Use(&tracePlugin{})
 		db = &DB{DB: db1}
+		SetDBConn(db.(*DB))
 		dbs.Store(dsn, db)
 	}
 	return db.(*DB)
@@ -153,11 +172,14 @@ func init() {
 	DtmConfig.TimeoutToFail = getIntEnv("TIMEOUT_TO_FAIL", "35")
 	DtmConfig.RetryInterval = getIntEnv("RETRY_INTERVAL", "10")
 	DtmConfig.DB = map[string]string{
-		"driver":   dtmimp.OrString(os.Getenv("DB_DRIVER"), "mysql"),
-		"host":     os.Getenv("DB_HOST"),
-		"port":     dtmimp.OrString(os.Getenv("DB_PORT"), "3306"),
-		"user":     os.Getenv("DB_USER"),
-		"password": os.Getenv("DB_PASSWORD"),
+		"driver":              dtmimp.OrString(os.Getenv("DB_DRIVER"), "mysql"),
+		"host":                os.Getenv("DB_HOST"),
+		"port":                dtmimp.OrString(os.Getenv("DB_PORT"), "3306"),
+		"user":                os.Getenv("DB_USER"),
+		"password":            os.Getenv("DB_PASSWORD"),
+		"max_open_conns":      dtmimp.OrString(os.Getenv("DB_MAX_OPEN_CONNS"), "500"),
+		"max_idle_conns":      dtmimp.OrString(os.Getenv("DB_MAX_IDLE_CONNS"), "500"),
+		"conn_max_life_time":  dtmimp.OrString(os.Getenv("DB_CONN_MAX_LIFE_TIME"), "5"),
 	}
 	DtmConfig.DisableLocalhost = getIntEnv("DISABLE_LOCALHOST", "0")
 	DtmConfig.UpdateBranchSync = getIntEnv("UPDATE_BRANCH_SYNC", "0")

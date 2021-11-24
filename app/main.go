@@ -17,6 +17,8 @@ import (
 	"github.com/yedf/dtm/dtmcli/dtmimp"
 	"github.com/yedf/dtm/dtmsvr"
 	"github.com/yedf/dtm/examples"
+
+	_ "go.uber.org/automaxprocs"
 )
 
 var Version, Commit, Date string

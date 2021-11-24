@@ -22,5 +22,6 @@ require (
 	gorm.io/driver/mysql v1.0.3
 	gorm.io/driver/postgres v1.2.1
 	gorm.io/gorm v1.22.2
+	go.uber.org/automaxprocs v1.4.1-0.20210525221652-0180b04c18a7
 // gotest.tools v2.2.0+incompatible
 )
