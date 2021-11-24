@@ -84,7 +84,7 @@ func updateBranchAsync() {
 		for len(updates) > 0 {
 			dbr := dbGet().Clauses(clause.OnConflict{
 				OnConstraint: "trans_branch_op_pkey",
-				DoUpdates:    clause.AssignmentColumns([]string{"status", "finish_time"}),
+				DoUpdates:    clause.AssignmentColumns([]string{"status", "finish_time","update_time"}),
 			}).Create(updates)
 			dtmimp.Logf("flushed %d branch status to db. affected: %d", len(updates), dbr.RowsAffected)
 			if dbr.Error != nil {
