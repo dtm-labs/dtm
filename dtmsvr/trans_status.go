@@ -46,20 +46,22 @@ func (t *TransGlobal) changeStatus(db *common.DB, status string) *gorm.DB {
 }
 
 func (t *TransGlobal) changeBranchStatus(db *common.DB, b *TransBranch, status string) {
+	now := time.Now()
 	if common.DtmConfig.UpdateBranchSync > 0 || t.updateBranchSync {
 		err := db.Transaction(func(tx *gorm.DB) error {
 			dbr := tx.Clauses(clause.Locking{Strength: "UPDATE"}).Model(&TransGlobal{}).Where("gid=? and status=?", t.Gid, t.Status).Find(&[]TransGlobal{})
 			checkAffected(dbr) // check TransGlobal is not modified
 			dbr = tx.Model(b).Updates(map[string]interface{}{
 				"status":      status,
-				"finish_time": time.Now(),
+				"finish_time": now,
+				"update_time": now,
 			})
 			checkAffected(dbr)
 			return dbr.Error
 		})
 		e2p(err)
 	} else { // 为了性能优化，把branch的status更新异步化
-		updateBranchAsyncChan <- branchStatus{id: b.ID, status: status}
+		updateBranchAsyncChan <- branchStatus{id: b.ID, status: status, finishTime: &now}
 	}
 	b.Status = status
 }
