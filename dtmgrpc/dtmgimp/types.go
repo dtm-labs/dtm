@@ -9,6 +9,7 @@ package dtmgimp
 import (
 	"context"
 	"fmt"
+	"net/url"
 	"strings"
 
 	"github.com/yedf/dtm/dtmcli"
@@ -20,10 +21,19 @@ import (
 
 // GetServerAndMethod 将grpc的url分解为server和method
 func GetServerAndMethod(grpcURL string) (string, string) {
-	fs := strings.Split(grpcURL, "/")
-	server := fs[0]
-	method := "/" + strings.Join(fs[1:], "/")
-	return server, method
+	if !strings.Contains(grpcURL, "://") {
+		grpcURL = "//" + grpcURL
+	}
+	u, err := url.Parse(grpcURL)
+	if err != nil {
+		dtmimp.LogRedf("parse grpcURL %s failed, err %s", grpcURL, err.Error())
+		return "", ""
+	}
+	if u.Scheme == "" {
+		return u.Host, u.Path
+	} else {
+		return u.Scheme + "://" + u.Host, u.Path
+	}
 }
 
 // GrpcServerLog 打印grpc服务端的日志
