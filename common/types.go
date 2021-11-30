@@ -116,7 +116,7 @@ func (op *tracePlugin) Initialize(db *gorm.DB) (err error) {
 
 // SetDBConn set db connection conf
 func SetDBConn(db *DB) {
-	sqldb,_ := db.DB.DB()
+	sqldb, _ := db.DB.DB()
 	maxOpenCons, err := strconv.Atoi(DtmConfig.DB["max_open_conns"])
 	if err == nil {
 		sqldb.SetMaxOpenConns(maxOpenCons)
@@ -156,6 +156,7 @@ type dtmConfigType struct {
 	DB                map[string]string `yaml:"DB"`
 	DisableLocalhost  int64             `yaml:"DisableLocalhost"`
 	UpdateBranchSync  int64             `yaml:"UpdateBranchSync"`
+	EnablePolaris     bool              `yaml:"EnablePolaris"`
 }
 
 // DtmConfig 配置
@@ -170,17 +171,18 @@ func MustLoadConfig() {
 	DtmConfig.TimeoutToFail = getIntEnv("TIMEOUT_TO_FAIL", "35")
 	DtmConfig.RetryInterval = getIntEnv("RETRY_INTERVAL", "10")
 	DtmConfig.DB = map[string]string{
-		"driver":              dtmimp.OrString(os.Getenv("DB_DRIVER"), "mysql"),
-		"host":                os.Getenv("DB_HOST"),
-		"port":                dtmimp.OrString(os.Getenv("DB_PORT"), "3306"),
-		"user":                os.Getenv("DB_USER"),
-		"password":            os.Getenv("DB_PASSWORD"),
-		"max_open_conns":      dtmimp.OrString(os.Getenv("DB_MAX_OPEN_CONNS"), "500"),
-		"max_idle_conns":      dtmimp.OrString(os.Getenv("DB_MAX_IDLE_CONNS"), "500"),
-		"conn_max_life_time":  dtmimp.OrString(os.Getenv("DB_CONN_MAX_LIFE_TIME"), "5"),
+		"driver":             dtmimp.OrString(os.Getenv("DB_DRIVER"), "mysql"),
+		"host":               os.Getenv("DB_HOST"),
+		"port":               dtmimp.OrString(os.Getenv("DB_PORT"), "3306"),
+		"user":               os.Getenv("DB_USER"),
+		"password":           os.Getenv("DB_PASSWORD"),
+		"max_open_conns":     dtmimp.OrString(os.Getenv("DB_MAX_OPEN_CONNS"), "500"),
+		"max_idle_conns":     dtmimp.OrString(os.Getenv("DB_MAX_IDLE_CONNS"), "500"),
+		"conn_max_life_time": dtmimp.OrString(os.Getenv("DB_CONN_MAX_LIFE_TIME"), "5"),
 	}
 	DtmConfig.DisableLocalhost = getIntEnv("DISABLE_LOCALHOST", "0")
 	DtmConfig.UpdateBranchSync = getIntEnv("UPDATE_BRANCH_SYNC", "0")
+	DtmConfig.EnablePolaris = getIntEnv("ENABLE_POLARIS", "0") == 1
 	cont := []byte{}
 	for d := MustGetwd(); d != "" && d != "/"; d = filepath.Dir(d) {
 		cont1, err := ioutil.ReadFile(d + "/conf.yml")

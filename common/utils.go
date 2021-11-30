@@ -9,6 +9,8 @@ package common
 import (
 	"bytes"
 	"encoding/json"
+	"github.com/polarismesh/grpc-go-polaris"
+	"github.com/polarismesh/polaris-go/api"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -87,4 +89,15 @@ func GetCallerCodeDir() string {
 		wd = filepath.Dir(wd)
 	}
 	return wd + "/" + filepath.Base(filepath.Dir(file))
+}
+
+func InitGrpcResolver() {
+	if DtmConfig.EnablePolaris {
+		// 禁用北极星sdk的日志
+		api.SetLoggersLevel(api.NoneLog)
+		// 创建主调端consumer
+		consumer, err := api.NewConsumerAPIByConfig(api.NewConfiguration())
+		dtmimp.FatalIfError(err)
+		grpcpolaris.Init(grpcpolaris.Conf{PolarisConsumer: consumer})
+	}
 }

@@ -37,6 +37,7 @@ func StartSvr() {
 
 	lis, err := net.Listen("tcp", fmt.Sprintf(":%d", dtmsvrGrpcPort))
 	dtmimp.FatalIfError(err)
+	common.InitGrpcResolver()
 	s := grpc.NewServer(
 		grpc.UnaryInterceptor(grpc_middleware.ChainUnaryServer(
 			grpc.UnaryServerInterceptor(grpcMetrics), grpc.UnaryServerInterceptor(dtmgimp.GrpcServerLog)),

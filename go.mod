@@ -10,8 +10,10 @@ require (
 	github.com/go-sql-driver/mysql v1.5.0
 	github.com/grpc-ecosystem/go-grpc-middleware v1.3.0
 	github.com/lib/pq v1.10.3
+	github.com/polarismesh/grpc-go-polaris v0.0.0-20211128162137-1a59cd7b5733
 	github.com/prometheus/client_golang v1.11.0
 	github.com/stretchr/testify v1.7.0
+	go.uber.org/automaxprocs v1.4.1-0.20210525221652-0180b04c18a7
 	golang.org/x/crypto v0.0.0-20211108221036-ceb1ce70b4fa // indirect
 	golang.org/x/net v0.0.0-20210805182204-aaa1db679c0d // indirect
 	golang.org/x/sys v0.0.0-20210806184541-e5e7981a1069 // indirect
@@ -22,6 +24,5 @@ require (
 	gorm.io/driver/mysql v1.0.3
 	gorm.io/driver/postgres v1.2.1
 	gorm.io/gorm v1.22.2
-	go.uber.org/automaxprocs v1.4.1-0.20210525221652-0180b04c18a7
 // gotest.tools v2.2.0+incompatible
 )
