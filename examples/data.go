@@ -15,7 +15,7 @@ import (
 	"github.com/yedf/dtm/dtmcli/dtmimp"
 )
 
-var config = common.DtmConfig
+var config = &common.DtmConfig
 
 // RunSQLScript 1
 func RunSQLScript(conf map[string]string, script string, skipDrop bool) {

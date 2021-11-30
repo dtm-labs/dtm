@@ -15,7 +15,7 @@ import (
 	"github.com/yedf/dtm/dtmsvr"
 )
 
-var config = common.DtmConfig
+var config = &common.DtmConfig
 
 func dbGet() *common.DB {
 	return common.DbGet(config.DB)

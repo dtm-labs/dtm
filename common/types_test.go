@@ -14,6 +14,7 @@ import (
 )
 
 func TestDb(t *testing.T) {
+	MustLoadConfig()
 	db := DbGet(DtmConfig.DB)
 	err := func() (rerr error) {
 		defer dtmimp.P2E(&rerr)

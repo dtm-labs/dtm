@@ -30,7 +30,7 @@ type branchStatus struct {
 var p2e = dtmimp.P2E
 var e2p = dtmimp.E2P
 
-var config = common.DtmConfig
+var config = &common.DtmConfig
 
 func dbGet() *common.DB {
 	return common.DbGet(config.DB)
