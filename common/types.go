@@ -8,6 +8,7 @@ package common
 
 import (
 	"database/sql"
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"os"
@@ -145,10 +146,7 @@ func getIntEnv(key string, defaultV string) int64 {
 	return int64(dtmimp.MustAtoi(dtmimp.OrString(os.Getenv(key), defaultV)))
 }
 
-func init() {
-	if len(os.Args) == 1 || os.Args[1] == "version" {
-		return
-	}
+func MustLoadConfig() {
 	DtmConfig.TransCronInterval = getIntEnv("TRANS_CRON_INTERVAL", "3")
 	DtmConfig.TimeoutToFail = getIntEnv("TIMEOUT_TO_FAIL", "35")
 	DtmConfig.RetryInterval = getIntEnv("RETRY_INTERVAL", "10")
@@ -177,26 +175,25 @@ func init() {
 		err := yaml.Unmarshal(cont, &DtmConfig)
 		dtmimp.FatalIfError(err)
 	}
-	errStr := checkConfig()
-	dtmimp.LogIfFatalf(errStr != "",
-		`config error: '%s'.
-check you env, and conf.yml/conf.sample.yml in current and parent path: %s.
-please visit http://d.dtm.pub to see the config document.
-loaded config is:
-%v`, MustGetwd(), DtmConfig)
+	err := checkConfig()
+	dtmimp.LogIfFatalf(err != nil, `config error: '%v'.
+	check you env, and conf.yml/conf.sample.yml in current and parent path: %s.
+	please visit http://d.dtm.pub to see the config document.
+	loaded config is:
+	%v`, err, MustGetwd(), DtmConfig)
 }
 
-func checkConfig() string {
+func checkConfig() error {
 	if DtmConfig.DB["driver"] == "" {
-		return "db driver empty"
+		return errors.New("db driver empty")
 	} else if DtmConfig.DB["user"] == "" || DtmConfig.DB["host"] == "" {
-		return "db config not valid"
+		return errors.New("db config not valid")
 	} else if DtmConfig.RetryInterval < 10 {
-		return "RetryInterval should not be less than 10"
+		return errors.New("RetryInterval should not be less than 10")
 	} else if DtmConfig.TimeoutToFail < DtmConfig.RetryInterval {
-		return "TimeoutToFail should not be less than RetryInterval"
+		return errors.New("TimeoutToFail should not be less than RetryInterval")
 	}
-	return ""
+	return nil
 }
 
 // WaitDBUp wait for db to go up
