@@ -20,8 +20,8 @@ import (
 )
 
 // GetServerAndMethod 将grpc的url分解为server和method
-func GetServerAndMethod(grpcURL string) (string, string) {
-	if !strings.Contains(grpcURL, "://") {
+func GetServerAndMethod(grpcURL string) (server string, method string) {
+	if !strings.Contains(grpcURL, "//") {
 		grpcURL = "//" + grpcURL
 	}
 	u, err := url.Parse(grpcURL)
@@ -29,11 +29,17 @@ func GetServerAndMethod(grpcURL string) (string, string) {
 		dtmimp.LogRedf("parse grpcURL %s failed, err %s", grpcURL, err.Error())
 		return "", ""
 	}
+
+	method = u.Path
 	if u.Scheme == "" {
-		return u.Host, u.Path
+		server = u.Host
 	} else {
-		return u.Scheme + "://" + u.Host, u.Path
+		server = u.Scheme + "://" + u.Host
+		if u.RawQuery != "" {
+			server += "?" + u.RawQuery
+		}
 	}
+	return
 }
 
 // GrpcServerLog 打印grpc服务端的日志

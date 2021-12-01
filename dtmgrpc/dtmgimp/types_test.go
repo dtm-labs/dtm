@@ -21,7 +21,13 @@ func TestGetServerAndMethod(t *testing.T) {
 		{
 			name: "Polaris",
 			args: args{grpcURL: "polaris://grpc.service/package.service/method?namespace=Production"},
-			want: "polaris://grpc.service",
+			want: "polaris://grpc.service?namespace=Production",
+			want1: "/package.service/method",
+		},
+		{
+			name: "Dns",
+			args: args{grpcURL: "dns://host/package.service/method"},
+			want: "dns://host",
 			want1: "/package.service/method",
 		},
 	}
