@@ -9,8 +9,6 @@ package common
 import (
 	"bytes"
 	"encoding/json"
-	"github.com/polarismesh/grpc-go-polaris"
-	"github.com/polarismesh/polaris-go/api"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -20,7 +18,8 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/go-resty/resty/v2"
-
+	"github.com/polarismesh/grpc-go-polaris"
+	"github.com/polarismesh/polaris-go/api"
 	"github.com/yedf/dtm/dtmcli/dtmimp"
 )
 
