@@ -13,6 +13,7 @@ import (
 
 	"github.com/yedf/dtm/dtmcli/dtmimp"
 	"github.com/yedf/dtm/dtmgrpc/dtmgimp"
+	"github.com/yedf/dtmdriver"
 	grpc "google.golang.org/grpc"
 	"google.golang.org/protobuf/proto"
 	emptypb "google.golang.org/protobuf/types/known/emptypb"
@@ -110,8 +111,11 @@ func (xc *XaGrpcClient) XaGlobalTransaction(gid string, xaFunc XaGrpcGlobalFunc)
 
 // CallBranch call a xa branch
 func (x *XaGrpc) CallBranch(msg proto.Message, url string, reply interface{}) error {
-	server, method := dtmgimp.GetServerAndMethod(url)
-	err := dtmgimp.MustGetGrpcConn(server, false).Invoke(
+	server, method, err := dtmdriver.GetDriver().ParseServerMethod(url)
+	if err != nil {
+		return err
+	}
+	err = dtmgimp.MustGetGrpcConn(server, false).Invoke(
 		dtmgimp.TransInfo2Ctx(x.Gid, x.TransType, x.NewSubBranchID(), "action", x.Dtm), method, msg, reply)
 	return err
 

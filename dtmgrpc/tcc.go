@@ -12,6 +12,7 @@ import (
 
 	"github.com/yedf/dtm/dtmcli/dtmimp"
 	"github.com/yedf/dtm/dtmgrpc/dtmgimp"
+	"github.com/yedf/dtmdriver"
 	"google.golang.org/protobuf/proto"
 )
 
@@ -81,7 +82,10 @@ func (t *TccGrpc) CallBranch(busiMsg proto.Message, tryURL string, confirmURL st
 	if err != nil {
 		return err
 	}
-	server, method := dtmgimp.GetServerAndMethod(tryURL)
+	server, method, err := dtmdriver.GetDriver().ParseServerMethod(tryURL)
+	if err != nil {
+		return err
+	}
 	return dtmgimp.MustGetGrpcConn(server, false).Invoke(
 		dtmgimp.TransInfo2Ctx(t.Gid, t.TransType, branchID, "try", t.Dtm), method, busiMsg, reply)
 }

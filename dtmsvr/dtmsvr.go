@@ -14,6 +14,9 @@ import (
 	"github.com/yedf/dtm/common"
 	"github.com/yedf/dtm/dtmcli/dtmimp"
 	"github.com/yedf/dtm/dtmgrpc/dtmgimp"
+	"github.com/yedf/dtmdriver"
+	_ "github.com/yedf/dtmdriver-gozero"
+	_ "github.com/yedf/dtmdriver-protocol1"
 	"gorm.io/gorm/clause"
 
 	grpc_middleware "github.com/grpc-ecosystem/go-grpc-middleware"
@@ -53,6 +56,10 @@ func StartSvr() {
 	dtmimp.Logf("prometheus exporter listen at: %d", metricsPort)
 	prometheusHTTPRun(fmt.Sprintf("%d", metricsPort))
 	time.Sleep(100 * time.Millisecond)
+	err = dtmdriver.Use(config.MicroService.Driver)
+	dtmimp.FatalIfError(err)
+	err = dtmdriver.GetDriver().RegisterGrpcService(config.MicroService.URL, config.MicroService.EndPoint)
+	dtmimp.FatalIfError(err)
 }
 
 // PopulateDB setup mysql data

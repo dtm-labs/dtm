@@ -9,7 +9,6 @@ package dtmgimp
 import (
 	"context"
 	"fmt"
-	"strings"
 
 	"github.com/yedf/dtm/dtmcli"
 	"github.com/yedf/dtm/dtmcli/dtmimp"
@@ -17,14 +16,6 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
-
-// GetServerAndMethod 将grpc的url分解为server和method
-func GetServerAndMethod(grpcURL string) (string, string) {
-	fs := strings.Split(grpcURL, "/")
-	server := fs[0]
-	method := "/" + strings.Join(fs[1:], "/")
-	return server, method
-}
 
 // GrpcServerLog 打印grpc服务端的日志
 func GrpcServerLog(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (interface{}, error) {
