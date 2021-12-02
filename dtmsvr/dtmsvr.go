@@ -22,8 +22,8 @@ import (
 	"github.com/yedf/dtm/examples"
 )
 
-var dtmsvrPort = 8080
-var dtmsvrGrpcPort = 58080
+var dtmsvrPort = 36789
+var dtmsvrGrpcPort = 36790
 var metricsPort = 8889
 
 // StartSvr StartSvr
@@ -84,7 +84,7 @@ func updateBranchAsync() {
 		for len(updates) > 0 {
 			dbr := dbGet().Clauses(clause.OnConflict{
 				OnConstraint: "trans_branch_op_pkey",
-				DoUpdates:    clause.AssignmentColumns([]string{"status", "finish_time","update_time"}),
+				DoUpdates:    clause.AssignmentColumns([]string{"status", "finish_time", "update_time"}),
 			}).Create(updates)
 			dtmimp.Logf("flushed %d branch status to db. affected: %d", len(updates), dbr.RowsAffected)
 			if dbr.Error != nil {
