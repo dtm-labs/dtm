@@ -5,8 +5,8 @@ services:
     environment:
       IS_DOCKER: '1'
     ports:
-      - '8080:8080'
-      - '58080:58080'
+      - '36789:36789'
+      - '36790:36790'
     volumes:
       - .:/app/work
       - /etc/localtime:/etc/localtime:ro

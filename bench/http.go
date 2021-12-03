@@ -152,7 +152,7 @@ func benchAddRoute(app *gin.Engine) {
 		params2 := fmt.Sprintf("?uid=%s", suid2)
 		dtmimp.Logf("mode: %s contains dtm: %t", mode, strings.Contains(mode, "dtm"))
 		if strings.Contains(mode, "dtm") {
-			saga := dtmcli.NewSaga(examples.DtmServer, fmt.Sprintf("bench-%d", uid)).
+			saga := dtmcli.NewSaga(examples.DtmHttpServer, fmt.Sprintf("bench-%d", uid)).
 				Add(benchBusi+"/TransOut"+params, benchBusi+"/TransOutCompensate"+params, req).
 				Add(benchBusi+"/TransIn"+params2, benchBusi+"/TransInCompensate"+params2, req)
 			saga.WaitResult = true

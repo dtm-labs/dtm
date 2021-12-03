@@ -15,6 +15,7 @@ import (
 	"github.com/yedf/dtm/dtmcli"
 	"github.com/yedf/dtm/dtmcli/dtmimp"
 	"github.com/yedf/dtm/dtmgrpc/dtmgimp"
+	"github.com/yedf/dtmdriver"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	"gorm.io/gorm"
@@ -84,10 +85,13 @@ func (t *TransGlobal) needProcess() bool {
 func (t *TransGlobal) getURLResult(url string, branchID, op string, branchPayload []byte) (string, error) {
 	if t.Protocol == "grpc" {
 		dtmimp.PanicIf(strings.HasPrefix(url, "http"), fmt.Errorf("bad url for grpc: %s", url))
-		server, method := dtmgimp.GetServerAndMethod(url)
+		server, method, err := dtmdriver.GetDriver().ParseServerMethod(url)
+		if err != nil {
+			return "", err
+		}
 		conn := dtmgimp.MustGetGrpcConn(server, true)
 		ctx := dtmgimp.TransInfo2Ctx(t.Gid, t.TransType, branchID, op, "")
-		err := conn.Invoke(ctx, method, branchPayload, []byte{})
+		err = conn.Invoke(ctx, method, branchPayload, []byte{})
 		if err == nil {
 			return dtmcli.ResultSuccess, nil
 		}

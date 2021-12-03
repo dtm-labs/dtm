@@ -68,7 +68,7 @@ func TestMsgAbnormal(t *testing.T) {
 
 func genMsg(gid string) *dtmcli.Msg {
 	req := examples.GenTransReq(30, false, false)
-	msg := dtmcli.NewMsg(examples.DtmServer, gid).
+	msg := dtmcli.NewMsg(examples.DtmHttpServer, gid).
 		Add(examples.Busi+"/TransOut", &req).
 		Add(examples.Busi+"/TransIn", &req)
 	msg.QueryPrepared = examples.Busi + "/CanSubmit"

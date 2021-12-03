@@ -6,3 +6,4 @@ main
 dist
 .idea/**
 .vscode/*.json
+default.etcd

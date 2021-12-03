@@ -14,6 +14,9 @@ import (
 	"github.com/yedf/dtm/common"
 	"github.com/yedf/dtm/dtmcli/dtmimp"
 	"github.com/yedf/dtm/dtmgrpc/dtmgimp"
+	"github.com/yedf/dtmdriver"
+	_ "github.com/yedf/dtmdriver-gozero"
+	_ "github.com/yedf/dtmdriver-protocol1"
 	"gorm.io/gorm/clause"
 
 	grpc_middleware "github.com/grpc-ecosystem/go-grpc-middleware"
@@ -22,20 +25,16 @@ import (
 	"github.com/yedf/dtm/examples"
 )
 
-var dtmsvrPort = 8080
-var dtmsvrGrpcPort = 58080
-var metricsPort = 8889
-
 // StartSvr StartSvr
 func StartSvr() {
 	dtmimp.Logf("start dtmsvr")
 	app := common.GetGinApp()
 	app = httpMetrics(app)
 	addRoute(app)
-	dtmimp.Logf("dtmsvr listen at: %d", dtmsvrPort)
-	go app.Run(fmt.Sprintf(":%d", dtmsvrPort))
+	dtmimp.Logf("dtmsvr listen at: %d", common.DtmHttpPort)
+	go app.Run(fmt.Sprintf(":%d", common.DtmHttpPort))
 
-	lis, err := net.Listen("tcp", fmt.Sprintf(":%d", dtmsvrGrpcPort))
+	lis, err := net.Listen("tcp", fmt.Sprintf(":%d", common.DtmGrpcPort))
 	dtmimp.FatalIfError(err)
 	s := grpc.NewServer(
 		grpc.UnaryInterceptor(grpc_middleware.ChainUnaryServer(
@@ -50,9 +49,13 @@ func StartSvr() {
 	go updateBranchAsync()
 
 	// prometheus exporter
-	dtmimp.Logf("prometheus exporter listen at: %d", metricsPort)
-	prometheusHTTPRun(fmt.Sprintf("%d", metricsPort))
+	dtmimp.Logf("prometheus exporter listen at: %d", common.DtmMetricsPort)
+	prometheusHTTPRun(fmt.Sprintf("%d", common.DtmMetricsPort))
 	time.Sleep(100 * time.Millisecond)
+	err = dtmdriver.Use(config.MicroService.Driver)
+	dtmimp.FatalIfError(err)
+	err = dtmdriver.GetDriver().RegisterGrpcService(config.MicroService.URL, config.MicroService.EndPoint)
+	dtmimp.FatalIfError(err)
 }
 
 // PopulateDB setup mysql data
@@ -84,7 +87,7 @@ func updateBranchAsync() {
 		for len(updates) > 0 {
 			dbr := dbGet().Clauses(clause.OnConflict{
 				OnConstraint: "trans_branch_op_pkey",
-				DoUpdates:    clause.AssignmentColumns([]string{"status", "finish_time","update_time"}),
+				DoUpdates:    clause.AssignmentColumns([]string{"status", "finish_time", "update_time"}),
 			}).Create(updates)
 			dtmimp.Logf("flushed %d branch status to db. affected: %d", len(updates), dbr.RowsAffected)
 			if dbr.Error != nil {

@@ -4,17 +4,20 @@ DB:
   user: 'root'
   password: ''
   port: '3306'
-  max_open_conns: '500'
-  max_idle_conns: '500'
-  conn_max_life_time: '5'
+
   # driver: 'postgres'
   # host: 'localhost'
   # user: 'postgres'
   # password: 'mysecretpassword'
   # port: '5432'
+
   # max_open_conns: 'dbmaxopenconns'
   # max_idle_conns: 'dbmaxidleconns'
   # conn_max_life_time: 'dbconnmaxlifetime'
+# MicroService:
+#   Driver: 'dtm-driver-gozero' # name of the driver to handle register/discover
+#   URL: 'etcd://localhost:2379/dtmservice' # register dtm server to this url
+#   EndPoint: 'localhost:36790'
 # the unit of following configurations is second
 
 # TransCronInterval: 3 # the interval to poll unfinished global transaction for every dtm process

@@ -15,7 +15,7 @@ func init() {
 	addSample("msg", func() string {
 		dtmimp.Logf("a busi transaction begin")
 		req := &TransReq{Amount: 30}
-		msg := dtmcli.NewMsg(DtmServer, dtmcli.MustGenGid(DtmServer)).
+		msg := dtmcli.NewMsg(DtmHttpServer, dtmcli.MustGenGid(DtmHttpServer)).
 			Add(Busi+"/TransOut", req).
 			Add(Busi+"/TransIn", req)
 		err := msg.Prepare(Busi + "/query")

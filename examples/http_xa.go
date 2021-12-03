@@ -20,7 +20,7 @@ var XaClient *dtmcli.XaClient = nil
 func init() {
 	setupFuncs["XaSetup"] = func(app *gin.Engine) {
 		var err error
-		XaClient, err = dtmcli.NewXaClient(DtmServer, config.DB, Busi+"/xa", func(path string, xa *dtmcli.XaClient) {
+		XaClient, err = dtmcli.NewXaClient(DtmHttpServer, config.DB, Busi+"/xa", func(path string, xa *dtmcli.XaClient) {
 			app.POST(path, common.WrapHandler(func(c *gin.Context) (interface{}, error) {
 				return xa.HandleCallback(c.Query("gid"), c.Query("branch_id"), c.Query("op"))
 			}))
@@ -28,7 +28,7 @@ func init() {
 		dtmimp.FatalIfError(err)
 	}
 	addSample("xa", func() string {
-		gid := dtmcli.MustGenGid(DtmServer)
+		gid := dtmcli.MustGenGid(DtmHttpServer)
 		err := XaClient.XaGlobalTransaction(gid, func(xa *dtmcli.Xa) (*resty.Response, error) {
 			resp, err := xa.CallBranch(&TransReq{Amount: 30}, Busi+"/TransOutXa")
 			if err != nil {
