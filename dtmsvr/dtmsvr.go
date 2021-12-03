@@ -54,7 +54,7 @@ func StartSvr() {
 	time.Sleep(100 * time.Millisecond)
 	err = dtmdriver.Use(config.MicroService.Driver)
 	dtmimp.FatalIfError(err)
-	err = dtmdriver.GetDriver().RegisterGrpcService(config.MicroService.URL, config.MicroService.EndPoint)
+	err = dtmdriver.GetDriver().RegisterGrpcService(config.MicroService.Target, config.MicroService.EndPoint)
 	dtmimp.FatalIfError(err)
 }
 

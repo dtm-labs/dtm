@@ -26,7 +26,7 @@ const (
 // MicroService config type for micro service
 type MicroService struct {
 	Driver   string `yaml:"Driver"`
-	URL      string `yaml:"URL"`
+	Target   string `yaml:"Target"`
 	EndPoint string `yaml:"EndPoint"`
 }
 
@@ -62,7 +62,7 @@ func MustLoadConfig() {
 		"conn_max_life_time": dtmimp.OrString(os.Getenv("DB_CONN_MAX_LIFE_TIME"), "5"),
 	}
 	DtmConfig.MicroService.Driver = dtmimp.OrString(os.Getenv("MICRO_SERVICE_DRIVER"), "default")
-	DtmConfig.MicroService.URL = os.Getenv("MICRO_SERVICE_URL")
+	DtmConfig.MicroService.Target = os.Getenv("MICRO_SERVICE_TARGET")
 	DtmConfig.MicroService.EndPoint = os.Getenv("MICRO_SERVICE_ENDPOINT")
 	DtmConfig.DisableLocalhost = getIntEnv("DISABLE_LOCALHOST", "0")
 	DtmConfig.UpdateBranchSync = getIntEnv("UPDATE_BRANCH_SYNC", "0")

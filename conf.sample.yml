@@ -16,8 +16,12 @@ DB:
   # conn_max_life_time: 'dbconnmaxlifetime'
 # MicroService:
 #   Driver: 'dtm-driver-gozero' # name of the driver to handle register/discover
-#   URL: 'etcd://localhost:2379/dtmservice' # register dtm server to this url
+#   Target: 'etcd://localhost:2379/dtmservice' # register dtm server to this url
 #   EndPoint: 'localhost:36790'
+
+# MicroService:
+#   Driver: 'dtm-driver-protocol1'
+
 # the unit of following configurations is second
 
 # TransCronInterval: 3 # the interval to poll unfinished global transaction for every dtm process
