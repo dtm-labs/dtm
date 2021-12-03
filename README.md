@@ -53,7 +53,7 @@ DTM是一款golang开发的分布式事务管理器，解决了跨数据库、�
 | SAGA事务 |<span style="color:green">支持并发</span> |<span style="color:green">状态机模式</span> ||
 |事务消息|<span style="color:green">✓</span>|<span style="color:red">✗</span>|dtm提供类似rocketmq的事务消息|
 |单服务多数据源|<span style="color:green">✓</span>|<span style="color:red">✗</span>||
-|通信协议|HTTP、gRPC|dubbo等协议，无HTTP|dtm对云原生更加友好|
+|通信协议|HTTP、gRPC、go-zero|dubbo等协议|dtm对云原生更加友好|
 |star数量|<img src="https://img.shields.io/github/stars/yedf/dtm.svg?style=social" alt="github stars"/>|<img src="https://img.shields.io/github/stars/seata/seata.svg?style=social" alt="github stars"/>|dtm从20210604发布0.1，发展快|
 
 从上面对比的特性来看，如果您的语言栈包含了Java之外的语言，那么dtm是您的首选。如果您的语言栈是Java，您也可以选择接入dtm，使用子事务屏障技术，简化您的业务编写。
@@ -63,6 +63,11 @@ DTM是一款golang开发的分布式事务管理器，解决了跨数据库、�
 ## [教程与文档](https://dtm.pub)
 
 ## [各语言客户端及示例](https://dtm.pub/summary/code.html#go)
+
+## 微服务框架支持
+- go-zero：一开源就非常火爆的微服务框架，首家接入dtm的微服务框架
+- polaris: 腾讯开源的注册发现组件，以及在其上构建的微服务框架。目前对接中
+- 其他：看用户需求量，择机接入
 
 ## 快速开始
 
