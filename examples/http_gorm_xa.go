@@ -14,7 +14,7 @@ import (
 
 func init() {
 	addSample("xa_gorm", func() string {
-		gid := dtmcli.MustGenGid(DtmServer)
+		gid := dtmcli.MustGenGid(DtmHttpServer)
 		err := XaClient.XaGlobalTransaction(gid, func(xa *dtmcli.Xa) (*resty.Response, error) {
 			resp, err := xa.CallBranch(&TransReq{Amount: 30}, Busi+"/TransOutXaGorm")
 			if err != nil {

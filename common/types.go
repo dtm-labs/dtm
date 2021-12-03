@@ -17,6 +17,12 @@ import (
 	"github.com/yedf/dtm/dtmcli/dtmimp"
 )
 
+const (
+	DtmHttpPort    = 36789
+	DtmGrpcPort    = 36790
+	DtmMetricsPort = 8889
+)
+
 // MicroService config type for micro service
 type MicroService struct {
 	Driver   string `yaml:"Driver"`

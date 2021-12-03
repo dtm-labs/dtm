@@ -19,7 +19,7 @@ import (
 	"github.com/yedf/dtm/examples"
 )
 
-var DtmServer = examples.DtmServer
+var DtmServer = examples.DtmHttpServer
 var Busi = examples.Busi
 var app *gin.Engine
 

@@ -25,20 +25,16 @@ import (
 	"github.com/yedf/dtm/examples"
 )
 
-var dtmsvrPort = 36789
-var dtmsvrGrpcPort = 36790
-var metricsPort = 8889
-
 // StartSvr StartSvr
 func StartSvr() {
 	dtmimp.Logf("start dtmsvr")
 	app := common.GetGinApp()
 	app = httpMetrics(app)
 	addRoute(app)
-	dtmimp.Logf("dtmsvr listen at: %d", dtmsvrPort)
-	go app.Run(fmt.Sprintf(":%d", dtmsvrPort))
+	dtmimp.Logf("dtmsvr listen at: %d", common.DtmHttpPort)
+	go app.Run(fmt.Sprintf(":%d", common.DtmHttpPort))
 
-	lis, err := net.Listen("tcp", fmt.Sprintf(":%d", dtmsvrGrpcPort))
+	lis, err := net.Listen("tcp", fmt.Sprintf(":%d", common.DtmGrpcPort))
 	dtmimp.FatalIfError(err)
 	s := grpc.NewServer(
 		grpc.UnaryInterceptor(grpc_middleware.ChainUnaryServer(
@@ -53,8 +49,8 @@ func StartSvr() {
 	go updateBranchAsync()
 
 	// prometheus exporter
-	dtmimp.Logf("prometheus exporter listen at: %d", metricsPort)
-	prometheusHTTPRun(fmt.Sprintf("%d", metricsPort))
+	dtmimp.Logf("prometheus exporter listen at: %d", common.DtmMetricsPort)
+	prometheusHTTPRun(fmt.Sprintf("%d", common.DtmMetricsPort))
 	time.Sleep(100 * time.Millisecond)
 	err = dtmdriver.Use(config.MicroService.Driver)
 	dtmimp.FatalIfError(err)

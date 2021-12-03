@@ -27,8 +27,8 @@ func init() {
 	}
 	addSample("tcc_barrier", func() string {
 		dtmimp.Logf("tcc transaction begin")
-		gid := dtmcli.MustGenGid(DtmServer)
-		err := dtmcli.TccGlobalTransaction(DtmServer, gid, func(tcc *dtmcli.Tcc) (*resty.Response, error) {
+		gid := dtmcli.MustGenGid(DtmHttpServer)
+		err := dtmcli.TccGlobalTransaction(DtmHttpServer, gid, func(tcc *dtmcli.Tcc) (*resty.Response, error) {
 			resp, err := tcc.CallBranch(&TransReq{Amount: 30}, Busi+"/TccBTransOutTry",
 				Busi+"/TccBTransOutConfirm", Busi+"/TccBTransOutCancel")
 			if err != nil {

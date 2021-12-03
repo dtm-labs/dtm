@@ -24,8 +24,8 @@ func init() {
 		}))
 	}
 	addSample("tcc_nested", func() string {
-		gid := dtmcli.MustGenGid(DtmServer)
-		err := dtmcli.TccGlobalTransaction(DtmServer, gid, func(tcc *dtmcli.Tcc) (*resty.Response, error) {
+		gid := dtmcli.MustGenGid(DtmHttpServer)
+		err := dtmcli.TccGlobalTransaction(DtmHttpServer, gid, func(tcc *dtmcli.Tcc) (*resty.Response, error) {
 			resp, err := tcc.CallBranch(&TransReq{Amount: 30}, Busi+"/TransOut", Busi+"/TransOutConfirm", Busi+"/TransOutRevert")
 			if err != nil {
 				return resp, err
@@ -37,8 +37,8 @@ func init() {
 	})
 	addSample("tcc", func() string {
 		dtmimp.Logf("tcc simple transaction begin")
-		gid := dtmcli.MustGenGid(DtmServer)
-		err := dtmcli.TccGlobalTransaction(DtmServer, gid, func(tcc *dtmcli.Tcc) (*resty.Response, error) {
+		gid := dtmcli.MustGenGid(DtmHttpServer)
+		err := dtmcli.TccGlobalTransaction(DtmHttpServer, gid, func(tcc *dtmcli.Tcc) (*resty.Response, error) {
 			resp, err := tcc.CallBranch(&TransReq{Amount: 30}, Busi+"/TransOut", Busi+"/TransOutConfirm", Busi+"/TransOutRevert")
 			if err != nil {
 				return resp, err

@@ -18,11 +18,11 @@ import (
 	"github.com/yedf/dtm/dtmgrpc"
 )
 
-// DtmServer dtm service address
-const DtmServer = "http://localhost:8080/api/dtmsvr"
+// DtmHttpServer dtm service address
+var DtmHttpServer = fmt.Sprintf("http://localhost:%d/api/dtmsvr", common.DtmHttpPort)
 
 // DtmGrpcServer dtm grpc service address
-const DtmGrpcServer = "localhost:58080"
+var DtmGrpcServer = fmt.Sprintf("localhost:%d", common.DtmGrpcPort)
 
 // TransReq transaction request payload
 type TransReq struct {

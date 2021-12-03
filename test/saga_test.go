@@ -59,7 +59,7 @@ func TestSagaAbnormal(t *testing.T) {
 }
 
 func genSaga(gid string, outFailed bool, inFailed bool) *dtmcli.Saga {
-	saga := dtmcli.NewSaga(examples.DtmServer, gid)
+	saga := dtmcli.NewSaga(examples.DtmHttpServer, gid)
 	req := examples.GenTransReq(30, outFailed, inFailed)
 	saga.Add(examples.Busi+"/TransOut", examples.Busi+"/TransOutRevert", &req)
 	saga.Add(examples.Busi+"/TransIn", examples.Busi+"/TransInRevert", &req)
@@ -67,7 +67,7 @@ func genSaga(gid string, outFailed bool, inFailed bool) *dtmcli.Saga {
 }
 
 func genSaga1(gid string, outFailed bool, inFailed bool) *dtmcli.Saga {
-	saga := dtmcli.NewSaga(examples.DtmServer, gid)
+	saga := dtmcli.NewSaga(examples.DtmHttpServer, gid)
 	req := examples.GenTransReq(30, outFailed, inFailed)
 	saga.Add(examples.Busi+"/TransOut", examples.Busi+"/TransOutRevert", &req)
 	return saga

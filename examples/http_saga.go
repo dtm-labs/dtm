@@ -15,7 +15,7 @@ func init() {
 	addSample("saga", func() string {
 		dtmimp.Logf("a saga busi transaction begin")
 		req := &TransReq{Amount: 30}
-		saga := dtmcli.NewSaga(DtmServer, dtmcli.MustGenGid(DtmServer)).
+		saga := dtmcli.NewSaga(DtmHttpServer, dtmcli.MustGenGid(DtmHttpServer)).
 			Add(Busi+"/TransOut", Busi+"/TransOutRevert", req).
 			Add(Busi+"/TransIn", Busi+"/TransInRevert", req)
 		dtmimp.Logf("saga busi trans submit")
@@ -27,7 +27,7 @@ func init() {
 	addSample("saga_wait", func() string {
 		dtmimp.Logf("a saga busi transaction begin")
 		req := &TransReq{Amount: 30}
-		saga := dtmcli.NewSaga(DtmServer, dtmcli.MustGenGid(DtmServer)).
+		saga := dtmcli.NewSaga(DtmHttpServer, dtmcli.MustGenGid(DtmHttpServer)).
 			Add(Busi+"/TransOut", Busi+"/TransOutRevert", req).
 			Add(Busi+"/TransIn", Busi+"/TransInRevert", req)
 		saga.SetOptions(&dtmcli.TransOptions{WaitResult: true})
@@ -39,7 +39,7 @@ func init() {
 	addSample("concurrent_saga", func() string {
 		dtmimp.Logf("a concurrent saga busi transaction begin")
 		req := &TransReq{Amount: 30}
-		csaga := dtmcli.NewSaga(DtmServer, dtmcli.MustGenGid(DtmServer)).
+		csaga := dtmcli.NewSaga(DtmHttpServer, dtmcli.MustGenGid(DtmHttpServer)).
 			Add(Busi+"/TransOut", Busi+"/TransOutRevert", req).
 			Add(Busi+"/TransOut", Busi+"/TransOutRevert", req).
 			Add(Busi+"/TransIn", Busi+"/TransInRevert", req).

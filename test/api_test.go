@@ -20,7 +20,7 @@ func TestAPIQuery(t *testing.T) {
 	err := genMsg(gidTestAPI).Submit()
 	assert.Nil(t, err)
 	waitTransProcessed(gidTestAPI)
-	resp, err := dtmimp.RestyClient.R().SetQueryParam("gid", gidTestAPI).Get(examples.DtmServer + "/query")
+	resp, err := dtmimp.RestyClient.R().SetQueryParam("gid", gidTestAPI).Get(examples.DtmHttpServer + "/query")
 	e2p(err)
 	m := map[string]interface{}{}
 	assert.Equal(t, resp.StatusCode(), 200)
@@ -28,11 +28,11 @@ func TestAPIQuery(t *testing.T) {
 	assert.NotEqual(t, nil, m["transaction"])
 	assert.Equal(t, 2, len(m["branches"].([]interface{})))
 
-	resp, err = dtmimp.RestyClient.R().SetQueryParam("gid", "").Get(examples.DtmServer + "/query")
+	resp, err = dtmimp.RestyClient.R().SetQueryParam("gid", "").Get(examples.DtmHttpServer + "/query")
 	e2p(err)
 	assert.Equal(t, resp.StatusCode(), 500)
 
-	resp, err = dtmimp.RestyClient.R().SetQueryParam("gid", "1").Get(examples.DtmServer + "/query")
+	resp, err = dtmimp.RestyClient.R().SetQueryParam("gid", "1").Get(examples.DtmHttpServer + "/query")
 	e2p(err)
 	assert.Equal(t, resp.StatusCode(), 200)
 	dtmimp.MustUnmarshalString(resp.String(), &m)
@@ -41,10 +41,10 @@ func TestAPIQuery(t *testing.T) {
 }
 
 func TestAPIAll(t *testing.T) {
-	_, err := dtmimp.RestyClient.R().Get(examples.DtmServer + "/all")
+	_, err := dtmimp.RestyClient.R().Get(examples.DtmHttpServer + "/all")
 	assert.Nil(t, err)
-	_, err = dtmimp.RestyClient.R().SetQueryParam("last_id", "10").Get(examples.DtmServer + "/all")
+	_, err = dtmimp.RestyClient.R().SetQueryParam("last_id", "10").Get(examples.DtmHttpServer + "/all")
 	assert.Nil(t, err)
-	resp, err := dtmimp.RestyClient.R().SetQueryParam("last_id", "abc").Get(examples.DtmServer + "/all")
+	resp, err := dtmimp.RestyClient.R().SetQueryParam("last_id", "abc").Get(examples.DtmHttpServer + "/all")
 	assert.Equal(t, resp.StatusCode(), 500)
 }
