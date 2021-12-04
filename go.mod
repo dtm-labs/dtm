@@ -15,7 +15,10 @@ require (
 	github.com/yedf/dtmdriver v0.0.0-20211203060147-29426c663b6e
 	github.com/yedf/dtmdriver-gozero v0.0.0-20211204083751-a14485949435
 	github.com/yedf/dtmdriver-protocol1 v0.0.0-20211203060330-285168cdaa00
+	go.uber.org/atomic v1.9.0 // indirect
 	go.uber.org/automaxprocs v1.4.1-0.20210525221652-0180b04c18a7
+	go.uber.org/multierr v1.7.0 // indirect
+	go.uber.org/zap v1.19.1
 	golang.org/x/crypto v0.0.0-20211108221036-ceb1ce70b4fa // indirect
 	google.golang.org/grpc v1.42.0
 	google.golang.org/protobuf v1.27.1
