@@ -11,18 +11,18 @@ import (
 	"net"
 	"time"
 
+	grpc_middleware "github.com/grpc-ecosystem/go-grpc-middleware"
 	"github.com/yedf/dtm/common"
 	"github.com/yedf/dtm/dtmcli/dtmimp"
 	"github.com/yedf/dtm/dtmgrpc/dtmgimp"
+	"github.com/yedf/dtm/examples"
 	"github.com/yedf/dtmdriver"
-	_ "github.com/yedf/dtmdriver-gozero"
-	_ "github.com/yedf/dtmdriver-protocol1"
+	"google.golang.org/grpc"
 	"gorm.io/gorm/clause"
 
-	grpc_middleware "github.com/grpc-ecosystem/go-grpc-middleware"
-	"google.golang.org/grpc"
-
-	"github.com/yedf/dtm/examples"
+	_ "github.com/ychensha/dtmdriver-polaris"
+	_ "github.com/yedf/dtmdriver-gozero"
+	_ "github.com/yedf/dtmdriver-protocol1"
 )
 
 // StartSvr StartSvr
