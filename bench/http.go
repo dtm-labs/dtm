@@ -97,7 +97,7 @@ func qsAdjustBalance(uid int, amount int, c *gin.Context) (interface{}, error) {
 		return dtmcli.MapSuccess, nil
 	}
 	tb := dtmimp.TransBaseFromQuery(c.Request.URL.Query())
-	f := func(tx dtmcli.DB) error {
+	f := func(tx *sql.Tx) error {
 		for i := 0; i < sqls; i++ {
 			_, err := dtmimp.DBExec(tx, "insert into dtm_busi.user_account_log(user_id, delta, gid, branch_id, op, reason)  values(?,?,?,?,?,?)",
 				uid, amount, tb.Gid, c.Query("branch_id"), tb.TransType, fmt.Sprintf("inserted by dtm transaction %s %s", tb.Gid, c.Query("branch_id")))

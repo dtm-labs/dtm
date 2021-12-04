@@ -7,6 +7,7 @@
 package dtmcli
 
 import (
+	"database/sql"
 	"fmt"
 	"net/url"
 
@@ -14,7 +15,7 @@ import (
 )
 
 // BarrierBusiFunc type for busi func
-type BarrierBusiFunc func(db DB) error
+type BarrierBusiFunc func(tx *sql.Tx) error
 
 // BranchBarrier every branch info
 type BranchBarrier struct {
@@ -48,7 +49,7 @@ func BarrierFrom(transType, gid, branchID, op string) (*BranchBarrier, error) {
 	return ti, nil
 }
 
-func insertBarrier(tx Tx, transType string, gid string, branchID string, op string, barrierID string, reason string) (int64, error) {
+func insertBarrier(tx DB, transType string, gid string, branchID string, op string, barrierID string, reason string) (int64, error) {
 	if op == "" {
 		return 0, nil
 	}
@@ -59,7 +60,7 @@ func insertBarrier(tx Tx, transType string, gid string, branchID string, op stri
 // Call 子事务屏障，详细介绍见 https://zhuanlan.zhihu.com/p/388444465
 // tx: 本地数据库的事务对象，允许子事务屏障进行事务操作
 // busiCall: 业务函数，仅在必要时被调用
-func (bb *BranchBarrier) Call(tx Tx, busiCall BarrierBusiFunc) (rerr error) {
+func (bb *BranchBarrier) Call(tx *sql.Tx, busiCall BarrierBusiFunc) (rerr error) {
 	bb.BarrierID = bb.BarrierID + 1
 	bid := fmt.Sprintf("%02d", bb.BarrierID)
 	defer func() {
@@ -88,4 +89,13 @@ func (bb *BranchBarrier) Call(tx Tx, busiCall BarrierBusiFunc) (rerr error) {
 	}
 	rerr = busiCall(tx)
 	return
+}
+
+// CallWithDB the same as Call, but with *sql.DB
+func (bb *BranchBarrier) CallWithDB(db *sql.DB, busiCall BarrierBusiFunc) error {
+	tx, err := db.Begin()
+	if err != nil {
+		return err
+	}
+	return bb.Call(tx, busiCall)
 }
