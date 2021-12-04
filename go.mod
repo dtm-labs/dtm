@@ -13,7 +13,7 @@ require (
 	github.com/prometheus/client_golang v1.11.0
 	github.com/stretchr/testify v1.7.0
 	github.com/yedf/dtmdriver v0.0.0-20211203060147-29426c663b6e
-	github.com/yedf/dtmdriver-gozero v0.0.0-20211203060349-1f6f1b3d3c86
+	github.com/yedf/dtmdriver-gozero v0.0.0-20211204083751-a14485949435
 	github.com/yedf/dtmdriver-protocol1 v0.0.0-20211203060330-285168cdaa00
 	go.uber.org/automaxprocs v1.4.1-0.20210525221652-0180b04c18a7
 	golang.org/x/crypto v0.0.0-20211108221036-ceb1ce70b4fa // indirect
