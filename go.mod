@@ -10,8 +10,10 @@ require (
 	github.com/go-sql-driver/mysql v1.6.0
 	github.com/grpc-ecosystem/go-grpc-middleware v1.3.0
 	github.com/lib/pq v1.10.3
+	github.com/polarismesh/grpc-go-polaris v0.0.0-20211128162137-1a59cd7b5733 // indirect
 	github.com/prometheus/client_golang v1.11.0
 	github.com/stretchr/testify v1.7.0
+	github.com/ychensha/dtmdriver-polaris v0.0.1
 	github.com/yedf/dtmdriver v0.0.0-20211203060147-29426c663b6e
 	github.com/yedf/dtmdriver-gozero v0.0.0-20211204083751-a14485949435
 	github.com/yedf/dtmdriver-protocol1 v0.0.0-20211203060330-285168cdaa00
