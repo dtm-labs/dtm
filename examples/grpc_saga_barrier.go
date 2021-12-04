@@ -8,6 +8,7 @@ package examples
 
 import (
 	"context"
+	"database/sql"
 
 	"github.com/yedf/dtm/dtmcli"
 	"github.com/yedf/dtm/dtmcli/dtmimp"
@@ -41,28 +42,28 @@ func sagaGrpcBarrierAdjustBalance(db dtmcli.DB, uid int, amount int64, result st
 
 func (s *busiServer) TransInBSaga(ctx context.Context, in *BusiReq) (*emptypb.Empty, error) {
 	barrier := MustBarrierFromGrpc(ctx)
-	return &emptypb.Empty{}, barrier.Call(txGet(), func(tx dtmcli.DB) error {
+	return &emptypb.Empty{}, barrier.Call(txGet(), func(tx *sql.Tx) error {
 		return sagaGrpcBarrierAdjustBalance(tx, 2, in.Amount, in.TransInResult)
 	})
 }
 
 func (s *busiServer) TransOutBSaga(ctx context.Context, in *BusiReq) (*emptypb.Empty, error) {
 	barrier := MustBarrierFromGrpc(ctx)
-	return &emptypb.Empty{}, barrier.Call(txGet(), func(db dtmcli.DB) error {
-		return sagaGrpcBarrierAdjustBalance(db, 1, -in.Amount, in.TransOutResult)
+	return &emptypb.Empty{}, barrier.Call(txGet(), func(tx *sql.Tx) error {
+		return sagaGrpcBarrierAdjustBalance(tx, 1, -in.Amount, in.TransOutResult)
 	})
 }
 
 func (s *busiServer) TransInRevertBSaga(ctx context.Context, in *BusiReq) (*emptypb.Empty, error) {
 	barrier := MustBarrierFromGrpc(ctx)
-	return &emptypb.Empty{}, barrier.Call(txGet(), func(db dtmcli.DB) error {
-		return sagaGrpcBarrierAdjustBalance(db, 2, -in.Amount, "")
+	return &emptypb.Empty{}, barrier.Call(txGet(), func(tx *sql.Tx) error {
+		return sagaGrpcBarrierAdjustBalance(tx, 2, -in.Amount, "")
 	})
 }
 
 func (s *busiServer) TransOutRevertBSaga(ctx context.Context, in *BusiReq) (*emptypb.Empty, error) {
 	barrier := MustBarrierFromGrpc(ctx)
-	return &emptypb.Empty{}, barrier.Call(txGet(), func(db dtmcli.DB) error {
-		return sagaGrpcBarrierAdjustBalance(db, 1, in.Amount, "")
+	return &emptypb.Empty{}, barrier.Call(txGet(), func(tx *sql.Tx) error {
+		return sagaGrpcBarrierAdjustBalance(tx, 1, in.Amount, "")
 	})
 }

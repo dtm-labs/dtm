@@ -7,6 +7,7 @@
 package examples
 
 import (
+	"database/sql"
 	"fmt"
 
 	"github.com/gin-gonic/gin"
@@ -68,20 +69,20 @@ func tccBarrierTransInTry(c *gin.Context) (interface{}, error) {
 	if req.TransInResult != "" {
 		return req.TransInResult, nil
 	}
-	return dtmcli.MapSuccess, MustBarrierFromGin(c).Call(txGet(), func(db dtmcli.DB) error {
-		return adjustTrading(db, transInUID, req.Amount)
+	return dtmcli.MapSuccess, MustBarrierFromGin(c).Call(txGet(), func(tx *sql.Tx) error {
+		return adjustTrading(tx, transInUID, req.Amount)
 	})
 }
 
 func tccBarrierTransInConfirm(c *gin.Context) (interface{}, error) {
-	return dtmcli.MapSuccess, MustBarrierFromGin(c).Call(txGet(), func(db dtmcli.DB) error {
-		return adjustBalance(db, transInUID, reqFrom(c).Amount)
+	return dtmcli.MapSuccess, MustBarrierFromGin(c).Call(txGet(), func(tx *sql.Tx) error {
+		return adjustBalance(tx, transInUID, reqFrom(c).Amount)
 	})
 }
 
 func tccBarrierTransInCancel(c *gin.Context) (interface{}, error) {
-	return dtmcli.MapSuccess, MustBarrierFromGin(c).Call(txGet(), func(db dtmcli.DB) error {
-		return adjustTrading(db, transInUID, -reqFrom(c).Amount)
+	return dtmcli.MapSuccess, MustBarrierFromGin(c).Call(txGet(), func(tx *sql.Tx) error {
+		return adjustTrading(tx, transInUID, -reqFrom(c).Amount)
 	})
 }
 
@@ -90,20 +91,20 @@ func tccBarrierTransOutTry(c *gin.Context) (interface{}, error) {
 	if req.TransOutResult != "" {
 		return req.TransOutResult, nil
 	}
-	return dtmcli.MapSuccess, MustBarrierFromGin(c).Call(txGet(), func(db dtmcli.DB) error {
-		return adjustTrading(db, transOutUID, -req.Amount)
+	return dtmcli.MapSuccess, MustBarrierFromGin(c).Call(txGet(), func(tx *sql.Tx) error {
+		return adjustTrading(tx, transOutUID, -req.Amount)
 	})
 }
 
 func tccBarrierTransOutConfirm(c *gin.Context) (interface{}, error) {
-	return dtmcli.MapSuccess, MustBarrierFromGin(c).Call(txGet(), func(db dtmcli.DB) error {
-		return adjustBalance(db, transOutUID, -reqFrom(c).Amount)
+	return dtmcli.MapSuccess, MustBarrierFromGin(c).Call(txGet(), func(tx *sql.Tx) error {
+		return adjustBalance(tx, transOutUID, -reqFrom(c).Amount)
 	})
 }
 
 // TccBarrierTransOutCancel will be use in test
 func TccBarrierTransOutCancel(c *gin.Context) (interface{}, error) {
-	return dtmcli.MapSuccess, MustBarrierFromGin(c).Call(txGet(), func(db dtmcli.DB) error {
-		return adjustTrading(db, transOutUID, reqFrom(c).Amount)
+	return dtmcli.MapSuccess, MustBarrierFromGin(c).Call(txGet(), func(tx *sql.Tx) error {
+		return adjustTrading(tx, transOutUID, reqFrom(c).Amount)
 	})
 }

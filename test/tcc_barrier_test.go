@@ -126,7 +126,7 @@ func TestTccBarrierPanic(t *testing.T) {
 	func() {
 		defer dtmimp.P2E(&err)
 		tx, _ := dbGet().ToSQLDB().BeginTx(context.Background(), &sql.TxOptions{})
-		bb.Call(tx, func(db dtmcli.DB) error {
+		bb.Call(tx, func(tx *sql.Tx) error {
 			panic(fmt.Errorf("an error"))
 		})
 	}()

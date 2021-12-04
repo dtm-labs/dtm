@@ -25,9 +25,6 @@ func MustGenGid(server string) string {
 // DB interface
 type DB = dtmimp.DB
 
-// Tx interface
-type Tx = dtmimp.Tx
-
 // TransOptions transaction option
 type TransOptions = dtmimp.TransOptions
 

@@ -7,6 +7,8 @@
 package examples
 
 import (
+	"database/sql"
+
 	"github.com/gin-gonic/gin"
 	"github.com/yedf/dtm/common"
 	"github.com/yedf/dtm/dtmcli"
@@ -45,15 +47,15 @@ func sagaBarrierTransIn(c *gin.Context) (interface{}, error) {
 		return req.TransInResult, nil
 	}
 	barrier := MustBarrierFromGin(c)
-	return dtmcli.MapSuccess, barrier.Call(txGet(), func(db dtmcli.DB) error {
-		return sagaBarrierAdjustBalance(db, 1, req.Amount)
+	return dtmcli.MapSuccess, barrier.Call(txGet(), func(tx *sql.Tx) error {
+		return sagaBarrierAdjustBalance(tx, 1, req.Amount)
 	})
 }
 
 func sagaBarrierTransInCompensate(c *gin.Context) (interface{}, error) {
 	barrier := MustBarrierFromGin(c)
-	return dtmcli.MapSuccess, barrier.Call(txGet(), func(db dtmcli.DB) error {
-		return sagaBarrierAdjustBalance(db, 1, -reqFrom(c).Amount)
+	return dtmcli.MapSuccess, barrier.Call(txGet(), func(tx *sql.Tx) error {
+		return sagaBarrierAdjustBalance(tx, 1, -reqFrom(c).Amount)
 	})
 }
 
@@ -63,14 +65,14 @@ func sagaBarrierTransOut(c *gin.Context) (interface{}, error) {
 		return req.TransOutResult, nil
 	}
 	barrier := MustBarrierFromGin(c)
-	return dtmcli.MapSuccess, barrier.Call(txGet(), func(db dtmcli.DB) error {
-		return sagaBarrierAdjustBalance(db, 2, -req.Amount)
+	return dtmcli.MapSuccess, barrier.Call(txGet(), func(tx *sql.Tx) error {
+		return sagaBarrierAdjustBalance(tx, 2, -req.Amount)
 	})
 }
 
 func sagaBarrierTransOutCompensate(c *gin.Context) (interface{}, error) {
 	barrier := MustBarrierFromGin(c)
-	return dtmcli.MapSuccess, barrier.Call(txGet(), func(db dtmcli.DB) error {
-		return sagaBarrierAdjustBalance(db, 2, reqFrom(c).Amount)
+	return dtmcli.MapSuccess, barrier.Call(txGet(), func(tx *sql.Tx) error {
+		return sagaBarrierAdjustBalance(tx, 2, reqFrom(c).Amount)
 	})
 }

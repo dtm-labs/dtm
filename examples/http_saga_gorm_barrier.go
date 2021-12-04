@@ -37,7 +37,7 @@ func sagaGormBarrierTransOut(c *gin.Context) (interface{}, error) {
 	req := reqFrom(c)
 	barrier := MustBarrierFromGin(c)
 	tx := dbGet().DB.Begin()
-	return dtmcli.MapSuccess, barrier.Call(tx.Statement.ConnPool.(*sql.Tx), func(db dtmcli.DB) error {
+	return dtmcli.MapSuccess, barrier.Call(tx.Statement.ConnPool.(*sql.Tx), func(tx1 *sql.Tx) error {
 		return tx.Exec("update dtm_busi.user_account set balance = balance + ? where user_id = ?", -req.Amount, 2).Error
 	})
 }
