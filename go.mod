@@ -16,7 +16,7 @@ require (
 	github.com/ychensha/dtmdriver-polaris v0.0.1
 	github.com/yedf/dtmdriver v0.0.0-20211203060147-29426c663b6e
 	github.com/yedf/dtmdriver-gozero v0.0.0-20211204083751-a14485949435
-	github.com/yedf/dtmdriver-protocol1 v0.0.0-20211203060330-285168cdaa00
+	//github.com/yedf/dtmdriver-protocol1 v0.0.0-20211203060330-285168cdaa00
 	go.uber.org/atomic v1.9.0 // indirect
 	go.uber.org/automaxprocs v1.4.1-0.20210525221652-0180b04c18a7
 	go.uber.org/multierr v1.7.0 // indirect
@@ -30,3 +30,5 @@ require (
 	gorm.io/gorm v1.22.2
 // gotest.tools v2.2.0+incompatible
 )
+
+replace google.golang.org/grpc => google.golang.org/grpc v1.38.0
