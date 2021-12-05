@@ -11,21 +11,22 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"log"
 	"os"
-	"path"
 	"runtime"
 	"runtime/debug"
 	"strconv"
 	"strings"
 	"sync"
-	"time"
 
 	"github.com/go-resty/resty/v2"
+	"go.uber.org/zap"
+	"go.uber.org/zap/zapcore"
 )
 
 // AsError wrap a panic value as an error
 func AsError(x interface{}) error {
-	LogRedf("panic to error: '%v', stack: \n%s", x, debug.Stack())
+	LogRedf("panic wrapped to error: '%v'", x)
 	if e, ok := x.(error); ok {
 		return e
 	}
@@ -118,28 +119,30 @@ func MustRemarshal(from interface{}, to interface{}) {
 	E2P(err)
 }
 
-var layout = "2006/01/02 15:04:05.999"
+var logger *zap.SugaredLogger = nil
+
+func init() {
+	config := zap.NewProductionConfig()
+	config.EncoderConfig.EncodeTime = zapcore.ISO8601TimeEncoder
+	if os.Getenv("DTM_DEBUG") != "" {
+		config.Encoding = "console"
+		config.EncoderConfig.EncodeLevel = zapcore.CapitalColorLevelEncoder
+	}
+	p, err := config.Build()
+	if err != nil {
+		log.Fatal("create logger failed: ", err)
+	}
+	logger = p.Sugar()
+}
 
 // Logf 输出日志
-func Logf(format string, args ...interface{}) {
-	msg := fmt.Sprintf(format, args...)
-
-	ts := time.Now().Format(layout)
-
-	var file string
-	var line int
-	for i := 1; i < 10; i++ {
-		_, file, line, _ = runtime.Caller(i)
-		if strings.Contains(file, "dtm") {
-			break
-		}
-	}
-	fmt.Printf("%s %s:%d %s\n", ts, path.Base(file), line, msg)
+func Logf(fmt string, args ...interface{}) {
+	logger.Infof(fmt, args...)
 }
 
 // LogRedf 采用红色打印错误类信息
 func LogRedf(fmt string, args ...interface{}) {
-	Logf("\x1b[31m\n"+fmt+"\x1b[0m\n", args...)
+	logger.Errorf(fmt, args)
 }
 
 // FatalExitFunc Fatal退出函数，测试时被替换
@@ -148,7 +151,7 @@ var FatalExitFunc = func() { os.Exit(1) }
 // LogFatalf 采用红色打印错误类信息， 并退出
 func LogFatalf(fmt string, args ...interface{}) {
 	fmt += "\n" + string(debug.Stack())
-	Logf("\x1b[31m\n"+fmt+"\x1b[0m\n", args...)
+	LogRedf(fmt, args...)
 	FatalExitFunc()
 }
 
