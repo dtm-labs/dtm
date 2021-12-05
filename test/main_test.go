@@ -7,6 +7,7 @@
 package test
 
 import (
+	"os"
 	"testing"
 	"time"
 
@@ -19,6 +20,7 @@ import (
 func TestMain(m *testing.M) {
 	common.MustLoadConfig()
 	dtmcli.SetCurrentDBType(common.DtmConfig.DB["driver"])
+	os.Setenv("DTM_DEBUG", "1")
 	dtmsvr.TransProcessedTestChan = make(chan string, 1)
 	dtmsvr.NowForwardDuration = 0 * time.Second
 	dtmsvr.CronForwardDuration = 180 * time.Second

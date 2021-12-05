@@ -26,7 +26,7 @@ import (
 
 // AsError wrap a panic value as an error
 func AsError(x interface{}) error {
-	LogRedf("panic to error: '%v'", x)
+	LogRedf("panic wrapped to error: '%v'", x)
 	if e, ok := x.(error); ok {
 		return e
 	}
@@ -124,7 +124,7 @@ var logger *zap.SugaredLogger = nil
 func init() {
 	config := zap.NewProductionConfig()
 	config.EncoderConfig.EncodeTime = zapcore.ISO8601TimeEncoder
-	if os.Getenv("DTM_PRODUCTION") == "" {
+	if os.Getenv("DTM_DEBUG") != "" {
 		config.Encoding = "console"
 		config.EncoderConfig.EncodeLevel = zapcore.CapitalColorLevelEncoder
 	}
