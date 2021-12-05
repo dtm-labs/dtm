@@ -16,7 +16,7 @@ require (
 	github.com/ychensha/dtmdriver-polaris v0.0.1
 	github.com/yedf/dtmdriver v0.0.0-20211203060147-29426c663b6e
 	github.com/yedf/dtmdriver-gozero v0.0.0-20211204083751-a14485949435
-	//github.com/yedf/dtmdriver-protocol1 v0.0.0-20211203060330-285168cdaa00
+	github.com/yedf/dtmdriver-protocol1 v0.0.0-20211205112411-d7a7052dc90e
 	go.uber.org/atomic v1.9.0 // indirect
 	go.uber.org/automaxprocs v1.4.1-0.20210525221652-0180b04c18a7
 	go.uber.org/multierr v1.7.0 // indirect
