@@ -15,6 +15,7 @@ DTM是一款golang开发的分布式事务管理器，解决了跨数据库、�
 作者受邀参加中国数据库大会分享[多语言环境下分布式事务实践](http://dtcc.it168.com/yicheng.html#b9)
 
 ## 谁在使用dtm
+[Tencent 腾讯](https://www.tencent.com/)
 
 [Ivydad 常青藤爸爸](https://ivydad.com)
 
