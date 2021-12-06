@@ -127,8 +127,9 @@ DTM是一款golang开发的分布式事务管理器，解决了跨数据库、�
 
 ## 谁在使用
 <div style='vertical-align: middle'>
-    <img alt='常青藤爸爸' height='40'  src='https://www.ivydad.com/_nuxt/img/header-logo.5b3eb96.png'  /img>
-    <img alt='镜小二' height='40'  src='https://img.epeijing.cn/official-website/assets/logo.png'  /img>
-    <img alt='极欧科技' height='40'  src='http://www.siqitech.com.cn/img/logo.3f6c2914.png'  /img>
-    <img alt='金数智联' height='40'  src='https://pic1.zhimg.com/80/v2-dc1d0cef5f7b72be345fc34d768e69e3_1440w.png'  /img>
+    <img alt='腾讯' height='80'  src='https://dtm.pub/assets/tencent.4b87bfd8.jpeg'  /img>
+    <img alt='常青藤爸爸' height='80'  src='https://dtm.pub/assets/ivydad.d0f58a94.png'  /img>
+    <img alt='镜小二' height='80'  src='https://img.epeijing.cn/official-website/assets/logo.png'  /img>
+    <img alt='极欧科技' height='80'  src='https://dtm.pub/assets/jiou.5bed10c2.png'  /img>
+    <img alt='金数智联' height='80'  src='https://dtm.pub/assets/gdci.214d305a.png'  /img>
 </div>
