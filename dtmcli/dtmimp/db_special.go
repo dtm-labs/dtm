@@ -77,7 +77,7 @@ func (*postgresDBSpecial) GetPlaceHoldSQL(sql string) string {
 }
 
 func (*postgresDBSpecial) GetInsertIgnoreTemplate(tableAndValues string, pgConstraint string) string {
-	return fmt.Sprintf("insert into %s  on conflict ON CONSTRAINT %s do nothing", tableAndValues, pgConstraint)
+	return fmt.Sprintf("insert into %s on conflict ON CONSTRAINT %s do nothing", tableAndValues, pgConstraint)
 }
 func init() {
 	dbSpecials[DBTypePostgres] = &postgresDBSpecial{}

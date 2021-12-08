@@ -92,3 +92,8 @@ func TestFatal(t *testing.T) {
 	})
 	assert.Error(t, err, fmt.Errorf("fatal"))
 }
+
+func TestInitLog(t *testing.T) {
+	os.Setenv("DTM_DEBUG", "1")
+	InitLog()
+}

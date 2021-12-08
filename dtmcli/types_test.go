@@ -24,3 +24,8 @@ func TestTypes(t *testing.T) {
 	assert.Error(t, err)
 
 }
+
+func TestXaSqlTimeout(t *testing.T) {
+	old := GetXaSqlTimeoutMs()
+	SetXaSqlTimeoutMs(old)
+}
