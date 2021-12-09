@@ -114,12 +114,18 @@ func TransFromContext(c *gin.Context) *TransGlobal {
 
 // TransFromDtmRequest TransFromContext
 func TransFromDtmRequest(c *dtmgimp.DtmRequest) *TransGlobal {
+	o := c.TransOptions
 	r := TransGlobal{
 		Gid:           c.Gid,
 		TransType:     c.TransType,
 		QueryPrepared: c.QueryPrepared,
 		Protocol:      "grpc",
 		BinPayloads:   c.BinPayloads,
+		TransOptions: dtmcli.TransOptions{
+			WaitResult:    o.WaitResult,
+			TimeoutToFail: o.TimeoutToFail,
+			RetryInterval: o.RetryInterval,
+		},
 	}
 	if c.Steps != "" {
 		dtmimp.MustUnmarshalString(c.Steps, &r.Steps)
