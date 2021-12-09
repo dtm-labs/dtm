@@ -122,6 +122,10 @@ func MustRemarshal(from interface{}, to interface{}) {
 var logger *zap.SugaredLogger = nil
 
 func init() {
+	InitLog()
+}
+
+func InitLog() {
 	config := zap.NewProductionConfig()
 	config.EncoderConfig.EncodeTime = zapcore.ISO8601TimeEncoder
 	if os.Getenv("DTM_DEBUG") != "" {

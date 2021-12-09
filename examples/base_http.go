@@ -112,7 +112,7 @@ func error2Resp(err error) (interface{}, error) {
 			return gin.H{"dtm_result": s}, nil
 		}
 	}
-	return nil, nil
+	return nil, err
 }
 
 // BaseAddRoute add base route handler
