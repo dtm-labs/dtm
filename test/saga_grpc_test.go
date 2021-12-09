@@ -66,6 +66,15 @@ func TestSagaGrpcCommittedOngoing(t *testing.T) {
 	assert.Equal(t, []string{StatusPrepared, StatusSucceed, StatusPrepared, StatusSucceed}, getBranchesStatus(saga.Gid))
 }
 
+func TestSagaGrpcNormalWait(t *testing.T) {
+	saga := genSagaGrpc(dtmimp.GetFuncName(), false, false)
+	saga.SetOptions(&dtmcli.TransOptions{WaitResult: true})
+	saga.Submit()
+	assert.Equal(t, []string{StatusPrepared, StatusSucceed, StatusPrepared, StatusSucceed}, getBranchesStatus(saga.Gid))
+	assert.Equal(t, StatusSucceed, getTransStatus(saga.Gid))
+	waitTransProcessed(saga.Gid)
+}
+
 func genSagaGrpc(gid string, outFailed bool, inFailed bool) *dtmgrpc.SagaGrpc {
 	saga := dtmgrpc.NewSagaGrpc(examples.DtmGrpcServer, gid)
 	req := examples.GenBusiReq(30, outFailed, inFailed)

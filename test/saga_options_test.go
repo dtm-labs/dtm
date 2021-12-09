@@ -58,9 +58,9 @@ func TestSagaOptionsNormalWait(t *testing.T) {
 	saga.SetOptions(&dtmcli.TransOptions{WaitResult: true})
 	err := saga.Submit()
 	assert.Nil(t, err)
-	waitTransProcessed(saga.Gid)
 	assert.Equal(t, []string{StatusPrepared, StatusSucceed, StatusPrepared, StatusSucceed}, getBranchesStatus(saga.Gid))
 	assert.Equal(t, StatusSucceed, getTransStatus(saga.Gid))
+	waitTransProcessed(saga.Gid)
 }
 
 func TestSagaOptionsCommittedOngoingWait(t *testing.T) {
