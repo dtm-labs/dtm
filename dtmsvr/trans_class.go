@@ -114,7 +114,10 @@ func TransFromContext(c *gin.Context) *TransGlobal {
 
 // TransFromDtmRequest TransFromContext
 func TransFromDtmRequest(c *dtmgimp.DtmRequest) *TransGlobal {
-	o := c.TransOptions
+	o := &dtmgimp.DtmTransOptions{}
+	if c.TransOptions != nil {
+		o = c.TransOptions
+	}
 	r := TransGlobal{
 		Gid:           c.Gid,
 		TransType:     c.TransType,
