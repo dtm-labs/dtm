@@ -39,8 +39,8 @@ func (t *TransReq) String() string {
 func GenTransReq(amount int, outFailed bool, inFailed bool) *TransReq {
 	return &TransReq{
 		Amount:         amount,
-		TransOutResult: dtmimp.If(outFailed, dtmcli.ResultFailure, dtmcli.ResultSuccess).(string),
-		TransInResult:  dtmimp.If(inFailed, dtmcli.ResultFailure, dtmcli.ResultSuccess).(string),
+		TransOutResult: dtmimp.If(outFailed, dtmcli.ResultFailure, "").(string),
+		TransInResult:  dtmimp.If(inFailed, dtmcli.ResultFailure, "").(string),
 	}
 }
 
@@ -48,8 +48,8 @@ func GenTransReq(amount int, outFailed bool, inFailed bool) *TransReq {
 func GenBusiReq(amount int, outFailed bool, inFailed bool) *BusiReq {
 	return &BusiReq{
 		Amount:         int64(amount),
-		TransOutResult: dtmimp.If(outFailed, dtmcli.ResultFailure, dtmcli.ResultSuccess).(string),
-		TransInResult:  dtmimp.If(inFailed, dtmcli.ResultFailure, dtmcli.ResultSuccess).(string),
+		TransOutResult: dtmimp.If(outFailed, dtmcli.ResultFailure, "").(string),
+		TransInResult:  dtmimp.If(inFailed, dtmcli.ResultFailure, "").(string),
 	}
 }
 

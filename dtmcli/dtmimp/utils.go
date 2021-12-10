@@ -18,6 +18,7 @@ import (
 	"strconv"
 	"strings"
 	"sync"
+	"time"
 
 	"github.com/go-resty/resty/v2"
 	"go.uber.org/zap"
@@ -215,13 +216,15 @@ func DBExec(db DB, sql string, values ...interface{}) (affected int64, rerr erro
 	if sql == "" {
 		return 0, nil
 	}
+	began := time.Now()
 	sql = GetDBSpecial().GetPlaceHoldSQL(sql)
 	r, rerr := db.Exec(sql, values...)
+	used := time.Since(began) / time.Millisecond
 	if rerr == nil {
 		affected, rerr = r.RowsAffected()
-		Logf("affected: %d for %s %v", affected, sql, values)
+		Logf("used: %d ms affected: %d for %s %v", used, affected, sql, values)
 	} else {
-		LogRedf("exec error: %v for %s %v", rerr, sql, values)
+		LogRedf("used: %d ms exec error: %v for %s %v", used, rerr, sql, values)
 	}
 	return
 }
