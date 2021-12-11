@@ -83,7 +83,7 @@ func TestTccBarrierDisorder(t *testing.T) {
 				"data":               string(dtmimp.MustMarshal(body)),
 				dtmcli.BranchConfirm: confirmURL,
 				dtmcli.BranchCancel:  cancelURL,
-			}).Post(fmt.Sprintf("%s/%s", tcc.Dtm, "registerTccBranch"))
+			}).Post(fmt.Sprintf("%s/%s", tcc.Dtm, "registerBranch"))
 		assert.Nil(t, err)
 		assert.Contains(t, resp.String(), dtmcli.ResultSuccess)
 

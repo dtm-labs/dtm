@@ -65,7 +65,7 @@ func (t *Tcc) CallBranch(body interface{}, tryURL string, confirmURL string, can
 		"branch_id":   branchID,
 		BranchConfirm: confirmURL,
 		BranchCancel:  cancelURL,
-	}, "registerTccBranch")
+	}, "registerBranch")
 	if err != nil {
 		return nil, err
 	}

@@ -77,7 +77,7 @@ func (xc *XaClient) XaLocalTransaction(qs url.Values, xaFunc XaLocalFunc) error 
 		return dtmimp.TransRegisterBranch(&xa.TransBase, map[string]string{
 			"url":       xc.XaClientBase.NotifyURL,
 			"branch_id": xa.BranchID,
-		}, "registerXaBranch")
+		}, "registerBranch")
 	})
 }
 
