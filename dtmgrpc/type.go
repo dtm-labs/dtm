@@ -12,6 +12,7 @@ import (
 	"github.com/yedf/dtm/dtmcli"
 	"github.com/yedf/dtm/dtmcli/dtmimp"
 	"github.com/yedf/dtm/dtmgrpc/dtmgimp"
+	"github.com/yedf/dtmdriver"
 	emptypb "google.golang.org/protobuf/types/known/emptypb"
 )
 
@@ -31,4 +32,8 @@ func SetCurrentDBType(dbType string) {
 // GetCurrentDBType set the current db type
 func GetCurrentDBType() string {
 	return dtmcli.GetCurrentDBType()
+}
+
+func UseDriver(driverName string) error {
+	return dtmdriver.Use(driverName)
 }

@@ -24,4 +24,7 @@ func TestType(t *testing.T) {
 	old := GetCurrentDBType()
 	SetCurrentDBType(dtmcli.DBTypeMysql)
 	SetCurrentDBType(old)
+
+	err = UseDriver("default")
+	assert.Nil(t, err)
 }
