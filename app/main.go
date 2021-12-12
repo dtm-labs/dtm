@@ -11,7 +11,6 @@ import (
 	"os"
 	"strings"
 
-	"github.com/yedf/dtm/bench"
 	"github.com/yedf/dtm/common"
 	"github.com/yedf/dtm/dtmcli"
 	"github.com/yedf/dtm/dtmcli/dtmimp"
@@ -66,8 +65,6 @@ func main() {
 		// quick_start 比较独立，单独作为一个例子运行，方便新人上手
 		examples.QsStartSvr()
 		examples.QsFireRequest()
-	case "bench":
-		bench.StartSvr()
 	case "dev", "dtmsvr":
 	default:
 		// 下面是各类的例子

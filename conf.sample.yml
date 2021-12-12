@@ -2,7 +2,7 @@ DB:
   driver: 'mysql'
   host: 'localhost'
   user: 'root'
-  password: ''
+  password: '12345678'
   port: '3306'
 
   # driver: 'postgres'
