@@ -10,6 +10,12 @@ import (
 	"os"
 )
 
+var hint = `To start the bench server, you need to specify the parameters:
+
+Available commands:
+    http              start bench server
+`
+
 func main() {
 	if len(os.Args) > 1 {
 		dtmimp.Logf("starting dtm....")
@@ -24,6 +30,10 @@ func main() {
 			go dtmsvr.CronExpiredTrans(-1) // 启动dtmsvr的定时过期查询
 			StartSvr()
 			select {}
+		}else {
+			fmt.Printf(hint)
 		}
+	}else {
+		fmt.Printf(hint)
 	}
 }
