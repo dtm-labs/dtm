@@ -40,9 +40,9 @@ DTM是一款golang开发的分布式事务管理器，解决了跨数据库、�
 
 ## 与其他框架对比
 
-目前开源的分布式事务框架，暂未看到非Java语言有成熟的框架。而Java语言的较多，有阿里的SEATA、华为的ServiceComb-Pack，京东的shardingsphere，以及himly，tcc-transaction，ByteTCC等等，其中以seata应用最为广泛。
+目前开源的分布式事务框架，Java的框架较多，有大厂开源的SEATA、ServiceComb-Pack，shardingsphere，以及个人开源的himly，tcc-transaction，ByteTCC等等，其中以Seata的应用最为广泛。
 
-下面是dtm和seata的主要特性对比：
+非Java语言类的，暂未看到除dtm之外的成熟框架，因此这里仅将DTM和Java中最成熟的Seata对比：
 
 |  特性| DTM | SEATA |备注|
 |:-----:|:----:|:----:|:----:|
@@ -119,6 +119,8 @@ DTM是一款golang开发的分布式事务管理器，解决了跨数据库、�
 ### 完整示例
 参考[examples/quick_start.go](./examples/quick_start.go)
 
+## 公众号
+您可以关注公众号：分布式事务，及时跟踪dtm的最新内容
 ## 交流群
 请加 yedf2008 好友或者扫码加好友，验证回复 dtm 按照指引进群
 
