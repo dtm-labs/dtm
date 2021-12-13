@@ -7,7 +7,6 @@ builds:
       - windows
       - darwin
     goarch:
-      - arm64
       - amd64
     id: 'dtm'
     dir: .
