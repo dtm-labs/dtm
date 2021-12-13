@@ -1,11 +1,14 @@
-FROM golang:1.16.6-alpine3.14 as builder
+# syntax=docker/dockerfile:1
+FROM --platform=$TARGETPLATFORM golang:1.16.6-alpine3.14 as builder
+ARG TARGETARCH
+ARG TARGETOS
 WORKDIR /app/dtm
 # RUN go env -w GOPROXY=https://mirrors.aliyun.com/goproxy/,direct
 EXPOSE 8080
 COPY . .
-RUN CGO_ENABLED=0 GOOS=linux go build -ldflags="-s -w" app/main.go && apk add upx && upx main
+RUN CGO_ENABLED=0 GOOS=$TARGETOS GOARCH=$TARGETARCH go build -ldflags="-s -w" app/main.go
 
-FROM alpine:3.14 as runner
+FROM --platform=$TARGETPLATFORM alpine:3.14
 COPY --from=builder /app/dtm/main /app/dtm/
 ENV IS_DOCKER=1
 WORKDIR /app/dtm
