@@ -144,8 +144,7 @@ func WaitDBUp() {
 	defer func() {
 		sdb.Close()
 	}()
-	for _, err := dtmimp.DBExec(sdb, "select 1"); err != nil; { // wait for mysql to start
-		time.Sleep(3 * time.Second)
-		_, err = dtmimp.DBExec(sdb, "select 1")
+	if _, err = dtmimp.DBExec(sdb, "select 1"); err != nil {
+		dtmimp.FatalIfError(err)
 	}
 }
