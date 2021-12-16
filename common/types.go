@@ -18,9 +18,8 @@ import (
 )
 
 const (
-	DtmHttpPort    = 36789
-	DtmGrpcPort    = 36790
-	DtmMetricsPort = 8889
+	DtmHttpPort = 36789
+	DtmGrpcPort = 36790
 )
 
 // MicroService config type for micro service

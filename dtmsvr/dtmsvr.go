@@ -48,9 +48,6 @@ func StartSvr() {
 	}()
 	go updateBranchAsync()
 
-	// prometheus exporter
-	dtmimp.Logf("prometheus exporter listen at: %d", common.DtmMetricsPort)
-	prometheusHTTPRun(fmt.Sprintf("%d", common.DtmMetricsPort))
 	time.Sleep(100 * time.Millisecond)
 	err = dtmdriver.Use(config.MicroService.Driver)
 	dtmimp.FatalIfError(err)
