@@ -91,7 +91,7 @@ func (t *TransGlobal) getURLResult(url string, branchID, op string, branchPayloa
 		}
 		conn := dtmgimp.MustGetGrpcConn(server, true)
 		ctx := dtmgimp.TransInfo2Ctx(t.Gid, t.TransType, branchID, op, "")
-		err = conn.Invoke(ctx, method, branchPayload, []byte{})
+		err = conn.Invoke(ctx, method, branchPayload, &[]byte{})
 		if err == nil {
 			return dtmcli.ResultSuccess, nil
 		}

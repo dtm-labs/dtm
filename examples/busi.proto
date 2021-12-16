@@ -12,9 +12,12 @@ message BusiReq {
   string TransInResult = 3;
 }
 
+message BusiReply {
+  string message = 1;
+}
 // The dtm service definition.
 service Busi {
-  rpc CanSubmit(BusiReq) returns (google.protobuf.Empty) {}
+  rpc CanSubmit(BusiReq) returns (BusiReply) {}
   rpc TransIn(BusiReq) returns (google.protobuf.Empty) {}
   rpc TransOut(BusiReq) returns (google.protobuf.Empty) {}
   rpc TransInRevert(BusiReq) returns (google.protobuf.Empty) {}
