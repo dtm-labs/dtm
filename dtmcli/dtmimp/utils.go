@@ -147,7 +147,7 @@ func Logf(fmt string, args ...interface{}) {
 
 // LogRedf 采用红色打印错误类信息
 func LogRedf(fmt string, args ...interface{}) {
-	logger.Errorf(fmt, args)
+	logger.Errorf(fmt, args...)
 }
 
 // FatalExitFunc Fatal退出函数，测试时被替换

@@ -119,12 +119,14 @@ DTM是一款golang开发的分布式事务管理器，解决了跨数据库、�
 ### 完整示例
 参考[examples/quick_start.go](./examples/quick_start.go)
 
+## 公众号
+您可以关注公众号：分布式事务，及时跟踪dtm的最新内容
 ## 交流群
 请加 yedf2008 好友或者扫码加好友，验证回复 dtm 按照指引进群
 
 ![yedf2008](http://service.ivydad.com/cover/dubbingb6b5e2c0-2d2a-cd59-f7c5-c6b90aceb6f1.jpeg)
 
-如果您觉得[dtm](https://github.com/yedf/dtm)不错，或者对您有帮助，请赏颗星吧！
+欢迎使用[dtm](https://github.com/yedf/dtm)，或者通过dtm学习实践分布式事务相关知识，欢迎star支持我们
 
 ## 谁在使用
 <div style='vertical-align: middle'>
