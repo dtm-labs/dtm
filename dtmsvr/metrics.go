@@ -8,13 +8,11 @@ package dtmsvr
 
 import (
 	"context"
-	"net/http"
 	"strings"
 
 	"github.com/gin-gonic/gin"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promauto"
-	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"google.golang.org/grpc"
 )
 
@@ -43,13 +41,6 @@ var (
 	},
 		[]string{"model", "gid", "branchid", "branchtype", "status"})
 )
-
-func prometheusHTTPRun(port string) {
-	go func() {
-		http.Handle("/api/metrics", promhttp.Handler())
-		http.ListenAndServe(":"+port, nil)
-	}()
-}
 
 func httpMetrics(app *gin.Engine) *gin.Engine {
 	app.Use(func(c *gin.Context) {
