@@ -7,10 +7,10 @@
 package dtmgimp
 
 import (
-	sync "sync"
-
+	"fmt"
 	"github.com/yedf/dtm/dtmcli/dtmimp"
 	grpc "google.golang.org/grpc"
+	"sync"
 )
 
 type rawCodec struct{}
@@ -20,9 +20,10 @@ func (cb rawCodec) Marshal(v interface{}) ([]byte, error) {
 }
 
 func (cb rawCodec) Unmarshal(data []byte, v interface{}) error {
-	ba, _ := v.([]byte)
-	for index, byte := range data {
-		ba[index] = byte
+	ba, ok := v.(*[]byte)
+	dtmimp.PanicIf(!ok, fmt.Errorf("please pass in *[]byte"))
+	for _, byte := range data {
+		*ba = append(*ba, byte)
 	}
 	return nil
 }
