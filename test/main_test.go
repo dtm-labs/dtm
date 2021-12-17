@@ -39,25 +39,22 @@ func TestMain(m *testing.M) {
 	app.POST(examples.BusiAPI+"/TccBSleepCancel", common.WrapHandler(func(c *gin.Context) (interface{}, error) {
 		return disorderHandler(c)
 	}))
-
-	config.Store.Driver = "redis"
-	config.Store.Host = "localhost"
-	config.Store.Port = 6379
+	tenv := os.Getenv("TEST_STORE")
+	if tenv == "boltdb" {
+		config.Store.Driver = "boltdb"
+	} else if tenv == "mysql" {
+		config.Store.Driver = "mysql"
+		config.Store.Host = "localhost"
+		config.Store.Port = 3306
+		config.Store.User = "root"
+		config.Store.Password = ""
+	} else {
+		config.Store.Driver = "redis"
+		config.Store.Host = "localhost"
+		config.Store.Port = 6379
+	}
 	dtmsvr.PopulateDB(false)
 	examples.PopulateDB(false)
 	exitIf(m.Run())
 
-	config.Store.Driver = "boltdb"
-	dtmsvr.PopulateDB(false)
-	examples.PopulateDB(false)
-	exitIf(m.Run())
-
-	config.Store.Driver = "mysql"
-	config.Store.Host = "localhost"
-	config.Store.Port = 3306
-	config.Store.User = "root"
-	config.Store.Password = ""
-	dtmsvr.PopulateDB(false)
-	examples.PopulateDB(false)
-	exitIf(m.Run())
 }
