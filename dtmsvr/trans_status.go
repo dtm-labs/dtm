@@ -11,28 +11,21 @@ import (
 	"strings"
 	"time"
 
-	"github.com/yedf/dtm/common"
 	"github.com/yedf/dtm/dtmcli"
 	"github.com/yedf/dtm/dtmcli/dtmimp"
 	"github.com/yedf/dtm/dtmgrpc/dtmgimp"
 	"github.com/yedf/dtmdriver"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
-	"gorm.io/gorm"
-	"gorm.io/gorm/clause"
 )
 
-func (t *TransGlobal) touch(db *common.DB, ctype cronType) *gorm.DB {
+func (t *TransGlobal) touchCronTime(ctype cronType) {
 	t.lastTouched = time.Now()
-	updates := t.setNextCron(ctype)
-	return db.Model(&TransGlobal{}).Where("gid=?", t.Gid).Select(updates).Updates(t)
+	GetStore().TouchCronTime(&t.TransGlobalStore, t.getNextCronInterval(ctype))
 }
 
-func (t *TransGlobal) changeStatus(db *common.DB, status string) *gorm.DB {
-	old := t.Status
-	t.Status = status
-	updates := t.setNextCron(cronReset)
-	updates = append(updates, "status")
+func (t *TransGlobal) changeStatus(status string) {
+	updates := []string{"status", "update_time"}
 	now := time.Now()
 	if status == dtmcli.StatusSucceed {
 		t.FinishTime = &now
@@ -41,30 +34,21 @@ func (t *TransGlobal) changeStatus(db *common.DB, status string) *gorm.DB {
 		t.RollbackTime = &now
 		updates = append(updates, "rollback_time")
 	}
-	dbr := db.Must().Model(&TransGlobal{}).Where("status=? and gid=?", old, t.Gid).Select(updates).Updates(t)
-	checkAffected(dbr)
-	return dbr
+	t.UpdateTime = &now
+	GetStore().ChangeGlobalStatus(&t.TransGlobalStore, status, updates, status == dtmcli.StatusSucceed || status == dtmcli.StatusFailed)
+	t.Status = status
 }
 
-func (t *TransGlobal) changeBranchStatus(db *common.DB, b *TransBranch, status string) {
+func (t *TransGlobal) changeBranchStatus(b *TransBranch, status string, branchPos int) {
 	now := time.Now()
-	if common.DtmConfig.UpdateBranchSync > 0 || t.updateBranchSync {
-		err := db.Transaction(func(tx *gorm.DB) error {
-			dbr := tx.Clauses(clause.Locking{Strength: "UPDATE"}).Model(&TransGlobal{}).Where("gid=? and status=?", t.Gid, t.Status).Find(&[]TransGlobal{})
-			checkAffected(dbr) // check TransGlobal is not modified
-			dbr = tx.Model(b).Updates(map[string]interface{}{
-				"status":      status,
-				"finish_time": now,
-				"update_time": now,
-			})
-			checkAffected(dbr)
-			return dbr.Error
-		})
-		e2p(err)
+	b.Status = status
+	b.FinishTime = &now
+	b.UpdateTime = &now
+	if config.Store.Driver != dtmimp.DBTypeMysql && config.Store.Driver != dtmimp.DBTypePostgres || config.UpdateBranchSync > 0 || t.updateBranchSync {
+		GetStore().LockGlobalSaveBranches(t.Gid, t.Status, []TransBranch{*b}, branchPos)
 	} else { // 为了性能优化，把branch的status更新异步化
 		updateBranchAsyncChan <- branchStatus{id: b.ID, status: status, finishTime: &now}
 	}
-	b.Status = status
 }
 
 func (t *TransGlobal) isTimeout() bool {
@@ -136,36 +120,32 @@ func (t *TransGlobal) getBranchResult(branch *TransBranch) (string, error) {
 	return "", fmt.Errorf("http result should contains SUCCESS|FAILURE|ONGOING. grpc error should return nil|Aborted with message(FAILURE|ONGOING). \nrefer to: https://dtm.pub/summary/arch.html#http\nunkown result will be retried: %s", body)
 }
 
-func (t *TransGlobal) execBranch(db *common.DB, branch *TransBranch) error {
+func (t *TransGlobal) execBranch(branch *TransBranch, branchPos int) error {
 	status, err := t.getBranchResult(branch)
 	if status != "" {
-		t.changeBranchStatus(db, branch, status)
+		t.changeBranchStatus(branch, status, branchPos)
 	}
 	branchMetrics(t, branch, status == dtmcli.StatusSucceed)
 	// if time pass 1500ms and NextCronInterval is not default, then reset NextCronInterval
 	if err == nil && time.Since(t.lastTouched)+NowForwardDuration >= 1500*time.Millisecond ||
 		t.NextCronInterval > config.RetryInterval && t.NextCronInterval > t.RetryInterval {
-		t.touch(db, cronReset)
+		t.touchCronTime(cronReset)
 	} else if err == dtmimp.ErrOngoing {
-		t.touch(db, cronKeep)
+		t.touchCronTime(cronKeep)
 	} else if err != nil {
-		t.touch(db, cronBackoff)
+		t.touchCronTime(cronBackoff)
 	}
 	return err
 }
 
-func (t *TransGlobal) setNextCron(ctype cronType) []string {
+func (t *TransGlobal) getNextCronInterval(ctype cronType) int64 {
 	if ctype == cronBackoff {
-		t.NextCronInterval = t.NextCronInterval * 2
+		return t.NextCronInterval * 2
 	} else if ctype == cronKeep {
-		// do nothing
+		return t.NextCronInterval
 	} else if t.RetryInterval != 0 {
-		t.NextCronInterval = t.RetryInterval
+		return t.RetryInterval
 	} else {
-		t.NextCronInterval = config.RetryInterval
+		return config.RetryInterval
 	}
-
-	next := time.Now().Add(time.Duration(t.NextCronInterval) * time.Second)
-	t.NextCronTime = &next
-	return []string{"next_cron_interval", "next_cron_time"}
 }

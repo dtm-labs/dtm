@@ -20,7 +20,7 @@ var XaClient *dtmcli.XaClient = nil
 func init() {
 	setupFuncs["XaSetup"] = func(app *gin.Engine) {
 		var err error
-		XaClient, err = dtmcli.NewXaClient(DtmHttpServer, config.DB, Busi+"/xa", func(path string, xa *dtmcli.XaClient) {
+		XaClient, err = dtmcli.NewXaClient(DtmHttpServer, config.ExamplesDB, Busi+"/xa", func(path string, xa *dtmcli.XaClient) {
 			app.POST(path, common.WrapHandler(func(c *gin.Context) (interface{}, error) {
 				return xa.HandleCallback(c.Query("gid"), c.Query("branch_id"), c.Query("op"))
 			}))

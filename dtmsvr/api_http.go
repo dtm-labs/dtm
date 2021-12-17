@@ -8,7 +8,6 @@ package dtmsvr
 
 import (
 	"errors"
-	"math"
 
 	"github.com/gin-gonic/gin"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
@@ -61,7 +60,7 @@ func registerBranch(c *gin.Context) (interface{}, error) {
 		Status:   dtmcli.StatusPrepared,
 		BinData:  []byte(data["data"]),
 	}
-	return svcRegisterBranch(&branch, data)
+	return svcRegisterBranch(data["trans_type"], &branch, data)
 }
 
 func query(c *gin.Context) (interface{}, error) {
@@ -69,20 +68,14 @@ func query(c *gin.Context) (interface{}, error) {
 	if gid == "" {
 		return nil, errors.New("no gid specified")
 	}
-	db := dbGet()
-	trans := transFromDb(db.DB, gid, false)
-	branches := []TransBranch{}
-	db.Must().Where("gid", gid).Find(&branches)
+	trans := GetStore().FindTransGlobalStore(gid)
+	branches := GetStore().FindBranches(gid)
 	return map[string]interface{}{"transaction": trans, "branches": branches}, nil
 }
 
 func all(c *gin.Context) (interface{}, error) {
-	lastID := c.Query("last_id")
-	lid := math.MaxInt64
-	if lastID != "" {
-		lid = dtmimp.MustAtoi(lastID)
-	}
-	trans := []TransGlobal{}
-	dbGet().Must().Where("id < ?", lid).Order("id desc").Limit(100).Find(&trans)
-	return map[string]interface{}{"transactions": trans}, nil
+	position := c.Query("position")
+	slimit := dtmimp.OrString(c.Query("limit"), "100")
+	globals := GetStore().ScanTransGlobalStores(&position, int64(dtmimp.MustAtoi(slimit)))
+	return map[string]interface{}{"transactions": globals, "next_position": position}, nil
 }

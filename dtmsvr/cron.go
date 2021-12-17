@@ -30,7 +30,7 @@ func CronTransOnce() (gid string) {
 	}
 	gid = trans.Gid
 	trans.WaitResult = true
-	trans.Process(dbGet())
+	trans.Process()
 	return
 }
 
@@ -45,23 +45,11 @@ func CronExpiredTrans(num int) {
 }
 
 func lockOneTrans(expireIn time.Duration) *TransGlobal {
-	trans := TransGlobal{}
-	owner := GenGid()
-	db := dbGet()
-	getTime := dtmimp.GetDBSpecial().TimestampAdd
-	expire := int(expireIn / time.Second)
-	whereTime := fmt.Sprintf("next_cron_time < %s and update_time < %s", getTime(expire), getTime(expire-3))
-	// 这里next_cron_time需要限定范围，否则数据量累计之后，会导致查询变慢
-	// 限定update_time < now - 3，否则会出现刚被这个应用取出，又被另一个取出
-	dbr := db.Must().Model(&trans).
-		Where(whereTime+"and status in ('prepared', 'aborting', 'submitted')").Limit(1).Update("owner", owner)
-	if dbr.RowsAffected == 0 {
+	global := GetStore().LockOneGlobalTrans(expireIn)
+	if global == nil {
 		return nil
 	}
-	dbr = db.Must().Where("owner=?", owner).Find(&trans)
-	updates := trans.setNextCron(cronKeep)
-	db.Must().Model(&trans).Select(updates).Updates(&trans)
-	return &trans
+	return &TransGlobal{TransGlobalStore: *global}
 }
 
 func handlePanic(perr *error) {

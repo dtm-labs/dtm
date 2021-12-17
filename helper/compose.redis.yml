@@ -1,0 +1,9 @@
+version: '3.3'
+services:
+  redis:
+    image: 'redis'
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - /etc/timezone:/etc/timezone:ro
+    ports:
+      - '6379:6379'

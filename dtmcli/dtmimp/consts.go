@@ -17,4 +17,6 @@ const (
 	DBTypeMysql = "mysql"
 	// DBTypePostgres const for driver postgres
 	DBTypePostgres = "postgres"
+	// DBTypeRedis const for driver redis
+	DBTypeRedis = "redis"
 )

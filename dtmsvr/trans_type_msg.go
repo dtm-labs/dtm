@@ -10,7 +10,6 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/yedf/dtm/common"
 	"github.com/yedf/dtm/dtmcli"
 	"github.com/yedf/dtm/dtmcli/dtmimp"
 )
@@ -39,25 +38,25 @@ func (t *transMsgProcessor) GenBranches() []TransBranch {
 	return branches
 }
 
-func (t *TransGlobal) mayQueryPrepared(db *common.DB) {
+func (t *TransGlobal) mayQueryPrepared() {
 	if !t.needProcess() || t.Status == dtmcli.StatusSubmitted {
 		return
 	}
 	body, err := t.getURLResult(t.QueryPrepared, "", "", nil)
 	if strings.Contains(body, dtmcli.ResultSuccess) {
-		t.changeStatus(db, dtmcli.StatusSubmitted)
+		t.changeStatus(dtmcli.StatusSubmitted)
 	} else if strings.Contains(body, dtmcli.ResultFailure) {
-		t.changeStatus(db, dtmcli.StatusFailed)
+		t.changeStatus(dtmcli.StatusFailed)
 	} else if strings.Contains(body, dtmcli.ResultOngoing) {
-		t.touch(db, cronReset)
+		t.touchCronTime(cronReset)
 	} else {
 		dtmimp.LogRedf("getting result failed for %s. error: %s", t.QueryPrepared, err.Error())
-		t.touch(db, cronBackoff)
+		t.touchCronTime(cronBackoff)
 	}
 }
 
-func (t *transMsgProcessor) ProcessOnce(db *common.DB, branches []TransBranch) error {
-	t.mayQueryPrepared(db)
+func (t *transMsgProcessor) ProcessOnce(branches []TransBranch) error {
+	t.mayQueryPrepared()
 	if !t.needProcess() || t.Status == dtmcli.StatusPrepared {
 		return nil
 	}
@@ -67,7 +66,7 @@ func (t *transMsgProcessor) ProcessOnce(db *common.DB, branches []TransBranch) e
 		if branch.Op != dtmcli.BranchAction || branch.Status != dtmcli.StatusPrepared {
 			continue
 		}
-		err := t.execBranch(db, branch)
+		err := t.execBranch(branch, current)
 		if err != nil {
 			return err
 		}
@@ -76,7 +75,7 @@ func (t *transMsgProcessor) ProcessOnce(db *common.DB, branches []TransBranch) e
 		}
 	}
 	if current == len(branches) { // msg 事务完成
-		t.changeStatus(db, dtmcli.StatusSucceed)
+		t.changeStatus(dtmcli.StatusSucceed)
 		return nil
 	}
 	panic("msg go pass all branch")

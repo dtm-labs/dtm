@@ -1,9 +1,9 @@
-DB:
-  driver: 'mysql'
-  host: 'localhost'
-  user: 'root'
-  password: ''
-  port: '3306'
+Store:
+  Driver: 'redis'
+  Host: 'localhost'
+  User: ''
+  Password: ''
+  Port: 6379
 
   # driver: 'postgres'
   # host: 'localhost'
@@ -11,7 +11,7 @@ DB:
   # password: 'mysecretpassword'
   # port: '5432'
 
-  # max_open_conns: 'dbmaxopenconns'
+  MaxOpenConns: 499
   # max_idle_conns: 'dbmaxidleconns'
   # conn_max_life_time: 'dbconnmaxlifetime'
 # MicroService:
@@ -27,3 +27,10 @@ DB:
 # TransCronInterval: 3 # the interval to poll unfinished global transaction for every dtm process
 # TimeoutToFail: 35 # timeout for XA, TCC to fail. saga's timeout default to infinite, which can be overwritten in saga options
 # RetryInterval: 10 # the subtrans branch will be retried after this interval
+
+ExamplesDB:
+  Driver: 'mysql'
+  Host: 'localhost'
+  User: 'root'
+  Password: ''
+  Port: 3306

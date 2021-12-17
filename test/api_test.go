@@ -7,6 +7,7 @@
 package test
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -14,14 +15,13 @@ import (
 	"github.com/yedf/dtm/examples"
 )
 
-const gidTestAPI = "TestAPI"
-
 func TestAPIQuery(t *testing.T) {
-	err := genMsg(gidTestAPI).Submit()
+	gid := dtmimp.GetFuncName()
+	err := genMsg(gid).Submit()
 	assert.Nil(t, err)
-	waitTransProcessed(gidTestAPI)
-	resp, err := dtmimp.RestyClient.R().SetQueryParam("gid", gidTestAPI).Get(examples.DtmHttpServer + "/query")
-	e2p(err)
+	waitTransProcessed(gid)
+	resp, err := dtmimp.RestyClient.R().SetQueryParam("gid", gid).Get(examples.DtmHttpServer + "/query")
+	assert.Nil(t, err)
 	m := map[string]interface{}{}
 	assert.Equal(t, resp.StatusCode(), 200)
 	dtmimp.MustUnmarshalString(resp.String(), &m)
@@ -41,10 +41,35 @@ func TestAPIQuery(t *testing.T) {
 }
 
 func TestAPIAll(t *testing.T) {
-	_, err := dtmimp.RestyClient.R().Get(examples.DtmHttpServer + "/all")
+	for i := 0; i < 3; i++ { // add three
+		gid := dtmimp.GetFuncName() + fmt.Sprintf("%d", i)
+		err := genMsg(gid).Submit()
+		assert.Nil(t, err)
+		waitTransProcessed(gid)
+	}
+	resp, err := dtmimp.RestyClient.R().SetQueryParam("limit", "1").Get(examples.DtmHttpServer + "/all")
 	assert.Nil(t, err)
-	_, err = dtmimp.RestyClient.R().SetQueryParam("last_id", "10").Get(examples.DtmHttpServer + "/all")
+	m := map[string]interface{}{}
+	dtmimp.MustUnmarshalString(resp.String(), &m)
+	nextPos := m["next_position"].(string)
+	assert.NotEqual(t, "", nextPos)
+
+	resp, err = dtmimp.RestyClient.R().SetQueryParams(map[string]string{
+		"limit":    "1",
+		"position": nextPos,
+	}).Get(examples.DtmHttpServer + "/all")
 	assert.Nil(t, err)
-	resp, err := dtmimp.RestyClient.R().SetQueryParam("last_id", "abc").Get(examples.DtmHttpServer + "/all")
-	assert.Equal(t, resp.StatusCode(), 500)
+	dtmimp.MustUnmarshalString(resp.String(), &m)
+	nextPos2 := m["next_position"].(string)
+	assert.NotEqual(t, "", nextPos2)
+	assert.NotEqual(t, nextPos, nextPos2)
+
+	resp, err = dtmimp.RestyClient.R().SetQueryParams(map[string]string{
+		"limit":    "1000",
+		"position": nextPos,
+	}).Get(examples.DtmHttpServer + "/all")
+	assert.Nil(t, err)
+	dtmimp.MustUnmarshalString(resp.String(), &m)
+	nextPos3 := m["next_position"].(string)
+	assert.Equal(t, "", nextPos3)
 }

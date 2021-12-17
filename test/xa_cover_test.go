@@ -11,22 +11,22 @@ import (
 )
 
 func TestXaCoverDBError(t *testing.T) {
-	oldDriver := getXc().Conf["driver"]
+	oldDriver := getXc().Conf.Driver
 	gid := dtmimp.GetFuncName()
 	err := getXc().XaGlobalTransaction(gid, func(xa *dtmcli.Xa) (*resty.Response, error) {
 		req := examples.GenTransReq(30, false, false)
 		_, err := xa.CallBranch(req, examples.Busi+"/TransOutXa")
 		assert.Nil(t, err)
-		getXc().Conf["driver"] = "no-driver"
+		getXc().Conf.Driver = "no-driver"
 		_, err = xa.CallBranch(req, examples.Busi+"/TransInXa")
 		assert.Error(t, err)
-		getXc().Conf["driver"] = oldDriver // make abort succeed
+		getXc().Conf.Driver = oldDriver // make abort succeed
 		return nil, err
 	})
 	assert.Error(t, err)
-	getXc().Conf["driver"] = "no-driver" // make xa rollback failed
+	getXc().Conf.Driver = "no-driver" // make xa rollback failed
 	waitTransProcessed(gid)
-	getXc().Conf["driver"] = oldDriver
+	getXc().Conf.Driver = oldDriver
 	cronTransOnceForwardNow(500) // rollback succeeded here
 	assert.Equal(t, StatusFailed, getTransStatus(gid))
 }

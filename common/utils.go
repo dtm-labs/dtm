@@ -19,6 +19,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/go-resty/resty/v2"
 
+	"github.com/yedf/dtm/dtmcli"
 	"github.com/yedf/dtm/dtmcli/dtmimp"
 )
 
@@ -82,9 +83,37 @@ func MustGetwd() string {
 // GetCallerCodeDir 获取调用该函数的caller源代码的目录，主要用于测试时，查找相关文件
 func GetCallerCodeDir() string {
 	_, file, _, _ := runtime.Caller(1)
-	wd := MustGetwd()
-	if strings.HasSuffix(wd, "/test") {
-		wd = filepath.Dir(wd)
+	return filepath.Dir(file)
+}
+
+func RecoverPanic(err *error) {
+	if x := recover(); x != nil {
+		e := dtmimp.AsError(x)
+		if err != nil {
+			err = &e
+		}
 	}
-	return wd + "/" + filepath.Base(filepath.Dir(file))
+}
+
+func GetNextTime(second int64) *time.Time {
+	next := time.Now().Add(time.Duration(second) * time.Second)
+	return &next
+}
+
+// RunSQLScript 1
+func RunSQLScript(conf dtmcli.DBConf, script string, skipDrop bool) {
+	con, err := dtmimp.StandaloneDB(conf)
+	dtmimp.FatalIfError(err)
+	defer func() { con.Close() }()
+	content, err := ioutil.ReadFile(script)
+	dtmimp.FatalIfError(err)
+	sqls := strings.Split(string(content), ";")
+	for _, sql := range sqls {
+		s := strings.TrimSpace(sql)
+		if s == "" || (skipDrop && strings.Contains(s, "drop")) {
+			continue
+		}
+		_, err = dtmimp.DBExec(con, s)
+		dtmimp.FatalIfError(err)
+	}
 }

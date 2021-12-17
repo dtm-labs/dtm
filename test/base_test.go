@@ -29,7 +29,7 @@ func (BarrierModel) TableName() string { return "dtm_barrier.barrier" }
 
 func TestBaseSqlDB(t *testing.T) {
 	asserts := assert.New(t)
-	db := common.DbGet(config.DB)
+	db := common.DbGet(config.ExamplesDB)
 	barrier := &dtmcli.BranchBarrier{
 		TransType: "saga",
 		Gid:       "gid2",

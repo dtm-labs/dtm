@@ -10,7 +10,6 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/yedf/dtm/common"
 	"github.com/yedf/dtm/dtmcli"
 	"github.com/yedf/dtm/dtmcli/dtmimp"
 )
@@ -53,11 +52,11 @@ type branchResult struct {
 	op      string
 }
 
-func (t *transSagaProcessor) ProcessOnce(db *common.DB, branches []TransBranch) error {
+func (t *transSagaProcessor) ProcessOnce(branches []TransBranch) error {
 	// when saga tasks is fetched, it always need to process
 	dtmimp.Logf("status: %s timeout: %t", t.Status, t.isTimeout())
 	if t.Status == dtmcli.StatusSubmitted && t.isTimeout() {
-		t.changeStatus(db, dtmcli.StatusAborting)
+		t.changeStatus(dtmcli.StatusAborting)
 	}
 	n := len(branches)
 
@@ -108,7 +107,7 @@ func (t *transSagaProcessor) ProcessOnce(db *common.DB, branches []TransBranch) 
 				dtmimp.LogRedf("exec branch error: %v", err)
 			}
 		}()
-		err = t.execBranch(db, &branches[i])
+		err = t.execBranch(&branches[i], i)
 	}
 	pickToRunActions := func() []int {
 		toRun := []int{}
@@ -175,11 +174,11 @@ func (t *transSagaProcessor) ProcessOnce(db *common.DB, branches []TransBranch) 
 		waitDoneOnce()
 	}
 	if t.Status == dtmcli.StatusSubmitted && rsAFailed == 0 && rsAToStart == rsASucceed {
-		t.changeStatus(db, dtmcli.StatusSucceed)
+		t.changeStatus(dtmcli.StatusSucceed)
 		return nil
 	}
 	if t.Status == dtmcli.StatusSubmitted && (rsAFailed > 0 || t.isTimeout()) {
-		t.changeStatus(db, dtmcli.StatusAborting)
+		t.changeStatus(dtmcli.StatusAborting)
 	}
 	if t.Status == dtmcli.StatusAborting {
 		toRun := pickToRunActions()
@@ -189,7 +188,7 @@ func (t *transSagaProcessor) ProcessOnce(db *common.DB, branches []TransBranch) 
 		}
 	}
 	if t.Status == dtmcli.StatusAborting && rsCToStart == rsCSucceed {
-		t.changeStatus(db, dtmcli.StatusFailed)
+		t.changeStatus(dtmcli.StatusFailed)
 	}
 	return nil
 }

@@ -28,6 +28,8 @@ type DB = dtmimp.DB
 // TransOptions transaction option
 type TransOptions = dtmimp.TransOptions
 
+type DBConf = dtmimp.DBConf
+
 // SetCurrentDBType set currentDBType
 func SetCurrentDBType(dbType string) {
 	dtmimp.SetCurrentDBType(dbType)

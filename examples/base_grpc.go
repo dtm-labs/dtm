@@ -36,7 +36,7 @@ var XaGrpcClient *dtmgrpc.XaGrpcClient = nil
 
 func init() {
 	setupFuncs["XaGrpcSetup"] = func(app *gin.Engine) {
-		XaGrpcClient = dtmgrpc.NewXaGrpcClient(DtmGrpcServer, config.DB, BusiGrpc+"/examples.Busi/XaNotify")
+		XaGrpcClient = dtmgrpc.NewXaGrpcClient(DtmGrpcServer, config.ExamplesDB, BusiGrpc+"/examples.Busi/XaNotify")
 	}
 }
 

@@ -1,9 +1,9 @@
 package common
 
 import (
+	"context"
 	"database/sql"
 	"fmt"
-	"strconv"
 	"strings"
 	"sync"
 	"time"
@@ -20,8 +20,8 @@ import (
 // ModelBase model base for gorm to provide base fields
 type ModelBase struct {
 	ID         uint64
-	CreateTime *time.Time `gorm:"autoCreateTime"`
-	UpdateTime *time.Time `gorm:"autoUpdateTime"`
+	CreateTime *time.Time `json:"create_time" gorm:"autoCreateTime"`
+	UpdateTime *time.Time `json:"update_time" gorm:"autoUpdateTime"`
 }
 
 func getGormDialetor(driver string, dsn string) gorm.Dialector {
@@ -105,27 +105,18 @@ func (op *tracePlugin) Initialize(db *gorm.DB) (err error) {
 // SetDBConn set db connection conf
 func SetDBConn(db *DB) {
 	sqldb, _ := db.DB.DB()
-	maxOpenCons, err := strconv.Atoi(DtmConfig.DB["max_open_conns"])
-	if err == nil {
-		sqldb.SetMaxOpenConns(maxOpenCons)
-	}
-	maxIdleCons, err := strconv.Atoi(DtmConfig.DB["max_idle_conns"])
-	if err == nil {
-		sqldb.SetMaxIdleConns(maxIdleCons)
-	}
-	connMaxLifeTime, err := strconv.ParseInt(DtmConfig.DB["conn_max_life_time"], 10, 64)
-	if err == nil {
-		sqldb.SetConnMaxLifetime(time.Duration(connMaxLifeTime) * time.Minute)
-	}
+	sqldb.SetMaxOpenConns(int(Config.Store.MaxOpenConns))
+	sqldb.SetMaxIdleConns(int(Config.Store.MaxIdleConns))
+	sqldb.SetConnMaxLifetime(time.Duration(Config.Store.ConnMaxLifeTime) * time.Minute)
 }
 
 // DbGet get db connection for specified conf
-func DbGet(conf map[string]string) *DB {
+func DbGet(conf dtmcli.DBConf) *DB {
 	dsn := dtmimp.GetDsn(conf)
 	db, ok := dbs.Load(dsn)
 	if !ok {
-		dtmimp.Logf("connecting %s", strings.Replace(dsn, conf["password"], "****", 1))
-		db1, err := gorm.Open(getGormDialetor(conf["driver"], dsn), &gorm.Config{
+		dtmimp.Logf("connecting %s", strings.Replace(dsn, conf.Passwrod, "****", 1))
+		db1, err := gorm.Open(getGormDialetor(conf.Driver, dsn), &gorm.Config{
 			SkipDefaultTransaction: true,
 		})
 		dtmimp.E2P(err)
@@ -139,7 +130,15 @@ func DbGet(conf map[string]string) *DB {
 
 // WaitDBUp wait for db to go up
 func WaitDBUp() {
-	sdb, err := dtmimp.StandaloneDB(DtmConfig.DB)
+	if GetDriver() == "redis" {
+		rdb := RedisGet()
+		for _, err := rdb.Ping(context.Background()).Result(); err != nil; { // wait for mysql to start
+			time.Sleep(3 * time.Second)
+			_, err = rdb.Ping(context.Background()).Result()
+		}
+		return
+	}
+	sdb, err := dtmimp.StandaloneDB(Config.Store.GetDBConf())
 	dtmimp.FatalIfError(err)
 	defer func() {
 		sdb.Close()
