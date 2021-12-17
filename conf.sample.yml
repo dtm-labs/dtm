@@ -1,19 +1,19 @@
-Store:
-  Driver: 'redis'
-  Host: 'localhost'
-  User: ''
-  Password: ''
-  Port: 6379
+# Store:
+#   Driver: 'redis'
+#   Host: 'localhost'
+#   User: ''
+#   Password: ''
+#   Port: 6379
 
-  # driver: 'postgres'
-  # host: 'localhost'
-  # user: 'postgres'
-  # password: 'mysecretpassword'
-  # port: '5432'
+# driver: 'postgres'
+# host: 'localhost'
+# user: 'postgres'
+# password: 'mysecretpassword'
+# port: '5432'
 
-  MaxOpenConns: 499
-  # max_idle_conns: 'dbmaxidleconns'
-  # conn_max_life_time: 'dbconnmaxlifetime'
+# MaxOpenConns: 499
+# max_idle_conns: 'dbmaxidleconns'
+# conn_max_life_time: 'dbconnmaxlifetime'
 # MicroService:
 #   Driver: 'dtm-driver-gozero' # name of the driver to handle register/discover
 #   Target: 'etcd://localhost:2379/dtmservice' # register dtm server to this url

@@ -3,7 +3,6 @@ package common
 import (
 	"errors"
 	"io/ioutil"
-	"os"
 	"path/filepath"
 
 	"github.com/yedf/dtm/dtmcli"
@@ -23,7 +22,7 @@ type MicroService struct {
 }
 
 type Store struct {
-	Driver          string `yaml:"Driver"`
+	Driver          string `yaml:"Driver" default:"boltdb"`
 	Host            string `yaml:"Host"`
 	Port            int64  `yaml:"Port"`
 	User            string `yaml:"User"`
@@ -33,6 +32,10 @@ type Store struct {
 	ConnMaxLifeTime int64  `yaml:"ConnMaxLifeTime" default:"5"`
 	RedisExpire     int64  `yaml:"RedisExpire" default:"604800"` // Trans data will expire in 7 days
 	RedisPrefix     string `yaml:"RedisPrefix" default:"{}"`     // Redis storage prefix. stored to only one slot in cluster
+}
+
+func (s *Store) IsDB() bool {
+	return s.Driver == dtmcli.DBTypeMysql || s.Driver == dtmcli.DBTypePostgres
 }
 
 func (s *Store) GetDBConf() dtmcli.DBConf {
@@ -59,10 +62,6 @@ type configType struct {
 
 // Config 配置
 var Config = configType{}
-
-func getIntEnv(key string, defaultV string) int64 {
-	return int64(dtmimp.MustAtoi(dtmimp.OrString(os.Getenv(key), defaultV)))
-}
 
 func MustLoadConfig() {
 	loadFromEnv("", &Config)
@@ -91,8 +90,8 @@ func MustLoadConfig() {
 }
 
 func checkConfig() error {
-	if Config.Store.Driver == "" {
-		return errors.New("db driver empty")
+	if Config.Store.Driver == "boltdb" {
+		return nil
 	} else if Config.Store.Driver == "redis" && (Config.Store.Host == "" || Config.Store.Port == 0) {
 		return errors.New("db redis config not valid")
 	} else if Config.Store.Driver != "redis" && (Config.Store.User == "" || Config.Store.Host == "" || Config.Store.Port == 0) {

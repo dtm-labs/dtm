@@ -7,6 +7,7 @@
 package test
 
 import (
+	"os"
 	"testing"
 	"time"
 
@@ -16,6 +17,12 @@ import (
 	"github.com/yedf/dtm/dtmsvr"
 	"github.com/yedf/dtm/examples"
 )
+
+func exitIf(code int) {
+	if code != 0 {
+		os.Exit(code)
+	}
+}
 
 func TestMain(m *testing.M) {
 	common.MustLoadConfig()
@@ -33,19 +40,18 @@ func TestMain(m *testing.M) {
 		return disorderHandler(c)
 	}))
 
-	config.Store.Driver = "boltdb"
-	dtmsvr.PopulateDB(false)
-	examples.PopulateDB(false)
-
-	m.Run()
-
 	config.Store.Driver = "redis"
 	config.Store.Host = "localhost"
 	config.Store.Port = 6379
 	dtmsvr.PopulateDB(false)
 	examples.PopulateDB(false)
+	exitIf(m.Run())
 
-	m.Run()
+	config.Store.Driver = "boltdb"
+	dtmsvr.PopulateDB(false)
+	examples.PopulateDB(false)
+	exitIf(m.Run())
+
 	config.Store.Driver = "mysql"
 	config.Store.Host = "localhost"
 	config.Store.Port = 3306
@@ -53,5 +59,5 @@ func TestMain(m *testing.M) {
 	config.Store.Password = ""
 	dtmsvr.PopulateDB(false)
 	examples.PopulateDB(false)
-	m.Run()
+	exitIf(m.Run())
 }

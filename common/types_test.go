@@ -15,9 +15,7 @@ import (
 
 func TestGeneralDB(t *testing.T) {
 	MustLoadConfig()
-	if Config.Store.Driver == "redis" {
-
-	} else {
+	if Config.Store.IsDB() {
 		testSql(t)
 		testDbAlone(t)
 	}

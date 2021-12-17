@@ -137,14 +137,15 @@ func WaitDBUp() {
 			_, err = rdb.Ping(context.Background()).Result()
 		}
 		return
-	}
-	sdb, err := dtmimp.StandaloneDB(Config.Store.GetDBConf())
-	dtmimp.FatalIfError(err)
-	defer func() {
-		sdb.Close()
-	}()
-	for _, err = dtmimp.DBExec(sdb, "select 1"); err != nil; { // wait for mysql to start
-		time.Sleep(3 * time.Second)
-		_, err = dtmimp.DBExec(sdb, "select 1")
+	} else if Config.Store.IsDB() {
+		sdb, err := dtmimp.StandaloneDB(Config.Store.GetDBConf())
+		dtmimp.FatalIfError(err)
+		defer func() {
+			sdb.Close()
+		}()
+		for _, err = dtmimp.DBExec(sdb, "select 1"); err != nil; { // wait for mysql to start
+			time.Sleep(3 * time.Second)
+			_, err = dtmimp.DBExec(sdb, "select 1")
+		}
 	}
 }
