@@ -49,7 +49,7 @@ func TestFuncs(t *testing.T) {
 
 func TestRecoverPanic(t *testing.T) {
 	err := func() (rerr error) {
-		RecoverPanic(&rerr)
+		defer RecoverPanic(&rerr)
 		panic(fmt.Errorf("an error"))
 	}()
 	assert.Equal(t, "an error", err.Error())

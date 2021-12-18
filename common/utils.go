@@ -90,7 +90,7 @@ func RecoverPanic(err *error) {
 	if x := recover(); x != nil {
 		e := dtmimp.AsError(x)
 		if err != nil {
-			err = &e
+			*err = e
 		}
 	}
 }
