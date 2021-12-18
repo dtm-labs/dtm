@@ -24,8 +24,6 @@ func testSql(t *testing.T) {
 	db := DbGet(Config.Store.GetDBConf())
 	err := func() (rerr error) {
 		defer dtmimp.P2E(&rerr)
-		dbr := db.NoMust().Exec("select a")
-		assert.NotEqual(t, nil, dbr.Error)
 		db.Must().Exec("select a")
 		return nil
 	}()

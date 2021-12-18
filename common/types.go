@@ -13,10 +13,6 @@ import (
 	"github.com/go-redis/redis/v8"
 )
 
-func GetDriver() string {
-	return Config.Store.Driver
-}
-
 var rdb *redis.Client
 var once sync.Once
 

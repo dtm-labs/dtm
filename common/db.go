@@ -44,12 +44,6 @@ func (m *DB) Must() *DB {
 	return &DB{DB: db}
 }
 
-// NoMust unset must flag, don't panic when error occur
-func (m *DB) NoMust() *DB {
-	db := m.InstanceSet("ivy.must", false)
-	return &DB{DB: db}
-}
-
 // ToSQLDB get the sql.DB
 func (m *DB) ToSQLDB() *sql.DB {
 	d, err := m.DB.DB()
