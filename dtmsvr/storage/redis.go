@@ -16,6 +16,11 @@ var ctx context.Context = context.Background()
 type RedisStore struct {
 }
 
+func (s *RedisStore) Ping() error {
+	_, err := redisGet().Ping(ctx).Result()
+	return err
+}
+
 func (s *RedisStore) PopulateData(skipDrop bool) {
 	_, err := redisGet().FlushAll(ctx).Result()
 	dtmimp.PanicIf(err != nil, err)

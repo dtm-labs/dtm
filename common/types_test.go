@@ -32,10 +32,6 @@ func testSql(t *testing.T) {
 	assert.NotEqual(t, nil, err)
 }
 
-func TestWaitDBUp(t *testing.T) {
-	WaitDBUp()
-}
-
 func testDbAlone(t *testing.T) {
 	db, err := dtmimp.StandaloneDB(Config.Store.GetDBConf())
 	assert.Nil(t, err)

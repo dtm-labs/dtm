@@ -14,6 +14,7 @@ var ErrShouldRetry = errors.New("storage: ShoudRetry")
 var ErrUniqueConflict = errors.New("storage: UniqueKeyConflict")
 
 type Store interface {
+	Ping() error
 	PopulateData(skipDrop bool)
 	FindTransGlobalStore(gid string) *TransGlobalStore
 	ScanTransGlobalStores(position *string, limit int64) []TransGlobalStore
@@ -35,6 +36,13 @@ var stores map[string]Store = map[string]Store{
 
 func GetStore() Store {
 	return stores[config.Store.Driver]
+}
+
+// WaitStoreUp wait for db to go up
+func WaitStoreUp() {
+	for err := GetStore().Ping(); err != nil; err = GetStore().Ping() {
+		time.Sleep(3 * time.Second)
+	}
 }
 
 func wrapError(err error) error {

@@ -15,6 +15,11 @@ import (
 type SqlStore struct {
 }
 
+func (s *SqlStore) Ping() error {
+	dbr := dbGet().Exec("select 1")
+	return dbr.Error
+}
+
 func (s *SqlStore) PopulateData(skipDrop bool) {
 	file := fmt.Sprintf("%s/storage.%s.sql", common.GetCallerCodeDir(), config.Store.Driver)
 	common.RunSQLScript(config.Store.GetDBConf(), file, skipDrop)
@@ -125,10 +130,4 @@ func (s *SqlStore) LockOneGlobalTrans(expireIn time.Duration) *TransGlobalStore 
 	}
 	dbr = db.Must().Where("owner=?", owner).First(global)
 	return global
-}
-
-func lockTransGlobal(db *gorm.DB, gid string, status string) error {
-	g := &TransGlobalStore{}
-	dbr := db.Clauses(clause.Locking{Strength: "UPDATE"}).Model(g).Where("gid=? and status=?", gid, status).First(g)
-	return wrapError(dbr.Error)
 }

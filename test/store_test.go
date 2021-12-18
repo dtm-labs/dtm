@@ -85,3 +85,14 @@ func TestStoreLockTrans(t *testing.T) {
 	g2 = s.LockOneGlobalTrans(2 * time.Duration(config.RetryInterval) * time.Second)
 	assert.Nil(t, g2)
 }
+
+func TestStoreWait(t *testing.T) {
+	storage.WaitStoreUp()
+}
+
+func TestUpdateBranchSql(t *testing.T) {
+	if !config.Store.IsDB() {
+		r := storage.GetStore().UpdateBranchesSql(nil, nil)
+		assert.Nil(t, r)
+	}
+}

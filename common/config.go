@@ -90,16 +90,14 @@ func MustLoadConfig() {
 }
 
 func checkConfig() error {
-	if Config.Store.Driver == "boltdb" {
-		return nil
-	} else if Config.Store.Driver == "redis" && (Config.Store.Host == "" || Config.Store.Port == 0) {
-		return errors.New("db redis config not valid")
-	} else if Config.Store.Driver != "redis" && (Config.Store.User == "" || Config.Store.Host == "" || Config.Store.Port == 0) {
-		return errors.New("db config not valid")
-	} else if Config.RetryInterval < 10 {
+	if Config.RetryInterval < 10 {
 		return errors.New("RetryInterval should not be less than 10")
 	} else if Config.TimeoutToFail < Config.RetryInterval {
 		return errors.New("TimeoutToFail should not be less than RetryInterval")
+	} else if Config.Store.Driver == "boltdb" {
+		return nil
+	} else if Config.Store.Driver != "redis" && (Config.Store.User == "" || Config.Store.Host == "" || Config.Store.Port == 0) {
+		return errors.New("db config not valid")
 	}
 	return nil
 }

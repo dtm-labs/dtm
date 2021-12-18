@@ -1,7 +1,6 @@
 package common
 
 import (
-	"context"
 	"database/sql"
 	"fmt"
 	"strings"
@@ -126,26 +125,4 @@ func DbGet(conf dtmcli.DBConf) *DB {
 		dbs.Store(dsn, db)
 	}
 	return db.(*DB)
-}
-
-// WaitDBUp wait for db to go up
-func WaitDBUp() {
-	if GetDriver() == "redis" {
-		rdb := RedisGet()
-		for _, err := rdb.Ping(context.Background()).Result(); err != nil; { // wait for mysql to start
-			time.Sleep(3 * time.Second)
-			_, err = rdb.Ping(context.Background()).Result()
-		}
-		return
-	} else if Config.Store.IsDB() {
-		sdb, err := dtmimp.StandaloneDB(Config.Store.GetDBConf())
-		dtmimp.FatalIfError(err)
-		defer func() {
-			sdb.Close()
-		}()
-		for _, err = dtmimp.DBExec(sdb, "select 1"); err != nil; { // wait for mysql to start
-			time.Sleep(3 * time.Second)
-			_, err = dtmimp.DBExec(sdb, "select 1")
-		}
-	}
 }

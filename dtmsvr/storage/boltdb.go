@@ -84,6 +84,10 @@ func tPutIndex(t *bolt.Tx, unix int64, gid string) {
 	dtmimp.E2P(err)
 }
 
+func (s *BoltdbStore) Ping() error {
+	return nil
+}
+
 func (s *BoltdbStore) PopulateData(skipDrop bool) {
 	if !skipDrop {
 		err := boltGet().Update(func(t *bolt.Tx) error {
