@@ -190,7 +190,7 @@ func MayReplaceLocalhost(host string) string {
 var sqlDbs sync.Map
 
 // PooledDB get pooled sql.DB
-func PooledDB(conf map[string]string) (*sql.DB, error) {
+func PooledDB(conf DBConf) (*sql.DB, error) {
 	dsn := GetDsn(conf)
 	db, ok := sqlDbs.Load(dsn)
 	if !ok {
@@ -205,10 +205,10 @@ func PooledDB(conf map[string]string) (*sql.DB, error) {
 }
 
 // StandaloneDB get a standalone db instance
-func StandaloneDB(conf map[string]string) (*sql.DB, error) {
+func StandaloneDB(conf DBConf) (*sql.DB, error) {
 	dsn := GetDsn(conf)
-	Logf("opening standalone %s: %s", conf["driver"], strings.Replace(dsn, conf["password"], "****", 1))
-	return sql.Open(conf["driver"], dsn)
+	Logf("opening standalone %s: %s", conf.Driver, strings.Replace(dsn, conf.Passwrod, "****", 1))
+	return sql.Open(conf.Driver, dsn)
 }
 
 // DBExec use raw db to exec
@@ -230,14 +230,14 @@ func DBExec(db DB, sql string, values ...interface{}) (affected int64, rerr erro
 }
 
 // GetDsn get dsn from map config
-func GetDsn(conf map[string]string) string {
-	host := MayReplaceLocalhost(conf["host"])
-	driver := conf["driver"]
+func GetDsn(conf DBConf) string {
+	host := MayReplaceLocalhost(conf.Host)
+	driver := conf.Driver
 	dsn := map[string]string{
-		"mysql": fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?charset=utf8mb4&parseTime=true&loc=Local",
-			conf["user"], conf["password"], host, conf["port"], conf["database"]),
-		"postgres": fmt.Sprintf("host=%s user=%s password=%s dbname='%s' port=%s sslmode=disable",
-			host, conf["user"], conf["password"], conf["database"], conf["port"]),
+		"mysql": fmt.Sprintf("%s:%s@tcp(%s:%d)/%s?charset=utf8mb4&parseTime=true&loc=Local",
+			conf.User, conf.Passwrod, host, conf.Port, ""),
+		"postgres": fmt.Sprintf("host=%s user=%s password=%s dbname='%s' port=%d sslmode=disable",
+			host, conf.User, conf.Passwrod, "", conf.Port),
 	}[driver]
 	PanicIf(dsn == "", fmt.Errorf("unknow driver: %s", driver))
 	return dsn

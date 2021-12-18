@@ -13,3 +13,11 @@ type DB interface {
 	Exec(query string, args ...interface{}) (sql.Result, error)
 	QueryRow(query string, args ...interface{}) *sql.Row
 }
+
+type DBConf struct {
+	Driver   string `yaml:"Driver"`
+	Host     string `yaml:"Host"`
+	Port     int64  `yaml:"Port"`
+	User     string `yaml:"User"`
+	Passwrod string `yaml:"Password"`
+}

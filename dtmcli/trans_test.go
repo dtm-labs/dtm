@@ -25,6 +25,6 @@ func TestQuery(t *testing.T) {
 }
 
 func TestXa(t *testing.T) {
-	_, err := NewXaClient("http://localhost:8080", map[string]string{}, ":::::", nil)
+	_, err := NewXaClient("http://localhost:36789", DBConf{}, ":::::", nil)
 	assert.Error(t, err)
 }

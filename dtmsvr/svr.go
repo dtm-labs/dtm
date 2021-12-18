@@ -15,14 +15,8 @@ import (
 	"github.com/yedf/dtm/common"
 	"github.com/yedf/dtm/dtmcli/dtmimp"
 	"github.com/yedf/dtm/dtmgrpc/dtmgimp"
-	"github.com/yedf/dtm/examples"
 	"github.com/yedf/dtmdriver"
 	"google.golang.org/grpc"
-	"gorm.io/gorm/clause"
-
-	_ "github.com/ychensha/dtmdriver-polaris"
-	_ "github.com/yedf/dtmdriver-gozero"
-	_ "github.com/yedf/dtmdriver-protocol1"
 )
 
 // StartSvr StartSvr
@@ -31,10 +25,10 @@ func StartSvr() {
 	app := common.GetGinApp()
 	app = httpMetrics(app)
 	addRoute(app)
-	dtmimp.Logf("dtmsvr listen at: %d", common.DtmHttpPort)
-	go app.Run(fmt.Sprintf(":%d", common.DtmHttpPort))
+	dtmimp.Logf("dtmsvr listen at: %d", config.HttpPort)
+	go app.Run(fmt.Sprintf(":%d", config.HttpPort))
 
-	lis, err := net.Listen("tcp", fmt.Sprintf(":%d", common.DtmGrpcPort))
+	lis, err := net.Listen("tcp", fmt.Sprintf(":%d", config.GrpcPort))
 	dtmimp.FatalIfError(err)
 	s := grpc.NewServer(
 		grpc.UnaryInterceptor(grpc_middleware.ChainUnaryServer(
@@ -57,8 +51,7 @@ func StartSvr() {
 
 // PopulateDB setup mysql data
 func PopulateDB(skipDrop bool) {
-	file := fmt.Sprintf("%s/dtmsvr.%s.sql", common.GetCallerCodeDir(), config.DB["driver"])
-	examples.RunSQLScript(config.DB, file, skipDrop)
+	GetStore().PopulateData(skipDrop)
 }
 
 // UpdateBranchAsyncInterval interval to flush branch
@@ -67,6 +60,7 @@ var updateBranchAsyncChan chan branchStatus = make(chan branchStatus, 1000)
 
 func updateBranchAsync() {
 	for { // flush branches every second
+		defer common.RecoverPanic(nil)
 		updates := []TransBranch{}
 		started := time.Now()
 		checkInterval := 20 * time.Millisecond
@@ -82,10 +76,8 @@ func updateBranchAsync() {
 			}
 		}
 		for len(updates) > 0 {
-			dbr := dbGet().Clauses(clause.OnConflict{
-				OnConstraint: "trans_branch_op_pkey",
-				DoUpdates:    clause.AssignmentColumns([]string{"status", "finish_time", "update_time"}),
-			}).Create(updates)
+			dbr := GetStore().UpdateBranchesSql(updates, []string{"status", "finish_time", "update_time"})
+
 			dtmimp.Logf("flushed %d branch status to db. affected: %d", len(updates), dbr.RowsAffected)
 			if dbr.Error != nil {
 				dtmimp.LogRedf("async update branch status error: %v", dbr.Error)

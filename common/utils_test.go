@@ -8,6 +8,7 @@ package common
 
 import (
 	"errors"
+	"fmt"
 	"io"
 	"net/http"
 	"net/http/httptest"
@@ -44,4 +45,12 @@ func TestFuncs(t *testing.T) {
 	dir1 := GetCallerCodeDir()
 	assert.Equal(t, true, strings.HasSuffix(dir1, "common"))
 
+}
+
+func TestRecoverPanic(t *testing.T) {
+	err := func() (rerr error) {
+		defer RecoverPanic(&rerr)
+		panic(fmt.Errorf("an error"))
+	}()
+	assert.Equal(t, "an error", err.Error())
 }

@@ -13,25 +13,25 @@ import (
 	"github.com/yedf/dtm/dtmcli/dtmimp"
 )
 
-func TestDb(t *testing.T) {
+func TestGeneralDB(t *testing.T) {
 	MustLoadConfig()
-	db := DbGet(DtmConfig.DB)
+	if Config.Store.IsDB() {
+		testSql(t)
+		testDbAlone(t)
+	}
+}
+func testSql(t *testing.T) {
+	db := DbGet(Config.Store.GetDBConf())
 	err := func() (rerr error) {
 		defer dtmimp.P2E(&rerr)
-		dbr := db.NoMust().Exec("select a")
-		assert.NotEqual(t, nil, dbr.Error)
 		db.Must().Exec("select a")
 		return nil
 	}()
 	assert.NotEqual(t, nil, err)
 }
 
-func TestWaitDBUp(t *testing.T) {
-	WaitDBUp()
-}
-
-func TestDbAlone(t *testing.T) {
-	db, err := dtmimp.StandaloneDB(DtmConfig.DB)
+func testDbAlone(t *testing.T) {
+	db, err := dtmimp.StandaloneDB(Config.Store.GetDBConf())
 	assert.Nil(t, err)
 	_, err = dtmimp.DBExec(db, "select 1")
 	assert.Equal(t, nil, err)
@@ -43,18 +43,18 @@ func TestDbAlone(t *testing.T) {
 }
 
 func TestConfig(t *testing.T) {
-	testConfigStringField(DtmConfig.DB, "driver", "", t)
-	testConfigStringField(DtmConfig.DB, "user", "", t)
-	testConfigIntField(&DtmConfig.RetryInterval, 9, t)
-	testConfigIntField(&DtmConfig.TimeoutToFail, 9, t)
+	testConfigStringField(&Config.Store.Driver, "", t)
+	testConfigStringField(&Config.Store.User, "", t)
+	testConfigIntField(&Config.RetryInterval, 9, t)
+	testConfigIntField(&Config.TimeoutToFail, 9, t)
 }
 
-func testConfigStringField(m map[string]string, key string, val string, t *testing.T) {
-	old := m[key]
-	m[key] = val
+func testConfigStringField(fd *string, val string, t *testing.T) {
+	old := *fd
+	*fd = val
 	str := checkConfig()
 	assert.NotEqual(t, "", str)
-	m[key] = old
+	*fd = old
 }
 
 func testConfigIntField(fd *int64, val int64, t *testing.T) {

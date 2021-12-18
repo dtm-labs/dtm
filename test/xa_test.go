@@ -12,7 +12,6 @@ import (
 
 	"github.com/go-resty/resty/v2"
 	"github.com/stretchr/testify/assert"
-	"github.com/yedf/dtm/common"
 	"github.com/yedf/dtm/dtmcli"
 	"github.com/yedf/dtm/dtmcli/dtmimp"
 	"github.com/yedf/dtm/examples"
@@ -44,7 +43,7 @@ func TestXaDuplicate(t *testing.T) {
 		req := examples.GenTransReq(30, false, false)
 		_, err := xa.CallBranch(req, examples.Busi+"/TransOutXa")
 		assert.Nil(t, err)
-		sdb, err := dtmimp.StandaloneDB(common.DtmConfig.DB)
+		sdb, err := dtmimp.StandaloneDB(config.ExamplesDB)
 		assert.Nil(t, err)
 		if dtmcli.GetCurrentDBType() == dtmcli.DBTypeMysql {
 			_, err = dtmimp.DBExec(sdb, "xa recover")

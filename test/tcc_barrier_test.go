@@ -17,7 +17,6 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/go-resty/resty/v2"
 	"github.com/stretchr/testify/assert"
-	"github.com/yedf/dtm/common"
 	"github.com/yedf/dtm/dtmcli"
 	"github.com/yedf/dtm/dtmcli/dtmimp"
 	"github.com/yedf/dtm/examples"
@@ -51,6 +50,8 @@ func TestTccBarrierRollback(t *testing.T) {
 	assert.Equal(t, []string{StatusSucceed, StatusPrepared, StatusSucceed, StatusPrepared}, getBranchesStatus(gid))
 }
 
+var disorderHandler func(c *gin.Context) (interface{}, error) = nil
+
 func TestTccBarrierDisorder(t *testing.T) {
 	timeoutChan := make(chan string, 2)
 	finishedChan := make(chan string, 2)
@@ -63,7 +64,7 @@ func TestTccBarrierDisorder(t *testing.T) {
 		// 请参见子事务屏障里的时序图，这里为了模拟该时序图，手动拆解了callbranch
 		branchID := tcc.NewSubBranchID()
 		sleeped := false
-		app.POST(examples.BusiAPI+"/TccBSleepCancel", common.WrapHandler(func(c *gin.Context) (interface{}, error) {
+		disorderHandler = func(c *gin.Context) (interface{}, error) {
 			res, err := examples.TccBarrierTransOutCancel(c)
 			if !sleeped {
 				sleeped = true
@@ -72,7 +73,7 @@ func TestTccBarrierDisorder(t *testing.T) {
 				finishedChan <- "1"
 			}
 			return res, err
-		}))
+		}
 		// 注册子事务
 		resp, err := dtmimp.RestyClient.R().
 			SetBody(map[string]interface{}{

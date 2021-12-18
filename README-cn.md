@@ -98,7 +98,7 @@ DTM是一款golang开发的分布式事务管理器，解决了跨数据库、�
   const qsBusi = "http://localhost:8081/api/busi_saga"
   req := &gin.H{"amount": 30} // 微服务的载荷
   // DtmServer为DTM服务的地址，是一个url
-  DtmServer := "http://localhost:8080/api/dtmsvr"
+  DtmServer := "http://localhost:36789/api/dtmsvr"
   saga := dtmcli.NewSaga(DtmServer, dtmcli.MustGenGid(DtmServer)).
     // 添加一个TransOut的子事务，正向操作为url: qsBusi+"/TransOut"， 补偿操作为url: qsBusi+"/TransOutCompensate"
     Add(qsBusi+"/TransOut", qsBusi+"/TransOutCompensate", req).

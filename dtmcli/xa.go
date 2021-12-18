@@ -44,7 +44,7 @@ func XaFromQuery(qs url.Values) (*Xa, error) {
 }
 
 // NewXaClient construct a xa client
-func NewXaClient(server string, mysqlConf map[string]string, notifyURL string, register XaRegisterCallback) (*XaClient, error) {
+func NewXaClient(server string, mysqlConf DBConf, notifyURL string, register XaRegisterCallback) (*XaClient, error) {
 	xa := &XaClient{XaClientBase: dtmimp.XaClientBase{
 		Server:    server,
 		Conf:      mysqlConf,

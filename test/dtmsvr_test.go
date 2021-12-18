@@ -24,16 +24,11 @@ var Busi = examples.Busi
 var app *gin.Engine
 
 func getTransStatus(gid string) string {
-	sm := TransGlobal{}
-	dbr := dbGet().Model(&sm).Where("gid=?", gid).First(&sm)
-	e2p(dbr.Error)
-	return sm.Status
+	return dtmsvr.GetTransGlobal(gid).Status
 }
 
 func getBranchesStatus(gid string) []string {
-	branches := []TransBranch{}
-	dbr := dbGet().Model(&TransBranch{}).Where("gid=?", gid).Order("id").Find(&branches)
-	e2p(dbr.Error)
+	branches := dtmsvr.GetStore().FindBranches(gid)
 	status := []string{}
 	for _, branch := range branches {
 		status = append(status, branch.Status)
@@ -47,7 +42,10 @@ func assertSucceed(t *testing.T, gid string) {
 }
 
 func TestUpdateBranchAsync(t *testing.T) {
-	common.DtmConfig.UpdateBranchSync = 0
+	if config.Store.Driver != "mysql" {
+		return
+	}
+	common.Config.UpdateBranchSync = 0
 	saga := genSaga1(dtmimp.GetFuncName(), false, false)
 	saga.SetOptions(&dtmcli.TransOptions{WaitResult: true})
 	err := saga.Submit()
@@ -56,5 +54,5 @@ func TestUpdateBranchAsync(t *testing.T) {
 	time.Sleep(dtmsvr.UpdateBranchAsyncInterval)
 	assert.Equal(t, []string{StatusPrepared, StatusSucceed}, getBranchesStatus(saga.Gid))
 	assert.Equal(t, StatusSucceed, getTransStatus(saga.Gid))
-	common.DtmConfig.UpdateBranchSync = 1
+	common.Config.UpdateBranchSync = 1
 }

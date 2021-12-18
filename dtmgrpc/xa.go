@@ -11,6 +11,7 @@ import (
 	"database/sql"
 	"fmt"
 
+	"github.com/yedf/dtm/dtmcli"
 	"github.com/yedf/dtm/dtmcli/dtmimp"
 	"github.com/yedf/dtm/dtmgrpc/dtmgimp"
 	"github.com/yedf/dtmdriver"
@@ -47,7 +48,7 @@ func XaGrpcFromRequest(ctx context.Context) (*XaGrpc, error) {
 }
 
 // NewXaGrpcClient construct a xa client
-func NewXaGrpcClient(server string, mysqlConf map[string]string, notifyURL string) *XaGrpcClient {
+func NewXaGrpcClient(server string, mysqlConf dtmcli.DBConf, notifyURL string) *XaGrpcClient {
 	xa := &XaGrpcClient{XaClientBase: dtmimp.XaClientBase{
 		Server:    server,
 		Conf:      mysqlConf,

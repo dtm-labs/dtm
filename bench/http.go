@@ -31,7 +31,7 @@ const total = 200000
 var benchBusi = fmt.Sprintf("http://localhost:%d%s", benchPort, benchAPI)
 
 func sdbGet() *sql.DB {
-	db, err := dtmimp.PooledDB(common.DtmConfig.DB)
+	db, err := dtmimp.PooledDB(common.Config.Store.GetDBConf())
 	dtmimp.FatalIfError(err)
 	return db
 }

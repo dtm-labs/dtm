@@ -1,17 +1,5 @@
 version: '3.3'
 services:
-  api:
-    build: ..
-    volumes:
-      - /etc/localtime:/etc/localtime:ro
-      - /etc/timezone:/etc/timezone:ro
-      - ..:/app/dtm
-    extra_hosts:
-      - 'host.docker.internal:host-gateway'
-    environment:
-      IS_DOCKER: 1
-    ports:
-      - '9080:8080'
   mysql:
     image: 'mysql:5.7'
     volumes:
@@ -26,3 +14,10 @@ services:
       ]
     ports:
       - '3306:3306'
+  redis:
+    image: 'redis'
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - /etc/timezone:/etc/timezone:ro
+    ports:
+      - '6379:6379'

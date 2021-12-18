@@ -14,7 +14,7 @@ import (
 // XaClientBase XaClient/XaGrpcClient base
 type XaClientBase struct {
 	Server    string
-	Conf      map[string]string
+	Conf      DBConf
 	NotifyURL string
 }
 

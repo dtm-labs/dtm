@@ -10,8 +10,9 @@ branches:
     - alpha
 services:
   - mysql
+  - redis-server
 before_install:
   - go get -t -v ./...
-  - go get github.com/mattn/goveralls
+  - go get github.com/yedf2/goveralls
 script:
-  - $GOPATH/bin/goveralls -service=travis-ci -ignore="examples/*,dtmgrpc/dtmgimp/*.pb.go,bench/*,test/*"
+  - $GOPATH/bin/goveralls -envs=TEST_STORE=redis,TEST_STORE=mysql,TEST_STORE=boltdb -service=travis-ci -ignore="examples/*,dtmgrpc/dtmgimp/*.pb.go,bench/*,test/*"

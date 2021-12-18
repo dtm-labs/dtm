@@ -1,29 +1,48 @@
-DB:
-  driver: 'mysql'
-  host: 'localhost'
-  user: 'root'
-  password: ''
-  port: '3306'
+Store: # specify which engine to store trans status
+#   Driver: 'boltdb' # default store engine
 
-  # driver: 'postgres'
-  # host: 'localhost'
-  # user: 'postgres'
-  # password: 'mysecretpassword'
-  # port: '5432'
+#   Driver: 'redis'
+#   Host: 'localhost'
+#   User: ''
+#   Password: ''
+#   Port: 6379
 
-  # max_open_conns: 'dbmaxopenconns'
-  # max_idle_conns: 'dbmaxidleconns'
-  # conn_max_life_time: 'dbconnmaxlifetime'
+  Driver: 'mysql'
+  Host: 'localhost'
+  User: 'root'
+  Password: ''
+  Port: 3306
+
+#   Driver: 'postgres'
+#   Host: 'localhost'
+#   User: 'postgres'
+#   Password: 'mysecretpassword'
+#   Port: '5432'
+
+### following connection config is for only Driver postgres/mysql
+#   MaxOpenConns: 500
+#   MaxIdleConns: 500
+#   ConnMaxLifeTime 5 # default value is 5 (minutes)
+
+### flollowing config is only for some Driver
+#   DataExpire: 604800 # Trans data will expire in 7 days. only for redis/boltdb.
+#   RedisPrefix: '{}' # default value is '{}'. Redis storage prefix. store data to only one slot in cluster
+
 # MicroService:
 #   Driver: 'dtm-driver-gozero' # name of the driver to handle register/discover
 #   Target: 'etcd://localhost:2379/dtmservice' # register dtm server to this url
 #   EndPoint: 'localhost:36790'
-
-# MicroService:
-#   Driver: 'dtm-driver-protocol1'
 
 # the unit of following configurations is second
 
 # TransCronInterval: 3 # the interval to poll unfinished global transaction for every dtm process
 # TimeoutToFail: 35 # timeout for XA, TCC to fail. saga's timeout default to infinite, which can be overwritten in saga options
 # RetryInterval: 10 # the subtrans branch will be retried after this interval
+
+### dtm can run examples, and examples will use following config to connect db
+ExamplesDB:
+  Driver: 'mysql'
+  Host: 'localhost'
+  User: 'root'
+  Password: ''
+  Port: 3306

@@ -15,10 +15,10 @@ import (
 	"github.com/yedf/dtm/dtmsvr"
 )
 
-var config = &common.DtmConfig
+var config = &common.Config
 
 func dbGet() *common.DB {
-	return common.DbGet(config.DB)
+	return common.DbGet(config.ExamplesDB)
 }
 
 // waitTransProcessed only for test usage. wait for transaction processed once

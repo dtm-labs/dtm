@@ -16,7 +16,7 @@ import (
 
 func TestTypes(t *testing.T) {
 	err := dtmimp.CatchP(func() {
-		MustGenGid("http://localhost:8080/api/no")
+		MustGenGid("http://localhost:36789/api/no")
 	})
 	assert.Error(t, err)
 	assert.Error(t, err)

@@ -19,10 +19,10 @@ import (
 )
 
 // DtmHttpServer dtm service address
-var DtmHttpServer = fmt.Sprintf("http://localhost:%d/api/dtmsvr", common.DtmHttpPort)
+var DtmHttpServer = fmt.Sprintf("http://localhost:%d/api/dtmsvr", 36789)
 
 // DtmGrpcServer dtm grpc service address
-var DtmGrpcServer = fmt.Sprintf("localhost:%d", common.DtmGrpcPort)
+var DtmGrpcServer = fmt.Sprintf("localhost:%d", 36790)
 
 // TransReq transaction request payload
 type TransReq struct {
@@ -76,11 +76,11 @@ func infoFromContext(c *gin.Context) *dtmcli.BranchBarrier {
 }
 
 func dbGet() *common.DB {
-	return common.DbGet(config.DB)
+	return common.DbGet(config.ExamplesDB)
 }
 
 func sdbGet() *sql.DB {
-	db, err := dtmimp.PooledDB(config.DB)
+	db, err := dtmimp.PooledDB(config.ExamplesDB)
 	dtmimp.FatalIfError(err)
 	return db
 }

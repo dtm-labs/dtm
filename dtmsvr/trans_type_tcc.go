@@ -7,7 +7,6 @@
 package dtmsvr
 
 import (
-	"github.com/yedf/dtm/common"
 	"github.com/yedf/dtm/dtmcli"
 	"github.com/yedf/dtm/dtmcli/dtmimp"
 )
@@ -24,23 +23,23 @@ func (t *transTccProcessor) GenBranches() []TransBranch {
 	return []TransBranch{}
 }
 
-func (t *transTccProcessor) ProcessOnce(db *common.DB, branches []TransBranch) error {
+func (t *transTccProcessor) ProcessOnce(branches []TransBranch) error {
 	if !t.needProcess() {
 		return nil
 	}
 	if t.Status == dtmcli.StatusPrepared && t.isTimeout() {
-		t.changeStatus(db, dtmcli.StatusAborting)
+		t.changeStatus(dtmcli.StatusAborting)
 	}
 	op := dtmimp.If(t.Status == dtmcli.StatusSubmitted, dtmcli.BranchConfirm, dtmcli.BranchCancel).(string)
 	for current := len(branches) - 1; current >= 0; current-- {
 		if branches[current].Op == op && branches[current].Status == dtmcli.StatusPrepared {
 			dtmimp.Logf("branch info: current: %d ID: %d", current, branches[current].ID)
-			err := t.execBranch(db, &branches[current])
+			err := t.execBranch(&branches[current], current)
 			if err != nil {
 				return err
 			}
 		}
 	}
-	t.changeStatus(db, dtmimp.If(t.Status == dtmcli.StatusSubmitted, dtmcli.StatusSucceed, dtmcli.StatusFailed).(string))
+	t.changeStatus(dtmimp.If(t.Status == dtmcli.StatusSubmitted, dtmcli.StatusSucceed, dtmcli.StatusFailed).(string))
 	return nil
 }
