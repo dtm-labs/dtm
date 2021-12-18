@@ -24,6 +24,10 @@ Store: # specify which engine to store trans status
 #   MaxIdleConns: 500
 #   ConnMaxLifeTime 5 # default value is 5 (minutes)
 
+### flollowing config is only for some Driver
+#   DataExpire: 604800 # Trans data will expire in 7 days. only for redis/boltdb.
+#   RedisPrefix: '{}' # default value is '{}'. Redis storage prefix. store data to only one slot in cluster
+
 # MicroService:
 #   Driver: 'dtm-driver-gozero' # name of the driver to handle register/discover
 #   Target: 'etcd://localhost:2379/dtmservice' # register dtm server to this url

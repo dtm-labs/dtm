@@ -82,7 +82,7 @@ type argList struct {
 
 func newArgList() *argList {
 	a := &argList{}
-	return a.AppendRaw(config.Store.RedisPrefix).AppendObject(config.Store.RedisExpire)
+	return a.AppendRaw(config.Store.RedisPrefix).AppendObject(config.Store.DataExpire)
 }
 
 func (a *argList) AppendRaw(v interface{}) *argList {
