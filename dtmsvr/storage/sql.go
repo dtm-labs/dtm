@@ -112,7 +112,12 @@ func (s *SqlStore) TouchCronTime(global *TransGlobalStore, nextCronInterval int6
 
 func (s *SqlStore) LockOneGlobalTrans(expireIn time.Duration) *TransGlobalStore {
 	db := dbGet()
-	getTime := dtmimp.GetDBSpecial().TimestampAdd
+	getTime := func(second int) string {
+		return map[string]string{
+			"mysql":    fmt.Sprintf("date_add(now(), interval %d second)", second),
+			"postgres": fmt.Sprintf("current_timestamp + interval '%d second'", second),
+		}[config.Store.Driver]
+	}
 	expire := int(expireIn / time.Second)
 	whereTime := fmt.Sprintf("next_cron_time < %s", getTime(expire))
 	owner := uuid.NewString()
