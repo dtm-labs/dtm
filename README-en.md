@@ -87,7 +87,7 @@ If your language stack is Java, you can also choose to access dtm and use sub-tr
   // business micro-service address
   const qsBusi = "http://localhost:8081/api/busi_saga"
   // The address where DtmServer serves DTM, which is a url
-  DtmServer := "http://localhost:8080/api/dtmsvr"
+  DtmServer := "http://localhost:36789/api/dtmsvr"
   req := &gin.H{"amount": 30} // micro-service payload
 	// DtmServer is the address of DTM micro-service
 	saga := dtmcli.NewSaga(DtmServer, dtmcli.MustGenGid(DtmServer)).
