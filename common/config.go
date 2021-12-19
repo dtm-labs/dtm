@@ -109,10 +109,10 @@ func checkConfig() error {
 		if Config.Store.Port == 0 {
 			return errors.New("Db port not valid ")
 		}
-		if Config.Store.User == ""{
+		if Config.Store.User == "" {
 			return errors.New("Db user not valid ")
 		}
-		if Config.Store.Password == ""{
+		if Config.Store.Password == "" {
 			return errors.New("Db password not valid ")
 		}
 	}
