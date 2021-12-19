@@ -112,9 +112,6 @@ func checkConfig() error {
 		if Config.Store.User == "" {
 			return errors.New("Db user not valid ")
 		}
-		if Config.Store.Password == "" {
-			return errors.New("Db password not valid ")
-		}
 	}
 	return nil
 }
