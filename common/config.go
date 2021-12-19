@@ -12,6 +12,9 @@ import (
 
 const (
 	DtmMetricsPort = 8889
+	Mysql = "mysql"
+	Redis = "redis"
+	BoltDb = "boltdb"
 )
 
 // MicroService config type for micro service
@@ -92,12 +95,26 @@ func MustLoadConfig() {
 func checkConfig() error {
 	if Config.RetryInterval < 10 {
 		return errors.New("RetryInterval should not be less than 10")
-	} else if Config.TimeoutToFail < Config.RetryInterval {
+	}
+	if Config.TimeoutToFail < Config.RetryInterval {
 		return errors.New("TimeoutToFail should not be less than RetryInterval")
-	} else if Config.Store.Driver == "boltdb" {
-		return nil
-	} else if Config.Store.Driver != "redis" && (Config.Store.User == "" || Config.Store.Host == "" || Config.Store.Port == 0) {
-		return errors.New("db config not valid")
+	}
+	if Config.Store.Driver == BoltDb {
+		return errors.New("Database type configuration error ")
+	}
+	if Config.Store.Driver == Mysql {
+		if Config.Store.Host == "" {
+			return errors.New("Db host not valid ")
+		}
+		if Config.Store.Port == 0 {
+			return errors.New("Db port not valid ")
+		}
+		if Config.Store.User == ""{
+			return errors.New("Db user not valid ")
+		}
+		if Config.Store.Password == ""{
+			return errors.New("Db password not valid ")
+		}
 	}
 	return nil
 }
