@@ -41,10 +41,6 @@ func init() {
 
 type postgresDBSpecial struct{}
 
-func (*postgresDBSpecial) TimestampAdd(second int) string {
-	return fmt.Sprintf("current_timestamp + interval '%d second'", second)
-}
-
 func (*postgresDBSpecial) GetXaSQL(command string, xid string) string {
 	return map[string]string{
 		"end":      "",
