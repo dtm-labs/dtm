@@ -46,10 +46,4 @@ func TestCheckConfig(t *testing.T) {
 	userErr := checkConfig()
 	userExpect := errors.New("Db user not valid ")
 	assert.Equal(t,userErr,userExpect)
-
-	config.Store = Store{Driver: Mysql,Host: "127.0.0.1",Port: 8686,User: "test"}
-	passwordErr := checkConfig()
-	passwordExpect := errors.New("Db password not valid ")
-	assert.Equal(t,passwordErr,passwordExpect)
-
 }
