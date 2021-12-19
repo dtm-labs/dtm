@@ -100,7 +100,7 @@ func checkConfig() error {
 		return errors.New("TimeoutToFail should not be less than RetryInterval")
 	}
 	if Config.Store.Driver == BoltDb {
-		return errors.New("Database type configuration error ")
+		return errors.New("Db driver type error ")
 	}
 	if Config.Store.Driver == Mysql {
 		if Config.Store.Host == "" {
