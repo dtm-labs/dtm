@@ -48,7 +48,6 @@ func TestBaseSqlDB(t *testing.T) {
 	asserts.Equal(dbr.RowsAffected, int64(1))
 	dbr = db.Model(&BarrierModel{}).Where("gid=?", "gid2").Find(&[]BarrierModel{})
 	asserts.Equal(dbr.RowsAffected, int64(0))
-	barrier.BarrierID = 0
 	err = barrier.CallWithDB(db.ToSQLDB(), func(tx *sql.Tx) error {
 		dtmimp.Logf("submit gid2")
 		return nil

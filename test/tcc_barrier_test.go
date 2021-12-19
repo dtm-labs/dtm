@@ -122,7 +122,7 @@ func TestTccBarrierDisorder(t *testing.T) {
 }
 
 func TestTccBarrierPanic(t *testing.T) {
-	bb := &dtmcli.BranchBarrier{TransType: "saga", Gid: "gid1", BranchID: "bid1", Op: "action", BarrierID: 1}
+	bb := &dtmcli.BranchBarrier{TransType: "saga", Gid: "gid1", BranchID: "bid1", Op: "action"}
 	var err error
 	func() {
 		defer dtmimp.P2E(&err)

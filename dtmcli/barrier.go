@@ -9,9 +9,8 @@ package dtmcli
 import (
 	"database/sql"
 	"fmt"
-	"net/url"
-
 	"github.com/yedf/dtm/dtmcli/dtmimp"
+	"net/url"
 )
 
 // BarrierBusiFunc type for busi func
@@ -23,7 +22,7 @@ type BranchBarrier struct {
 	Gid       string
 	BranchID  string
 	Op        string
-	BarrierID int
+	BarrierID string
 }
 
 func (bb *BranchBarrier) String() string {
@@ -57,12 +56,10 @@ func insertBarrier(tx DB, transType string, gid string, branchID string, op stri
 	return dtmimp.DBExec(tx, sql, transType, gid, branchID, op, barrierID, reason)
 }
 
-// Call 子事务屏障，详细介绍见 https://zhuanlan.zhihu.com/p/388444465
-// tx: 本地数据库的事务对象，允许子事务屏障进行事务操作
-// busiCall: 业务函数，仅在必要时被调用
+// Call Sub-transaction barrier,see for details: https://zhuanlan.zhihu.com/p/388444465
+// tx: Transaction objects of the local database, allowing sub-transaction barriers to perform transaction operations
+// busiCall: business func,called only when necessary
 func (bb *BranchBarrier) Call(tx *sql.Tx, busiCall BarrierBusiFunc) (rerr error) {
-	bb.BarrierID = bb.BarrierID + 1
-	bid := fmt.Sprintf("%02d", bb.BarrierID)
 	defer func() {
 		// Logf("barrier call error is %v", rerr)
 		if x := recover(); x != nil {
@@ -74,17 +71,22 @@ func (bb *BranchBarrier) Call(tx *sql.Tx, busiCall BarrierBusiFunc) (rerr error)
 			tx.Commit()
 		}
 	}()
-	ti := bb
+	// Guaranteed same request idempotence
+	currentAffected, rerr := insertBarrier(tx, bb.TransType, bb.Gid,
+		bb.BranchID, bb.Op, "", bb.Op)
+	if currentAffected == 0 {
+		return
+	}
+
 	originType := map[string]string{
 		BranchCancel:     BranchTry,
 		BranchCompensate: BranchAction,
-	}[ti.Op]
+	}[bb.Op]
 
-	originAffected, _ := insertBarrier(tx, ti.TransType, ti.Gid, ti.BranchID, originType, bid, ti.Op)
-	currentAffected, rerr := insertBarrier(tx, ti.TransType, ti.Gid, ti.BranchID, ti.Op, bid, ti.Op)
-	dtmimp.Logf("originAffected: %d currentAffected: %d", originAffected, currentAffected)
-	if (ti.Op == BranchCancel || ti.Op == BranchCompensate) && originAffected > 0 || // 这个是空补偿
-		currentAffected == 0 { // 这个是重复请求或者悬挂
+	// insert gid-branchid-try data when the op is cancel
+	originAffected, _ := insertBarrier(tx, bb.TransType, bb.Gid, bb.BranchID,
+		originType, "", bb.Op)
+	if originAffected > 0 {
 		return
 	}
 	rerr = busiCall(tx)
