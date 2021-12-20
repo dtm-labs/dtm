@@ -52,7 +52,9 @@ func main() {
 	}
 	dtmimp.Logf("starting dtm....")
 	common.MustLoadConfig()
-	dtmcli.SetCurrentDBType(common.Config.ExamplesDB.Driver)
+	if common.Config.ExamplesDB.Driver != "" {
+		dtmcli.SetCurrentDBType(common.Config.ExamplesDB.Driver)
+	}
 	if os.Args[1] != "dtmsvr" { // 实际线上运行，只启动dtmsvr，不准备table相关的数据
 		storage.WaitStoreUp()
 		dtmsvr.PopulateDB(true)

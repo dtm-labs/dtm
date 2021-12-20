@@ -83,9 +83,9 @@ func MustGetwd() string {
 func GetSqlDir() string {
 	wd := MustGetwd()
 	if filepath.Base(wd) == "test" {
-		wd = filepath.Dir(wd) + "/sqls"
+		wd = filepath.Dir(wd)
 	}
-	return wd
+	return wd + "/sqls"
 }
 
 func RecoverPanic(err *error) {

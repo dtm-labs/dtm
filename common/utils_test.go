@@ -43,7 +43,7 @@ func TestFuncs(t *testing.T) {
 	assert.NotEqual(t, "", wd)
 
 	dir1 := GetSqlDir()
-	assert.Equal(t, true, strings.HasSuffix(dir1, "common"))
+	assert.Equal(t, true, strings.HasSuffix(dir1, "/sqls"))
 
 }
 

@@ -1,6 +1,7 @@
 package common
 
 import (
+	"encoding/json"
 	"errors"
 	"io/ioutil"
 	"path/filepath"
@@ -12,9 +13,9 @@ import (
 
 const (
 	DtmMetricsPort = 8889
-	Mysql = "mysql"
-	Redis = "redis"
-	BoltDb = "boltdb"
+	Mysql          = "mysql"
+	Redis          = "redis"
+	BoltDb         = "boltdb"
 )
 
 // MicroService config type for micro service
@@ -80,11 +81,13 @@ func MustLoadConfig() {
 		}
 	}
 	if len(cont) != 0 {
-		dtmimp.Logf("config is: \n%s", string(cont))
 		err := yaml.UnmarshalStrict(cont, &Config)
 		dtmimp.FatalIfError(err)
 	}
-	err := checkConfig()
+	scont, err := json.MarshalIndent(&Config, "", "  ")
+	dtmimp.FatalIfError(err)
+	dtmimp.Logf("config is: \n%s", scont)
+	err = checkConfig()
 	dtmimp.LogIfFatalf(err != nil, `config error: '%v'.
 	check you env, and conf.yml/conf.sample.yml in current and parent path: %s.
 	please visit http://d.dtm.pub to see the config document.

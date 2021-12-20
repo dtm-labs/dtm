@@ -10,7 +10,6 @@ RUN CGO_ENABLED=0 GOOS=$TARGETOS GOARCH=$TARGETARCH go build -ldflags="-s -w" ap
 
 FROM --platform=$TARGETPLATFORM alpine:3.14
 COPY --from=builder /app/dtm/main /app/dtm/
-COPY --from=builder /app/dtm/sqls/*.sql /app/dtm/sqls/
 ENV IS_DOCKER=1
 WORKDIR /app/dtm
 CMD ["/app/dtm/main", "dtmsvr"]
