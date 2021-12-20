@@ -21,9 +21,9 @@ import (
 	"github.com/yedf/dtm/examples"
 )
 
-// 启动命令：go run app/main.go qs
+// launch command：go run app/main.go qs
 
-// 事务参与者的服务地址
+// service address of the transcation
 const benchAPI = "/api/busi_bench"
 const benchPort = 8083
 const total = 200000

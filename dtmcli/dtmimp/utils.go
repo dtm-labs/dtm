@@ -133,7 +133,7 @@ func InitLog() {
 		config.Encoding = "console"
 		config.EncoderConfig.EncodeLevel = zapcore.CapitalColorLevelEncoder
 	}
-	p, err := config.Build()
+	p, err := config.Build(zap.AddCallerSkip(1))
 	if err != nil {
 		log.Fatal("create logger failed: ", err)
 	}
