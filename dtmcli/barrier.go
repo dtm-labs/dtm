@@ -22,7 +22,7 @@ type BranchBarrier struct {
 	Gid       string
 	BranchID  string
 	Op        string
-	BarrierID string
+	BarrierID int
 }
 
 func (bb *BranchBarrier) String() string {
@@ -71,9 +71,11 @@ func (bb *BranchBarrier) Call(tx *sql.Tx, busiCall BarrierBusiFunc) (rerr error)
 			tx.Commit()
 		}
 	}()
+	bb.BarrierID = bb.BarrierID + 1
+	bid := fmt.Sprintf("%02d", bb.BarrierID)
 	// Guaranteed same request idempotence
 	currentAffected, rerr := insertBarrier(tx, bb.TransType, bb.Gid,
-		bb.BranchID, bb.Op, "", bb.Op)
+		bb.BranchID, bb.Op, bid, bb.Op)
 	if currentAffected == 0 {
 		return
 	}
@@ -85,7 +87,7 @@ func (bb *BranchBarrier) Call(tx *sql.Tx, busiCall BarrierBusiFunc) (rerr error)
 
 	// insert gid-branchid-try data when the op is cancel
 	originAffected, _ := insertBarrier(tx, bb.TransType, bb.Gid, bb.BranchID,
-		originType, "", bb.Op)
+		originType, bid, bb.Op)
 	if originAffected > 0 {
 		return
 	}
