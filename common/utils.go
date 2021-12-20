@@ -12,7 +12,6 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
-	"runtime"
 	"strings"
 	"time"
 
@@ -80,10 +79,13 @@ func MustGetwd() string {
 	return wd
 }
 
-// GetCallerCodeDir 获取调用该函数的caller源代码的目录，主要用于测试时，查找相关文件
-func GetCallerCodeDir() string {
-	_, file, _, _ := runtime.Caller(1)
-	return filepath.Dir(file)
+// GetSqlDir 获取调用该函数的caller源代码的目录，主要用于测试时，查找相关文件
+func GetSqlDir() string {
+	wd := MustGetwd()
+	if filepath.Base(wd) == "test" {
+		wd = filepath.Dir(wd) + "/sqls"
+	}
+	return wd
 }
 
 func RecoverPanic(err *error) {

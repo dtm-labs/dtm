@@ -16,12 +16,14 @@ type SqlStore struct {
 }
 
 func (s *SqlStore) Ping() error {
-	dbr := dbGet().Exec("select 1")
-	return dbr.Error
+	db, err := dtmimp.StandaloneDB(config.Store.GetDBConf())
+	dtmimp.E2P(err)
+	_, err = db.Exec("select 1")
+	return err
 }
 
 func (s *SqlStore) PopulateData(skipDrop bool) {
-	file := fmt.Sprintf("%s/storage.%s.sql", common.GetCallerCodeDir(), config.Store.Driver)
+	file := fmt.Sprintf("%s/dtmsvr.storage.%s.sql", common.GetSqlDir(), config.Store.Driver)
 	common.RunSQLScript(config.Store.GetDBConf(), file, skipDrop)
 }
 

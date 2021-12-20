@@ -42,7 +42,7 @@ func TestFuncs(t *testing.T) {
 	wd := MustGetwd()
 	assert.NotEqual(t, "", wd)
 
-	dir1 := GetCallerCodeDir()
+	dir1 := GetSqlDir()
 	assert.Equal(t, true, strings.HasSuffix(dir1, "common"))
 
 }

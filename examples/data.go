@@ -34,9 +34,9 @@ func resetXaData() {
 // PopulateDB populate example mysql data
 func PopulateDB(skipDrop bool) {
 	resetXaData()
-	file := fmt.Sprintf("%s/examples.%s.sql", common.GetCallerCodeDir(), config.ExamplesDB.Driver)
+	file := fmt.Sprintf("%s/examples.%s.sql", common.GetSqlDir(), config.ExamplesDB.Driver)
 	common.RunSQLScript(config.ExamplesDB, file, skipDrop)
-	file = fmt.Sprintf("%s/../dtmcli/barrier.%s.sql", common.GetCallerCodeDir(), config.ExamplesDB.Driver)
+	file = fmt.Sprintf("%s/dtmcli.barrier.%s.sql", common.GetSqlDir(), config.ExamplesDB.Driver)
 	common.RunSQLScript(config.ExamplesDB, file, skipDrop)
 }
 

@@ -14,6 +14,17 @@ services:
       ]
     ports:
       - '3306:3306'
+  postgres:
+    image: 'postgres:13'
+    command: postgres --max_prepared_transactions=1000
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - /etc/timezone:/etc/timezone:ro
+    environment:
+      POSTGRES_PASSWORD: mysecretpassword
+
+    ports:
+      - '5432:5432'
   redis:
     image: 'redis'
     volumes:
