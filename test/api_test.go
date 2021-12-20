@@ -73,3 +73,9 @@ func TestAPIAll(t *testing.T) {
 	nextPos3 := m["next_position"].(string)
 	assert.Equal(t, "", nextPos3)
 }
+
+func TestDtmMetrics(t *testing.T) {
+	rest, err := dtmimp.RestyClient.R().Get("http://localhost:36789/api/metrics")
+	assert.Nil(t, err)
+	assert.Equal(t, rest.StatusCode(), 200)
+}
