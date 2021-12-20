@@ -21,6 +21,20 @@ func boltGet() *bolt.DB {
 	boltOnce.Do(func() {
 		db, err := bolt.Open("./dtm.bolt", 0666, &bolt.Options{Timeout: 1 * time.Second})
 		dtmimp.E2P(err)
+
+		// NOTE: we must ensure all buckets is exists before we use it
+		err = db.Update(func(t *bolt.Tx) error {
+			for _, bucket := range allBuckets {
+				_, err := t.CreateBucketIfNotExists(bucket)
+				if err != nil {
+					return err
+				}
+			}
+
+			return nil
+		})
+		dtmimp.E2P(err)
+
 		boltDb = db
 	})
 	return boltDb
@@ -29,6 +43,11 @@ func boltGet() *bolt.DB {
 var bucketGlobal = []byte("global")
 var bucketBranches = []byte("branches")
 var bucketIndex = []byte("index")
+var allBuckets = [][]byte{
+	bucketGlobal,
+	bucketBranches,
+	bucketIndex,
+}
 
 func tGetGlobal(t *bolt.Tx, gid string) *TransGlobalStore {
 	trans := TransGlobalStore{}
