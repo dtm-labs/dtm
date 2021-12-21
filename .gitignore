@@ -8,3 +8,7 @@ dist
 .vscode/*.json
 default.etcd
 */**/*.bolt
+
+# Output file of unit test coverage
+coverage.out
+coverage.out.tmp
