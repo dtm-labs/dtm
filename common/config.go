@@ -35,7 +35,7 @@ type Store struct {
 	MaxIdleConns    int64  `yaml:"MaxIdleConns" default:"500"`
 	ConnMaxLifeTime int64  `yaml:"ConnMaxLifeTime" default:"5"`
 	DataExpire      int64  `yaml:"DataExpire" default:"604800"` // Trans data will expire in 7 days. only for redis/boltdb.
-	RedisPrefix     string `yaml:"RedisPrefix" default:"{}"`    // Redis storage prefix. store data to only one slot in cluster
+	RedisPrefix     string `yaml:"RedisPrefix" default:"{a}"`   // Redis storage prefix. store data to only one slot in cluster
 }
 
 func (s *Store) IsDB() bool {

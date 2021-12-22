@@ -51,6 +51,8 @@ func TestMain(m *testing.M) {
 	} else {
 		config.Store.Driver = "redis"
 		config.Store.Host = "localhost"
+		config.Store.User = ""
+		config.Store.Password = ""
 		config.Store.Port = 6379
 	}
 	dtmsvr.PopulateDB(false)

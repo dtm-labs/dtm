@@ -77,12 +77,20 @@ func (s *RedisStore) UpdateBranchesSql(branches []TransBranchStore, updates []st
 }
 
 type argList struct {
+	Keys []string
 	List []interface{}
 }
 
 func newArgList() *argList {
 	a := &argList{}
 	return a.AppendRaw(config.Store.RedisPrefix).AppendObject(config.Store.DataExpire)
+}
+
+func (a *argList) AppendGid(gid string) *argList {
+	a.Keys = append(a.Keys, config.Store.RedisPrefix+"_g_"+gid)
+	a.Keys = append(a.Keys, config.Store.RedisPrefix+"_b_"+gid)
+	a.Keys = append(a.Keys, config.Store.RedisPrefix+"_u")
+	return a
 }
 
 func (a *argList) AppendRaw(v interface{}) *argList {
@@ -114,47 +122,46 @@ func handleRedisResult(ret interface{}, err error) (string, error) {
 	return s, err
 }
 
-func callLua(args []interface{}, lua string) (string, error) {
-	dtmimp.Logf("calling lua. args: %v\nlua:%s", args, lua)
-	ret, err := redisGet().Eval(ctx, lua, []string{config.Store.RedisPrefix}, args...).Result()
+func callLua(a *argList, lua string) (string, error) {
+	dtmimp.Logf("calling lua. args: %v\nlua:%s", a, lua)
+	ret, err := redisGet().Eval(ctx, lua, a.Keys, a.List...).Result()
 	return handleRedisResult(ret, err)
 }
 
 func (s *RedisStore) MaySaveNewTrans(global *TransGlobalStore, branches []TransBranchStore) error {
-	args := newArgList().
+	a := newArgList().
+		AppendGid(global.Gid).
 		AppendObject(global).
 		AppendRaw(global.NextCronTime.Unix()).
-		AppendBranches(branches).
-		List
+		AppendBranches(branches)
 	global.Steps = nil
 	global.Payloads = nil
-	_, err := callLua(args, `-- MaySaveNewTrans
+	_, err := callLua(a, `-- MaySaveNewTrans
 local gs = cjson.decode(ARGV[3])
-local g = redis.call('GET', ARGV[1] .. '_g_' .. gs.gid)
+local g = redis.call('GET', KEYS[1])
 if g ~= false then
 	return 'UNIQUE_CONFLICT'
 end
 
-redis.call('SET', ARGV[1] .. '_g_' .. gs.gid, ARGV[3], 'EX', ARGV[2])
-redis.call('ZADD', ARGV[1] .. '_u', ARGV[4], gs.gid)
+redis.call('SET', KEYS[1], ARGV[3], 'EX', ARGV[2])
+redis.call('ZADD', KEYS[3], ARGV[4], gs.gid)
 for k = 5, table.getn(ARGV) do
-	redis.call('RPUSH', ARGV[1] .. '_b_' .. gs.gid, ARGV[k])
+	redis.call('RPUSH', KEYS[2], ARGV[k])
 end
-redis.call('EXPIRE', ARGV[1] .. '_b_' .. gs.gid, ARGV[2])
+redis.call('EXPIRE', KEYS[2], ARGV[2])
 `)
 	return err
 }
 
 func (s *RedisStore) LockGlobalSaveBranches(gid string, status string, branches []TransBranchStore, branchStart int) {
 	args := newArgList().
+		AppendGid(gid).
 		AppendObject(&TransGlobalStore{Gid: gid, Status: status}).
 		AppendRaw(branchStart).
-		AppendBranches(branches).
-		List
+		AppendBranches(branches)
 	_, err := callLua(args, `
-local pre = ARGV[1]
 local gs = cjson.decode(ARGV[3])
-local g = redis.call('GET', pre .. '_g_' .. gs.gid)
+local g = redis.call('GET', KEYS[1])
 if (g == false) then
 	return 'NOT_FOUND'
 end
@@ -165,12 +172,12 @@ end
 local start = ARGV[4]
 for k = 5, table.getn(ARGV) do
 	if start == "-1" then
-		redis.call('RPUSH', pre .. '_b_' .. gs.gid, ARGV[k])
+		redis.call('RPUSH', KEYS[2], ARGV[k])
 	else
-		redis.call('LSET', pre .. '_b_' .. gs.gid, start+k-5, ARGV[k])
+		redis.call('LSET', KEYS[2], start+k-5, ARGV[k])
 	end
 end
-redis.call('EXPIRE', pre .. '_b_' .. gs.gid, ARGV[2])
+redis.call('EXPIRE', KEYS[2], ARGV[2])
 	`)
 	dtmimp.E2P(err)
 }
@@ -178,11 +185,10 @@ redis.call('EXPIRE', pre .. '_b_' .. gs.gid, ARGV[2])
 func (s *RedisStore) ChangeGlobalStatus(global *TransGlobalStore, newStatus string, updates []string, finished bool) {
 	old := global.Status
 	global.Status = newStatus
-	args := newArgList().AppendObject(global).AppendRaw(old).AppendRaw(finished).List
+	args := newArgList().AppendGid(global.Gid).AppendObject(global).AppendRaw(old).AppendRaw(finished)
 	_, err := callLua(args, `-- ChangeGlobalStatus
-local p = ARGV[1]
 local gs = cjson.decode(ARGV[3])
-local old = redis.call('GET', p .. '_g_' .. gs.gid)
+local old = redis.call('GET', KEYS[1])
 if old == false then
 	return 'NOT_FOUND'
 end
@@ -190,10 +196,10 @@ local os = cjson.decode(old)
 if os.status ~= ARGV[4] then
   return 'NOT_FOUND'
 end
-redis.call('SET', p .. '_g_' .. gs.gid,  ARGV[3], 'EX', ARGV[2])
+redis.call('SET', KEYS[1],  ARGV[3], 'EX', ARGV[2])
 redis.log(redis.LOG_WARNING, 'finished: ', ARGV[5])
 if ARGV[5] == '1' then
-	redis.call('ZREM', p .. '_u', gs.gid)
+	redis.call('ZREM', KEYS[3], gs.gid)
 end
 `)
 	dtmimp.E2P(err)
@@ -202,49 +208,41 @@ end
 func (s *RedisStore) LockOneGlobalTrans(expireIn time.Duration) *TransGlobalStore {
 	expired := time.Now().Add(expireIn).Unix()
 	next := time.Now().Add(time.Duration(config.RetryInterval) * time.Second).Unix()
-	args := newArgList().AppendRaw(expired).AppendRaw(next).List
+	args := newArgList().AppendGid("").AppendRaw(expired).AppendRaw(next)
 	lua := `-- LocakOneGlobalTrans
-local k = ARGV[1] .. '_u'
-local r = redis.call('ZRANGE', k, 0, 0, 'WITHSCORES')
+local r = redis.call('ZRANGE', KEYS[3], 0, 0, 'WITHSCORES')
 local gid = r[1]
 if gid == nil then
-	return 'NOT_FOUND'
-end
-local g = redis.call('GET', ARGV[1] .. '_g_' .. gid)
-redis.log(redis.LOG_WARNING, 'g is: ', g, 'gid is: ', gid)
-if g == false then
-	redis.call('ZREM', k, gid)
 	return 'NOT_FOUND'
 end
 
 if tonumber(r[2]) > tonumber(ARGV[3]) then
 	return 'NOT_FOUND'
 end
-redis.call('ZADD', k, ARGV[4], gid)
-return g
+redis.call('ZADD', KEYS[3], ARGV[4], gid)
+return gid
 `
-	r, err := callLua(args, lua)
-	for err == ErrShouldRetry {
-		r, err = callLua(args, lua)
+	for {
+		r, err := callLua(args, lua)
+		if err == ErrNotFound {
+			return nil
+		}
+		dtmimp.E2P(err)
+		global := s.FindTransGlobalStore(r)
+		if global != nil {
+			return global
+		}
 	}
-	if err == ErrNotFound {
-		return nil
-	}
-	dtmimp.E2P(err)
-	global := &TransGlobalStore{}
-	dtmimp.MustUnmarshalString(r, global)
-	return global
 }
 
 func (s *RedisStore) TouchCronTime(global *TransGlobalStore, nextCronInterval int64) {
 	global.NextCronTime = common.GetNextTime(nextCronInterval)
 	global.UpdateTime = common.GetNextTime(0)
 	global.NextCronInterval = nextCronInterval
-	args := newArgList().AppendObject(global).AppendRaw(global.NextCronTime.Unix()).List
+	args := newArgList().AppendGid(global.Gid).AppendObject(global).AppendRaw(global.NextCronTime.Unix())
 	_, err := callLua(args, `-- TouchCronTime
-local p = ARGV[1]
 local g = cjson.decode(ARGV[3])
-local old = redis.call('GET', p .. '_g_' .. g.gid)
+local old = redis.call('GET', KEYS[1])
 if old == false then
 	return 'NOT_FOUND'
 end
@@ -252,8 +250,8 @@ local os = cjson.decode(old)
 if os.status ~= g.status then
   return 'NOT_FOUND'
 end
-redis.call('ZADD', p .. '_u', ARGV[4], g.gid)
-redis.call('SET', p .. '_g_' .. g.gid, ARGV[3], 'EX', ARGV[2])
+redis.call('ZADD', KEYS[3], ARGV[4], g.gid)
+redis.call('SET', KEYS[1], ARGV[3], 'EX', ARGV[2])
 	`)
 	dtmimp.E2P(err)
 }
