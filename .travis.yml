@@ -15,4 +15,4 @@ before_install:
   - go get -t -v ./...
   - go get github.com/yedf2/goveralls
 script:
-  - $GOPATH/bin/goveralls -envs=TEST_STORE=redis,TEST_STORE=mysql,TEST_STORE=boltdb -service=travis-ci -ignore="examples/*,dtmgrpc/dtmgimp/*.pb.go,bench/*,test/*"
+  - $GOPATH/bin/goveralls -envs=TEST_STORE=redis,TEST_STORE=mysql,TEST_STORE=boltdb -flags '-gcflags=-l' -service=travis-ci -ignore="examples/*,dtmgrpc/dtmgimp/*.pb.go,bench/*,test/*"
