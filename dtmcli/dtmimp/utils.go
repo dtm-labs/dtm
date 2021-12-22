@@ -62,7 +62,7 @@ func PanicIf(cond bool, err error) {
 	}
 }
 
-// MustAtoi 走must逻辑
+// MustAtoi is string to int
 func MustAtoi(s string) int {
 	r, err := strconv.Atoi(s)
 	if err != nil {
@@ -126,6 +126,7 @@ func init() {
 	InitLog()
 }
 
+// InitLog is a initialization for a logger
 func InitLog() {
 	config := zap.NewProductionConfig()
 	config.EncoderConfig.EncodeTime = zapcore.ISO8601TimeEncoder
@@ -140,34 +141,34 @@ func InitLog() {
 	logger = p.Sugar()
 }
 
-// Logf 输出日志
+// Logf is log stdout
 func Logf(fmt string, args ...interface{}) {
 	logger.Infof(fmt, args...)
 }
 
-// LogRedf 采用红色打印错误类信息
+// LogRedf is print error message with red color
 func LogRedf(fmt string, args ...interface{}) {
 	logger.Errorf(fmt, args...)
 }
 
-// FatalExitFunc Fatal退出函数，测试时被替换
+// FatalExitFunc is a Fatal exit function ，it will be replaced when testing
 var FatalExitFunc = func() { os.Exit(1) }
 
-// LogFatalf 采用红色打印错误类信息， 并退出
+// LogFatalf is print error message with red color, and execute FatalExitFunc
 func LogFatalf(fmt string, args ...interface{}) {
 	fmt += "\n" + string(debug.Stack())
 	LogRedf(fmt, args...)
 	FatalExitFunc()
 }
 
-// LogIfFatalf 采用红色打印错误类信息， 并退出
+// LogIfFatalf is print error message with red color, and execute LogFatalf, when condition is true
 func LogIfFatalf(condition bool, fmt string, args ...interface{}) {
 	if condition {
 		LogFatalf(fmt, args...)
 	}
 }
 
-// FatalIfError 采用红色打印错误类信息， 并退出
+// FatalIfError is print error message with red color, and execute LogIfFatalf.
 func FatalIfError(err error) {
 	LogIfFatalf(err != nil, "Fatal error: %v", err)
 }
@@ -243,7 +244,7 @@ func GetDsn(conf DBConf) string {
 	return dsn
 }
 
-// CheckResponse 检查Response，返回错误
+// CheckResponse is check response, and return corresponding error by the condition of resp when err is nil. Otherwise, return err directly.
 func CheckResponse(resp *resty.Response, err error) error {
 	if err == nil && resp != nil {
 		if resp.IsError() {
@@ -257,7 +258,8 @@ func CheckResponse(resp *resty.Response, err error) error {
 	return err
 }
 
-// CheckResult 检查Result，返回错误
+// CheckResult is check result. Return err directly if err is not nil. And return corresponding error by calling CheckResponse if resp is the type of *resty.Response. 
+// Otherwise, return error by value of str, the string after marshal.
 func CheckResult(res interface{}, err error) error {
 	if err != nil {
 		return err
