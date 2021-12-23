@@ -9,7 +9,7 @@ import (
 )
 
 func TestLoadFromEnv(t *testing.T) {
-	assert.Equal(t, "MICRO_SERVICE_DRIVER1", toUnderscoreUpper("MicroService_Driver"))
+	assert.Equal(t, "MICRO_SERVICE_DRIVER", toUnderscoreUpper("MicroService_Driver"))
 
 	ms := MicroService{}
 	os.Setenv("T_DRIVER", "d1")
