@@ -10,7 +10,6 @@ import (
 )
 
 var ErrNotFound = errors.New("storage: NotFound")
-var ErrShouldRetry = errors.New("storage: ShoudRetry")
 var ErrUniqueConflict = errors.New("storage: UniqueKeyConflict")
 
 type Store interface {

@@ -358,15 +358,14 @@ func (s *BoltdbStore) LockOneGlobalTrans(expireIn time.Duration) *TransGlobalSto
 	next := time.Now().Add(time.Duration(config.RetryInterval) * time.Second)
 	err := boltGet().Update(func(t *bolt.Tx) error {
 		cursor := t.Bucket(bucketIndex).Cursor()
-		k, v := cursor.First()
-		if k == nil || string(k) > min {
-			return ErrNotFound
-		}
-		trans = tGetGlobal(t, string(v))
-		err := t.Bucket(bucketIndex).Delete(k)
-		dtmimp.E2P(err)
-		if trans == nil { // index exists, but global trans not exists, so retry to get next
-			return ErrShouldRetry
+		for trans == nil {
+			k, v := cursor.First()
+			if k == nil || string(k) > min {
+				return ErrNotFound
+			}
+			trans = tGetGlobal(t, string(v))
+			err := t.Bucket(bucketIndex).Delete(k)
+			dtmimp.E2P(err)
 		}
 		trans.NextCronTime = &next
 		tPutGlobal(t, trans)
