@@ -11,14 +11,14 @@ import (
 	"os"
 	"strings"
 
+	_ "go.uber.org/automaxprocs"
+
 	"github.com/yedf/dtm/common"
 	"github.com/yedf/dtm/dtmcli"
 	"github.com/yedf/dtm/dtmcli/dtmimp"
 	"github.com/yedf/dtm/dtmsvr"
-	"github.com/yedf/dtm/dtmsvr/storage"
+	"github.com/yedf/dtm/dtmsvr/storage/registry"
 	"github.com/yedf/dtm/examples"
-
-	_ "go.uber.org/automaxprocs"
 )
 
 var Version, Commit, Date string
@@ -56,7 +56,7 @@ func main() {
 		dtmcli.SetCurrentDBType(common.Config.ExamplesDB.Driver)
 	}
 	if os.Args[1] != "dtmsvr" { // 实际线上运行，只启动dtmsvr，不准备table相关的数据
-		storage.WaitStoreUp()
+		registry.WaitStoreUp()
 		dtmsvr.PopulateDB(true)
 		examples.PopulateDB(true)
 	}

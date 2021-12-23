@@ -1,4 +1,4 @@
-package storage
+package boltdb
 
 import (
 	"fmt"
@@ -6,11 +6,15 @@ import (
 	"sync"
 	"time"
 
-	"github.com/yedf/dtm/common"
-	"github.com/yedf/dtm/dtmcli/dtmimp"
 	bolt "go.etcd.io/bbolt"
 	"gorm.io/gorm"
+
+	"github.com/yedf/dtm/common"
+	"github.com/yedf/dtm/dtmcli/dtmimp"
+	"github.com/yedf/dtm/dtmsvr/storage"
 )
+
+var config = &common.Config
 
 type BoltdbStore struct {
 }
@@ -71,7 +75,7 @@ func cleanupExpiredData(expiredSeconds time.Duration, db *bolt.DB) error {
 		expiredGids := map[string]struct{}{}
 		cursor := globalBucket.Cursor()
 		for k, v := cursor.First(); k != nil; k, v = cursor.Next() {
-			trans := TransGlobalStore{}
+			trans := storage.TransGlobalStore{}
 			dtmimp.MustUnmarshal(v, &trans)
 
 			transDoneTime := trans.FinishTime
@@ -115,7 +119,7 @@ func cleanupBranchWithGids(t *bolt.Tx, gids map[string]struct{}) {
 	for gid := range gids {
 		cursor := bucket.Cursor()
 		for k, v := cursor.Seek([]byte(gid)); k != nil; k, v = cursor.Next() {
-			b := TransBranchStore{}
+			b := storage.TransBranchStore{}
 			dtmimp.MustUnmarshal(v, &b)
 			if b.Gid != gid {
 				break
@@ -167,8 +171,8 @@ var allBuckets = [][]byte{
 	bucketIndex,
 }
 
-func tGetGlobal(t *bolt.Tx, gid string) *TransGlobalStore {
-	trans := TransGlobalStore{}
+func tGetGlobal(t *bolt.Tx, gid string) *storage.TransGlobalStore {
+	trans := storage.TransGlobalStore{}
 	bs := t.Bucket(bucketGlobal).Get([]byte(gid))
 	if bs == nil {
 		return nil
@@ -177,11 +181,11 @@ func tGetGlobal(t *bolt.Tx, gid string) *TransGlobalStore {
 	return &trans
 }
 
-func tGetBranches(t *bolt.Tx, gid string) []TransBranchStore {
-	branches := []TransBranchStore{}
+func tGetBranches(t *bolt.Tx, gid string) []storage.TransBranchStore {
+	branches := []storage.TransBranchStore{}
 	cursor := t.Bucket(bucketBranches).Cursor()
 	for k, v := cursor.Seek([]byte(gid)); k != nil; k, v = cursor.Next() {
-		b := TransBranchStore{}
+		b := storage.TransBranchStore{}
 		dtmimp.MustUnmarshal(v, &b)
 		if b.Gid != gid {
 			break
@@ -190,13 +194,13 @@ func tGetBranches(t *bolt.Tx, gid string) []TransBranchStore {
 	}
 	return branches
 }
-func tPutGlobal(t *bolt.Tx, global *TransGlobalStore) {
+func tPutGlobal(t *bolt.Tx, global *storage.TransGlobalStore) {
 	bs := dtmimp.MustMarshal(global)
 	err := t.Bucket(bucketGlobal).Put([]byte(global.Gid), bs)
 	dtmimp.E2P(err)
 }
 
-func tPutBranches(t *bolt.Tx, branches []TransBranchStore, start int64) {
+func tPutBranches(t *bolt.Tx, branches []storage.TransBranchStore, start int64) {
 	if start == -1 {
 		bs := tGetBranches(t, branches[0].Gid)
 		start = int64(len(bs))
@@ -240,7 +244,7 @@ func (s *BoltdbStore) PopulateData(skipDrop bool) {
 	}
 }
 
-func (s *BoltdbStore) FindTransGlobalStore(gid string) (trans *TransGlobalStore) {
+func (s *BoltdbStore) FindTransGlobalStore(gid string) (trans *storage.TransGlobalStore) {
 	err := boltGet().View(func(t *bolt.Tx) error {
 		trans = tGetGlobal(t, gid)
 		return nil
@@ -249,15 +253,15 @@ func (s *BoltdbStore) FindTransGlobalStore(gid string) (trans *TransGlobalStore)
 	return
 }
 
-func (s *BoltdbStore) ScanTransGlobalStores(position *string, limit int64) []TransGlobalStore {
-	globals := []TransGlobalStore{}
+func (s *BoltdbStore) ScanTransGlobalStores(position *string, limit int64) []storage.TransGlobalStore {
+	globals := []storage.TransGlobalStore{}
 	err := boltGet().View(func(t *bolt.Tx) error {
 		cursor := t.Bucket(bucketGlobal).Cursor()
 		for k, v := cursor.First(); k != nil; k, v = cursor.Next() {
 			if string(k) == *position {
 				continue
 			}
-			g := TransGlobalStore{}
+			g := storage.TransGlobalStore{}
 			dtmimp.MustUnmarshal(v, &g)
 			globals = append(globals, g)
 			if len(globals) == int(limit) {
@@ -275,8 +279,8 @@ func (s *BoltdbStore) ScanTransGlobalStores(position *string, limit int64) []Tra
 	return globals
 }
 
-func (s *BoltdbStore) FindBranches(gid string) []TransBranchStore {
-	var branches []TransBranchStore = nil
+func (s *BoltdbStore) FindBranches(gid string) []storage.TransBranchStore {
+	var branches []storage.TransBranchStore = nil
 	err := boltGet().View(func(t *bolt.Tx) error {
 		branches = tGetBranches(t, gid)
 		return nil
@@ -285,18 +289,18 @@ func (s *BoltdbStore) FindBranches(gid string) []TransBranchStore {
 	return branches
 }
 
-func (s *BoltdbStore) UpdateBranchesSql(branches []TransBranchStore, updates []string) *gorm.DB {
+func (s *BoltdbStore) UpdateBranchesSql(branches []storage.TransBranchStore, updates []string) *gorm.DB {
 	return nil // not implemented
 }
 
-func (s *BoltdbStore) LockGlobalSaveBranches(gid string, status string, branches []TransBranchStore, branchStart int) {
+func (s *BoltdbStore) LockGlobalSaveBranches(gid string, status string, branches []storage.TransBranchStore, branchStart int) {
 	err := boltGet().Update(func(t *bolt.Tx) error {
 		g := tGetGlobal(t, gid)
 		if g == nil {
-			return ErrNotFound
+			return storage.ErrNotFound
 		}
 		if g.Status != status {
-			return ErrNotFound
+			return storage.ErrNotFound
 		}
 		tPutBranches(t, branches, int64(branchStart))
 		return nil
@@ -304,11 +308,11 @@ func (s *BoltdbStore) LockGlobalSaveBranches(gid string, status string, branches
 	dtmimp.E2P(err)
 }
 
-func (s *BoltdbStore) MaySaveNewTrans(global *TransGlobalStore, branches []TransBranchStore) error {
+func (s *BoltdbStore) MaySaveNewTrans(global *storage.TransGlobalStore, branches []storage.TransBranchStore) error {
 	return boltGet().Update(func(t *bolt.Tx) error {
 		g := tGetGlobal(t, global.Gid)
 		if g != nil {
-			return ErrUniqueConflict
+			return storage.ErrUniqueConflict
 		}
 		tPutGlobal(t, global)
 		tPutIndex(t, global.NextCronTime.Unix(), global.Gid)
@@ -317,13 +321,13 @@ func (s *BoltdbStore) MaySaveNewTrans(global *TransGlobalStore, branches []Trans
 	})
 }
 
-func (s *BoltdbStore) ChangeGlobalStatus(global *TransGlobalStore, newStatus string, updates []string, finished bool) {
+func (s *BoltdbStore) ChangeGlobalStatus(global *storage.TransGlobalStore, newStatus string, updates []string, finished bool) {
 	old := global.Status
 	global.Status = newStatus
 	err := boltGet().Update(func(t *bolt.Tx) error {
 		g := tGetGlobal(t, global.Gid)
 		if g == nil || g.Status != old {
-			return ErrNotFound
+			return storage.ErrNotFound
 		}
 		if finished {
 			tDelIndex(t, g.NextCronTime.Unix(), g.Gid)
@@ -334,7 +338,7 @@ func (s *BoltdbStore) ChangeGlobalStatus(global *TransGlobalStore, newStatus str
 	dtmimp.E2P(err)
 }
 
-func (s *BoltdbStore) TouchCronTime(global *TransGlobalStore, nextCronInterval int64) {
+func (s *BoltdbStore) TouchCronTime(global *storage.TransGlobalStore, nextCronInterval int64) {
 	oldUnix := global.NextCronTime.Unix()
 	global.NextCronTime = common.GetNextTime(nextCronInterval)
 	global.UpdateTime = common.GetNextTime(0)
@@ -342,7 +346,7 @@ func (s *BoltdbStore) TouchCronTime(global *TransGlobalStore, nextCronInterval i
 	err := boltGet().Update(func(t *bolt.Tx) error {
 		g := tGetGlobal(t, global.Gid)
 		if g == nil || g.Gid != global.Gid {
-			return ErrNotFound
+			return storage.ErrNotFound
 		}
 		tDelIndex(t, oldUnix, global.Gid)
 		tPutGlobal(t, global)
@@ -352,8 +356,8 @@ func (s *BoltdbStore) TouchCronTime(global *TransGlobalStore, nextCronInterval i
 	dtmimp.E2P(err)
 }
 
-func (s *BoltdbStore) LockOneGlobalTrans(expireIn time.Duration) *TransGlobalStore {
-	var trans *TransGlobalStore = nil
+func (s *BoltdbStore) LockOneGlobalTrans(expireIn time.Duration) *storage.TransGlobalStore {
+	var trans *storage.TransGlobalStore = nil
 	min := fmt.Sprintf("%d", time.Now().Add(expireIn).Unix())
 	next := time.Now().Add(time.Duration(config.RetryInterval) * time.Second)
 	err := boltGet().Update(func(t *bolt.Tx) error {
@@ -361,7 +365,7 @@ func (s *BoltdbStore) LockOneGlobalTrans(expireIn time.Duration) *TransGlobalSto
 		for trans == nil {
 			k, v := cursor.First()
 			if k == nil || string(k) > min {
-				return ErrNotFound
+				return storage.ErrNotFound
 			}
 			trans = tGetGlobal(t, string(v))
 			err := t.Bucket(bucketIndex).Delete(k)
@@ -372,7 +376,7 @@ func (s *BoltdbStore) LockOneGlobalTrans(expireIn time.Duration) *TransGlobalSto
 		tPutIndex(t, next.Unix(), trans.Gid)
 		return nil
 	})
-	if err == ErrNotFound {
+	if err == storage.ErrNotFound {
 		return nil
 	}
 	dtmimp.E2P(err)

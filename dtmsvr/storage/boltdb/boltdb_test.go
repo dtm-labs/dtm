@@ -1,4 +1,4 @@
-package storage
+package boltdb
 
 import (
 	"path"
@@ -9,6 +9,7 @@ import (
 	bolt "go.etcd.io/bbolt"
 
 	"github.com/yedf/dtm/dtmcli/dtmimp"
+	"github.com/yedf/dtm/dtmsvr/storage"
 )
 
 func TestInitializeBuckets(t *testing.T) {
@@ -69,7 +70,7 @@ func TestCleanupExpiredData(t *testing.T) {
 			doneTime := time.Now().Add(-10 * time.Minute)
 
 			gids := []string{"gid0", "gid1", "gid2"}
-			gidDatas := []TransGlobalStore{
+			gidDatas := []storage.TransGlobalStore{
 				{}, // not finished
 				{
 					FinishTime: &doneTime,
@@ -196,7 +197,7 @@ func TestCleanupBranchWithGids(t *testing.T) {
 			}
 
 			keys := []string{"a", "gid001", "gid002", "gid101", "gid201", "z"}
-			datas := []TransBranchStore{
+			datas := []storage.TransBranchStore{
 				{
 					Gid: "a",
 				},
@@ -277,7 +278,7 @@ func TestCleanupIndexWithGids(t *testing.T) {
 			}
 
 			keys := []string{"a", "0-gid0", "1-gid0", "2-gid1", "3-gid2", "z"}
-			datas := []TransBranchStore{
+			datas := []storage.TransBranchStore{
 				{
 					Gid: "a",
 				},
