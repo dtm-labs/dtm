@@ -59,8 +59,6 @@ func TestMsgAbnormal(t *testing.T) {
 	assert.Nil(t, err)
 	err = msg.Submit()
 	assert.Nil(t, err)
-	err = msg.Submit()
-	assert.Nil(t, err)
 
 	err = msg.Prepare("")
 	assert.Error(t, err)
