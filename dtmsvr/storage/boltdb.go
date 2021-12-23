@@ -2,6 +2,7 @@ package storage
 
 import (
 	"fmt"
+	"strings"
 	"sync"
 	"time"
 
@@ -23,16 +24,16 @@ func boltGet() *bolt.DB {
 		dtmimp.E2P(err)
 
 		// NOTE: we must ensure all buckets is exists before we use it
-		err = db.Update(func(t *bolt.Tx) error {
-			for _, bucket := range allBuckets {
-				_, err := t.CreateBucketIfNotExists(bucket)
-				if err != nil {
-					return err
-				}
-			}
+		err = initializeBuckets(db)
+		dtmimp.E2P(err)
 
-			return nil
-		})
+		// TODO:
+		//   1. refactor this code
+		//   2. make cleanup run period, to avoid the file growup when server long-running
+		err = cleanupExpiredData(
+			time.Duration(common.Config.Store.DataExpire)*time.Second,
+			db,
+		)
 		dtmimp.E2P(err)
 
 		boltDb = db
@@ -40,12 +41,129 @@ func boltGet() *bolt.DB {
 	return boltDb
 }
 
+func initializeBuckets(db *bolt.DB) error {
+	return db.Update(func(t *bolt.Tx) error {
+		for _, bucket := range allBuckets {
+			_, err := t.CreateBucketIfNotExists(bucket)
+			if err != nil {
+				return err
+			}
+		}
+
+		return nil
+	})
+}
+
+// cleanupExpiredData will clean the expired data in boltdb, the
+//    expired time is configurable.
+func cleanupExpiredData(expiredSeconds time.Duration, db *bolt.DB) error {
+	if expiredSeconds <= 0 {
+		return nil
+	}
+
+	lastKeepTime := time.Now().Add(-expiredSeconds)
+	return db.Update(func(t *bolt.Tx) error {
+		globalBucket := t.Bucket(bucketGlobal)
+		if globalBucket == nil {
+			return nil
+		}
+
+		expiredGids := map[string]struct{}{}
+		cursor := globalBucket.Cursor()
+		for k, v := cursor.First(); k != nil; k, v = cursor.Next() {
+			trans := TransGlobalStore{}
+			dtmimp.MustUnmarshal(v, &trans)
+
+			transDoneTime := trans.FinishTime
+			if transDoneTime == nil {
+				transDoneTime = trans.RollbackTime
+			}
+			if transDoneTime != nil && lastKeepTime.After(*transDoneTime) {
+				expiredGids[string(k)] = struct{}{}
+			}
+		}
+
+		cleanupGlobalWithGids(t, expiredGids)
+		cleanupBranchWithGids(t, expiredGids)
+		cleanupIndexWithGids(t, expiredGids)
+		return nil
+	})
+}
+
+func cleanupGlobalWithGids(t *bolt.Tx, gids map[string]struct{}) {
+	bucket := t.Bucket(bucketGlobal)
+	if bucket == nil {
+		return
+	}
+
+	dtmimp.Logf("Start to cleanup %d gids", len(gids))
+	for gid := range gids {
+		dtmimp.Logf("Start to delete gid: %s", gid)
+		bucket.Delete([]byte(gid))
+	}
+}
+
+func cleanupBranchWithGids(t *bolt.Tx, gids map[string]struct{}) {
+	bucket := t.Bucket(bucketBranches)
+	if bucket == nil {
+		return
+	}
+
+	// It's not safe if we delete the item when use cursor, for more detail see
+	//    https://github.com/etcd-io/bbolt/issues/146
+	branchKeys := []string{}
+	for gid := range gids {
+		cursor := bucket.Cursor()
+		for k, v := cursor.Seek([]byte(gid)); k != nil; k, v = cursor.Next() {
+			b := TransBranchStore{}
+			dtmimp.MustUnmarshal(v, &b)
+			if b.Gid != gid {
+				break
+			}
+
+			branchKeys = append(branchKeys, string(k))
+		}
+	}
+
+	dtmimp.Logf("Start to cleanup %d branches", len(branchKeys))
+	for _, key := range branchKeys {
+		dtmimp.Logf("Start to delete branch: %s", key)
+		bucket.Delete([]byte(key))
+	}
+}
+
+func cleanupIndexWithGids(t *bolt.Tx, gids map[string]struct{}) {
+	bucket := t.Bucket(bucketIndex)
+	if bucket == nil {
+		return
+	}
+
+	indexKeys := []string{}
+	cursor := bucket.Cursor()
+	for k, _ := cursor.First(); k != nil; k, _ = cursor.Next() {
+		ks := strings.Split(string(k), "-")
+		if len(ks) != 2 {
+			continue
+		}
+
+		if _, ok := gids[ks[1]]; ok {
+			indexKeys = append(indexKeys, string(k))
+		}
+	}
+
+	dtmimp.Logf("Start to cleanup %d indexes", len(indexKeys))
+	for _, key := range indexKeys {
+		dtmimp.Logf("Start to delete index: %s", key)
+		bucket.Delete([]byte(key))
+	}
+}
+
 var bucketGlobal = []byte("global")
 var bucketBranches = []byte("branches")
 var bucketIndex = []byte("index")
 var allBuckets = [][]byte{
-	bucketGlobal,
 	bucketBranches,
+	bucketGlobal,
 	bucketIndex,
 }
 
