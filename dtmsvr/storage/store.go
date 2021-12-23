@@ -26,24 +26,6 @@ type Store interface {
 	LockOneGlobalTrans(expireIn time.Duration) *TransGlobalStore
 }
 
-var stores map[string]Store = map[string]Store{
-	"redis":    &RedisStore{},
-	"mysql":    &SqlStore{},
-	"postgres": &SqlStore{},
-	"boltdb":   &BoltdbStore{},
-}
-
-func GetStore() Store {
-	return stores[config.Store.Driver]
-}
-
-// WaitStoreUp wait for db to go up
-func WaitStoreUp() {
-	for err := GetStore().Ping(); err != nil; err = GetStore().Ping() {
-		time.Sleep(3 * time.Second)
-	}
-}
-
 func wrapError(err error) error {
 	if err == gorm.ErrRecordNotFound || err == redis.Nil {
 		return ErrNotFound

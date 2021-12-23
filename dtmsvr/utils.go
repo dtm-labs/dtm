@@ -11,9 +11,11 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+
 	"github.com/yedf/dtm/common"
 	"github.com/yedf/dtm/dtmcli/dtmimp"
 	"github.com/yedf/dtm/dtmsvr/storage"
+	"github.com/yedf/dtm/dtmsvr/storage/registry"
 )
 
 type branchStatus struct {
@@ -28,7 +30,7 @@ var e2p = dtmimp.E2P
 var config = &common.Config
 
 func GetStore() storage.Store {
-	return storage.GetStore()
+	return registry.GetStore()
 }
 
 // TransProcessedTestChan only for test usage. when transaction processed once, write gid to this chan

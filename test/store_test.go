@@ -5,8 +5,10 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/assert"
+
 	"github.com/yedf/dtm/dtmcli/dtmimp"
 	"github.com/yedf/dtm/dtmsvr/storage"
+	"github.com/yedf/dtm/dtmsvr/storage/registry"
 )
 
 func initTransGlobal(gid string) (*storage.TransGlobalStore, storage.Store) {
@@ -15,7 +17,7 @@ func initTransGlobal(gid string) (*storage.TransGlobalStore, storage.Store) {
 	bs := []storage.TransBranchStore{
 		{Gid: gid, BranchID: "01"},
 	}
-	s := storage.GetStore()
+	s := registry.GetStore()
 	err := s.MaySaveNewTrans(g, bs)
 	dtmimp.E2P(err)
 	return g, s
@@ -87,12 +89,12 @@ func TestStoreLockTrans(t *testing.T) {
 }
 
 func TestStoreWait(t *testing.T) {
-	storage.WaitStoreUp()
+	registry.WaitStoreUp()
 }
 
 func TestUpdateBranchSql(t *testing.T) {
 	if !config.Store.IsDB() {
-		r := storage.GetStore().UpdateBranchesSql(nil, nil)
+		r := registry.GetStore().UpdateBranchesSql(nil, nil)
 		assert.Nil(t, r)
 	}
 }
