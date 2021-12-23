@@ -7,7 +7,7 @@
 
 # [中文文档](http://dtm.pub)
 
-# A Cross Language Transaction Manager
+# A Cross Language Distributed Transaction Manager
 
 ## Who's using DTM
 
