@@ -23,7 +23,7 @@ type Tcc struct {
 type TccGlobalFunc func(tcc *Tcc) (*resty.Response, error)
 
 // TccGlobalTransaction begin a tcc global transaction
-// dtm dtm服务器地址
+// dtm dtm server address
 // gid 全局事务id
 // tccFunc tcc事务函数，里面会定义全局事务的分支
 func TccGlobalTransaction(dtm string, gid string, tccFunc TccGlobalFunc) (rerr error) {
