@@ -11,6 +11,8 @@
 
 ## Who's using DTM
 
+[Tencent](https://www.tencent.com/)
+
 [Ivydad](https://ivydad.com)
 
 [Eglass](https://epeijing.cn)
@@ -118,8 +120,9 @@ If you think this project is good, or helpful to you, please give a star!
 
 ### Who is using
 <div style='vertical-align: middle'>
-    <img alt='Ivydad' height='40'  src='https://www.ivydad.com/_nuxt/img/header-logo.5b3eb96.png'>
-    <img alt='Eglass' height='40'  src='https://img.epeijing.cn/official-website/assets/logo.png'>
-    <img alt='Jiou' height='40'  src='http://www.siqitech.com.cn/img/logo.3f6c2914.png'>
-    <img alt='GoldenData' height='40'  src='https://pic1.zhimg.com/80/v2-dc1d0cef5f7b72be345fc34d768e69e3_1440w.png'>
+    <img alt='Tencent' height='80'  src='https://dtm.pub/assets/tencent.4b87bfd8.jpeg'  /img>
+    <img alt='Ivydad' height='80'  src='https://www.ivydad.com/_nuxt/img/header-logo.5b3eb96.png'>
+    <img alt='Eglass' height='80'  src='https://img.epeijing.cn/official-website/assets/logo.png'>
+    <img alt='Jiou' height='80'  src='http://www.siqitech.com.cn/img/logo.3f6c2914.png'>
+    <img alt='GoldenData' height='80'  src='https://pic1.zhimg.com/80/v2-dc1d0cef5f7b72be345fc34d768e69e3_1440w.png'>
 </div>
