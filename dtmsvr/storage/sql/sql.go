@@ -1,4 +1,4 @@
-package storage
+package sql
 
 import (
 	"fmt"
@@ -6,11 +6,15 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/yedf/dtm/common"
-	"github.com/yedf/dtm/dtmcli/dtmimp"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
+
+	"github.com/yedf/dtm/common"
+	"github.com/yedf/dtm/dtmcli/dtmimp"
+	"github.com/yedf/dtm/dtmsvr/storage"
 )
+
+var config = &common.Config
 
 type SqlStore struct {
 }
@@ -27,8 +31,8 @@ func (s *SqlStore) PopulateData(skipDrop bool) {
 	common.RunSQLScript(config.Store.GetDBConf(), file, skipDrop)
 }
 
-func (s *SqlStore) FindTransGlobalStore(gid string) *TransGlobalStore {
-	trans := &TransGlobalStore{}
+func (s *SqlStore) FindTransGlobalStore(gid string) *storage.TransGlobalStore {
+	trans := &storage.TransGlobalStore{}
 	dbr := dbGet().Model(trans).Where("gid=?", gid).First(trans)
 	if dbr.Error == gorm.ErrRecordNotFound {
 		return nil
@@ -37,8 +41,8 @@ func (s *SqlStore) FindTransGlobalStore(gid string) *TransGlobalStore {
 	return trans
 }
 
-func (s *SqlStore) ScanTransGlobalStores(position *string, limit int64) []TransGlobalStore {
-	globals := []TransGlobalStore{}
+func (s *SqlStore) ScanTransGlobalStores(position *string, limit int64) []storage.TransGlobalStore {
+	globals := []storage.TransGlobalStore{}
 	lid := math.MaxInt64
 	if *position != "" {
 		lid = dtmimp.MustAtoi(*position)
@@ -52,22 +56,22 @@ func (s *SqlStore) ScanTransGlobalStores(position *string, limit int64) []TransG
 	return globals
 }
 
-func (s *SqlStore) FindBranches(gid string) []TransBranchStore {
-	branches := []TransBranchStore{}
+func (s *SqlStore) FindBranches(gid string) []storage.TransBranchStore {
+	branches := []storage.TransBranchStore{}
 	dbGet().Must().Where("gid=?", gid).Order("id asc").Find(&branches)
 	return branches
 }
 
-func (s *SqlStore) UpdateBranchesSql(branches []TransBranchStore, updates []string) *gorm.DB {
+func (s *SqlStore) UpdateBranchesSql(branches []storage.TransBranchStore, updates []string) *gorm.DB {
 	return dbGet().Clauses(clause.OnConflict{
 		OnConstraint: "trans_branch_op_pkey",
 		DoUpdates:    clause.AssignmentColumns(updates),
 	}).Create(branches)
 }
 
-func (s *SqlStore) LockGlobalSaveBranches(gid string, status string, branches []TransBranchStore, branchStart int) {
+func (s *SqlStore) LockGlobalSaveBranches(gid string, status string, branches []storage.TransBranchStore, branchStart int) {
 	err := dbGet().Transaction(func(tx *gorm.DB) error {
-		g := &TransGlobalStore{}
+		g := &storage.TransGlobalStore{}
 		dbr := tx.Clauses(clause.Locking{Strength: "UPDATE"}).Model(g).Where("gid=? and status=?", gid, status).First(g)
 		if dbr.Error == nil {
 			dbr = tx.Save(branches)
@@ -77,14 +81,14 @@ func (s *SqlStore) LockGlobalSaveBranches(gid string, status string, branches []
 	dtmimp.E2P(err)
 }
 
-func (s *SqlStore) MaySaveNewTrans(global *TransGlobalStore, branches []TransBranchStore) error {
+func (s *SqlStore) MaySaveNewTrans(global *storage.TransGlobalStore, branches []storage.TransBranchStore) error {
 	return dbGet().Transaction(func(db1 *gorm.DB) error {
 		db := &common.DB{DB: db1}
 		dbr := db.Must().Clauses(clause.OnConflict{
 			DoNothing: true,
 		}).Create(global)
 		if dbr.RowsAffected <= 0 { // 如果这个不是新事务，返回错误
-			return ErrUniqueConflict
+			return storage.ErrUniqueConflict
 		}
 		if len(branches) > 0 {
 			db.Must().Clauses(clause.OnConflict{
@@ -95,16 +99,16 @@ func (s *SqlStore) MaySaveNewTrans(global *TransGlobalStore, branches []TransBra
 	})
 }
 
-func (s *SqlStore) ChangeGlobalStatus(global *TransGlobalStore, newStatus string, updates []string, finished bool) {
+func (s *SqlStore) ChangeGlobalStatus(global *storage.TransGlobalStore, newStatus string, updates []string, finished bool) {
 	old := global.Status
 	global.Status = newStatus
 	dbr := dbGet().Must().Model(global).Where("status=? and gid=?", old, global.Gid).Select(updates).Updates(global)
 	if dbr.RowsAffected == 0 {
-		dtmimp.E2P(ErrNotFound)
+		dtmimp.E2P(storage.ErrNotFound)
 	}
 }
 
-func (s *SqlStore) TouchCronTime(global *TransGlobalStore, nextCronInterval int64) {
+func (s *SqlStore) TouchCronTime(global *storage.TransGlobalStore, nextCronInterval int64) {
 	global.NextCronTime = common.GetNextTime(nextCronInterval)
 	global.UpdateTime = common.GetNextTime(0)
 	global.NextCronInterval = nextCronInterval
@@ -112,7 +116,7 @@ func (s *SqlStore) TouchCronTime(global *TransGlobalStore, nextCronInterval int6
 		Select([]string{"next_cron_time", "update_time", "next_cron_interval"}).Updates(global)
 }
 
-func (s *SqlStore) LockOneGlobalTrans(expireIn time.Duration) *TransGlobalStore {
+func (s *SqlStore) LockOneGlobalTrans(expireIn time.Duration) *storage.TransGlobalStore {
 	db := dbGet()
 	getTime := func(second int) string {
 		return map[string]string{
@@ -123,12 +127,12 @@ func (s *SqlStore) LockOneGlobalTrans(expireIn time.Duration) *TransGlobalStore 
 	expire := int(expireIn / time.Second)
 	whereTime := fmt.Sprintf("next_cron_time < %s", getTime(expire))
 	owner := uuid.NewString()
-	global := &TransGlobalStore{}
+	global := &storage.TransGlobalStore{}
 	dbr := db.Must().Model(global).
 		Where(whereTime + "and status in ('prepared', 'aborting', 'submitted')").
 		Limit(1).
 		Select([]string{"owner", "next_cron_time"}).
-		Updates(&TransGlobalStore{
+		Updates(&storage.TransGlobalStore{
 			Owner:        owner,
 			NextCronTime: common.GetNextTime(common.Config.RetryInterval),
 		})
@@ -137,4 +141,16 @@ func (s *SqlStore) LockOneGlobalTrans(expireIn time.Duration) *TransGlobalStore 
 	}
 	dbr = db.Must().Where("owner=?", owner).First(global)
 	return global
+}
+
+func dbGet() *common.DB {
+	return common.DbGet(config.Store.GetDBConf())
+}
+
+func wrapError(err error) error {
+	if err == gorm.ErrRecordNotFound {
+		return storage.ErrNotFound
+	}
+	dtmimp.E2P(err)
+	return err
 }
