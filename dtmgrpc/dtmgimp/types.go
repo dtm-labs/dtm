@@ -9,6 +9,7 @@ package dtmgimp
 import (
 	"context"
 	"fmt"
+	"time"
 
 	"github.com/yedf/dtm/dtmcli"
 	"github.com/yedf/dtm/dtmcli/dtmimp"
@@ -20,14 +21,16 @@ import (
 
 // GrpcServerLog 打印grpc服务端的日志
 func GrpcServerLog(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (interface{}, error) {
-	logger.Debugf("grpc server handling: %s %v", info.FullMethod, req)
+	began := time.Now()
+	logger.Debugf("grpc server handling: %s %s", info.FullMethod, dtmimp.MustMarshalString(req))
 	LogDtmCtx(ctx)
 	m, err := handler(ctx, req)
-	res := fmt.Sprintf("grpc server handled: %s %v result: %v err: %v", info.FullMethod, req, m, err)
+	res := fmt.Sprintf("%2dms %v %s %s %s",
+		time.Since(began).Milliseconds(), err, info.FullMethod, dtmimp.MustMarshalString(m), dtmimp.MustMarshalString(req))
 	if err != nil {
 		logger.Errorf("%s", res)
 	} else {
-		logger.Debugf("%s", res)
+		logger.Infof("%s", res)
 	}
 	return m, err
 }
