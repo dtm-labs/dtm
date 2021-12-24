@@ -7,8 +7,8 @@
 package examples
 
 import (
-	"github.com/yedf/dtm/dtmcli/logger"
-	dtmgrpc "github.com/yedf/dtm/dtmgrpc"
+	"github.com/dtm-labs/dtm/dtmcli/logger"
+	dtmgrpc "github.com/dtm-labs/dtm/dtmgrpc"
 )
 
 func init() {

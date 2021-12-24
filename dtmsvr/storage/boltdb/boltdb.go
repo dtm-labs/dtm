@@ -9,10 +9,10 @@ import (
 	bolt "go.etcd.io/bbolt"
 	"gorm.io/gorm"
 
-	"github.com/yedf/dtm/common"
-	"github.com/yedf/dtm/dtmcli/dtmimp"
-	"github.com/yedf/dtm/dtmcli/logger"
-	"github.com/yedf/dtm/dtmsvr/storage"
+	"github.com/dtm-labs/dtm/common"
+	"github.com/dtm-labs/dtm/dtmcli/dtmimp"
+	"github.com/dtm-labs/dtm/dtmcli/logger"
+	"github.com/dtm-labs/dtm/dtmsvr/storage"
 )
 
 var config = &common.Config

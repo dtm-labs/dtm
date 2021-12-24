@@ -10,8 +10,8 @@ import (
 	"fmt"
 	"sync"
 
+	"github.com/dtm-labs/dtm/dtmcli/logger"
 	"github.com/go-redis/redis/v8"
-	"github.com/yedf/dtm/dtmcli/logger"
 )
 
 var rdb *redis.Client

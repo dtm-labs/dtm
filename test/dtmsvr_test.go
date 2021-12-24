@@ -10,13 +10,13 @@ import (
 	"testing"
 	"time"
 
+	"github.com/dtm-labs/dtm/common"
+	"github.com/dtm-labs/dtm/dtmcli"
+	"github.com/dtm-labs/dtm/dtmcli/dtmimp"
+	"github.com/dtm-labs/dtm/dtmsvr"
+	"github.com/dtm-labs/dtm/examples"
 	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/assert"
-	"github.com/yedf/dtm/common"
-	"github.com/yedf/dtm/dtmcli"
-	"github.com/yedf/dtm/dtmcli/dtmimp"
-	"github.com/yedf/dtm/dtmsvr"
-	"github.com/yedf/dtm/examples"
 )
 
 var DtmServer = examples.DtmHttpServer

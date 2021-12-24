@@ -8,8 +8,8 @@ import (
 	. "github.com/onsi/gomega"
 	bolt "go.etcd.io/bbolt"
 
-	"github.com/yedf/dtm/dtmcli/dtmimp"
-	"github.com/yedf/dtm/dtmsvr/storage"
+	"github.com/dtm-labs/dtm/dtmcli/dtmimp"
+	"github.com/dtm-labs/dtm/dtmsvr/storage"
 )
 
 func TestInitializeBuckets(t *testing.T) {

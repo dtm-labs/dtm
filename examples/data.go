@@ -9,8 +9,8 @@ package examples
 import (
 	"fmt"
 
-	"github.com/yedf/dtm/common"
-	"github.com/yedf/dtm/dtmcli/logger"
+	"github.com/dtm-labs/dtm/common"
+	"github.com/dtm-labs/dtm/dtmcli/logger"
 )
 
 var config = &common.Config

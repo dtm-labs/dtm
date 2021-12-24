@@ -12,8 +12,8 @@ import (
 	"runtime/debug"
 	"time"
 
-	"github.com/yedf/dtm/dtmcli/dtmimp"
-	"github.com/yedf/dtm/dtmcli/logger"
+	"github.com/dtm-labs/dtm/dtmcli/dtmimp"
+	"github.com/dtm-labs/dtm/dtmcli/logger"
 )
 
 // NowForwardDuration will be set in test, trans may be timeout

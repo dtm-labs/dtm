@@ -9,7 +9,7 @@ package test
 import (
 	"testing"
 
-	"github.com/yedf/dtm/examples"
+	"github.com/dtm-labs/dtm/examples"
 )
 
 func TestExamples(t *testing.T) {

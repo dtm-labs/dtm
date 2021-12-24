@@ -9,11 +9,11 @@ package test
 import (
 	"time"
 
-	"github.com/yedf/dtm/common"
-	"github.com/yedf/dtm/dtmcli"
-	"github.com/yedf/dtm/dtmcli/dtmimp"
-	"github.com/yedf/dtm/dtmcli/logger"
-	"github.com/yedf/dtm/dtmsvr"
+	"github.com/dtm-labs/dtm/common"
+	"github.com/dtm-labs/dtm/dtmcli"
+	"github.com/dtm-labs/dtm/dtmcli/dtmimp"
+	"github.com/dtm-labs/dtm/dtmcli/logger"
+	"github.com/dtm-labs/dtm/dtmsvr"
 )
 
 var config = &common.Config

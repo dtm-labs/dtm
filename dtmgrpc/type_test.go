@@ -10,8 +10,8 @@ import (
 	"context"
 	"testing"
 
+	"github.com/dtm-labs/dtm/dtmcli"
 	"github.com/stretchr/testify/assert"
-	"github.com/yedf/dtm/dtmcli"
 )
 
 func TestType(t *testing.T) {
