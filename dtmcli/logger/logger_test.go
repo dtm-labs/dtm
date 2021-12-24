@@ -7,7 +7,7 @@ import (
 
 func TestInitLog(t *testing.T) {
 	os.Setenv("DTM_DEBUG", "1")
-	InitLog()
+	InitLog("debug")
 	Debugf("a debug msg")
 	Infof("a info msg")
 	Warnf("a warn msg")

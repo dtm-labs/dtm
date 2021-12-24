@@ -61,6 +61,7 @@ type configType struct {
 	GrpcPort          int64         `yaml:"GrpcPort" default:"36790"`
 	MicroService      MicroService  `yaml:"MicroService"`
 	UpdateBranchSync  int64         `yaml:"UpdateBranchSync"`
+	LogLevel          string        `yaml:"LogLevel" default:"info"`
 	ExamplesDB        dtmcli.DBConf `yaml:"ExamplesDB"`
 }
 

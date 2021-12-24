@@ -50,7 +50,7 @@ func main() {
 		fmt.Printf("version: %s commit: %s built at: %s\n", Version, Commit, Date)
 		return
 	}
-	logger.Debugf("starting dtm....")
+	logger.Infof("starting dtm....")
 	common.MustLoadConfig()
 	if common.Config.ExamplesDB.Driver != "" {
 		dtmcli.SetCurrentDBType(common.Config.ExamplesDB.Driver)

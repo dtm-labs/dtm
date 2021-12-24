@@ -26,7 +26,8 @@ import (
 // GetGinApp init and return gin
 func GetGinApp() *gin.Engine {
 	gin.SetMode(gin.ReleaseMode)
-	app := gin.Default()
+	app := gin.New()
+	app.Use(gin.Recovery())
 	app.Use(func(c *gin.Context) {
 		body := ""
 		if c.Request.Body != nil {
@@ -37,11 +38,8 @@ func GetGinApp() *gin.Engine {
 				c.Request.Body = ioutil.NopCloser(bytes.NewBuffer(rb))
 			}
 		}
-		began := time.Now()
 		logger.Debugf("begin %s %s query: %s body: %s", c.Request.Method, c.FullPath(), c.Request.URL.RawQuery, body)
 		c.Next()
-		logger.Debugf("used %d ms %s %s query: %s body: %s", time.Since(began).Milliseconds(), c.Request.Method, c.FullPath(), c.Request.URL.RawQuery, body)
-
 	})
 	app.Any("/api/ping", func(c *gin.Context) { c.JSON(200, map[string]interface{}{"msg": "pong"}) })
 	return app
@@ -50,6 +48,7 @@ func GetGinApp() *gin.Engine {
 // WrapHandler name is clear
 func WrapHandler(fn func(*gin.Context) (interface{}, error)) gin.HandlerFunc {
 	return func(c *gin.Context) {
+		began := time.Now()
 		r, err := func() (r interface{}, rerr error) {
 			defer dtmimp.P2E(&rerr)
 			return fn(c)
@@ -60,11 +59,12 @@ func WrapHandler(fn func(*gin.Context) (interface{}, error)) gin.HandlerFunc {
 		} else if err == nil {
 			b, err = json.Marshal(r)
 		}
+
 		if err != nil {
-			logger.Debugf("status: 500, code: 500 message: %s", err.Error())
+			logger.Errorf("%2dms 500 %s %s %s %s", time.Since(began).Milliseconds(), err.Error(), c.Request.Method, c.Request.RequestURI, string(b))
 			c.JSON(500, map[string]interface{}{"code": 500, "message": err.Error()})
 		} else {
-			logger.Debugf("status: 200, content: %s", string(b))
+			logger.Infof("%2dms 200 %s %s %s", time.Since(began).Milliseconds(), c.Request.Method, c.Request.RequestURI, string(b))
 			c.Status(200)
 			c.Writer.Header().Add("Content-Type", "application/json")
 			_, err = c.Writer.Write(b)

@@ -22,11 +22,11 @@ import (
 
 // StartSvr StartSvr
 func StartSvr() {
-	logger.Debugf("start dtmsvr")
+	logger.Infof("start dtmsvr")
 	app := common.GetGinApp()
 	app = httpMetrics(app)
 	addRoute(app)
-	logger.Debugf("dtmsvr listen at: %d", config.HttpPort)
+	logger.Infof("dtmsvr listen at: %d", config.HttpPort)
 	go app.Run(fmt.Sprintf(":%d", config.HttpPort))
 
 	lis, err := net.Listen("tcp", fmt.Sprintf(":%d", config.GrpcPort))
@@ -36,7 +36,7 @@ func StartSvr() {
 			grpc.UnaryServerInterceptor(grpcMetrics), grpc.UnaryServerInterceptor(dtmgimp.GrpcServerLog)),
 		))
 	dtmgpb.RegisterDtmServer(s, &dtmServer{})
-	logger.Debugf("grpc listening at %v", lis.Addr())
+	logger.Infof("grpc listening at %v", lis.Addr())
 	go func() {
 		err := s.Serve(lis)
 		logger.FatalIfError(err)

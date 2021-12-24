@@ -11,21 +11,22 @@ import (
 var logger *zap.SugaredLogger = nil
 
 func init() {
-	InitLog()
+	InitLog("info")
 }
 
 // InitLog is a initialization for a logger
-func InitLog() {
+// level can be: debug info warn error
+func InitLog(level string) {
 	config := zap.NewProductionConfig()
+	err := config.Level.UnmarshalText([]byte(level))
+	FatalIfError(err)
 	config.EncoderConfig.EncodeTime = zapcore.ISO8601TimeEncoder
 	if os.Getenv("DTM_DEBUG") != "" {
 		config.Encoding = "console"
 		config.EncoderConfig.EncodeLevel = zapcore.CapitalColorLevelEncoder
 	}
 	p, err := config.Build(zap.AddCallerSkip(1))
-	if err != nil {
-		log.Fatal("create logger failed: ", err)
-	}
+	FatalIfError(err)
 	logger = p.Sugar()
 }
 
@@ -54,7 +55,7 @@ func FatalfIf(cond bool, fmt string, args ...interface{}) {
 	if !cond {
 		return
 	}
-	logger.Fatalf(fmt, args...)
+	log.Fatalf(fmt, args...)
 }
 
 // FatalIfError if err is not nil, then log to level fatal and call os.Exit
