@@ -13,6 +13,7 @@ import (
 	"github.com/yedf/dtm/common"
 	"github.com/yedf/dtm/dtmcli"
 	"github.com/yedf/dtm/dtmcli/dtmimp"
+	"github.com/yedf/dtm/dtmcli/logger"
 )
 
 func init() {
@@ -30,7 +31,7 @@ func init() {
 			Add(Busi+"/SagaBTransIn", Busi+"/SagaBTransInCompensate", req)
 		dtmimp.Logf("busi trans submit")
 		err := saga.Submit()
-		dtmimp.FatalIfError(err)
+		logger.FatalIfError(err)
 		return saga.Gid
 	})
 }

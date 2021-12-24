@@ -15,6 +15,7 @@ import (
 	"github.com/yedf/dtm/common"
 	"github.com/yedf/dtm/dtmcli"
 	"github.com/yedf/dtm/dtmcli/dtmimp"
+	"github.com/yedf/dtm/dtmcli/logger"
 )
 
 func init() {
@@ -37,7 +38,7 @@ func init() {
 			}
 			return tcc.CallBranch(&TransReq{Amount: 30}, Busi+"/TccBTransInTry", Busi+"/TccBTransInConfirm", Busi+"/TccBTransInCancel")
 		})
-		dtmimp.FatalIfError(err)
+		logger.FatalIfError(err)
 		return gid
 	})
 }

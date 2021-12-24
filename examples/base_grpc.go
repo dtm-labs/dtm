@@ -16,6 +16,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/yedf/dtm/dtmcli"
 	"github.com/yedf/dtm/dtmcli/dtmimp"
+	"github.com/yedf/dtm/dtmcli/logger"
 	"github.com/yedf/dtm/dtmgrpc"
 
 	"github.com/yedf/dtm/dtmgrpc/dtmgimp"
@@ -44,18 +45,18 @@ func init() {
 // GrpcStartup for grpc
 func GrpcStartup() {
 	conn, err := grpc.Dial(DtmGrpcServer, grpc.WithInsecure(), grpc.WithUnaryInterceptor(dtmgimp.GrpcClientLog))
-	dtmimp.FatalIfError(err)
+	logger.FatalIfError(err)
 	DtmClient = dtmgpb.NewDtmClient(conn)
 	dtmimp.Logf("dtm client inited")
 
 	lis, err := net.Listen("tcp", fmt.Sprintf(":%d", BusiGrpcPort))
-	dtmimp.FatalIfError(err)
+	logger.FatalIfError(err)
 	s := grpc.NewServer(grpc.UnaryInterceptor(dtmgimp.GrpcServerLog))
 	RegisterBusiServer(s, &busiServer{})
 	go func() {
 		dtmimp.Logf("busi grpc listening at %v", lis.Addr())
 		err := s.Serve(lis)
-		dtmimp.FatalIfError(err)
+		logger.FatalIfError(err)
 	}()
 	time.Sleep(100 * time.Millisecond)
 }
@@ -137,9 +138,9 @@ func (s *busiServer) TransOutXa(ctx context.Context, in *BusiReq) (*emptypb.Empt
 
 func (s *busiServer) TransInTccNested(ctx context.Context, in *BusiReq) (*emptypb.Empty, error) {
 	tcc, err := dtmgrpc.TccFromGrpc(ctx)
-	dtmimp.FatalIfError(err)
+	logger.FatalIfError(err)
 	r := &emptypb.Empty{}
 	err = tcc.CallBranch(in, BusiGrpc+"/examples.Busi/TransIn", BusiGrpc+"/examples.Busi/TransInConfirm", BusiGrpc+"/examples.Busi/TransInRevert", r)
-	dtmimp.FatalIfError(err)
+	logger.FatalIfError(err)
 	return r, handleGrpcBusiness(in, MainSwitch.TransInResult.Fetch(), in.TransInResult, dtmimp.GetFuncName())
 }

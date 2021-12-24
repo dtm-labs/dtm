@@ -17,6 +17,7 @@ import (
 	"github.com/yedf/dtm/common"
 	"github.com/yedf/dtm/dtmcli"
 	"github.com/yedf/dtm/dtmcli/dtmimp"
+	"github.com/yedf/dtm/dtmcli/logger"
 	"github.com/yedf/dtm/dtmsvr"
 	"github.com/yedf/dtm/examples"
 )
@@ -32,14 +33,14 @@ var benchBusi = fmt.Sprintf("http://localhost:%d%s", benchPort, benchAPI)
 
 func sdbGet() *sql.DB {
 	db, err := dtmimp.PooledDB(common.Config.Store.GetDBConf())
-	dtmimp.FatalIfError(err)
+	logger.FatalIfError(err)
 	return db
 }
 
 func txGet() *sql.Tx {
 	db := sdbGet()
 	tx, err := db.Begin()
-	dtmimp.FatalIfError(err)
+	logger.FatalIfError(err)
 	return tx
 }
 
@@ -50,7 +51,7 @@ func reloadData() {
 	tables := []string{"dtm_busi.user_account", "dtm_busi.user_account_log", "dtm.trans_global", "dtm.trans_branch_op", "dtm_barrier.barrier"}
 	for _, t := range tables {
 		_, err := dtmimp.DBExec(db, fmt.Sprintf("truncate %s", t))
-		dtmimp.FatalIfError(err)
+		logger.FatalIfError(err)
 	}
 	s := "insert ignore into dtm_busi.user_account(user_id, balance) values "
 	ss := []string{}
@@ -58,7 +59,7 @@ func reloadData() {
 		ss = append(ss, fmt.Sprintf("(%d, 1000000)", i))
 	}
 	_, err := dtmimp.DBExec(db, s+strings.Join(ss, ","))
-	dtmimp.FatalIfError(err)
+	logger.FatalIfError(err)
 	dtmimp.Logf("%d users inserted. used: %dms", total, time.Since(began).Milliseconds())
 }
 
@@ -74,7 +75,7 @@ func StartSvr() {
 	go app.Run(fmt.Sprintf(":%d", benchPort))
 	db := sdbGet()
 	_, err := dtmimp.DBExec(db, "drop table if exists dtm_busi.user_account_log")
-	dtmimp.FatalIfError(err)
+	logger.FatalIfError(err)
 	_, err = dtmimp.DBExec(db, `create table if not exists dtm_busi.user_account_log (
 	id      INT(11) AUTO_INCREMENT PRIMARY KEY,
 	user_id INT(11) NOT NULL,
@@ -89,7 +90,7 @@ func StartSvr() {
 	key(create_time)
 )
 `)
-	dtmimp.FatalIfError(err)
+	logger.FatalIfError(err)
 }
 
 func qsAdjustBalance(uid int, amount int, c *gin.Context) (interface{}, error) {
@@ -101,21 +102,21 @@ func qsAdjustBalance(uid int, amount int, c *gin.Context) (interface{}, error) {
 		for i := 0; i < sqls; i++ {
 			_, err := dtmimp.DBExec(tx, "insert into dtm_busi.user_account_log(user_id, delta, gid, branch_id, op, reason)  values(?,?,?,?,?,?)",
 				uid, amount, tb.Gid, c.Query("branch_id"), tb.TransType, fmt.Sprintf("inserted by dtm transaction %s %s", tb.Gid, c.Query("branch_id")))
-			dtmimp.FatalIfError(err)
+			logger.FatalIfError(err)
 			_, err = dtmimp.DBExec(tx, "update dtm_busi.user_account set balance = balance + ?, update_time = now() where user_id = ?", amount, uid)
-			dtmimp.FatalIfError(err)
+			logger.FatalIfError(err)
 		}
 		return nil
 	}
 	if strings.Contains(mode, "barrier") {
 		barrier, err := dtmcli.BarrierFromQuery(c.Request.URL.Query())
-		dtmimp.FatalIfError(err)
+		logger.FatalIfError(err)
 		barrier.Call(txGet(), f)
 	} else {
 		tx := txGet()
 		f(tx)
 		err := tx.Commit()
-		dtmimp.FatalIfError(err)
+		logger.FatalIfError(err)
 	}
 
 	return dtmcli.MapSuccess, nil

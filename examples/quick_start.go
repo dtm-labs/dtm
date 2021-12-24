@@ -14,6 +14,7 @@ import (
 	"github.com/yedf/dtm/common"
 	"github.com/yedf/dtm/dtmcli"
 	"github.com/yedf/dtm/dtmcli/dtmimp"
+	"github.com/yedf/dtm/dtmcli/logger"
 )
 
 // 启动命令：go run app/main.go qs
@@ -44,7 +45,7 @@ func QsFireRequest() string {
 		Add(qsBusi+"/TransIn", qsBusi+"/TransInCompensate", req)
 	// 提交saga事务，dtm会完成所有的子事务/回滚所有的子事务
 	err := saga.Submit()
-	dtmimp.FatalIfError(err)
+	logger.FatalIfError(err)
 	return saga.Gid
 }
 

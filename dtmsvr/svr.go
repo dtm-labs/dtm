@@ -14,6 +14,7 @@ import (
 	grpc_middleware "github.com/grpc-ecosystem/go-grpc-middleware"
 	"github.com/yedf/dtm/common"
 	"github.com/yedf/dtm/dtmcli/dtmimp"
+	"github.com/yedf/dtm/dtmcli/logger"
 	"github.com/yedf/dtm/dtmgrpc/dtmgimp"
 	"github.com/yedf/dtm/dtmgrpc/dtmgpb"
 	"github.com/yedf/dtmdriver"
@@ -30,7 +31,7 @@ func StartSvr() {
 	go app.Run(fmt.Sprintf(":%d", config.HttpPort))
 
 	lis, err := net.Listen("tcp", fmt.Sprintf(":%d", config.GrpcPort))
-	dtmimp.FatalIfError(err)
+	logger.FatalIfError(err)
 	s := grpc.NewServer(
 		grpc.UnaryInterceptor(grpc_middleware.ChainUnaryServer(
 			grpc.UnaryServerInterceptor(grpcMetrics), grpc.UnaryServerInterceptor(dtmgimp.GrpcServerLog)),
@@ -39,15 +40,15 @@ func StartSvr() {
 	dtmimp.Logf("grpc listening at %v", lis.Addr())
 	go func() {
 		err := s.Serve(lis)
-		dtmimp.FatalIfError(err)
+		logger.FatalIfError(err)
 	}()
 	go updateBranchAsync()
 
 	time.Sleep(100 * time.Millisecond)
 	err = dtmdriver.Use(config.MicroService.Driver)
-	dtmimp.FatalIfError(err)
+	logger.FatalIfError(err)
 	err = dtmdriver.GetDriver().RegisterGrpcService(config.MicroService.Target, config.MicroService.EndPoint)
-	dtmimp.FatalIfError(err)
+	logger.FatalIfError(err)
 }
 
 // PopulateDB setup mysql data

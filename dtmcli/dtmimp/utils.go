@@ -11,23 +11,36 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"log"
 	"os"
 	"runtime"
-	"runtime/debug"
 	"strconv"
 	"strings"
 	"sync"
 	"time"
 
 	"github.com/go-resty/resty/v2"
-	"go.uber.org/zap"
-	"go.uber.org/zap/zapcore"
+	"github.com/yedf/dtm/dtmcli/logger"
 )
+
+// Logf an alias of Infof
+// Deprecated: use logger.Errorf
+var Logf = logger.Infof
+
+// LogRedf an alias of Errorf
+// Deprecated: use logger.Errorf
+var LogRedf = logger.Errorf
+
+// FatalIfError fatal if error is not nil
+// Deprecated: use logger.FatalIfError
+var FatalIfError = logger.FatalIfError
+
+// LogIfFatalf fatal if cond is true
+// Deprecated: use logger.FatalfIf
+var LogIfFatalf = logger.FatalfIf
 
 // AsError wrap a panic value as an error
 func AsError(x interface{}) error {
-	LogRedf("panic wrapped to error: '%v'", x)
+	logger.Errorf("panic wrapped to error: '%v'", x)
 	if e, ok := x.(error); ok {
 		return e
 	}
@@ -120,59 +133,6 @@ func MustRemarshal(from interface{}, to interface{}) {
 	E2P(err)
 }
 
-var logger *zap.SugaredLogger = nil
-
-func init() {
-	InitLog()
-}
-
-// InitLog is a initialization for a logger
-func InitLog() {
-	config := zap.NewProductionConfig()
-	config.EncoderConfig.EncodeTime = zapcore.ISO8601TimeEncoder
-	if os.Getenv("DTM_DEBUG") != "" {
-		config.Encoding = "console"
-		config.EncoderConfig.EncodeLevel = zapcore.CapitalColorLevelEncoder
-	}
-	p, err := config.Build(zap.AddCallerSkip(1))
-	if err != nil {
-		log.Fatal("create logger failed: ", err)
-	}
-	logger = p.Sugar()
-}
-
-// Logf is log stdout
-func Logf(fmt string, args ...interface{}) {
-	logger.Infof(fmt, args...)
-}
-
-// LogRedf is print error message with red color
-func LogRedf(fmt string, args ...interface{}) {
-	logger.Errorf(fmt, args...)
-}
-
-// FatalExitFunc is a Fatal exit function ，it will be replaced when testing
-var FatalExitFunc = func() { os.Exit(1) }
-
-// LogFatalf is print error message with red color, and execute FatalExitFunc
-func LogFatalf(fmt string, args ...interface{}) {
-	fmt += "\n" + string(debug.Stack())
-	LogRedf(fmt, args...)
-	FatalExitFunc()
-}
-
-// LogIfFatalf is print error message with red color, and execute LogFatalf, when condition is true
-func LogIfFatalf(condition bool, fmt string, args ...interface{}) {
-	if condition {
-		LogFatalf(fmt, args...)
-	}
-}
-
-// FatalIfError is print error message with red color, and execute LogIfFatalf.
-func FatalIfError(err error) {
-	LogIfFatalf(err != nil, "Fatal error: %v", err)
-}
-
 // GetFuncName get current call func name
 func GetFuncName() string {
 	pc, _, _, _ := runtime.Caller(1)
@@ -223,9 +183,9 @@ func DBExec(db DB, sql string, values ...interface{}) (affected int64, rerr erro
 	used := time.Since(began) / time.Millisecond
 	if rerr == nil {
 		affected, rerr = r.RowsAffected()
-		Logf("used: %d ms affected: %d for %s %v", used, affected, sql, values)
+		logger.Debugf("used: %d ms affected: %d for %s %v", used, affected, sql, values)
 	} else {
-		LogRedf("used: %d ms exec error: %v for %s %v", used, rerr, sql, values)
+		logger.Errorf("used: %d ms exec error: %v for %s %v", used, rerr, sql, values)
 	}
 	return
 }
@@ -258,7 +218,7 @@ func CheckResponse(resp *resty.Response, err error) error {
 	return err
 }
 
-// CheckResult is check result. Return err directly if err is not nil. And return corresponding error by calling CheckResponse if resp is the type of *resty.Response. 
+// CheckResult is check result. Return err directly if err is not nil. And return corresponding error by calling CheckResponse if resp is the type of *resty.Response.
 // Otherwise, return error by value of str, the string after marshal.
 func CheckResult(res interface{}, err error) error {
 	if err != nil {

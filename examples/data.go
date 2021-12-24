@@ -10,7 +10,7 @@ import (
 	"fmt"
 
 	"github.com/yedf/dtm/common"
-	"github.com/yedf/dtm/dtmcli/dtmimp"
+	"github.com/yedf/dtm/dtmcli/logger"
 )
 
 var config = &common.Config
@@ -50,6 +50,6 @@ type sampleInfo struct {
 var Samples = map[string]*sampleInfo{}
 
 func addSample(name string, fn func() string) {
-	dtmimp.LogIfFatalf(Samples[name] != nil, "%s already exists", name)
+	logger.FatalfIf(Samples[name] != nil, "%s already exists", name)
 	Samples[name] = &sampleInfo{Arg: name, Action: fn}
 }

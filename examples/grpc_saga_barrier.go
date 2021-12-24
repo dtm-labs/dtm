@@ -12,6 +12,7 @@ import (
 
 	"github.com/yedf/dtm/dtmcli"
 	"github.com/yedf/dtm/dtmcli/dtmimp"
+	"github.com/yedf/dtm/dtmcli/logger"
 	"github.com/yedf/dtm/dtmgrpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -26,7 +27,7 @@ func init() {
 			Add(BusiGrpc+"/examples.Busi/TransOutBSaga", BusiGrpc+"/examples.Busi/TransOutRevertBSaga", req).
 			Add(BusiGrpc+"/examples.Busi/TransInBSaga", BusiGrpc+"/examples.Busi/TransInRevertBSaga", req)
 		err := saga.Submit()
-		dtmimp.FatalIfError(err)
+		logger.FatalIfError(err)
 		return saga.Gid
 	})
 }

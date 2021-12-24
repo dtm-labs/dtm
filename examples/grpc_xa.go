@@ -9,7 +9,7 @@ package examples
 import (
 	context "context"
 
-	"github.com/yedf/dtm/dtmcli/dtmimp"
+	"github.com/yedf/dtm/dtmcli/logger"
 	"github.com/yedf/dtm/dtmgrpc"
 	"google.golang.org/protobuf/types/known/emptypb"
 )
@@ -27,7 +27,7 @@ func init() {
 			err = xa.CallBranch(req, BusiGrpc+"/examples.Busi/TransInXa", r)
 			return err
 		})
-		dtmimp.FatalIfError(err)
+		logger.FatalIfError(err)
 		return gid
 	})
 }

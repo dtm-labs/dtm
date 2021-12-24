@@ -9,6 +9,7 @@ package examples
 import (
 	"github.com/yedf/dtm/dtmcli"
 	"github.com/yedf/dtm/dtmcli/dtmimp"
+	"github.com/yedf/dtm/dtmcli/logger"
 )
 
 func init() {
@@ -21,7 +22,7 @@ func init() {
 		dtmimp.Logf("saga busi trans submit")
 		err := saga.Submit()
 		dtmimp.Logf("result gid is: %s", saga.Gid)
-		dtmimp.FatalIfError(err)
+		logger.FatalIfError(err)
 		return saga.Gid
 	})
 	addSample("saga_wait", func() string {
@@ -33,7 +34,7 @@ func init() {
 		saga.SetOptions(&dtmcli.TransOptions{WaitResult: true})
 		err := saga.Submit()
 		dtmimp.Logf("result gid is: %s", saga.Gid)
-		dtmimp.FatalIfError(err)
+		logger.FatalIfError(err)
 		return saga.Gid
 	})
 	addSample("concurrent_saga", func() string {
@@ -50,7 +51,7 @@ func init() {
 		dtmimp.Logf("concurrent saga busi trans submit")
 		err := csaga.Submit()
 		dtmimp.Logf("result gid is: %s", csaga.Gid)
-		dtmimp.FatalIfError(err)
+		logger.FatalIfError(err)
 		return csaga.Gid
 	})
 }

@@ -9,6 +9,7 @@ package examples
 import (
 	"github.com/yedf/dtm/dtmcli"
 	"github.com/yedf/dtm/dtmcli/dtmimp"
+	"github.com/yedf/dtm/dtmcli/logger"
 )
 
 func init() {
@@ -19,10 +20,10 @@ func init() {
 			Add(Busi+"/TransOut", req).
 			Add(Busi+"/TransIn", req)
 		err := msg.Prepare(Busi + "/query")
-		dtmimp.FatalIfError(err)
+		logger.FatalIfError(err)
 		dtmimp.Logf("busi trans submit")
 		err = msg.Submit()
-		dtmimp.FatalIfError(err)
+		logger.FatalIfError(err)
 		return msg.Gid
 	})
 }

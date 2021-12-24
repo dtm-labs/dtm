@@ -8,6 +8,7 @@ import (
 
 	"github.com/yedf/dtm/dtmcli"
 	"github.com/yedf/dtm/dtmcli/dtmimp"
+	"github.com/yedf/dtm/dtmcli/logger"
 	"gopkg.in/yaml.v2"
 )
 
@@ -82,13 +83,13 @@ func MustLoadConfig() {
 	}
 	if len(cont) != 0 {
 		err := yaml.UnmarshalStrict(cont, &Config)
-		dtmimp.FatalIfError(err)
+		logger.FatalIfError(err)
 	}
 	scont, err := json.MarshalIndent(&Config, "", "  ")
-	dtmimp.FatalIfError(err)
+	logger.FatalIfError(err)
 	dtmimp.Logf("config is: \n%s", scont)
 	err = checkConfig()
-	dtmimp.LogIfFatalf(err != nil, `config error: '%v'.
+	logger.FatalfIf(err != nil, `config error: '%v'.
 	check you env, and conf.yml/conf.sample.yml in current and parent path: %s.
 	please visit http://d.dtm.pub to see the config document.
 	loaded config is:

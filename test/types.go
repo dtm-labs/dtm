@@ -12,6 +12,7 @@ import (
 	"github.com/yedf/dtm/common"
 	"github.com/yedf/dtm/dtmcli"
 	"github.com/yedf/dtm/dtmcli/dtmimp"
+	"github.com/yedf/dtm/dtmcli/logger"
 	"github.com/yedf/dtm/dtmsvr"
 )
 
@@ -32,7 +33,7 @@ func waitTransProcessed(gid string) {
 		}
 		dtmimp.Logf("finish for gid %s", gid)
 	case <-time.After(time.Duration(time.Second * 3)):
-		dtmimp.LogFatalf("Wait Trans timeout")
+		logger.FatalfIf(true, "Wait Trans timeout")
 	}
 }
 

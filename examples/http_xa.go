@@ -11,7 +11,7 @@ import (
 	"github.com/go-resty/resty/v2"
 	"github.com/yedf/dtm/common"
 	"github.com/yedf/dtm/dtmcli"
-	"github.com/yedf/dtm/dtmcli/dtmimp"
+	"github.com/yedf/dtm/dtmcli/logger"
 )
 
 // XaClient XA client connection
@@ -25,7 +25,7 @@ func init() {
 				return xa.HandleCallback(c.Query("gid"), c.Query("branch_id"), c.Query("op"))
 			}))
 		})
-		dtmimp.FatalIfError(err)
+		logger.FatalIfError(err)
 	}
 	addSample("xa", func() string {
 		gid := dtmcli.MustGenGid(DtmHttpServer)
@@ -36,7 +36,7 @@ func init() {
 			}
 			return xa.CallBranch(&TransReq{Amount: 30}, Busi+"/TransInXa")
 		})
-		dtmimp.FatalIfError(err)
+		logger.FatalIfError(err)
 		return gid
 	})
 }

@@ -20,6 +20,7 @@ import (
 
 	"github.com/yedf/dtm/dtmcli"
 	"github.com/yedf/dtm/dtmcli/dtmimp"
+	"github.com/yedf/dtm/dtmcli/logger"
 )
 
 // GetGinApp init and return gin
@@ -105,10 +106,10 @@ func GetNextTime(second int64) *time.Time {
 // RunSQLScript 1
 func RunSQLScript(conf dtmcli.DBConf, script string, skipDrop bool) {
 	con, err := dtmimp.StandaloneDB(conf)
-	dtmimp.FatalIfError(err)
+	logger.FatalIfError(err)
 	defer func() { con.Close() }()
 	content, err := ioutil.ReadFile(script)
-	dtmimp.FatalIfError(err)
+	logger.FatalIfError(err)
 	sqls := strings.Split(string(content), ";")
 	for _, sql := range sqls {
 		s := strings.TrimSpace(sql)
@@ -116,6 +117,6 @@ func RunSQLScript(conf dtmcli.DBConf, script string, skipDrop bool) {
 			continue
 		}
 		_, err = dtmimp.DBExec(con, s)
-		dtmimp.FatalIfError(err)
+		logger.FatalIfError(err)
 	}
 }
