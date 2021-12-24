@@ -104,7 +104,7 @@ func (t *transSagaProcessor) ProcessOnce(branches []TransBranch) error {
 				err = dtmimp.AsError(x)
 			}
 			resultChan <- branchResult{index: i, status: branches[i].Status, op: branches[i].Op}
-			if err != nil {
+			if err != nil && err != dtmcli.ErrOngoing {
 				logger.Errorf("exec branch error: %v", err)
 			}
 		}()

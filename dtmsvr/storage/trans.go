@@ -5,6 +5,7 @@ import (
 
 	"github.com/yedf/dtm/common"
 	"github.com/yedf/dtm/dtmcli"
+	"github.com/yedf/dtm/dtmcli/dtmimp"
 )
 
 type TransGlobalStore struct {
@@ -29,8 +30,12 @@ type TransGlobalStore struct {
 }
 
 // TableName TableName
-func (*TransGlobalStore) TableName() string {
+func (g *TransGlobalStore) TableName() string {
 	return "dtm.trans_global"
+}
+
+func (g *TransGlobalStore) String() string {
+	return dtmimp.MustMarshalString(g)
 }
 
 // TransBranchStore branch transaction
@@ -47,6 +52,10 @@ type TransBranchStore struct {
 }
 
 // TableName TableName
-func (*TransBranchStore) TableName() string {
+func (b *TransBranchStore) TableName() string {
 	return "dtm.trans_branch_op"
+}
+
+func (b *TransBranchStore) String() string {
+	return dtmimp.MustMarshalString(*b)
 }

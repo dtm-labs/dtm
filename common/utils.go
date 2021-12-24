@@ -118,5 +118,6 @@ func RunSQLScript(conf dtmcli.DBConf, script string, skipDrop bool) {
 		}
 		_, err = dtmimp.DBExec(con, s)
 		logger.FatalIfError(err)
+		logger.Infof("sql scripts finished: %s", s)
 	}
 }

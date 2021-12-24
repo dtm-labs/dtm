@@ -45,7 +45,7 @@ func (t *TransGlobal) process() map[string]interface{} {
 func (t *TransGlobal) processInner() (rerr error) {
 	defer handlePanic(&rerr)
 	defer func() {
-		if rerr != nil {
+		if rerr != nil && rerr != dtmcli.ErrOngoing {
 			logger.Errorf("processInner got error: %s", rerr.Error())
 		}
 		if TransProcessedTestChan != nil {
@@ -72,5 +72,8 @@ func (t *TransGlobal) saveNew() error {
 	now := time.Now()
 	t.CreateTime = &now
 	t.UpdateTime = &now
-	return GetStore().MaySaveNewTrans(&t.TransGlobalStore, branches)
+	err := GetStore().MaySaveNewTrans(&t.TransGlobalStore, branches)
+	logger.Infof("MaySaveNewTrans result: %v, global: %v branches: %v",
+		err, t.TransGlobalStore.String(), dtmimp.MustMarshalString(branches))
+	return err
 }

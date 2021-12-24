@@ -27,8 +27,11 @@ func (s *RedisStore) Ping() error {
 }
 
 func (s *RedisStore) PopulateData(skipDrop bool) {
-	_, err := redisGet().FlushAll(ctx).Result()
-	dtmimp.PanicIf(err != nil, err)
+	if !skipDrop {
+		_, err := redisGet().FlushAll(ctx).Result()
+		logger.Infof("call redis flushall. result: %v", err)
+		dtmimp.PanicIf(err != nil, err)
+	}
 }
 
 func (s *RedisStore) FindTransGlobalStore(gid string) *storage.TransGlobalStore {

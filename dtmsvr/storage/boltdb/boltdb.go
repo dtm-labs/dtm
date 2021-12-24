@@ -242,6 +242,7 @@ func (s *BoltdbStore) PopulateData(skipDrop bool) {
 			return nil
 		})
 		dtmimp.E2P(err)
+		logger.Infof("Reset all data for boltdb")
 	}
 }
 

@@ -79,11 +79,11 @@ func updateBranchAsync() {
 		for len(updates) > 0 {
 			dbr := GetStore().UpdateBranchesSql(updates, []string{"status", "finish_time", "update_time"})
 
-			logger.Debugf("flushed %d branch status to db. affected: %d", len(updates), dbr.RowsAffected)
 			if dbr.Error != nil {
 				logger.Errorf("async update branch status error: %v", dbr.Error)
 				time.Sleep(1 * time.Second)
 			} else {
+				logger.Infof("flushed %d branch status to db. affected: %d", len(updates), dbr.RowsAffected)
 				updates = []TransBranch{}
 			}
 		}

@@ -11,6 +11,7 @@ import (
 
 	"github.com/yedf/dtm/dtmcli"
 	"github.com/yedf/dtm/dtmcli/dtmimp"
+	"github.com/yedf/dtm/dtmcli/logger"
 	"github.com/yedf/dtm/dtmsvr/storage"
 )
 
@@ -71,7 +72,10 @@ func svcRegisterBranch(transType string, branch *TransBranch, data map[string]st
 	})
 	if err == storage.ErrNotFound {
 		msg := fmt.Sprintf("no trans with gid: %s status: %s found", branch.Gid, dtmcli.StatusPrepared)
+		logger.Errorf(msg)
 		return map[string]interface{}{"dtm_result": dtmcli.ResultFailure, "message": msg}, nil
 	}
+	logger.Infof("LockGlobalSaveBranches result: %v: gid: %s old status: %s branches: %s",
+		err, branch.Gid, dtmcli.StatusPrepared, dtmimp.MustMarshalString(branches))
 	return dtmimp.If(err != nil, nil, dtmcli.MapSuccess), err
 }

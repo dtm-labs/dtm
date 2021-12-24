@@ -50,6 +50,7 @@ func lockOneTrans(expireIn time.Duration) *TransGlobal {
 	if global == nil {
 		return nil
 	}
+	logger.Infof("cron job return a trans: %s", global.String())
 	return &TransGlobal{TransGlobalStore: *global}
 }
 
