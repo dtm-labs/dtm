@@ -12,7 +12,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/yedf/dtm/dtmcli"
 	"github.com/yedf/dtm/dtmcli/dtmimp"
-	"github.com/yedf/dtm/dtmgrpc/dtmgimp"
+	"github.com/yedf/dtm/dtmgrpc/dtmgpb"
 	"github.com/yedf/dtm/dtmsvr/storage"
 )
 
@@ -72,8 +72,8 @@ func TransFromContext(c *gin.Context) *TransGlobal {
 }
 
 // TransFromDtmRequest TransFromContext
-func TransFromDtmRequest(c *dtmgimp.DtmRequest) *TransGlobal {
-	o := &dtmgimp.DtmTransOptions{}
+func TransFromDtmRequest(c *dtmgpb.DtmRequest) *TransGlobal {
+	o := &dtmgpb.DtmTransOptions{}
 	if c.TransOptions != nil {
 		o = c.TransOptions
 	}

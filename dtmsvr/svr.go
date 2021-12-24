@@ -15,6 +15,7 @@ import (
 	"github.com/yedf/dtm/common"
 	"github.com/yedf/dtm/dtmcli/dtmimp"
 	"github.com/yedf/dtm/dtmgrpc/dtmgimp"
+	"github.com/yedf/dtm/dtmgrpc/dtmgpb"
 	"github.com/yedf/dtmdriver"
 	"google.golang.org/grpc"
 )
@@ -34,7 +35,7 @@ func StartSvr() {
 		grpc.UnaryInterceptor(grpc_middleware.ChainUnaryServer(
 			grpc.UnaryServerInterceptor(grpcMetrics), grpc.UnaryServerInterceptor(dtmgimp.GrpcServerLog)),
 		))
-	dtmgimp.RegisterDtmServer(s, &dtmServer{})
+	dtmgpb.RegisterDtmServer(s, &dtmServer{})
 	dtmimp.Logf("grpc listening at %v", lis.Addr())
 	go func() {
 		err := s.Serve(lis)
