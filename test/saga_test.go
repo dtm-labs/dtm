@@ -58,6 +58,17 @@ func TestSagaAbnormal(t *testing.T) {
 	assert.Error(t, err) // a succeed trans can't accept submit
 }
 
+func TestSagaEmptyUrl(t *testing.T) {
+	saga := dtmcli.NewSaga(examples.DtmHttpServer, dtmimp.GetFuncName())
+	req := examples.GenTransReq(30, false, false)
+	saga.Add(examples.Busi+"/TransOut", "", &req)
+	saga.Add("", "", &req)
+	saga.Submit()
+	waitTransProcessed(saga.Gid)
+	assert.Equal(t, []string{StatusPrepared, StatusSucceed, StatusPrepared, StatusSucceed}, getBranchesStatus(saga.Gid))
+	assert.Equal(t, StatusSucceed, getTransStatus(saga.Gid))
+}
+
 func genSaga(gid string, outFailed bool, inFailed bool) *dtmcli.Saga {
 	saga := dtmcli.NewSaga(examples.DtmHttpServer, gid)
 	req := examples.GenTransReq(30, outFailed, inFailed)

@@ -75,6 +75,17 @@ func TestSagaGrpcNormalWait(t *testing.T) {
 	waitTransProcessed(saga.Gid)
 }
 
+func TestSagaGrpcEmptyUrl(t *testing.T) {
+	saga := dtmgrpc.NewSagaGrpc(examples.DtmGrpcServer, dtmimp.GetFuncName())
+	req := examples.GenBusiReq(30, false, false)
+	saga.Add(examples.BusiGrpc+"/examples.Busi/TransOut", examples.BusiGrpc+"/examples.Busi/TransOutRevert", req)
+	saga.Add("", examples.BusiGrpc+"/examples.Busi/TransInRevert", req)
+	saga.Submit()
+	waitTransProcessed(saga.Gid)
+	assert.Equal(t, []string{StatusPrepared, StatusSucceed, StatusPrepared, StatusSucceed}, getBranchesStatus(saga.Gid))
+	assert.Equal(t, StatusSucceed, getTransStatus(saga.Gid))
+}
+
 func genSagaGrpc(gid string, outFailed bool, inFailed bool) *dtmgrpc.SagaGrpc {
 	saga := dtmgrpc.NewSagaGrpc(examples.DtmGrpcServer, gid)
 	req := examples.GenBusiReq(30, outFailed, inFailed)

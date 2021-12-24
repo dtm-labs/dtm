@@ -67,6 +67,9 @@ func (t *TransGlobal) needProcess() bool {
 }
 
 func (t *TransGlobal) getURLResult(url string, branchID, op string, branchPayload []byte) (string, error) {
+	if url == "" { // empty url is success
+		return dtmcli.ResultSuccess, nil
+	}
 	if t.Protocol == "grpc" {
 		dtmimp.PanicIf(strings.HasPrefix(url, "http"), fmt.Errorf("bad url for grpc: %s", url))
 		server, method, err := dtmdriver.GetDriver().ParseServerMethod(url)
