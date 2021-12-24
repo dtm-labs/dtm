@@ -102,10 +102,10 @@ func checkConfig() error {
 	if Config.TimeoutToFail < Config.RetryInterval {
 		return errors.New("TimeoutToFail should not be less than RetryInterval")
 	}
-	if Config.Store.Driver == BoltDb {
+	switch Config.Store.Driver {
+	case BoltDb:
 		return nil
-	}
-	if Config.Store.Driver == Mysql {
+	case Mysql:
 		if Config.Store.Host == "" {
 			return errors.New("Db host not valid ")
 		}
@@ -114,6 +114,13 @@ func checkConfig() error {
 		}
 		if Config.Store.User == "" {
 			return errors.New("Db user not valid ")
+		}
+	case Redis:
+		if Config.Store.Host == "" {
+			return errors.New("Redis host not valid ")
+		}
+		if Config.Store.Port == 0 {
+			return errors.New("Redis port not valid ")
 		}
 	}
 	return nil
