@@ -11,6 +11,7 @@ import (
 	"sync"
 
 	"github.com/yedf/dtm/dtmcli/dtmimp"
+	"github.com/yedf/dtm/dtmcli/logger"
 	"github.com/yedf/dtm/dtmgrpc/dtmgpb"
 	grpc "google.golang.org/grpc"
 )
@@ -57,12 +58,12 @@ func GetGrpcConn(grpcServer string, isRaw bool) (conn *grpc.ClientConn, rerr err
 		if isRaw {
 			opts = grpc.WithDefaultCallOptions(grpc.ForceCodec(rawCodec{}))
 		}
-		dtmimp.Logf("grpc client connecting %s", grpcServer)
+		logger.Debugf("grpc client connecting %s", grpcServer)
 		conn, rerr := grpc.Dial(grpcServer, grpc.WithInsecure(), grpc.WithUnaryInterceptor(GrpcClientLog), opts)
 		if rerr == nil {
 			clients.Store(grpcServer, conn)
 			v = conn
-			dtmimp.Logf("grpc client inited for %s", grpcServer)
+			logger.Debugf("grpc client inited for %s", grpcServer)
 		}
 	}
 	return v.(*grpc.ClientConn), rerr

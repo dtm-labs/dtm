@@ -12,6 +12,7 @@ import (
 	"net/url"
 
 	"github.com/yedf/dtm/dtmcli/dtmimp"
+	"github.com/yedf/dtm/dtmcli/logger"
 )
 
 // BarrierBusiFunc type for busi func
@@ -82,7 +83,7 @@ func (bb *BranchBarrier) Call(tx *sql.Tx, busiCall BarrierBusiFunc) (rerr error)
 
 	originAffected, _ := insertBarrier(tx, ti.TransType, ti.Gid, ti.BranchID, originType, bid, ti.Op)
 	currentAffected, rerr := insertBarrier(tx, ti.TransType, ti.Gid, ti.BranchID, ti.Op, bid, ti.Op)
-	dtmimp.Logf("originAffected: %d currentAffected: %d", originAffected, currentAffected)
+	logger.Debugf("originAffected: %d currentAffected: %d", originAffected, currentAffected)
 	if (ti.Op == BranchCancel || ti.Op == BranchCompensate) && originAffected > 0 || // 这个是空补偿
 		currentAffected == 0 { // 这个是重复请求或者悬挂
 		return

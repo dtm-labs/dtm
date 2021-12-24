@@ -7,14 +7,14 @@
 package examples
 
 import (
-	"github.com/yedf/dtm/dtmcli/dtmimp"
+	"github.com/yedf/dtm/dtmcli/logger"
 	dtmgrpc "github.com/yedf/dtm/dtmgrpc"
 	emptypb "google.golang.org/protobuf/types/known/emptypb"
 )
 
 func init() {
 	addSample("grpc_tcc", func() string {
-		dtmimp.Logf("tcc simple transaction begin")
+		logger.Debugf("tcc simple transaction begin")
 		gid := dtmgrpc.MustGenGid(DtmGrpcServer)
 		err := dtmgrpc.TccGlobalTransaction(DtmGrpcServer, gid, func(tcc *dtmgrpc.TccGrpc) error {
 			data := &BusiReq{Amount: 30}
@@ -26,7 +26,7 @@ func init() {
 			err = tcc.CallBranch(data, BusiGrpc+"/examples.Busi/TransInTcc", BusiGrpc+"/examples.Busi/TransInConfirm", BusiGrpc+"/examples.Busi/TransInRevert", r)
 			return err
 		})
-		dtmimp.FatalIfError(err)
+		logger.FatalIfError(err)
 		return gid
 	})
 }

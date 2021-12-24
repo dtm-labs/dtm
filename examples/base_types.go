@@ -15,6 +15,7 @@ import (
 	"github.com/yedf/dtm/common"
 	"github.com/yedf/dtm/dtmcli"
 	"github.com/yedf/dtm/dtmcli/dtmimp"
+	"github.com/yedf/dtm/dtmcli/logger"
 	"github.com/yedf/dtm/dtmgrpc"
 )
 
@@ -58,7 +59,7 @@ func reqFrom(c *gin.Context) *TransReq {
 	if !ok {
 		req := TransReq{}
 		err := c.BindJSON(&req)
-		dtmimp.FatalIfError(err)
+		logger.FatalIfError(err)
 		c.Set("trans_req", &req)
 		v = &req
 	}
@@ -81,27 +82,27 @@ func dbGet() *common.DB {
 
 func sdbGet() *sql.DB {
 	db, err := dtmimp.PooledDB(config.ExamplesDB)
-	dtmimp.FatalIfError(err)
+	logger.FatalIfError(err)
 	return db
 }
 
 func txGet() *sql.Tx {
 	db := sdbGet()
 	tx, err := db.Begin()
-	dtmimp.FatalIfError(err)
+	logger.FatalIfError(err)
 	return tx
 }
 
 // MustBarrierFromGin 1
 func MustBarrierFromGin(c *gin.Context) *dtmcli.BranchBarrier {
 	ti, err := dtmcli.BarrierFromQuery(c.Request.URL.Query())
-	dtmimp.FatalIfError(err)
+	logger.FatalIfError(err)
 	return ti
 }
 
 // MustBarrierFromGrpc 1
 func MustBarrierFromGrpc(ctx context.Context) *dtmcli.BranchBarrier {
 	ti, err := dtmgrpc.BarrierFromGrpc(ctx)
-	dtmimp.FatalIfError(err)
+	logger.FatalIfError(err)
 	return ti
 }

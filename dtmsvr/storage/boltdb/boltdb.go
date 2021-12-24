@@ -11,6 +11,7 @@ import (
 
 	"github.com/yedf/dtm/common"
 	"github.com/yedf/dtm/dtmcli/dtmimp"
+	"github.com/yedf/dtm/dtmcli/logger"
 	"github.com/yedf/dtm/dtmsvr/storage"
 )
 
@@ -100,9 +101,9 @@ func cleanupGlobalWithGids(t *bolt.Tx, gids map[string]struct{}) {
 		return
 	}
 
-	dtmimp.Logf("Start to cleanup %d gids", len(gids))
+	logger.Debugf("Start to cleanup %d gids", len(gids))
 	for gid := range gids {
-		dtmimp.Logf("Start to delete gid: %s", gid)
+		logger.Debugf("Start to delete gid: %s", gid)
 		bucket.Delete([]byte(gid))
 	}
 }
@@ -129,9 +130,9 @@ func cleanupBranchWithGids(t *bolt.Tx, gids map[string]struct{}) {
 		}
 	}
 
-	dtmimp.Logf("Start to cleanup %d branches", len(branchKeys))
+	logger.Debugf("Start to cleanup %d branches", len(branchKeys))
 	for _, key := range branchKeys {
-		dtmimp.Logf("Start to delete branch: %s", key)
+		logger.Debugf("Start to delete branch: %s", key)
 		bucket.Delete([]byte(key))
 	}
 }
@@ -155,9 +156,9 @@ func cleanupIndexWithGids(t *bolt.Tx, gids map[string]struct{}) {
 		}
 	}
 
-	dtmimp.Logf("Start to cleanup %d indexes", len(indexKeys))
+	logger.Debugf("Start to cleanup %d indexes", len(indexKeys))
 	for _, key := range indexKeys {
-		dtmimp.Logf("Start to delete index: %s", key)
+		logger.Debugf("Start to delete index: %s", key)
 		bucket.Delete([]byte(key))
 	}
 }
@@ -241,6 +242,7 @@ func (s *BoltdbStore) PopulateData(skipDrop bool) {
 			return nil
 		})
 		dtmimp.E2P(err)
+		logger.Infof("Reset all data for boltdb")
 	}
 }
 

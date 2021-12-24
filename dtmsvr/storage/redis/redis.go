@@ -10,6 +10,7 @@ import (
 
 	"github.com/yedf/dtm/common"
 	"github.com/yedf/dtm/dtmcli/dtmimp"
+	"github.com/yedf/dtm/dtmcli/logger"
 	"github.com/yedf/dtm/dtmsvr/storage"
 )
 
@@ -26,8 +27,11 @@ func (s *RedisStore) Ping() error {
 }
 
 func (s *RedisStore) PopulateData(skipDrop bool) {
-	_, err := redisGet().FlushAll(ctx).Result()
-	dtmimp.PanicIf(err != nil, err)
+	if !skipDrop {
+		_, err := redisGet().FlushAll(ctx).Result()
+		logger.Infof("call redis flushall. result: %v", err)
+		dtmimp.PanicIf(err != nil, err)
+	}
 }
 
 func (s *RedisStore) FindTransGlobalStore(gid string) *storage.TransGlobalStore {
@@ -114,7 +118,7 @@ func (a *argList) AppendBranches(branches []storage.TransBranchStore) *argList {
 }
 
 func handleRedisResult(ret interface{}, err error) (string, error) {
-	dtmimp.Logf("result is: '%v', err: '%v'", ret, err)
+	logger.Debugf("result is: '%v', err: '%v'", ret, err)
 	if err != nil && err != redis.Nil {
 		return "", err
 	}
@@ -127,7 +131,7 @@ func handleRedisResult(ret interface{}, err error) (string, error) {
 }
 
 func callLua(a *argList, lua string) (string, error) {
-	dtmimp.Logf("calling lua. args: %v\nlua:%s", a, lua)
+	logger.Debugf("calling lua. args: %v\nlua:%s", a, lua)
 	ret, err := redisGet().Eval(ctx, lua, a.Keys, a.List...).Result()
 	return handleRedisResult(ret, err)
 }
@@ -201,7 +205,6 @@ if os.status ~= ARGV[4] then
   return 'NOT_FOUND'
 end
 redis.call('SET', KEYS[1],  ARGV[3], 'EX', ARGV[2])
-redis.log(redis.LOG_WARNING, 'finished: ', ARGV[5])
 if ARGV[5] == '1' then
 	redis.call('ZREM', KEYS[3], gs.gid)
 end

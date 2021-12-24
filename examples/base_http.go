@@ -17,6 +17,7 @@ import (
 	"github.com/yedf/dtm/common"
 	"github.com/yedf/dtm/dtmcli"
 	"github.com/yedf/dtm/dtmcli/dtmimp"
+	"github.com/yedf/dtm/dtmcli/logger"
 	"gorm.io/driver/mysql"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
@@ -40,7 +41,7 @@ var Busi string = fmt.Sprintf("http://localhost:%d%s", BusiPort, BusiAPI)
 
 // BaseAppStartup base app startup
 func BaseAppStartup() *gin.Engine {
-	dtmimp.Logf("examples starting")
+	logger.Debugf("examples starting")
 	app := common.GetGinApp()
 	app.Use(func(c *gin.Context) {
 		v := MainSwitch.NextResult.Fetch()
@@ -54,10 +55,10 @@ func BaseAppStartup() *gin.Engine {
 
 	BaseAddRoute(app)
 	for k, v := range setupFuncs {
-		dtmimp.Logf("initing %s", k)
+		logger.Debugf("initing %s", k)
 		v(app)
 	}
-	dtmimp.Logf("Starting busi at: %d", BusiPort)
+	logger.Debugf("Starting busi at: %d", BusiPort)
 	go app.Run(fmt.Sprintf(":%d", BusiPort))
 
 	time.Sleep(100 * time.Millisecond)
@@ -98,7 +99,7 @@ var MainSwitch mainSwitchType
 func handleGeneralBusiness(c *gin.Context, result1 string, result2 string, busi string) (interface{}, error) {
 	info := infoFromContext(c)
 	res := dtmimp.OrString(result1, result2, dtmcli.ResultSuccess)
-	dtmimp.Logf("%s %s result: %s", busi, info.String(), res)
+	logger.Debugf("%s %s result: %s", busi, info.String(), res)
 	if res == "ERROR" {
 		return nil, errors.New("ERROR from user")
 	}
@@ -136,7 +137,7 @@ func BaseAddRoute(app *gin.Engine) {
 		return handleGeneralBusiness(c, MainSwitch.TransOutRevertResult.Fetch(), "", "TransOutRevert")
 	}))
 	app.GET(BusiAPI+"/CanSubmit", common.WrapHandler(func(c *gin.Context) (interface{}, error) {
-		dtmimp.Logf("%s CanSubmit", c.Query("gid"))
+		logger.Debugf("%s CanSubmit", c.Query("gid"))
 		return dtmimp.OrString(MainSwitch.CanSubmitResult.Fetch(), dtmcli.ResultSuccess), nil
 	}))
 	app.POST(BusiAPI+"/TransInXa", common.WrapHandler(func(c *gin.Context) (interface{}, error) {

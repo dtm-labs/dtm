@@ -13,6 +13,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/yedf/dtm/dtmcli"
 	"github.com/yedf/dtm/dtmcli/dtmimp"
+	"github.com/yedf/dtm/dtmcli/logger"
 	"github.com/yedf/dtm/dtmgrpc"
 	"github.com/yedf/dtm/examples"
 	"google.golang.org/protobuf/types/known/emptypb"
@@ -70,7 +71,7 @@ func TestTccGrpcNested(t *testing.T) {
 func TestTccGrpcType(t *testing.T) {
 	_, err := dtmgrpc.TccFromGrpc(context.Background())
 	assert.Error(t, err)
-	dtmimp.Logf("expecting dtmgrpcserver error")
+	logger.Debugf("expecting dtmgrpcserver error")
 	err = dtmgrpc.TccGlobalTransaction("-", "", func(tcc *dtmgrpc.TccGrpc) error { return nil })
 	assert.Error(t, err)
 }

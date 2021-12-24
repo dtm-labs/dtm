@@ -13,6 +13,7 @@ import (
 
 	"github.com/yedf/dtm/dtmcli"
 	"github.com/yedf/dtm/dtmcli/dtmimp"
+	"github.com/yedf/dtm/dtmcli/logger"
 	"github.com/yedf/dtm/dtmgrpc/dtmgimp"
 	"github.com/yedf/dtmdriver"
 	"google.golang.org/grpc/codes"
@@ -22,6 +23,7 @@ import (
 func (t *TransGlobal) touchCronTime(ctype cronType) {
 	t.lastTouched = time.Now()
 	GetStore().TouchCronTime(&t.TransGlobalStore, t.getNextCronInterval(ctype))
+	logger.Infof("TouchCronTime for: %s", t.TransGlobalStore.String())
 }
 
 func (t *TransGlobal) changeStatus(status string) {
@@ -36,6 +38,7 @@ func (t *TransGlobal) changeStatus(status string) {
 	}
 	t.UpdateTime = &now
 	GetStore().ChangeGlobalStatus(&t.TransGlobalStore, status, updates, status == dtmcli.StatusSucceed || status == dtmcli.StatusFailed)
+	logger.Infof("ChangeGlobalStatus to %s ok for %s", status, t.TransGlobalStore.String())
 	t.Status = status
 }
 
@@ -46,6 +49,8 @@ func (t *TransGlobal) changeBranchStatus(b *TransBranch, status string, branchPo
 	b.UpdateTime = &now
 	if config.Store.Driver != dtmimp.DBTypeMysql && config.Store.Driver != dtmimp.DBTypePostgres || config.UpdateBranchSync > 0 || t.updateBranchSync {
 		GetStore().LockGlobalSaveBranches(t.Gid, t.Status, []TransBranch{*b}, branchPos)
+		logger.Infof("LockGlobalSaveBranches ok: gid: %s old status: %s branches: %s",
+			b.Gid, dtmcli.StatusPrepared, b.String())
 	} else { // 为了性能优化，把branch的status更新异步化
 		updateBranchAsyncChan <- branchStatus{id: b.ID, status: status, finishTime: &now}
 	}
@@ -67,6 +72,9 @@ func (t *TransGlobal) needProcess() bool {
 }
 
 func (t *TransGlobal) getURLResult(url string, branchID, op string, branchPayload []byte) (string, error) {
+	if url == "" { // empty url is success
+		return dtmcli.ResultSuccess, nil
+	}
 	if t.Protocol == "grpc" {
 		dtmimp.PanicIf(strings.HasPrefix(url, "http"), fmt.Errorf("bad url for grpc: %s", url))
 		server, method, err := dtmdriver.GetDriver().ParseServerMethod(url)

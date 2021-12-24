@@ -50,6 +50,6 @@ func toUnderscoreUpper(key string) string {
 	key = strings.Trim(key, "_")
 	matchFirstCap := regexp.MustCompile("([a-z])([A-Z]+)")
 	s2 := matchFirstCap.ReplaceAllString(key, "${1}_${2}")
-	// dtmimp.Logf("loading from env: %s", strings.ToUpper(s2))
+	// logger.Debugf("loading from env: %s", strings.ToUpper(s2))
 	return strings.ToUpper(s2)
 }

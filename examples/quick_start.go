@@ -14,6 +14,7 @@ import (
 	"github.com/yedf/dtm/common"
 	"github.com/yedf/dtm/dtmcli"
 	"github.com/yedf/dtm/dtmcli/dtmimp"
+	"github.com/yedf/dtm/dtmcli/logger"
 )
 
 // 启动命令：go run app/main.go qs
@@ -28,7 +29,7 @@ var qsBusi = fmt.Sprintf("http://localhost:%d%s", qsBusiPort, qsBusiAPI)
 func QsStartSvr() {
 	app := common.GetGinApp()
 	qsAddRoute(app)
-	dtmimp.Logf("quick qs examples listening at %d", qsBusiPort)
+	logger.Debugf("quick qs examples listening at %d", qsBusiPort)
 	go app.Run(fmt.Sprintf(":%d", qsBusiPort))
 	time.Sleep(100 * time.Millisecond)
 }
@@ -44,7 +45,7 @@ func QsFireRequest() string {
 		Add(qsBusi+"/TransIn", qsBusi+"/TransInCompensate", req)
 	// 提交saga事务，dtm会完成所有的子事务/回滚所有的子事务
 	err := saga.Submit()
-	dtmimp.FatalIfError(err)
+	logger.FatalIfError(err)
 	return saga.Gid
 }
 

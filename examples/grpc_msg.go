@@ -7,7 +7,7 @@
 package examples
 
 import (
-	"github.com/yedf/dtm/dtmcli/dtmimp"
+	"github.com/yedf/dtm/dtmcli/logger"
 	dtmgrpc "github.com/yedf/dtm/dtmgrpc"
 )
 
@@ -19,7 +19,7 @@ func init() {
 			Add(BusiGrpc+"/examples.Busi/TransOut", req).
 			Add(BusiGrpc+"/examples.Busi/TransIn", req)
 		err := msg.Submit()
-		dtmimp.FatalIfError(err)
+		logger.FatalIfError(err)
 		return msg.Gid
 	})
 }

@@ -6,7 +6,7 @@ import (
 
 	"github.com/yedf/dtm/common"
 	"github.com/yedf/dtm/dtmcli"
-	"github.com/yedf/dtm/dtmcli/dtmimp"
+	"github.com/yedf/dtm/dtmcli/logger"
 	"github.com/yedf/dtm/dtmsvr"
 	"github.com/yedf/dtm/dtmsvr/storage/registry"
 	"github.com/yedf/dtm/examples"
@@ -23,7 +23,7 @@ func main() {
 		fmt.Printf(hint)
 		return
 	}
-	dtmimp.Logf("starting dtm....")
+	logger.Debugf("starting dtm....")
 	if os.Args[1] == "http" {
 		fmt.Println("start bench server")
 		common.MustLoadConfig()

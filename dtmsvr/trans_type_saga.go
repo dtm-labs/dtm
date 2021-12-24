@@ -12,6 +12,7 @@ import (
 
 	"github.com/yedf/dtm/dtmcli"
 	"github.com/yedf/dtm/dtmcli/dtmimp"
+	"github.com/yedf/dtm/dtmcli/logger"
 )
 
 type transSagaProcessor struct {
@@ -54,7 +55,7 @@ type branchResult struct {
 
 func (t *transSagaProcessor) ProcessOnce(branches []TransBranch) error {
 	// when saga tasks is fetched, it always need to process
-	dtmimp.Logf("status: %s timeout: %t", t.Status, t.isTimeout())
+	logger.Debugf("status: %s timeout: %t", t.Status, t.isTimeout())
 	if t.Status == dtmcli.StatusSubmitted && t.isTimeout() {
 		t.changeStatus(dtmcli.StatusAborting)
 	}
@@ -103,8 +104,8 @@ func (t *transSagaProcessor) ProcessOnce(branches []TransBranch) error {
 				err = dtmimp.AsError(x)
 			}
 			resultChan <- branchResult{index: i, status: branches[i].Status, op: branches[i].Op}
-			if err != nil {
-				dtmimp.LogRedf("exec branch error: %v", err)
+			if err != nil && err != dtmcli.ErrOngoing {
+				logger.Errorf("exec branch error: %v", err)
 			}
 		}()
 		err = t.execBranch(&branches[i], i)
@@ -117,7 +118,7 @@ func (t *transSagaProcessor) ProcessOnce(branches []TransBranch) error {
 				toRun = append(toRun, current)
 			}
 		}
-		dtmimp.Logf("toRun picked for action is: %v", toRun)
+		logger.Debugf("toRun picked for action is: %v", toRun)
 		return toRun
 	}
 	runBranches := func(toRun []int) {
@@ -159,9 +160,9 @@ func (t *transSagaProcessor) ProcessOnce(branches []TransBranch) error {
 					rsCSucceed++
 				}
 			}
-			dtmimp.Logf("branch done: %v", r)
+			logger.Debugf("branch done: %v", r)
 		case <-time.After(time.Duration(time.Second * 3)):
-			dtmimp.Logf("wait once for done")
+			logger.Debugf("wait once for done")
 		}
 	}
 

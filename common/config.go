@@ -7,7 +7,7 @@ import (
 	"path/filepath"
 
 	"github.com/yedf/dtm/dtmcli"
-	"github.com/yedf/dtm/dtmcli/dtmimp"
+	"github.com/yedf/dtm/dtmcli/logger"
 	"gopkg.in/yaml.v2"
 )
 
@@ -61,6 +61,7 @@ type configType struct {
 	GrpcPort          int64         `yaml:"GrpcPort" default:"36790"`
 	MicroService      MicroService  `yaml:"MicroService"`
 	UpdateBranchSync  int64         `yaml:"UpdateBranchSync"`
+	LogLevel          string        `yaml:"LogLevel" default:"info"`
 	ExamplesDB        dtmcli.DBConf `yaml:"ExamplesDB"`
 }
 
@@ -82,13 +83,13 @@ func MustLoadConfig() {
 	}
 	if len(cont) != 0 {
 		err := yaml.UnmarshalStrict(cont, &Config)
-		dtmimp.FatalIfError(err)
+		logger.FatalIfError(err)
 	}
 	scont, err := json.MarshalIndent(&Config, "", "  ")
-	dtmimp.FatalIfError(err)
-	dtmimp.Logf("config is: \n%s", scont)
+	logger.FatalIfError(err)
+	logger.Debugf("config is: \n%s", scont)
 	err = checkConfig()
-	dtmimp.LogIfFatalf(err != nil, `config error: '%v'.
+	logger.FatalfIf(err != nil, `config error: '%v'.
 	check you env, and conf.yml/conf.sample.yml in current and parent path: %s.
 	please visit http://d.dtm.pub to see the config document.
 	loaded config is:

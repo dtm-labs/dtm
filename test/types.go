@@ -12,6 +12,7 @@ import (
 	"github.com/yedf/dtm/common"
 	"github.com/yedf/dtm/dtmcli"
 	"github.com/yedf/dtm/dtmcli/dtmimp"
+	"github.com/yedf/dtm/dtmcli/logger"
 	"github.com/yedf/dtm/dtmsvr"
 )
 
@@ -23,16 +24,16 @@ func dbGet() *common.DB {
 
 // waitTransProcessed only for test usage. wait for transaction processed once
 func waitTransProcessed(gid string) {
-	dtmimp.Logf("waiting for gid %s", gid)
+	logger.Debugf("waiting for gid %s", gid)
 	select {
 	case id := <-dtmsvr.TransProcessedTestChan:
 		for id != gid {
-			dtmimp.LogRedf("-------id %s not match gid %s", id, gid)
+			logger.Errorf("-------id %s not match gid %s", id, gid)
 			id = <-dtmsvr.TransProcessedTestChan
 		}
-		dtmimp.Logf("finish for gid %s", gid)
+		logger.Debugf("finish for gid %s", gid)
 	case <-time.After(time.Duration(time.Second * 3)):
-		dtmimp.LogFatalf("Wait Trans timeout")
+		logger.FatalfIf(true, "Wait Trans timeout")
 	}
 }
 

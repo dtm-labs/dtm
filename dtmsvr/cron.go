@@ -13,6 +13,7 @@ import (
 	"time"
 
 	"github.com/yedf/dtm/dtmcli/dtmimp"
+	"github.com/yedf/dtm/dtmcli/logger"
 )
 
 // NowForwardDuration will be set in test, trans may be timeout
@@ -49,12 +50,13 @@ func lockOneTrans(expireIn time.Duration) *TransGlobal {
 	if global == nil {
 		return nil
 	}
+	logger.Infof("cron job return a trans: %s", global.String())
 	return &TransGlobal{TransGlobalStore: *global}
 }
 
 func handlePanic(perr *error) {
 	if err := recover(); err != nil {
-		dtmimp.LogRedf("----recovered panic %v\n%s", err, string(debug.Stack()))
+		logger.Errorf("----recovered panic %v\n%s", err, string(debug.Stack()))
 		if perr != nil {
 			*perr = fmt.Errorf("dtm panic: %v", err)
 		}
@@ -64,6 +66,6 @@ func handlePanic(perr *error) {
 func sleepCronTime() {
 	normal := time.Duration((float64(config.TransCronInterval) - rand.Float64()) * float64(time.Second))
 	interval := dtmimp.If(CronForwardDuration > 0, 1*time.Millisecond, normal).(time.Duration)
-	dtmimp.Logf("sleeping for %v milli", interval/time.Microsecond)
+	logger.Debugf("sleeping for %v milli", interval/time.Microsecond)
 	time.Sleep(interval)
 }

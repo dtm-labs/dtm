@@ -9,7 +9,7 @@ package examples
 import (
 	"github.com/go-resty/resty/v2"
 	"github.com/yedf/dtm/dtmcli"
-	"github.com/yedf/dtm/dtmcli/dtmimp"
+	"github.com/yedf/dtm/dtmcli/logger"
 )
 
 func init() {
@@ -22,7 +22,7 @@ func init() {
 			}
 			return xa.CallBranch(&TransReq{Amount: 30}, Busi+"/TransInXa")
 		})
-		dtmimp.FatalIfError(err)
+		logger.FatalIfError(err)
 		return gid
 	})
 

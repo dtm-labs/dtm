@@ -12,6 +12,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/yedf/dtm/dtmcli"
 	"github.com/yedf/dtm/dtmcli/dtmimp"
+	"github.com/yedf/dtm/dtmcli/logger"
 	"github.com/yedf/dtm/dtmgrpc/dtmgpb"
 	"github.com/yedf/dtm/dtmsvr/storage"
 )
@@ -57,7 +58,7 @@ func TransFromContext(c *gin.Context) *TransGlobal {
 	e2p(err)
 	m := TransGlobal{}
 	dtmimp.MustUnmarshal(b, &m)
-	dtmimp.Logf("creating trans in prepare")
+	logger.Debugf("creating trans in prepare")
 	// Payloads will be store in BinPayloads, Payloads is only used to Unmarshal
 	for _, p := range m.Payloads {
 		m.BinPayloads = append(m.BinPayloads, []byte(p))

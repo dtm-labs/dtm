@@ -20,12 +20,14 @@ import (
 
 	"github.com/yedf/dtm/dtmcli"
 	"github.com/yedf/dtm/dtmcli/dtmimp"
+	"github.com/yedf/dtm/dtmcli/logger"
 )
 
 // GetGinApp init and return gin
 func GetGinApp() *gin.Engine {
 	gin.SetMode(gin.ReleaseMode)
-	app := gin.Default()
+	app := gin.New()
+	app.Use(gin.Recovery())
 	app.Use(func(c *gin.Context) {
 		body := ""
 		if c.Request.Body != nil {
@@ -36,11 +38,8 @@ func GetGinApp() *gin.Engine {
 				c.Request.Body = ioutil.NopCloser(bytes.NewBuffer(rb))
 			}
 		}
-		began := time.Now()
-		dtmimp.Logf("begin %s %s query: %s body: %s", c.Request.Method, c.FullPath(), c.Request.URL.RawQuery, body)
+		logger.Debugf("begin %s %s query: %s body: %s", c.Request.Method, c.FullPath(), c.Request.URL.RawQuery, body)
 		c.Next()
-		dtmimp.Logf("used %d ms %s %s query: %s body: %s", time.Since(began).Milliseconds(), c.Request.Method, c.FullPath(), c.Request.URL.RawQuery, body)
-
 	})
 	app.Any("/api/ping", func(c *gin.Context) { c.JSON(200, map[string]interface{}{"msg": "pong"}) })
 	return app
@@ -49,6 +48,7 @@ func GetGinApp() *gin.Engine {
 // WrapHandler name is clear
 func WrapHandler(fn func(*gin.Context) (interface{}, error)) gin.HandlerFunc {
 	return func(c *gin.Context) {
+		began := time.Now()
 		r, err := func() (r interface{}, rerr error) {
 			defer dtmimp.P2E(&rerr)
 			return fn(c)
@@ -59,11 +59,12 @@ func WrapHandler(fn func(*gin.Context) (interface{}, error)) gin.HandlerFunc {
 		} else if err == nil {
 			b, err = json.Marshal(r)
 		}
+
 		if err != nil {
-			dtmimp.Logf("status: 500, code: 500 message: %s", err.Error())
+			logger.Errorf("%2dms 500 %s %s %s %s", time.Since(began).Milliseconds(), err.Error(), c.Request.Method, c.Request.RequestURI, string(b))
 			c.JSON(500, map[string]interface{}{"code": 500, "message": err.Error()})
 		} else {
-			dtmimp.Logf("status: 200, content: %s", string(b))
+			logger.Infof("%2dms 200 %s %s %s", time.Since(began).Milliseconds(), c.Request.Method, c.Request.RequestURI, string(b))
 			c.Status(200)
 			c.Writer.Header().Add("Content-Type", "application/json")
 			_, err = c.Writer.Write(b)
@@ -105,10 +106,10 @@ func GetNextTime(second int64) *time.Time {
 // RunSQLScript 1
 func RunSQLScript(conf dtmcli.DBConf, script string, skipDrop bool) {
 	con, err := dtmimp.StandaloneDB(conf)
-	dtmimp.FatalIfError(err)
+	logger.FatalIfError(err)
 	defer func() { con.Close() }()
 	content, err := ioutil.ReadFile(script)
-	dtmimp.FatalIfError(err)
+	logger.FatalIfError(err)
 	sqls := strings.Split(string(content), ";")
 	for _, sql := range sqls {
 		s := strings.TrimSpace(sql)
@@ -116,6 +117,7 @@ func RunSQLScript(conf dtmcli.DBConf, script string, skipDrop bool) {
 			continue
 		}
 		_, err = dtmimp.DBExec(con, s)
-		dtmimp.FatalIfError(err)
+		logger.FatalIfError(err)
+		logger.Infof("sql scripts finished: %s", s)
 	}
 }

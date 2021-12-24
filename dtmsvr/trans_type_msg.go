@@ -11,7 +11,7 @@ import (
 	"strings"
 
 	"github.com/yedf/dtm/dtmcli"
-	"github.com/yedf/dtm/dtmcli/dtmimp"
+	"github.com/yedf/dtm/dtmcli/logger"
 )
 
 type transMsgProcessor struct {
@@ -50,7 +50,7 @@ func (t *TransGlobal) mayQueryPrepared() {
 	} else if strings.Contains(body, dtmcli.ResultOngoing) {
 		t.touchCronTime(cronReset)
 	} else {
-		dtmimp.LogRedf("getting result failed for %s. error: %s", t.QueryPrepared, err.Error())
+		logger.Errorf("getting result failed for %s. error: %s", t.QueryPrepared, err.Error())
 		t.touchCronTime(cronBackoff)
 	}
 }

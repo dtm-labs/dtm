@@ -7,7 +7,7 @@
 package examples
 
 import (
-	"github.com/yedf/dtm/dtmcli/dtmimp"
+	"github.com/yedf/dtm/dtmcli/logger"
 	dtmgrpc "github.com/yedf/dtm/dtmgrpc"
 )
 
@@ -19,7 +19,7 @@ func init() {
 			Add(BusiGrpc+"/examples.Busi/TransOut", BusiGrpc+"/examples.Busi/TransOutRevert", req).
 			Add(BusiGrpc+"/examples.Busi/TransIn", BusiGrpc+"/examples.Busi/TransOutRevert", req)
 		err := saga.Submit()
-		dtmimp.FatalIfError(err)
+		logger.FatalIfError(err)
 		return saga.Gid
 	})
 	addSample("grpc_saga_wait", func() string {
@@ -30,7 +30,7 @@ func init() {
 			Add(BusiGrpc+"/examples.Busi/TransIn", BusiGrpc+"/examples.Busi/TransOutRevert", req)
 		saga.WaitResult = true
 		err := saga.Submit()
-		dtmimp.FatalIfError(err)
+		logger.FatalIfError(err)
 		return saga.Gid
 	})
 }
