@@ -14,6 +14,7 @@ import (
 	"github.com/yedf/dtm/dtmcli"
 	"github.com/yedf/dtm/dtmcli/dtmimp"
 	"github.com/yedf/dtm/dtmgrpc/dtmgimp"
+	"github.com/yedf/dtm/dtmgrpc/dtmgpb"
 	"github.com/yedf/dtmdriver"
 	grpc "google.golang.org/grpc"
 	"google.golang.org/protobuf/proto"
@@ -78,7 +79,7 @@ func (xc *XaGrpcClient) XaLocalTransaction(ctx context.Context, msg proto.Messag
 		if err != nil {
 			return err
 		}
-		_, err = dtmgimp.MustGetDtmClient(xa.Dtm).RegisterBranch(context.Background(), &dtmgimp.DtmBranchRequest{
+		_, err = dtmgimp.MustGetDtmClient(xa.Dtm).RegisterBranch(context.Background(), &dtmgpb.DtmBranchRequest{
 			Gid:         xa.Gid,
 			BranchID:    xa.BranchID,
 			TransType:   xa.TransType,
@@ -93,12 +94,12 @@ func (xc *XaGrpcClient) XaLocalTransaction(ctx context.Context, msg proto.Messag
 func (xc *XaGrpcClient) XaGlobalTransaction(gid string, xaFunc XaGrpcGlobalFunc) error {
 	xa := XaGrpc{TransBase: *dtmimp.NewTransBase(gid, "xa", xc.Server, "")}
 	dc := dtmgimp.MustGetDtmClient(xa.Dtm)
-	req := &dtmgimp.DtmRequest{
+	req := &dtmgpb.DtmRequest{
 		Gid:       gid,
 		TransType: xa.TransType,
 	}
 	return xc.HandleGlobalTrans(&xa.TransBase, func(action string) error {
-		f := map[string]func(context.Context, *dtmgimp.DtmRequest, ...grpc.CallOption) (*emptypb.Empty, error){
+		f := map[string]func(context.Context, *dtmgpb.DtmRequest, ...grpc.CallOption) (*emptypb.Empty, error){
 			"prepare": dc.Prepare,
 			"submit":  dc.Submit,
 			"abort":   dc.Abort,

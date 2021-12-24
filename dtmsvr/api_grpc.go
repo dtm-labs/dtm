@@ -11,7 +11,7 @@ import (
 
 	"github.com/yedf/dtm/dtmcli"
 	"github.com/yedf/dtm/dtmgrpc/dtmgimp"
-	pb "github.com/yedf/dtm/dtmgrpc/dtmgimp"
+	pb "github.com/yedf/dtm/dtmgrpc/dtmgpb"
 	"google.golang.org/protobuf/types/known/emptypb"
 )
 
@@ -20,8 +20,8 @@ type dtmServer struct {
 	pb.UnimplementedDtmServer
 }
 
-func (s *dtmServer) NewGid(ctx context.Context, in *emptypb.Empty) (*dtmgimp.DtmGidReply, error) {
-	return &dtmgimp.DtmGidReply{Gid: GenGid()}, nil
+func (s *dtmServer) NewGid(ctx context.Context, in *emptypb.Empty) (*pb.DtmGidReply, error) {
+	return &pb.DtmGidReply{Gid: GenGid()}, nil
 }
 
 func (s *dtmServer) Submit(ctx context.Context, in *pb.DtmRequest) (*emptypb.Empty, error) {

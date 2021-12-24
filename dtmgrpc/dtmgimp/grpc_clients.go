@@ -8,9 +8,11 @@ package dtmgimp
 
 import (
 	"fmt"
-	"github.com/yedf/dtm/dtmcli/dtmimp"
-	grpc "google.golang.org/grpc"
 	"sync"
+
+	"github.com/yedf/dtm/dtmcli/dtmimp"
+	"github.com/yedf/dtm/dtmgrpc/dtmgpb"
+	grpc "google.golang.org/grpc"
 )
 
 type rawCodec struct{}
@@ -33,13 +35,13 @@ func (cb rawCodec) Name() string { return "dtm_raw" }
 var normalClients, rawClients sync.Map
 
 // MustGetDtmClient 1
-func MustGetDtmClient(grpcServer string) DtmClient {
-	return NewDtmClient(MustGetGrpcConn(grpcServer, false))
+func MustGetDtmClient(grpcServer string) dtmgpb.DtmClient {
+	return dtmgpb.NewDtmClient(MustGetGrpcConn(grpcServer, false))
 }
 
 // MustGetRawDtmClient must get raw codec grpc conn
-func MustGetRawDtmClient(grpcServer string) DtmClient {
-	return NewDtmClient(MustGetGrpcConn(grpcServer, true))
+func MustGetRawDtmClient(grpcServer string) dtmgpb.DtmClient {
+	return dtmgpb.NewDtmClient(MustGetGrpcConn(grpcServer, true))
 }
 
 // GetGrpcConn 1

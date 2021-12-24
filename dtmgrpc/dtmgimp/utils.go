@@ -10,6 +10,7 @@ import (
 	context "context"
 
 	"github.com/yedf/dtm/dtmcli/dtmimp"
+	"github.com/yedf/dtm/dtmgrpc/dtmgpb"
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/protobuf/proto"
 	emptypb "google.golang.org/protobuf/types/known/emptypb"
@@ -25,10 +26,10 @@ func MustProtoMarshal(msg proto.Message) []byte {
 // DtmGrpcCall make a convenient call to dtm
 func DtmGrpcCall(s *dtmimp.TransBase, operation string) error {
 	reply := emptypb.Empty{}
-	return MustGetGrpcConn(s.Dtm, false).Invoke(context.Background(), "/dtmgimp.Dtm/"+operation, &DtmRequest{
+	return MustGetGrpcConn(s.Dtm, false).Invoke(context.Background(), "/dtmgimp.Dtm/"+operation, &dtmgpb.DtmRequest{
 		Gid:       s.Gid,
 		TransType: s.TransType,
-		TransOptions: &DtmTransOptions{
+		TransOptions: &dtmgpb.DtmTransOptions{
 			WaitResult:    s.WaitResult,
 			TimeoutToFail: s.TimeoutToFail,
 			RetryInterval: s.RetryInterval,

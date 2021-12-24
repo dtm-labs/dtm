@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-option go_package = "./dtmgimp";
+option go_package = "./dtmgpb";
 import "google/protobuf/empty.proto";
 
 package dtmgimp;

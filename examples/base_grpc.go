@@ -19,6 +19,7 @@ import (
 	"github.com/yedf/dtm/dtmgrpc"
 
 	"github.com/yedf/dtm/dtmgrpc/dtmgimp"
+	"github.com/yedf/dtm/dtmgrpc/dtmgpb"
 	grpc "google.golang.org/grpc"
 	codes "google.golang.org/grpc/codes"
 	status "google.golang.org/grpc/status"
@@ -29,7 +30,7 @@ import (
 var BusiGrpc string = fmt.Sprintf("localhost:%d", BusiGrpcPort)
 
 // DtmClient grpc client for dtm
-var DtmClient dtmgimp.DtmClient = nil
+var DtmClient dtmgpb.DtmClient = nil
 
 // XaGrpcClient XA client connection
 var XaGrpcClient *dtmgrpc.XaGrpcClient = nil
@@ -44,7 +45,7 @@ func init() {
 func GrpcStartup() {
 	conn, err := grpc.Dial(DtmGrpcServer, grpc.WithInsecure(), grpc.WithUnaryInterceptor(dtmgimp.GrpcClientLog))
 	dtmimp.FatalIfError(err)
-	DtmClient = dtmgimp.NewDtmClient(conn)
+	DtmClient = dtmgpb.NewDtmClient(conn)
 	dtmimp.Logf("dtm client inited")
 
 	lis, err := net.Listen("tcp", fmt.Sprintf(":%d", BusiGrpcPort))
