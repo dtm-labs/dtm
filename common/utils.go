@@ -38,9 +38,9 @@ func GetGinApp() *gin.Engine {
 			}
 		}
 		began := time.Now()
-		dtmimp.Logf("begin %s %s query: %s body: %s", c.Request.Method, c.FullPath(), c.Request.URL.RawQuery, body)
+		logger.Debugf("begin %s %s query: %s body: %s", c.Request.Method, c.FullPath(), c.Request.URL.RawQuery, body)
 		c.Next()
-		dtmimp.Logf("used %d ms %s %s query: %s body: %s", time.Since(began).Milliseconds(), c.Request.Method, c.FullPath(), c.Request.URL.RawQuery, body)
+		logger.Debugf("used %d ms %s %s query: %s body: %s", time.Since(began).Milliseconds(), c.Request.Method, c.FullPath(), c.Request.URL.RawQuery, body)
 
 	})
 	app.Any("/api/ping", func(c *gin.Context) { c.JSON(200, map[string]interface{}{"msg": "pong"}) })
@@ -61,10 +61,10 @@ func WrapHandler(fn func(*gin.Context) (interface{}, error)) gin.HandlerFunc {
 			b, err = json.Marshal(r)
 		}
 		if err != nil {
-			dtmimp.Logf("status: 500, code: 500 message: %s", err.Error())
+			logger.Debugf("status: 500, code: 500 message: %s", err.Error())
 			c.JSON(500, map[string]interface{}{"code": 500, "message": err.Error()})
 		} else {
-			dtmimp.Logf("status: 200, content: %s", string(b))
+			logger.Debugf("status: 200, content: %s", string(b))
 			c.Status(200)
 			c.Writer.Header().Add("Content-Type", "application/json")
 			_, err = c.Writer.Write(b)

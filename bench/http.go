@@ -60,7 +60,7 @@ func reloadData() {
 	}
 	_, err := dtmimp.DBExec(db, s+strings.Join(ss, ","))
 	logger.FatalIfError(err)
-	dtmimp.Logf("%d users inserted. used: %dms", total, time.Since(began).Milliseconds())
+	logger.Debugf("%d users inserted. used: %dms", total, time.Since(began).Milliseconds())
 }
 
 var uidCounter int32 = 0
@@ -71,7 +71,7 @@ var sqls int = 1
 func StartSvr() {
 	app := common.GetGinApp()
 	benchAddRoute(app)
-	dtmimp.Logf("bench listening at %d", benchPort)
+	logger.Debugf("bench listening at %d", benchPort)
 	go app.Run(fmt.Sprintf(":%d", benchPort))
 	db := sdbGet()
 	_, err := dtmimp.DBExec(db, "drop table if exists dtm_busi.user_account_log")
@@ -151,7 +151,7 @@ func benchAddRoute(app *gin.Engine) {
 		req := gin.H{}
 		params := fmt.Sprintf("?uid=%s", suid)
 		params2 := fmt.Sprintf("?uid=%s", suid2)
-		dtmimp.Logf("mode: %s contains dtm: %t", mode, strings.Contains(mode, "dtm"))
+		logger.Debugf("mode: %s contains dtm: %t", mode, strings.Contains(mode, "dtm"))
 		if strings.Contains(mode, "dtm") {
 			saga := dtmcli.NewSaga(examples.DtmHttpServer, fmt.Sprintf("bench-%d", uid)).
 				Add(benchBusi+"/TransOut"+params, benchBusi+"/TransOutCompensate"+params, req).

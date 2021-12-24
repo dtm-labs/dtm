@@ -7,7 +7,6 @@ import (
 	"path/filepath"
 
 	"github.com/yedf/dtm/dtmcli"
-	"github.com/yedf/dtm/dtmcli/dtmimp"
 	"github.com/yedf/dtm/dtmcli/logger"
 	"gopkg.in/yaml.v2"
 )
@@ -87,7 +86,7 @@ func MustLoadConfig() {
 	}
 	scont, err := json.MarshalIndent(&Config, "", "  ")
 	logger.FatalIfError(err)
-	dtmimp.Logf("config is: \n%s", scont)
+	logger.Debugf("config is: \n%s", scont)
 	err = checkConfig()
 	logger.FatalfIf(err != nil, `config error: '%v'.
 	check you env, and conf.yml/conf.sample.yml in current and parent path: %s.

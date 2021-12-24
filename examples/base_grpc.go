@@ -47,14 +47,14 @@ func GrpcStartup() {
 	conn, err := grpc.Dial(DtmGrpcServer, grpc.WithInsecure(), grpc.WithUnaryInterceptor(dtmgimp.GrpcClientLog))
 	logger.FatalIfError(err)
 	DtmClient = dtmgpb.NewDtmClient(conn)
-	dtmimp.Logf("dtm client inited")
+	logger.Debugf("dtm client inited")
 
 	lis, err := net.Listen("tcp", fmt.Sprintf(":%d", BusiGrpcPort))
 	logger.FatalIfError(err)
 	s := grpc.NewServer(grpc.UnaryInterceptor(dtmgimp.GrpcServerLog))
 	RegisterBusiServer(s, &busiServer{})
 	go func() {
-		dtmimp.Logf("busi grpc listening at %v", lis.Addr())
+		logger.Debugf("busi grpc listening at %v", lis.Addr())
 		err := s.Serve(lis)
 		logger.FatalIfError(err)
 	}()
@@ -63,7 +63,7 @@ func GrpcStartup() {
 
 func handleGrpcBusiness(in *BusiReq, result1 string, result2 string, busi string) error {
 	res := dtmimp.OrString(result1, result2, dtmcli.ResultSuccess)
-	dtmimp.Logf("grpc busi %s %v %s %s result: %s", busi, in, result1, result2, res)
+	logger.Debugf("grpc busi %s %v %s %s result: %s", busi, in, result1, result2, res)
 	if res == dtmcli.ResultSuccess {
 		return nil
 	} else if res == dtmcli.ResultFailure {

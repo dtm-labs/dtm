@@ -10,6 +10,7 @@ import (
 	context "context"
 
 	"github.com/yedf/dtm/dtmcli/dtmimp"
+	"github.com/yedf/dtm/dtmcli/logger"
 	"github.com/yedf/dtm/dtmgrpc/dtmgpb"
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/protobuf/proto"
@@ -59,7 +60,7 @@ func TransInfo2Ctx(gid, transType, branchID, op, dtm string) context.Context {
 func LogDtmCtx(ctx context.Context) {
 	tb := TransBaseFromGrpc(ctx)
 	if tb.Gid != "" {
-		dtmimp.Logf("gid: %s trans_type: %s branch_id: %s op: %s dtm: %s", tb.Gid, tb.TransType, tb.BranchID, tb.Op, tb.Dtm)
+		logger.Debugf("gid: %s trans_type: %s branch_id: %s op: %s dtm: %s", tb.Gid, tb.TransType, tb.BranchID, tb.Op, tb.Dtm)
 	}
 }
 

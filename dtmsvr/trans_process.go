@@ -12,6 +12,7 @@ import (
 	"github.com/yedf/dtm/common"
 	"github.com/yedf/dtm/dtmcli"
 	"github.com/yedf/dtm/dtmcli/dtmimp"
+	"github.com/yedf/dtm/dtmcli/logger"
 )
 
 // Process process global transaction once
@@ -45,15 +46,15 @@ func (t *TransGlobal) processInner() (rerr error) {
 	defer handlePanic(&rerr)
 	defer func() {
 		if rerr != nil {
-			dtmimp.LogRedf("processInner got error: %s", rerr.Error())
+			logger.Errorf("processInner got error: %s", rerr.Error())
 		}
 		if TransProcessedTestChan != nil {
-			dtmimp.Logf("processed: %s", t.Gid)
+			logger.Debugf("processed: %s", t.Gid)
 			TransProcessedTestChan <- t.Gid
-			dtmimp.Logf("notified: %s", t.Gid)
+			logger.Debugf("notified: %s", t.Gid)
 		}
 	}()
-	dtmimp.Logf("processing: %s status: %s", t.Gid, t.Status)
+	logger.Debugf("processing: %s status: %s", t.Gid, t.Status)
 	branches := GetStore().FindBranches(t.Gid)
 	t.lastTouched = time.Now()
 	rerr = t.getProcessor().ProcessOnce(branches)

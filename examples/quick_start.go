@@ -29,7 +29,7 @@ var qsBusi = fmt.Sprintf("http://localhost:%d%s", qsBusiPort, qsBusiAPI)
 func QsStartSvr() {
 	app := common.GetGinApp()
 	qsAddRoute(app)
-	dtmimp.Logf("quick qs examples listening at %d", qsBusiPort)
+	logger.Debugf("quick qs examples listening at %d", qsBusiPort)
 	go app.Run(fmt.Sprintf(":%d", qsBusiPort))
 	time.Sleep(100 * time.Millisecond)
 }

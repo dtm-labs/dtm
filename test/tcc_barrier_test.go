@@ -19,6 +19,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/yedf/dtm/dtmcli"
 	"github.com/yedf/dtm/dtmcli/dtmimp"
+	"github.com/yedf/dtm/dtmcli/logger"
 	"github.com/yedf/dtm/examples"
 )
 
@@ -68,7 +69,7 @@ func TestTccBarrierDisorder(t *testing.T) {
 			res, err := examples.TccBarrierTransOutCancel(c)
 			if !sleeped {
 				sleeped = true
-				dtmimp.Logf("sleep before cancel return")
+				logger.Debugf("sleep before cancel return")
 				<-timeoutChan
 				finishedChan <- "1"
 			}
@@ -89,7 +90,7 @@ func TestTccBarrierDisorder(t *testing.T) {
 		assert.Contains(t, resp.String(), dtmcli.ResultSuccess)
 
 		go func() {
-			dtmimp.Logf("sleeping to wait for tcc try timeout")
+			logger.Debugf("sleeping to wait for tcc try timeout")
 			<-timeoutChan
 			r, _ := dtmimp.RestyClient.R().
 				SetBody(body).
@@ -104,10 +105,10 @@ func TestTccBarrierDisorder(t *testing.T) {
 			assert.True(t, strings.Contains(r.String(), dtmcli.ResultSuccess)) // 这个是悬挂操作，为了简单起见，依旧让他返回成功
 			finishedChan <- "1"
 		}()
-		dtmimp.Logf("cron to timeout and then call cancel")
+		logger.Debugf("cron to timeout and then call cancel")
 		go cronTransOnceForwardNow(300)
 		time.Sleep(100 * time.Millisecond)
-		dtmimp.Logf("cron to timeout and then call cancelled twice")
+		logger.Debugf("cron to timeout and then call cancelled twice")
 		cronTransOnceForwardNow(300)
 		timeoutChan <- "wake"
 		timeoutChan <- "wake"

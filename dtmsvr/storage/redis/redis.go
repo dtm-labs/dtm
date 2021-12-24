@@ -10,6 +10,7 @@ import (
 
 	"github.com/yedf/dtm/common"
 	"github.com/yedf/dtm/dtmcli/dtmimp"
+	"github.com/yedf/dtm/dtmcli/logger"
 	"github.com/yedf/dtm/dtmsvr/storage"
 )
 
@@ -114,7 +115,7 @@ func (a *argList) AppendBranches(branches []storage.TransBranchStore) *argList {
 }
 
 func handleRedisResult(ret interface{}, err error) (string, error) {
-	dtmimp.Logf("result is: '%v', err: '%v'", ret, err)
+	logger.Debugf("result is: '%v', err: '%v'", ret, err)
 	if err != nil && err != redis.Nil {
 		return "", err
 	}
@@ -127,7 +128,7 @@ func handleRedisResult(ret interface{}, err error) (string, error) {
 }
 
 func callLua(a *argList, lua string) (string, error) {
-	dtmimp.Logf("calling lua. args: %v\nlua:%s", a, lua)
+	logger.Debugf("calling lua. args: %v\nlua:%s", a, lua)
 	ret, err := redisGet().Eval(ctx, lua, a.Keys, a.List...).Result()
 	return handleRedisResult(ret, err)
 }

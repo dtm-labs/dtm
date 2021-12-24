@@ -13,7 +13,6 @@ import (
 
 	grpc_middleware "github.com/grpc-ecosystem/go-grpc-middleware"
 	"github.com/yedf/dtm/common"
-	"github.com/yedf/dtm/dtmcli/dtmimp"
 	"github.com/yedf/dtm/dtmcli/logger"
 	"github.com/yedf/dtm/dtmgrpc/dtmgimp"
 	"github.com/yedf/dtm/dtmgrpc/dtmgpb"
@@ -23,11 +22,11 @@ import (
 
 // StartSvr StartSvr
 func StartSvr() {
-	dtmimp.Logf("start dtmsvr")
+	logger.Debugf("start dtmsvr")
 	app := common.GetGinApp()
 	app = httpMetrics(app)
 	addRoute(app)
-	dtmimp.Logf("dtmsvr listen at: %d", config.HttpPort)
+	logger.Debugf("dtmsvr listen at: %d", config.HttpPort)
 	go app.Run(fmt.Sprintf(":%d", config.HttpPort))
 
 	lis, err := net.Listen("tcp", fmt.Sprintf(":%d", config.GrpcPort))
@@ -37,7 +36,7 @@ func StartSvr() {
 			grpc.UnaryServerInterceptor(grpcMetrics), grpc.UnaryServerInterceptor(dtmgimp.GrpcServerLog)),
 		))
 	dtmgpb.RegisterDtmServer(s, &dtmServer{})
-	dtmimp.Logf("grpc listening at %v", lis.Addr())
+	logger.Debugf("grpc listening at %v", lis.Addr())
 	go func() {
 		err := s.Serve(lis)
 		logger.FatalIfError(err)
@@ -80,9 +79,9 @@ func updateBranchAsync() {
 		for len(updates) > 0 {
 			dbr := GetStore().UpdateBranchesSql(updates, []string{"status", "finish_time", "update_time"})
 
-			dtmimp.Logf("flushed %d branch status to db. affected: %d", len(updates), dbr.RowsAffected)
+			logger.Debugf("flushed %d branch status to db. affected: %d", len(updates), dbr.RowsAffected)
 			if dbr.Error != nil {
-				dtmimp.LogRedf("async update branch status error: %v", dbr.Error)
+				logger.Errorf("async update branch status error: %v", dbr.Error)
 				time.Sleep(1 * time.Second)
 			} else {
 				updates = []TransBranch{}

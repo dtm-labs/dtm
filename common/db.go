@@ -11,6 +11,7 @@ import (
 	_ "github.com/lib/pq"              // register postgres driver
 	"github.com/yedf/dtm/dtmcli"
 	"github.com/yedf/dtm/dtmcli/dtmimp"
+	"github.com/yedf/dtm/dtmcli/logger"
 	"gorm.io/driver/mysql"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
@@ -65,7 +66,7 @@ func (op *tracePlugin) Initialize(db *gorm.DB) (err error) {
 	after := func(db *gorm.DB) {
 		_ts, _ := db.InstanceGet("ivy.startTime")
 		sql := db.Dialector.Explain(db.Statement.SQL.String(), db.Statement.Vars...)
-		dtmimp.Logf("used: %d ms affected: %d sql is: %s", time.Since(_ts.(time.Time)).Milliseconds(), db.RowsAffected, sql)
+		logger.Debugf("used: %d ms affected: %d sql is: %s", time.Since(_ts.(time.Time)).Milliseconds(), db.RowsAffected, sql)
 		if v, ok := db.InstanceGet("ivy.must"); ok && v.(bool) {
 			if db.Error != nil && db.Error != gorm.ErrRecordNotFound {
 				panic(db.Error)
@@ -76,7 +77,7 @@ func (op *tracePlugin) Initialize(db *gorm.DB) (err error) {
 	beforeName := "cb_before"
 	afterName := "cb_after"
 
-	dtmimp.Logf("installing db plugin: %s", op.Name())
+	logger.Debugf("installing db plugin: %s", op.Name())
 	// 开始前
 	_ = db.Callback().Create().Before("gorm:before_create").Register(beforeName, before)
 	_ = db.Callback().Query().Before("gorm:query").Register(beforeName, before)
@@ -108,7 +109,7 @@ func DbGet(conf dtmcli.DBConf) *DB {
 	dsn := dtmimp.GetDsn(conf)
 	db, ok := dbs.Load(dsn)
 	if !ok {
-		dtmimp.Logf("connecting %s", strings.Replace(dsn, conf.Passwrod, "****", 1))
+		logger.Debugf("connecting %s", strings.Replace(dsn, conf.Passwrod, "****", 1))
 		db1, err := gorm.Open(getGormDialetor(conf.Driver, dsn), &gorm.Config{
 			SkipDefaultTransaction: true,
 		})

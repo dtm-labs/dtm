@@ -24,14 +24,14 @@ func dbGet() *common.DB {
 
 // waitTransProcessed only for test usage. wait for transaction processed once
 func waitTransProcessed(gid string) {
-	dtmimp.Logf("waiting for gid %s", gid)
+	logger.Debugf("waiting for gid %s", gid)
 	select {
 	case id := <-dtmsvr.TransProcessedTestChan:
 		for id != gid {
-			dtmimp.LogRedf("-------id %s not match gid %s", id, gid)
+			logger.Errorf("-------id %s not match gid %s", id, gid)
 			id = <-dtmsvr.TransProcessedTestChan
 		}
-		dtmimp.Logf("finish for gid %s", gid)
+		logger.Debugf("finish for gid %s", gid)
 	case <-time.After(time.Duration(time.Second * 3)):
 		logger.FatalfIf(true, "Wait Trans timeout")
 	}

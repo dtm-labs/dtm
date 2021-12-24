@@ -15,7 +15,6 @@ import (
 
 	"github.com/yedf/dtm/common"
 	"github.com/yedf/dtm/dtmcli"
-	"github.com/yedf/dtm/dtmcli/dtmimp"
 	"github.com/yedf/dtm/dtmcli/logger"
 	"github.com/yedf/dtm/dtmsvr"
 	"github.com/yedf/dtm/dtmsvr/storage/registry"
@@ -51,7 +50,7 @@ func main() {
 		fmt.Printf("version: %s commit: %s built at: %s\n", Version, Commit, Date)
 		return
 	}
-	dtmimp.Logf("starting dtm....")
+	logger.Debugf("starting dtm....")
 	common.MustLoadConfig()
 	if common.Config.ExamplesDB.Driver != "" {
 		dtmcli.SetCurrentDBType(common.Config.ExamplesDB.Driver)

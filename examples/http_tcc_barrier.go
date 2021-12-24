@@ -28,7 +28,7 @@ func init() {
 		app.POST(BusiAPI+"/TccBTransOutCancel", common.WrapHandler(TccBarrierTransOutCancel))
 	}
 	addSample("tcc_barrier", func() string {
-		dtmimp.Logf("tcc transaction begin")
+		logger.Debugf("tcc transaction begin")
 		gid := dtmcli.MustGenGid(DtmHttpServer)
 		err := dtmcli.TccGlobalTransaction(DtmHttpServer, gid, func(tcc *dtmcli.Tcc) (*resty.Response, error) {
 			resp, err := tcc.CallBranch(&TransReq{Amount: 30}, Busi+"/TccBTransOutTry",

@@ -11,7 +11,6 @@ import (
 	"github.com/go-resty/resty/v2"
 	"github.com/yedf/dtm/common"
 	"github.com/yedf/dtm/dtmcli"
-	"github.com/yedf/dtm/dtmcli/dtmimp"
 	"github.com/yedf/dtm/dtmcli/logger"
 )
 
@@ -20,7 +19,7 @@ func init() {
 		app.POST(BusiAPI+"/TransInTccParent", common.WrapHandler(func(c *gin.Context) (interface{}, error) {
 			tcc, err := dtmcli.TccFromQuery(c.Request.URL.Query())
 			logger.FatalIfError(err)
-			dtmimp.Logf("TransInTccParent ")
+			logger.Debugf("TransInTccParent ")
 			return tcc.CallBranch(&TransReq{Amount: reqFrom(c).Amount}, Busi+"/TransIn", Busi+"/TransInConfirm", Busi+"/TransInRevert")
 		}))
 	}
@@ -37,7 +36,7 @@ func init() {
 		return gid
 	})
 	addSample("tcc", func() string {
-		dtmimp.Logf("tcc simple transaction begin")
+		logger.Debugf("tcc simple transaction begin")
 		gid := dtmcli.MustGenGid(DtmHttpServer)
 		err := dtmcli.TccGlobalTransaction(DtmHttpServer, gid, func(tcc *dtmcli.Tcc) (*resty.Response, error) {
 			resp, err := tcc.CallBranch(&TransReq{Amount: 30}, Busi+"/TransOut", Busi+"/TransOutConfirm", Busi+"/TransOutRevert")
