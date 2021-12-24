@@ -205,7 +205,6 @@ if os.status ~= ARGV[4] then
   return 'NOT_FOUND'
 end
 redis.call('SET', KEYS[1],  ARGV[3], 'EX', ARGV[2])
-redis.log(redis.LOG_WARNING, 'finished: ', ARGV[5])
 if ARGV[5] == '1' then
 	redis.call('ZREM', KEYS[3], gs.gid)
 end
