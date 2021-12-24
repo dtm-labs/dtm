@@ -1,8 +1,8 @@
-![license](https://img.shields.io/github/license/yedf/dtm)
-![Build Status](https://github.com/yedf/dtm/actions/workflows/tests.yml/badge.svg?branch=main)
-[![codecov](https://codecov.io/gh/yedf/dtm/branch/main/graph/badge.svg?token=UKKEYQLP3F)](https://codecov.io/gh/yedf/dtm)
-[![Go Report Card](https://goreportcard.com/badge/github.com/yedf/dtm)](https://goreportcard.com/report/github.com/yedf/dtm)
-[![Go Reference](https://pkg.go.dev/badge/github.com/yedf/dtm.svg)](https://pkg.go.dev/github.com/yedf/dtm)
+![license](https://img.shields.io/github/license/dtm-labs/dtm)
+![Build Status](https://github.com/dtm-labs/dtm/actions/workflows/tests.yml/badge.svg?branch=main)
+[![codecov](https://codecov.io/gh/dtm-labs/dtm/branch/main/graph/badge.svg?token=UKKEYQLP3F)](https://codecov.io/gh/dtm-labs/dtm)
+[![Go Report Card](https://goreportcard.com/badge/github.com/dtm-labs/dtm)](https://goreportcard.com/report/github.com/dtm-labs/dtm)
+[![Go Reference](https://pkg.go.dev/badge/github.com/dtm-labs/dtm.svg)](https://pkg.go.dev/github.com/dtm-labs/dtm)
 [![Mentioned in Awesome Go](https://awesome.re/mentioned-badge-flat.svg)](https://github.com/avelino/awesome-go#database)
 
 # [English Docs](https://en.dtm.pub)
@@ -55,7 +55,7 @@ DTM是一款golang开发的分布式事务管理器，解决了跨数据库、�
 |事务消息|<span style="color:green">✓</span>|<span style="color:red">✗</span>|dtm提供类似rocketmq的事务消息|
 |单服务多数据源|<span style="color:green">✓</span>|<span style="color:red">✗</span>||
 |通信协议|HTTP、gRPC、go-zero|dubbo等协议|dtm对云原生更加友好|
-|star数量|<img src="https://img.shields.io/github/stars/yedf/dtm.svg?style=social" alt="github stars"/>|<img src="https://img.shields.io/github/stars/seata/seata.svg?style=social" alt="github stars"/>|dtm从20210604发布0.1，发展快|
+|star数量|<img src="https://img.shields.io/github/stars/dtm-labs/dtm.svg?style=social" alt="github stars"/>|<img src="https://img.shields.io/github/stars/seata/seata.svg?style=social" alt="github stars"/>|dtm从20210604发布0.1，发展快|
 
 从上面对比的特性来看，如果您的语言栈包含了Java之外的语言，那么dtm是您的首选。如果您的语言栈是Java，您也可以选择接入dtm，使用子事务屏障技术，简化您的业务编写。
 
@@ -75,7 +75,7 @@ DTM是一款golang开发的分布式事务管理器，解决了跨数据库、�
 
 ### 获取代码
 
-`git clone https://github.com/yedf/dtm && cd dtm`
+`git clone https://github.com/dtm-labs/dtm && cd dtm`
 
 ### dtm依赖于mysql
 
@@ -126,7 +126,7 @@ DTM是一款golang开发的分布式事务管理器，解决了跨数据库、�
 
 ![yedf2008](http://service.ivydad.com/cover/dubbingb6b5e2c0-2d2a-cd59-f7c5-c6b90aceb6f1.jpeg)
 
-欢迎使用[dtm](https://github.com/yedf/dtm)，或者通过dtm学习实践分布式事务相关知识，欢迎star支持我们
+欢迎使用[dtm](https://github.com/dtm-labs/dtm)，或者通过dtm学习实践分布式事务相关知识，欢迎star支持我们
 
 ## 谁在使用
 <div style='vertical-align: middle'>

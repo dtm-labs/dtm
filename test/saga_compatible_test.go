@@ -10,9 +10,9 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/dtm-labs/dtm/dtmcli/dtmimp"
+	"github.com/dtm-labs/dtm/examples"
 	"github.com/stretchr/testify/assert"
-	"github.com/yedf/dtm/dtmcli/dtmimp"
-	"github.com/yedf/dtm/examples"
 )
 
 func TestSagaCompatibleNormal(t *testing.T) { // compatible with old http, which put payload in steps.data

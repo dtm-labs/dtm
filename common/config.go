@@ -6,8 +6,8 @@ import (
 	"io/ioutil"
 	"path/filepath"
 
-	"github.com/yedf/dtm/dtmcli"
-	"github.com/yedf/dtm/dtmcli/logger"
+	"github.com/dtm-labs/dtm/dtmcli"
+	"github.com/dtm-labs/dtm/dtmcli/logger"
 	"gopkg.in/yaml.v2"
 )
 

@@ -12,10 +12,10 @@ import (
 
 	"github.com/google/uuid"
 
-	"github.com/yedf/dtm/common"
-	"github.com/yedf/dtm/dtmcli/dtmimp"
-	"github.com/yedf/dtm/dtmsvr/storage"
-	"github.com/yedf/dtm/dtmsvr/storage/registry"
+	"github.com/dtm-labs/dtm/common"
+	"github.com/dtm-labs/dtm/dtmcli/dtmimp"
+	"github.com/dtm-labs/dtm/dtmsvr/storage"
+	"github.com/dtm-labs/dtm/dtmsvr/storage/registry"
 )
 
 type branchStatus struct {

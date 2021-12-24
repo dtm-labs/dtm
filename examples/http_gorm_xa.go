@@ -7,9 +7,9 @@
 package examples
 
 import (
+	"github.com/dtm-labs/dtm/dtmcli"
+	"github.com/dtm-labs/dtm/dtmcli/logger"
 	"github.com/go-resty/resty/v2"
-	"github.com/yedf/dtm/dtmcli"
-	"github.com/yedf/dtm/dtmcli/logger"
 )
 
 func init() {

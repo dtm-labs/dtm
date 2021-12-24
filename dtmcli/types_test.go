@@ -10,8 +10,8 @@ import (
 	"net/url"
 	"testing"
 
+	"github.com/dtm-labs/dtm/dtmcli/dtmimp"
 	"github.com/stretchr/testify/assert"
-	"github.com/yedf/dtm/dtmcli/dtmimp"
 )
 
 func TestTypes(t *testing.T) {

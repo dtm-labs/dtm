@@ -9,10 +9,10 @@ package test
 import (
 	"testing"
 
+	"github.com/dtm-labs/dtm/dtmcli"
+	"github.com/dtm-labs/dtm/dtmcli/dtmimp"
+	"github.com/dtm-labs/dtm/examples"
 	"github.com/stretchr/testify/assert"
-	"github.com/yedf/dtm/dtmcli"
-	"github.com/yedf/dtm/dtmcli/dtmimp"
-	"github.com/yedf/dtm/examples"
 )
 
 func TestMsgNormal(t *testing.T) {

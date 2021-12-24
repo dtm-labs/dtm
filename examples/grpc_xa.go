@@ -9,8 +9,8 @@ package examples
 import (
 	context "context"
 
-	"github.com/yedf/dtm/dtmcli/logger"
-	"github.com/yedf/dtm/dtmgrpc"
+	"github.com/dtm-labs/dtm/dtmcli/logger"
+	"github.com/dtm-labs/dtm/dtmgrpc"
 	"google.golang.org/protobuf/types/known/emptypb"
 )
 

@@ -10,9 +10,9 @@ import (
 	"fmt"
 	"sync"
 
-	"github.com/yedf/dtm/dtmcli/dtmimp"
-	"github.com/yedf/dtm/dtmcli/logger"
-	"github.com/yedf/dtm/dtmgrpc/dtmgpb"
+	"github.com/dtm-labs/dtm/dtmcli/dtmimp"
+	"github.com/dtm-labs/dtm/dtmcli/logger"
+	"github.com/dtm-labs/dtm/dtmgrpc/dtmgpb"
 	grpc "google.golang.org/grpc"
 )
 

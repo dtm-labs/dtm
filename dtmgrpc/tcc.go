@@ -10,10 +10,10 @@ import (
 	context "context"
 	"fmt"
 
-	"github.com/yedf/dtm/dtmcli/dtmimp"
-	"github.com/yedf/dtm/dtmgrpc/dtmgimp"
-	"github.com/yedf/dtm/dtmgrpc/dtmgpb"
-	"github.com/yedf/dtmdriver"
+	"github.com/dtm-labs/dtm/dtmcli/dtmimp"
+	"github.com/dtm-labs/dtm/dtmgrpc/dtmgimp"
+	"github.com/dtm-labs/dtm/dtmgrpc/dtmgpb"
+	"github.com/dtm-labs/dtmdriver"
 	"google.golang.org/protobuf/proto"
 )
 

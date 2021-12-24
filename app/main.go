@@ -13,12 +13,12 @@ import (
 
 	_ "go.uber.org/automaxprocs"
 
-	"github.com/yedf/dtm/common"
-	"github.com/yedf/dtm/dtmcli"
-	"github.com/yedf/dtm/dtmcli/logger"
-	"github.com/yedf/dtm/dtmsvr"
-	"github.com/yedf/dtm/dtmsvr/storage/registry"
-	"github.com/yedf/dtm/examples"
+	"github.com/dtm-labs/dtm/common"
+	"github.com/dtm-labs/dtm/dtmcli"
+	"github.com/dtm-labs/dtm/dtmcli/logger"
+	"github.com/dtm-labs/dtm/dtmsvr"
+	"github.com/dtm-labs/dtm/dtmsvr/storage/registry"
+	"github.com/dtm-labs/dtm/examples"
 )
 
 var Version, Commit, Date string
