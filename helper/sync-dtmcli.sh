@@ -14,7 +14,7 @@ fi
 cd ../dtmcli
 cp -rf ../dtm/dtmcli/* ./
 rm -f *_test.go
-sed -i '' -e 's/yedf\/dtm\//yedf\//g' *.go
+sed -i '' -e 's/dtm-labs\/dtm\//dtm-labs\//g' *.go */**.go
 go mod tidy
 go build || exit 1
 git add .
@@ -38,8 +38,7 @@ cd ../dtmgrpc
 rm -rf *.go dtmgimp
 cp -r ../dtm/dtmgrpc/* ./
 go get github.com/dtm-labs/dtmcli@$ver
-sed -i '' -e 's/yedf\/dtm\//yedf\//g' *.go
-sed -i '' -e 's/yedf\/dtm\//yedf\//g' dtmgimp/*.go dtmgimp/*.proto
+sed -i '' -e 's/dtm-labs\/dtm\//dtm-labs\//g' *.go */**.go
 rm -rf *_test.go
 go mod tidy
 go build || exit 1
