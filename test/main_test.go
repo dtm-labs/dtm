@@ -13,6 +13,7 @@ import (
 
 	"github.com/dtm-labs/dtm/common"
 	"github.com/dtm-labs/dtm/dtmcli"
+	"github.com/dtm-labs/dtm/dtmcli/logger"
 	"github.com/dtm-labs/dtm/dtmsvr"
 	"github.com/dtm-labs/dtm/examples"
 	"github.com/gin-gonic/gin"
@@ -26,6 +27,7 @@ func exitIf(code int) {
 
 func TestMain(m *testing.M) {
 	common.MustLoadConfig()
+	logger.InitLog(config.LogLevel)
 	dtmcli.SetCurrentDBType(common.Config.ExamplesDB.Driver)
 	dtmsvr.TransProcessedTestChan = make(chan string, 1)
 	dtmsvr.NowForwardDuration = 0 * time.Second

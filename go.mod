@@ -15,6 +15,8 @@ require (
 	github.com/google/uuid v1.3.0
 	github.com/grpc-ecosystem/go-grpc-middleware v1.3.0
 	github.com/lib/pq v1.10.3
+	github.com/lithammer/shortuuid v2.0.3+incompatible
+	github.com/lithammer/shortuuid/v3 v3.0.7
 	github.com/onsi/gomega v1.16.0
 	github.com/polarismesh/grpc-go-polaris v0.0.0-20211128162137-1a59cd7b5733 // indirect
 	github.com/prometheus/client_golang v1.11.0

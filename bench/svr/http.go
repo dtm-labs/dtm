@@ -4,7 +4,7 @@
  * license that can be found in the LICENSE file.
  */
 
-package main
+package svr
 
 import (
 	"database/sql"
@@ -20,6 +20,7 @@ import (
 	"github.com/dtm-labs/dtm/dtmsvr"
 	"github.com/dtm-labs/dtm/examples"
 	"github.com/gin-gonic/gin"
+	"github.com/lithammer/shortuuid"
 )
 
 // launch command：go run app/main.go qs
@@ -32,7 +33,7 @@ const total = 200000
 var benchBusi = fmt.Sprintf("http://localhost:%d%s", benchPort, benchAPI)
 
 func sdbGet() *sql.DB {
-	db, err := dtmimp.PooledDB(common.Config.Store.GetDBConf())
+	db, err := dtmimp.PooledDB(common.Config.ExamplesDB)
 	logger.FatalIfError(err)
 	return db
 }
@@ -166,5 +167,14 @@ func benchAddRoute(app *gin.Engine) {
 			dtmimp.E2P(err)
 		}
 		return nil, nil
+	}))
+	app.Any(benchAPI+"/benchEmptyUrl", common.WrapHandler(func(c *gin.Context) (interface{}, error) {
+		gid := shortuuid.New()
+		req := gin.H{}
+		saga := dtmcli.NewSaga(examples.DtmHttpServer, gid).
+			Add("", "", req).
+			Add("", "", req)
+		err := saga.Submit()
+		return nil, err
 	}))
 }

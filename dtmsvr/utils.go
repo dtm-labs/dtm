@@ -10,12 +10,11 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/google/uuid"
-
 	"github.com/dtm-labs/dtm/common"
 	"github.com/dtm-labs/dtm/dtmcli/dtmimp"
 	"github.com/dtm-labs/dtm/dtmsvr/storage"
 	"github.com/dtm-labs/dtm/dtmsvr/storage/registry"
+	"github.com/lithammer/shortuuid/v3"
 )
 
 type branchStatus struct {
@@ -38,7 +37,7 @@ var TransProcessedTestChan chan string = nil
 
 // GenGid generate gid, use uuid
 func GenGid() string {
-	return uuid.NewString()
+	return shortuuid.New()
 }
 
 // GetTransGlobal construct trans from db
