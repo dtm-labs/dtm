@@ -192,9 +192,8 @@ redis.call('EXPIRE', KEYS[2], ARGV[2])
 func (s *RedisStore) ChangeGlobalStatus(global *storage.TransGlobalStore, newStatus string, updates []string, finished bool) {
 	old := global.Status
 	global.Status = newStatus
-	args := newArgList().AppendGid(global.Gid).AppendObject(global).AppendRaw(old).AppendRaw(finished)
+	args := newArgList().AppendGid(global.Gid).AppendObject(global).AppendRaw(old).AppendRaw(finished).AppendRaw(global.Gid)
 	_, err := callLua(args, `-- ChangeGlobalStatus
-local gs = cjson.decode(ARGV[3])
 local old = redis.call('GET', KEYS[1])
 if old == false then
 	return 'NOT_FOUND'
@@ -205,7 +204,7 @@ if os.status ~= ARGV[4] then
 end
 redis.call('SET', KEYS[1],  ARGV[3], 'EX', ARGV[2])
 if ARGV[5] == '1' then
-	redis.call('ZREM', KEYS[3], gs.gid)
+	redis.call('ZREM', KEYS[3], ARGV[6])
 end
 `)
 	dtmimp.E2P(err)
