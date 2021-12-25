@@ -98,6 +98,7 @@ func (a *argList) AppendGid(gid string) *argList {
 	a.Keys = append(a.Keys, config.Store.RedisPrefix+"_g_"+gid)
 	a.Keys = append(a.Keys, config.Store.RedisPrefix+"_b_"+gid)
 	a.Keys = append(a.Keys, config.Store.RedisPrefix+"_u")
+	a.Keys = append(a.Keys, config.Store.RedisPrefix+"_s_"+gid)
 	return a
 }
 
@@ -142,6 +143,7 @@ func (s *RedisStore) MaySaveNewTrans(global *storage.TransGlobalStore, branches 
 		AppendObject(global).
 		AppendRaw(global.NextCronTime.Unix()).
 		AppendRaw(global.Gid).
+		AppendRaw(global.Status).
 		AppendBranches(branches)
 	global.Steps = nil
 	global.Payloads = nil
@@ -152,8 +154,9 @@ if g ~= false then
 end
 
 redis.call('SET', KEYS[1], ARGV[3], 'EX', ARGV[2])
+redis.call('SET', KEYS[4], ARGV[6], 'EX', ARGV[2])
 redis.call('ZADD', KEYS[3], ARGV[4], ARGV[5])
-for k = 6, table.getn(ARGV) do
+for k = 7, table.getn(ARGV) do
 	redis.call('RPUSH', KEYS[2], ARGV[k])
 end
 redis.call('EXPIRE', KEYS[2], ARGV[2])
@@ -168,12 +171,8 @@ func (s *RedisStore) LockGlobalSaveBranches(gid string, status string, branches 
 		AppendRaw(branchStart).
 		AppendBranches(branches)
 	_, err := callLua(args, `-- LockGlobalSaveBranches
-local g = redis.call('GET', KEYS[1])
-if (g == false) then
-	return 'NOT_FOUND'
-end
-local js = cjson.decode(g)
-if js.status ~= ARGV[3] then
+local old = redis.call('GET', KEYS[4])
+if old ~= ARGV[3] then
 	return 'NOT_FOUND'
 end
 local start = ARGV[4]
@@ -192,17 +191,20 @@ redis.call('EXPIRE', KEYS[2], ARGV[2])
 func (s *RedisStore) ChangeGlobalStatus(global *storage.TransGlobalStore, newStatus string, updates []string, finished bool) {
 	old := global.Status
 	global.Status = newStatus
-	args := newArgList().AppendGid(global.Gid).AppendObject(global).AppendRaw(old).AppendRaw(finished).AppendRaw(global.Gid)
+	args := newArgList().
+		AppendGid(global.Gid).
+		AppendObject(global).
+		AppendRaw(old).
+		AppendRaw(finished).
+		AppendRaw(global.Gid).
+		AppendRaw(newStatus)
 	_, err := callLua(args, `-- ChangeGlobalStatus
-local old = redis.call('GET', KEYS[1])
-if old == false then
-	return 'NOT_FOUND'
-end
-local os = cjson.decode(old)
-if os.status ~= ARGV[4] then
+local old = redis.call('GET', KEYS[4])
+if old ~= ARGV[4] then
   return 'NOT_FOUND'
 end
 redis.call('SET', KEYS[1],  ARGV[3], 'EX', ARGV[2])
+redis.call('SET', KEYS[4],  ARGV[7], 'EX', ARGV[2])
 if ARGV[5] == '1' then
 	redis.call('ZREM', KEYS[3], ARGV[6])
 end
@@ -244,18 +246,18 @@ func (s *RedisStore) TouchCronTime(global *storage.TransGlobalStore, nextCronInt
 	global.NextCronTime = common.GetNextTime(nextCronInterval)
 	global.UpdateTime = common.GetNextTime(0)
 	global.NextCronInterval = nextCronInterval
-	args := newArgList().AppendGid(global.Gid).AppendObject(global).AppendRaw(global.NextCronTime.Unix())
+	args := newArgList().
+		AppendGid(global.Gid).
+		AppendObject(global).
+		AppendRaw(global.NextCronTime.Unix()).
+		AppendRaw(global.Status).
+		AppendRaw(global.Gid)
 	_, err := callLua(args, `-- TouchCronTime
-local g = cjson.decode(ARGV[3])
-local old = redis.call('GET', KEYS[1])
-if old == false then
+local old = redis.call('GET', KEYS[4])
+if old ~= ARGV[5] then
 	return 'NOT_FOUND'
 end
-local os = cjson.decode(old)
-if os.status ~= g.status then
-  return 'NOT_FOUND'
-end
-redis.call('ZADD', KEYS[3], ARGV[4], g.gid)
+redis.call('ZADD', KEYS[3], ARGV[4], ARGV[6])
 redis.call('SET', KEYS[1], ARGV[3], 'EX', ARGV[2])
 	`)
 	dtmimp.E2P(err)
