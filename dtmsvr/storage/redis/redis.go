@@ -164,17 +164,16 @@ redis.call('EXPIRE', KEYS[2], ARGV[2])
 func (s *RedisStore) LockGlobalSaveBranches(gid string, status string, branches []storage.TransBranchStore, branchStart int) {
 	args := newArgList().
 		AppendGid(gid).
-		AppendObject(&storage.TransGlobalStore{Gid: gid, Status: status}).
+		AppendRaw(status).
 		AppendRaw(branchStart).
 		AppendBranches(branches)
 	_, err := callLua(args, `-- LockGlobalSaveBranches
-local gs = cjson.decode(ARGV[3])
 local g = redis.call('GET', KEYS[1])
 if (g == false) then
 	return 'NOT_FOUND'
 end
 local js = cjson.decode(g)
-if js.status ~= gs.status then
+if js.status ~= ARGV[3] then
 	return 'NOT_FOUND'
 end
 local start = ARGV[4]
