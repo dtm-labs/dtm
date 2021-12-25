@@ -5,7 +5,7 @@ import (
 	"math"
 	"time"
 
-	"github.com/google/uuid"
+	"github.com/lithammer/shortuuid/v3"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 
@@ -126,7 +126,7 @@ func (s *SqlStore) LockOneGlobalTrans(expireIn time.Duration) *storage.TransGlob
 	}
 	expire := int(expireIn / time.Second)
 	whereTime := fmt.Sprintf("next_cron_time < %s", getTime(expire))
-	owner := uuid.NewString()
+	owner := shortuuid.New()
 	global := &storage.TransGlobalStore{}
 	dbr := db.Must().Model(global).
 		Where(whereTime + "and status in ('prepared', 'aborting', 'submitted')").
