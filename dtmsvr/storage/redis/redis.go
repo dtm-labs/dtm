@@ -167,7 +167,7 @@ func (s *RedisStore) LockGlobalSaveBranches(gid string, status string, branches 
 		AppendObject(&storage.TransGlobalStore{Gid: gid, Status: status}).
 		AppendRaw(branchStart).
 		AppendBranches(branches)
-	_, err := callLua(args, `
+	_, err := callLua(args, `-- LockGlobalSaveBranches
 local gs = cjson.decode(ARGV[3])
 local g = redis.call('GET', KEYS[1])
 if (g == false) then
