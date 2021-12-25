@@ -17,7 +17,7 @@ func init() {
 		gid := dtmgrpc.MustGenGid(DtmGrpcServer)
 		saga := dtmgrpc.NewSagaGrpc(DtmGrpcServer, gid).
 			Add(BusiGrpc+"/examples.Busi/TransOut", BusiGrpc+"/examples.Busi/TransOutRevert", req).
-			Add(BusiGrpc+"/examples.Busi/TransIn", BusiGrpc+"/examples.Busi/TransOutRevert", req)
+			Add(BusiGrpc+"/examples.Busi/TransIn", BusiGrpc+"/examples.Busi/TransInRevert", req)
 		err := saga.Submit()
 		logger.FatalIfError(err)
 		return saga.Gid
@@ -27,7 +27,7 @@ func init() {
 		gid := dtmgrpc.MustGenGid(DtmGrpcServer)
 		saga := dtmgrpc.NewSagaGrpc(DtmGrpcServer, gid).
 			Add(BusiGrpc+"/examples.Busi/TransOut", BusiGrpc+"/examples.Busi/TransOutRevert", req).
-			Add(BusiGrpc+"/examples.Busi/TransIn", BusiGrpc+"/examples.Busi/TransOutRevert", req)
+			Add(BusiGrpc+"/examples.Busi/TransIn", BusiGrpc+"/examples.Busi/TransInRevert", req)
 		saga.WaitResult = true
 		err := saga.Submit()
 		logger.FatalIfError(err)
