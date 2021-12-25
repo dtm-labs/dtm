@@ -46,19 +46,20 @@ DTM是一款golang开发的分布式事务管理器，解决了跨数据库、�
 
 |  特性| DTM | SEATA |备注|
 |:-----:|:----:|:----:|:----:|
-| 支持语言 |<span style="color:green">Go、Java、python、php、c#...</span>|<span style="color:orange">Java</span>|dtm可轻松接入一门新语言|
-|异常处理| <span style="color:green"> [子事务屏障自动处理](https://zhuanlan.zhihu.com/p/388444465) </span>|<span style="color:orange">手动处理</span> |dtm解决了幂等、悬挂、空补偿|
-| TCC事务| <span style="color:green">✓</span>|<span style="color:green">✓</span>||
-| XA事务|<span style="color:green">✓</span>|<span style="color:green">✓</span>||
-|AT事务|<span style="color:orange">建议使用XA</span>|<span style="color:green">✓</span>|AT与XA类似，性能更好，但有脏回滚|
-| SAGA事务 |<span style="color:green">支持并发</span> |<span style="color:green">状态机模式</span> ||
-|事务消息|<span style="color:green">✓</span>|<span style="color:red">✗</span>|dtm提供类似rocketmq的事务消息|
-|单服务多数据源|<span style="color:green">✓</span>|<span style="color:red">✗</span>||
-|通信协议|HTTP、gRPC、go-zero|dubbo等协议|dtm对云原生更加友好|
-|star数量|<img src="https://img.shields.io/github/stars/dtm-labs/dtm.svg?style=social" alt="github stars"/>|<img src="https://img.shields.io/github/stars/seata/seata.svg?style=social" alt="github stars"/>|dtm从20210604发布0.1，发展快|
+| [支持语言](https://dtm.pub/other/opensource.html#lang) |<span style="color:green">Go、Java、python、php、c#...</span>|<span style="color:orange">Java</span>|dtm可轻松接入一门新语言|
+|[异常处理](https://dtm.pub/other/opensource.html#exception)| <span style="color:green"> 子事务屏障自动处理 </span>|<span style="color:orange">手动处理</span> |dtm解决了幂等、悬挂、空补偿|
+| [TCC事务](https://dtm.pub/other/opensource.html#tcc)| <span style="color:green">✓</span>|<span style="color:green">✓</span>||
+| [XA事务](https://dtm.pub/other/opensource.html#xa)|<span style="color:green">✓</span>|<span style="color:green">✓</span>||
+|[AT事务](https://dtm.pub/other/opensource.html#at)|<span style="color:orange">建议使用XA</span>|<span style="color:green">✓</span>|AT与XA类似，性能更好，但有脏回滚|
+| [SAGA事务](https://dtm.pub/other/opensource.html#saga) |<span style="color:green">支持并发</span> |<span style="color:green">状态机模式</span> ||
+|[二阶段消息](https://dtm.pub/other/opensource.html#msg)|<span style="color:green">✓</span>|<span style="color:red">✗</span>|dtm提供类似rocketmq的事务消息|
+|[单服务多数据源](https://dtm.pub/other/opensource.html#multidb)|<span style="color:green">✓</span>|<span style="color:red">✗</span>||
+|[通信协议](https://dtm.pub/other/opensource.html#protocol)|HTTP、gRPC、go-zero|dubbo等协议|dtm对云原生更加友好|
+|[star数量](https://dtm.pub/other/opensource.html#star)|<img src="https://img.shields.io/github/stars/dtm-labs/dtm.svg?style=social" alt="github stars"/>|<img src="https://img.shields.io/github/stars/seata/seata.svg?style=social" alt="github stars"/>|dtm从20210604发布0.1，发展快|
 
 从上面对比的特性来看，如果您的语言栈包含了Java之外的语言，那么dtm是您的首选。如果您的语言栈是Java，您也可以选择接入dtm，使用子事务屏障技术，简化您的业务编写。
 
+详细的对比可以点击特性中的链接，跳到相关文档
 ## [性能测试报告](https://dtm.pub/other/performance.html)
 
 ## [教程与文档](https://dtm.pub)
