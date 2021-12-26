@@ -71,7 +71,7 @@ func (t *TransGlobal) saveNew() ([]TransBranch, error) {
 	t.CreateTime = &now
 	t.UpdateTime = &now
 	branches := t.getProcessor().GenBranches()
-	for i, _ := range branches {
+	for i := range branches {
 		branches[i].CreateTime = &now
 		branches[i].UpdateTime = &now
 	}
