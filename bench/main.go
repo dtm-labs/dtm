@@ -13,31 +13,42 @@ import (
 	"github.com/dtm-labs/dtm/examples"
 )
 
-var hint = `To start the bench server, you need to specify the parameters:
-
-Available commands:
-    http              start bench server
+var usage = `bench is a bench test server for dtmf
+usage:
+    redis   prepare for redis bench test
+    db      prepare for mysql|postgres bench test
+		boltdb  prepare for boltdb bench test
 `
+
+func hintAndExit() {
+	fmt.Printf(usage)
+	os.Exit(0)
+}
+
+var conf = &common.Config
 
 func main() {
 	if len(os.Args) <= 1 {
-		fmt.Printf(hint)
-		return
+		hintAndExit()
 	}
-	logger.Infof("starting dtm....")
-	if os.Args[1] == "http" {
-		fmt.Println("start bench server")
-		common.MustLoadConfig()
-		logger.InitLog(common.Config.LogLevel)
-		dtmcli.SetCurrentDBType(common.Config.ExamplesDB.Driver)
-		registry.WaitStoreUp()
-		dtmsvr.PopulateDB(false)
+	logger.Infof("starting bench server")
+	common.MustLoadConfig()
+	logger.InitLog(conf.LogLevel)
+	if conf.ExamplesDB.Driver != "" {
+		dtmcli.SetCurrentDBType(conf.ExamplesDB.Driver)
+		svr.PrepareBenchDB()
+	}
+	registry.WaitStoreUp()
+	dtmsvr.PopulateDB(false)
+	if os.Args[1] == "db" {
 		examples.PopulateDB(false)
-		dtmsvr.StartSvr()              // 启动dtmsvr的api服务
-		go dtmsvr.CronExpiredTrans(-1) // 启动dtmsvr的定时过期查询
-		svr.StartSvr()
-		select {}
+	} else if os.Args[1] == "redis" || os.Args[1] == "boltdb" {
+
 	} else {
-		fmt.Printf(hint)
+		hintAndExit()
 	}
+	dtmsvr.StartSvr()              // 启动dtmsvr的api服务
+	go dtmsvr.CronExpiredTrans(-1) // 启动dtmsvr的定时过期查询
+	svr.StartSvr()                 // 启动bench服务
+	select {}
 }
