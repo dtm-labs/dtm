@@ -17,22 +17,23 @@ import (
 
 func svcSubmit(t *TransGlobal) (interface{}, error) {
 	t.Status = dtmcli.StatusSubmitted
-	err := t.saveNew()
+	branches, err := t.saveNew()
 
 	if err == storage.ErrUniqueConflict {
 		dbt := GetTransGlobal(t.Gid)
 		if dbt.Status == dtmcli.StatusPrepared {
 			dbt.changeStatus(t.Status)
+			branches = GetStore().FindBranches(t.Gid)
 		} else if dbt.Status != dtmcli.StatusSubmitted {
 			return map[string]interface{}{"dtm_result": dtmcli.ResultFailure, "message": fmt.Sprintf("current status '%s', cannot sumbmit", dbt.Status)}, nil
 		}
 	}
-	return t.Process(), nil
+	return t.Process(branches), nil
 }
 
 func svcPrepare(t *TransGlobal) (interface{}, error) {
 	t.Status = dtmcli.StatusPrepared
-	err := t.saveNew()
+	_, err := t.saveNew()
 	if err == storage.ErrUniqueConflict {
 		dbt := GetTransGlobal(t.Gid)
 		if dbt.Status != dtmcli.StatusPrepared {
@@ -48,7 +49,8 @@ func svcAbort(t *TransGlobal) (interface{}, error) {
 		return map[string]interface{}{"dtm_result": dtmcli.ResultFailure, "message": fmt.Sprintf("trans type: '%s' current status '%s', cannot abort", dbt.TransType, dbt.Status)}, nil
 	}
 	dbt.changeStatus(dtmcli.StatusAborting)
-	return dbt.Process(), nil
+	branches := GetStore().FindBranches(t.Gid)
+	return dbt.Process(branches), nil
 }
 
 func svcRegisterBranch(transType string, branch *TransBranch, data map[string]string) (ret interface{}, rerr error) {

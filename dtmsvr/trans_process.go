@@ -16,23 +16,23 @@ import (
 )
 
 // Process process global transaction once
-func (t *TransGlobal) Process() map[string]interface{} {
-	r := t.process()
+func (t *TransGlobal) Process(branches []TransBranch) map[string]interface{} {
+	r := t.process(branches)
 	transactionMetrics(t, r["dtm_result"] == dtmcli.ResultSuccess)
 	return r
 }
 
-func (t *TransGlobal) process() map[string]interface{} {
+func (t *TransGlobal) process(branches []TransBranch) map[string]interface{} {
 	if t.Options != "" {
 		dtmimp.MustUnmarshalString(t.Options, &t.TransOptions)
 	}
 
 	if !t.WaitResult {
-		go t.processInner()
+		go t.processInner(branches)
 		return dtmcli.MapSuccess
 	}
 	submitting := t.Status == dtmcli.StatusSubmitted
-	err := t.processInner()
+	err := t.processInner(branches)
 	if err != nil {
 		return map[string]interface{}{"dtm_result": dtmcli.ResultFailure, "message": err.Error()}
 	}
@@ -42,7 +42,7 @@ func (t *TransGlobal) process() map[string]interface{} {
 	return dtmcli.MapSuccess
 }
 
-func (t *TransGlobal) processInner() (rerr error) {
+func (t *TransGlobal) processInner(branches []TransBranch) (rerr error) {
 	defer handlePanic(&rerr)
 	defer func() {
 		if rerr != nil && rerr != dtmcli.ErrOngoing {
@@ -55,14 +55,12 @@ func (t *TransGlobal) processInner() (rerr error) {
 		}
 	}()
 	logger.Debugf("processing: %s status: %s", t.Gid, t.Status)
-	branches := GetStore().FindBranches(t.Gid)
 	t.lastTouched = time.Now()
 	rerr = t.getProcessor().ProcessOnce(branches)
 	return
 }
 
-func (t *TransGlobal) saveNew() error {
-	branches := t.getProcessor().GenBranches()
+func (t *TransGlobal) saveNew() ([]TransBranch, error) {
 	t.NextCronInterval = t.getNextCronInterval(cronReset)
 	t.NextCronTime = common.GetNextTime(t.NextCronInterval)
 	t.Options = dtmimp.MustMarshalString(t.TransOptions)
@@ -72,8 +70,13 @@ func (t *TransGlobal) saveNew() error {
 	now := time.Now()
 	t.CreateTime = &now
 	t.UpdateTime = &now
+	branches := t.getProcessor().GenBranches()
+	for i, _ := range branches {
+		branches[i].CreateTime = &now
+		branches[i].UpdateTime = &now
+	}
 	err := GetStore().MaySaveNewTrans(&t.TransGlobalStore, branches)
 	logger.Infof("MaySaveNewTrans result: %v, global: %v branches: %v",
 		err, t.TransGlobalStore.String(), dtmimp.MustMarshalString(branches))
-	return err
+	return branches, err
 }

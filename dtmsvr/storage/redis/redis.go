@@ -35,6 +35,7 @@ func (s *RedisStore) PopulateData(skipDrop bool) {
 }
 
 func (s *RedisStore) FindTransGlobalStore(gid string) *storage.TransGlobalStore {
+	logger.Debugf("calling FindTransGlobalStore: %s", gid)
 	r, err := redisGet().Get(ctx, config.Store.RedisPrefix+"_g_"+gid).Result()
 	if err == redis.Nil {
 		return nil
@@ -46,6 +47,7 @@ func (s *RedisStore) FindTransGlobalStore(gid string) *storage.TransGlobalStore 
 }
 
 func (s *RedisStore) ScanTransGlobalStores(position *string, limit int64) []storage.TransGlobalStore {
+	logger.Debugf("calling ScanTransGlobalStores: %s %d", *position, limit)
 	lid := uint64(0)
 	if *position != "" {
 		lid = uint64(dtmimp.MustAtoi(*position))
@@ -71,6 +73,7 @@ func (s *RedisStore) ScanTransGlobalStores(position *string, limit int64) []stor
 }
 
 func (s *RedisStore) FindBranches(gid string) []storage.TransBranchStore {
+	logger.Debugf("calling FindBranches: %s", gid)
 	sa, err := redisGet().LRange(ctx, config.Store.RedisPrefix+"_b_"+gid, 0, -1).Result()
 	dtmimp.E2P(err)
 	branches := make([]storage.TransBranchStore, len(sa))

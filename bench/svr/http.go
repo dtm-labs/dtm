@@ -9,6 +9,7 @@ package svr
 import (
 	"database/sql"
 	"fmt"
+	"os"
 	"strings"
 	"sync/atomic"
 	"time"
@@ -18,7 +19,6 @@ import (
 	"github.com/dtm-labs/dtm/dtmcli/dtmimp"
 	"github.com/dtm-labs/dtm/dtmcli/logger"
 	"github.com/dtm-labs/dtm/dtmsvr"
-	"github.com/dtm-labs/dtm/examples"
 	"github.com/gin-gonic/gin"
 	"github.com/lithammer/shortuuid"
 )
@@ -27,10 +27,10 @@ import (
 
 // service address of the transcation
 const benchAPI = "/api/busi_bench"
-const benchPort = 8083
 const total = 200000
 
-var benchBusi = fmt.Sprintf("http://localhost:%d%s", benchPort, benchAPI)
+var benchPort = dtmimp.If(os.Getenv("BENCH_PORT") == "", "8083", os.Getenv("BENCH_PORT")).(string)
+var benchBusi = fmt.Sprintf("http://localhost:%s%s", benchPort, benchAPI)
 
 func sdbGet() *sql.DB {
 	db, err := dtmimp.PooledDB(common.Config.ExamplesDB)
@@ -68,12 +68,7 @@ var uidCounter int32 = 0
 var mode string = ""
 var sqls int = 1
 
-// StartSvr 1
-func StartSvr() {
-	app := common.GetGinApp()
-	benchAddRoute(app)
-	logger.Debugf("bench listening at %d", benchPort)
-	go app.Run(fmt.Sprintf(":%d", benchPort))
+func PrepareBenchDB() {
 	db := sdbGet()
 	_, err := dtmimp.DBExec(db, "drop table if exists dtm_busi.user_account_log")
 	logger.FatalIfError(err)
@@ -92,6 +87,14 @@ func StartSvr() {
 )
 `)
 	logger.FatalIfError(err)
+}
+
+// StartSvr 1
+func StartSvr() {
+	app := common.GetGinApp()
+	benchAddRoute(app)
+	logger.Debugf("bench listening at %d", benchPort)
+	go app.Run(fmt.Sprintf(":%s", benchPort))
 }
 
 func qsAdjustBalance(uid int, amount int, c *gin.Context) (interface{}, error) {
@@ -124,6 +127,7 @@ func qsAdjustBalance(uid int, amount int, c *gin.Context) (interface{}, error) {
 }
 
 func benchAddRoute(app *gin.Engine) {
+	dtmHttpServer := fmt.Sprintf("http://localhost:%d/api/dtmsvr", common.Config.HttpPort)
 	app.POST(benchAPI+"/TransIn", common.WrapHandler(func(c *gin.Context) (interface{}, error) {
 		return qsAdjustBalance(dtmimp.MustAtoi(c.Query("uid")), 1, c)
 	}))
@@ -154,7 +158,7 @@ func benchAddRoute(app *gin.Engine) {
 		params2 := fmt.Sprintf("?uid=%s", suid2)
 		logger.Debugf("mode: %s contains dtm: %t", mode, strings.Contains(mode, "dtm"))
 		if strings.Contains(mode, "dtm") {
-			saga := dtmcli.NewSaga(examples.DtmHttpServer, fmt.Sprintf("bench-%d", uid)).
+			saga := dtmcli.NewSaga(dtmHttpServer, fmt.Sprintf("bench-%d", uid)).
 				Add(benchBusi+"/TransOut"+params, benchBusi+"/TransOutCompensate"+params, req).
 				Add(benchBusi+"/TransIn"+params2, benchBusi+"/TransInCompensate"+params2, req)
 			saga.WaitResult = true
@@ -171,9 +175,10 @@ func benchAddRoute(app *gin.Engine) {
 	app.Any(benchAPI+"/benchEmptyUrl", common.WrapHandler(func(c *gin.Context) (interface{}, error) {
 		gid := shortuuid.New()
 		req := gin.H{}
-		saga := dtmcli.NewSaga(examples.DtmHttpServer, gid).
+		saga := dtmcli.NewSaga(dtmHttpServer, gid).
 			Add("", "", req).
 			Add("", "", req)
+		saga.WaitResult = true
 		err := saga.Submit()
 		return nil, err
 	}))
