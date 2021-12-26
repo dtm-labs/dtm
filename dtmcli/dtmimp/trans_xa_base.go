@@ -34,7 +34,7 @@ func (xc *XaClientBase) HandleCallback(gid string, branchID string, action strin
 	return err
 }
 
-// HandleLocalTrans http/grpc 处理LocalTransaction的公共方法
+// HandleLocalTrans public handler of LocalTransaction via http/grpc
 func (xc *XaClientBase) HandleLocalTrans(xa *TransBase, cb func(*sql.DB) error) (rerr error) {
 	xaBranch := xa.Gid + "-" + xa.BranchID
 	db, rerr := StandaloneDB(xc.Conf)
