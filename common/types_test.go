@@ -20,6 +20,7 @@ func TestGeneralDB(t *testing.T) {
 		testDbAlone(t)
 	}
 }
+
 func testSql(t *testing.T) {
 	db := DbGet(Config.Store.GetDBConf())
 	err := func() (rerr error) {
