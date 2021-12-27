@@ -68,7 +68,7 @@ func main() {
 		// quick_start 比较独立，单独作为一个例子运行，方便新人上手
 		examples.QsStartSvr()
 		examples.QsFireRequest()
-	case "dev", "dtmsvr":
+	case "dev", "dtmsvr": // do nothing, not fallthrough
 	default:
 		// 下面是各类的例子
 		examples.GrpcStartup()
