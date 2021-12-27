@@ -3,6 +3,7 @@ package redis
 import (
 	"context"
 	"fmt"
+	"sync"
 	"time"
 
 	"github.com/go-redis/redis/v8"
@@ -14,10 +15,13 @@ import (
 	"github.com/dtm-labs/dtm/dtmsvr/storage"
 )
 
+// TODO: optimize this, it's very strange to use pointer to common.Config
 var config = &common.Config
 
-var ctx context.Context = context.Background()
+// TODO: optimize this, all function should have context as first parameter
+var ctx = context.Background()
 
+// RedisStore is the storage with redis, all transaction information will bachend with redis
 type RedisStore struct {
 }
 
@@ -266,6 +270,19 @@ redis.call('SET', KEYS[1], ARGV[3], 'EX', ARGV[2])
 	dtmimp.E2P(err)
 }
 
+var (
+	rdb  *redis.Client
+	once sync.Once
+)
+
 func redisGet() *redis.Client {
-	return common.RedisGet()
+	once.Do(func() {
+		logger.Debugf("connecting to redis: %v", config.Store)
+		rdb = redis.NewClient(&redis.Options{
+			Addr:     fmt.Sprintf("%s:%d", config.Store.Host, config.Store.Port),
+			Username: config.Store.User,
+			Password: config.Store.Password,
+		})
+	})
+	return rdb
 }
