@@ -18,7 +18,6 @@ require (
 	github.com/lithammer/shortuuid v2.0.3+incompatible
 	github.com/lithammer/shortuuid/v3 v3.0.7
 	github.com/onsi/gomega v1.16.0
-	github.com/polarismesh/grpc-go-polaris v0.0.0-20211128162137-1a59cd7b5733 // indirect
 	github.com/prometheus/client_golang v1.11.0
 	github.com/stretchr/testify v1.7.0
 	go.etcd.io/bbolt v1.3.6

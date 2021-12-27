@@ -109,7 +109,7 @@ func DbGet(conf dtmcli.DBConf) *DB {
 	dsn := dtmimp.GetDsn(conf)
 	db, ok := dbs.Load(dsn)
 	if !ok {
-		logger.Debugf("connecting %s", strings.Replace(dsn, conf.Passwrod, "****", 1))
+		logger.Debugf("connecting %s", strings.Replace(dsn, conf.Password, "****", 1))
 		db1, err := gorm.Open(getGormDialetor(conf.Driver, dsn), &gorm.Config{
 			SkipDefaultTransaction: true,
 		})

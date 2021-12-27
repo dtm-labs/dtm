@@ -48,7 +48,7 @@ func (s *Store) GetDBConf() dtmcli.DBConf {
 		Host:     s.Host,
 		Port:     s.Port,
 		User:     s.User,
-		Passwrod: s.Password,
+		Password: s.Password,
 	}
 }
 

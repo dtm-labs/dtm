@@ -19,5 +19,5 @@ type DBConf struct {
 	Host     string `yaml:"Host"`
 	Port     int64  `yaml:"Port"`
 	User     string `yaml:"User"`
-	Passwrod string `yaml:"Password"`
+	Password string `yaml:"Password"`
 }
