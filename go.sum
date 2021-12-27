@@ -29,7 +29,6 @@ github.com/Azure/go-autorest/autorest/mocks v0.4.0/go.mod h1:LTp+uSrOhSkaKrUy935
 github.com/Azure/go-autorest/autorest/mocks v0.4.1/go.mod h1:LTp+uSrOhSkaKrUy935gNZuuIPPVsHlr9DSOxSayd+k=
 github.com/Azure/go-autorest/logger v0.2.0/go.mod h1:T9E3cAhj2VqvPOtCYAvby9aBXkZmbF5NWuPV8+WeEW8=
 github.com/Azure/go-autorest/tracing v0.6.0/go.mod h1:+vhtPC754Xsa23ID7GlGsrdKBpUA79WCAKPPZVC2DeU=
-github.com/BurntSushi/toml v0.3.1 h1:WXkYYl6Yr3qBf1K79EBnL4mak0OimBfB0XUf9Vl28OQ=
 github.com/BurntSushi/toml v0.3.1/go.mod h1:xHWCNGjB5oqiDr8zfno3MHue2Ht5sIBksp03qcyfWMU=
 github.com/BurntSushi/toml v0.4.1 h1:GaI7EiDXDRfa8VshkTj7Fym7ha+y8/XxIgD2okUIjLw=
 github.com/BurntSushi/toml v0.4.1/go.mod h1:CxXYINrC8qIiEnFrOxCa7Jy5BFHlXnUU2pbicEuybxQ=
@@ -94,18 +93,12 @@ github.com/dgryski/go-rendezvous v0.0.0-20200823014737-9f7001d12a5f h1:lO4WD4F/r
 github.com/dgryski/go-rendezvous v0.0.0-20200823014737-9f7001d12a5f/go.mod h1:cuUVRXasLTGF7a8hSLbxyZXjz+1KgoB3wDUb6vlszIc=
 github.com/docker/spdystream v0.0.0-20160310174837-449fdfce4d96/go.mod h1:Qh8CwZgvJUkLughtfhJv5dyTYa91l1fOUCrgjqmcifM=
 github.com/docopt/docopt-go v0.0.0-20180111231733-ee0de3bc6815/go.mod h1:WwZ+bS3ebgob9U8Nd0kOddGdZWjyMGR8Wziv+TBNwSE=
-github.com/dtm-labs/dtmdriver v0.0.0-20211203060147-29426c663b6e h1:xXyb4mr46T5KqR5SXd37ivXNJ33k/MSAAwsGP6btmh8=
-github.com/dtm-labs/dtmdriver v0.0.0-20211203060147-29426c663b6e/go.mod h1:aeo6ZWiVI0x8P8O18r6uB1cG2uw9BCQyYZaH15MlRDI=
 github.com/dtm-labs/dtmdriver v0.0.1 h1:dHUZQ6g2ZN6eRUqds9kKq/3K7u9bcUGatUlbthD92fA=
 github.com/dtm-labs/dtmdriver v0.0.1/go.mod h1:fLiEeD2BPwM9Yq96TfcP9KpbTwFsn5nTxa/PP0jmFuk=
-github.com/dtm-labs/dtmdriver-gozero v0.0.0-20211204083751-a14485949435 h1:qLBNU16bK1ZeaZ6tmfarf49qx9O9sUJAe7/IzoXpuEg=
-github.com/dtm-labs/dtmdriver-gozero v0.0.0-20211204083751-a14485949435/go.mod h1:RYtA6oZny6LzlIRb1tPGt5bHfgqws/JaU6ogFly8ByQ=
 github.com/dtm-labs/dtmdriver-gozero v0.0.1 h1:ExDhMsn3MJCd+psSmIJVDgGUqbFrQGP0IpKL8x900AE=
 github.com/dtm-labs/dtmdriver-gozero v0.0.1/go.mod h1:uIiAMkG/Vp4jvINk5XfVMT0mSCzRqIYyXgpmqAQfqbA=
 github.com/dtm-labs/dtmdriver-polaris v0.0.2 h1:bh8u7bLWhairwpiA688dZMAX/OWcRoQk7a5bVcGzsjo=
 github.com/dtm-labs/dtmdriver-polaris v0.0.2/go.mod h1:vyXDTRj3CpROiRnI0dqM/lHFfZaKY9JAS1MSey2azIQ=
-github.com/dtm-labs/dtmdriver-protocol1 v0.0.0-20211205112411-d7a7052dc90e h1:hNSfnVdE46i45HS6aneN+6umk+12EqI3AErbbzeLsoo=
-github.com/dtm-labs/dtmdriver-protocol1 v0.0.0-20211205112411-d7a7052dc90e/go.mod h1:kB3NPnDKSGioVjgdfj6qgbqYJinOml45GnlHqR46Ycc=
 github.com/dtm-labs/dtmdriver-protocol1 v0.0.1 h1:nwGpGWi7XlUAcDhEw1qZ3TheBskqCvfE96n1uVjmDf4=
 github.com/dtm-labs/dtmdriver-protocol1 v0.0.1/go.mod h1:x3bRe8x7pAfHIIQBTK+LibVq96gBSzMzsgRYe85zxAc=
 github.com/dustin/go-humanize v1.0.0/go.mod h1:HtrtbFcZ19U5GC7JDqmcUSB87Iq5E25KnS6fMYU6eOk=
@@ -509,8 +502,6 @@ github.com/urfave/cli/v2 v2.3.0/go.mod h1:LJmUH05zAU44vOAcrfzZQKsZbVcdbOG8rtL3/X
 github.com/xdg-go/pbkdf2 v1.0.0/go.mod h1:jrpuAogTd400dnrH08LKmI/xc1MbPOebTwRqcT5RDeI=
 github.com/xdg-go/scram v1.0.2/go.mod h1:1WAq6h33pAW+iRreB34OORO2Nf7qel3VV3fjBj+hCSs=
 github.com/xdg-go/stringprep v1.0.2/go.mod h1:8F9zXuvzgwmyT5DUm4GUfZGDdT3W+LCvS6+da4O5kxM=
-github.com/ychensha/dtmdriver-polaris v0.0.1 h1:+gYWFma5pflxNyV1HkcXmhzVHpijMSW9G4qTDcs63xc=
-github.com/ychensha/dtmdriver-polaris v0.0.1/go.mod h1:0BdQvxXlGOlF6YVlsDoVvu8jyxdTlJZ9Kyh5t9lRA94=
 github.com/yuin/goldmark v1.1.27/go.mod h1:3hX8gzYuyVAZsxl0MRgGTJEmQBFcNTphYh9decYSb74=
 github.com/yuin/goldmark v1.2.1/go.mod h1:3hX8gzYuyVAZsxl0MRgGTJEmQBFcNTphYh9decYSb74=
 github.com/yuin/goldmark v1.3.5/go.mod h1:mwnBkeHKe2W/ZEtQ+71ViKU8L12m81fl3OWwC1Zlc8k=
