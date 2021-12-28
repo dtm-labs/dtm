@@ -62,11 +62,12 @@ func (s *SqlStore) FindBranches(gid string) []storage.TransBranchStore {
 	return branches
 }
 
-func (s *SqlStore) UpdateBranchesSql(branches []storage.TransBranchStore, updates []string) *gorm.DB {
-	return dbGet().Clauses(clause.OnConflict{
+func (s *SqlStore) UpdateBranches(branches []storage.TransBranchStore, updates []string) (int, error) {
+	db := dbGet().Clauses(clause.OnConflict{
 		OnConstraint: "trans_branch_op_pkey",
 		DoUpdates:    clause.AssignmentColumns(updates),
 	}).Create(branches)
+	return int(db.RowsAffected), db.Error
 }
 
 func (s *SqlStore) LockGlobalSaveBranches(gid string, status string, branches []storage.TransBranchStore, branchStart int) {

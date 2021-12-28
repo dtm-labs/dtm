@@ -13,7 +13,6 @@ import (
 	"time"
 
 	bolt "go.etcd.io/bbolt"
-	"gorm.io/gorm"
 
 	"github.com/dtm-labs/dtm/common"
 	"github.com/dtm-labs/dtm/dtmcli/dtmimp"
@@ -297,8 +296,8 @@ func (s *BoltdbStore) FindBranches(gid string) []storage.TransBranchStore {
 	return branches
 }
 
-func (s *BoltdbStore) UpdateBranchesSql(branches []storage.TransBranchStore, updates []string) *gorm.DB {
-	return nil // not implemented
+func (s *BoltdbStore) UpdateBranches(branches []storage.TransBranchStore, updates []string) (int, error) {
+	return 0, nil // not implemented
 }
 
 func (s *BoltdbStore) LockGlobalSaveBranches(gid string, status string, branches []storage.TransBranchStore, branchStart int) {
