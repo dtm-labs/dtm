@@ -7,7 +7,6 @@ import (
 	"time"
 
 	"github.com/go-redis/redis/v8"
-	"gorm.io/gorm"
 
 	"github.com/dtm-labs/dtm/common"
 	"github.com/dtm-labs/dtm/dtmcli/dtmimp"
@@ -87,8 +86,8 @@ func (s *RedisStore) FindBranches(gid string) []storage.TransBranchStore {
 	return branches
 }
 
-func (s *RedisStore) UpdateBranchesSql(branches []storage.TransBranchStore, updates []string) *gorm.DB {
-	return nil // not implemented
+func (s *RedisStore) UpdateBranches(branches []storage.TransBranchStore, updates []string) (int, error) {
+	return 0, nil // not implemented
 }
 
 type argList struct {
