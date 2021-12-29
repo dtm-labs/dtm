@@ -12,9 +12,9 @@ DTM是一款golang开发的分布式事务管理器，解决了跨数据库、�
 
 他优雅的解决了幂等、空补偿、悬挂等分布式事务难题，提供了简单易用、高性能、易水平扩展的解决方案。
 
-作者受邀参加中国数据库大会分享[多语言环境下分布式事务实践](http://dtcc.it168.com/yicheng.html#b9)
+通俗一点说，DTM提供跨服务事务能力，一组服务要么全部成功，要么全部回滚，避免只更新了一部分数据产生的业务问题。
 
-## 谁在使用dtm
+## 谁在使用DTM(仅列出部分)
 [Tencent 腾讯](https://dtm.pub/other/using.html#tencent)
 
 [Ivydad 常青藤爸爸](https://dtm.pub/other/using.html#ivydad)
@@ -85,6 +85,8 @@ go run main.go
 
 ### 启动并运行一个saga示例
 `go run qs/main.go`
+
+这是一个类似跨行转账的示例，包括两个事务分支：资金转出（TransOut)、资金转入（TransIn)。DTM保证TransIn和TransOut要么全部成功，要么全部回滚，保证最终金额的正确性。
 
 ## 接入详解
 
