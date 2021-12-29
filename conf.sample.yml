@@ -41,10 +41,3 @@ Store: # specify which engine to store trans status
 
 # LogLevel: 'info' # default: info. can be debug|info|warn|error
 
-### dtm can run examples, and examples will use following config to connect db
-ExamplesDB:
-  Driver: 'mysql'
-  Host: 'localhost'
-  User: 'root'
-  Password: ''
-  Port: 3306

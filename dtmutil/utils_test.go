@@ -4,7 +4,7 @@
  * license that can be found in the LICENSE file.
  */
 
-package common
+package dtmutil
 
 import (
 	"errors"
@@ -16,7 +16,7 @@ import (
 	"testing"
 
 	"github.com/gin-gonic/gin"
-	"github.com/go-playground/assert/v2"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestGin(t *testing.T) {

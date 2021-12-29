@@ -4,32 +4,50 @@
  * license that can be found in the LICENSE file.
  */
 
-package examples
+package busi
 
 import (
-	"context"
-	"database/sql"
 	"fmt"
 
-	"github.com/dtm-labs/dtm/common"
 	"github.com/dtm-labs/dtm/dtmcli"
 	"github.com/dtm-labs/dtm/dtmcli/dtmimp"
 	"github.com/dtm-labs/dtm/dtmcli/logger"
-	"github.com/dtm-labs/dtm/dtmgrpc"
 	"github.com/gin-gonic/gin"
 )
 
-// DtmHttpServer dtm service address
-var DtmHttpServer = fmt.Sprintf("http://localhost:%d/api/dtmsvr", 36789)
+var BusiConf = dtmcli.DBConf{
+	Driver: "mysql",
+	Host:   "localhost",
+	Port:   3306,
+	User:   "root",
+}
 
-// DtmGrpcServer dtm grpc service address
-var DtmGrpcServer = fmt.Sprintf("localhost:%d", 36790)
+type UserAccount struct {
+	UserId         int
+	Balance        string
+	TradingBalance string
+}
+
+func (*UserAccount) TableName() string {
+	return "dtm_busi.user_account"
+}
+
+func GetUserAccountByUid(uid int) *UserAccount {
+	ua := UserAccount{}
+	dbr := dbGet().Must().Model(&ua).Where("user_id=?", uid).First(&ua)
+	dtmimp.E2P(dbr.Error)
+	return &ua
+}
+
+func IsEqual(ua1, ua2 *UserAccount) bool {
+	return ua1.UserId == ua2.UserId && ua1.Balance == ua2.Balance && ua1.TradingBalance == ua2.TradingBalance
+}
 
 // TransReq transaction request payload
 type TransReq struct {
 	Amount         int    `json:"amount"`
-	TransInResult  string `json:"transInResult"`
-	TransOutResult string `json:"transOutResult"`
+	TransInResult  string `json:"trans_in_result"`
+	TransOutResult string `json:"trans_out_Result"`
 }
 
 func (t *TransReq) String() string {
@@ -76,33 +94,33 @@ func infoFromContext(c *gin.Context) *dtmcli.BranchBarrier {
 	return &info
 }
 
-func dbGet() *common.DB {
-	return common.DbGet(config.ExamplesDB)
+// AutoEmptyString auto reset to empty when used once
+type AutoEmptyString struct {
+	value string
 }
 
-func sdbGet() *sql.DB {
-	db, err := dtmimp.PooledDB(config.ExamplesDB)
-	logger.FatalIfError(err)
-	return db
+// SetOnce set a value once
+func (s *AutoEmptyString) SetOnce(v string) {
+	s.value = v
 }
 
-func txGet() *sql.Tx {
-	db := sdbGet()
-	tx, err := db.Begin()
-	logger.FatalIfError(err)
-	return tx
+// Fetch fetch the stored value, then reset the value to empty
+func (s *AutoEmptyString) Fetch() string {
+	v := s.value
+	s.value = ""
+	return v
 }
 
-// MustBarrierFromGin 1
-func MustBarrierFromGin(c *gin.Context) *dtmcli.BranchBarrier {
-	ti, err := dtmcli.BarrierFromQuery(c.Request.URL.Query())
-	logger.FatalIfError(err)
-	return ti
+type mainSwitchType struct {
+	TransInResult         AutoEmptyString
+	TransOutResult        AutoEmptyString
+	TransInConfirmResult  AutoEmptyString
+	TransOutConfirmResult AutoEmptyString
+	TransInRevertResult   AutoEmptyString
+	TransOutRevertResult  AutoEmptyString
+	CanSubmitResult       AutoEmptyString
+	NextResult            AutoEmptyString
 }
 
-// MustBarrierFromGrpc 1
-func MustBarrierFromGrpc(ctx context.Context) *dtmcli.BranchBarrier {
-	ti, err := dtmgrpc.BarrierFromGrpc(ctx)
-	logger.FatalIfError(err)
-	return ti
-}
+// MainSwitch controls busi success or fail
+var MainSwitch mainSwitchType

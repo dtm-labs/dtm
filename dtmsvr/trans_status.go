@@ -47,7 +47,7 @@ func (t *TransGlobal) changeBranchStatus(b *TransBranch, status string, branchPo
 	b.Status = status
 	b.FinishTime = &now
 	b.UpdateTime = &now
-	if config.Store.Driver != dtmimp.DBTypeMysql && config.Store.Driver != dtmimp.DBTypePostgres || config.UpdateBranchSync > 0 || t.updateBranchSync {
+	if conf.Store.Driver != dtmimp.DBTypeMysql && conf.Store.Driver != dtmimp.DBTypePostgres || conf.UpdateBranchSync > 0 || t.updateBranchSync {
 		GetStore().LockGlobalSaveBranches(t.Gid, t.Status, []TransBranch{*b}, branchPos)
 		logger.Infof("LockGlobalSaveBranches ok: gid: %s old status: %s branches: %s",
 			b.Gid, dtmcli.StatusPrepared, b.String())
@@ -59,7 +59,7 @@ func (t *TransGlobal) changeBranchStatus(b *TransBranch, status string, branchPo
 func (t *TransGlobal) isTimeout() bool {
 	timeout := t.TimeoutToFail
 	if t.TimeoutToFail == 0 && t.TransType != "saga" {
-		timeout = config.TimeoutToFail
+		timeout = conf.TimeoutToFail
 	}
 	if timeout == 0 {
 		return false
@@ -136,7 +136,7 @@ func (t *TransGlobal) execBranch(branch *TransBranch, branchPos int) error {
 	branchMetrics(t, branch, status == dtmcli.StatusSucceed)
 	// if time pass 1500ms and NextCronInterval is not default, then reset NextCronInterval
 	if err == nil && time.Since(t.lastTouched)+NowForwardDuration >= 1500*time.Millisecond ||
-		t.NextCronInterval > config.RetryInterval && t.NextCronInterval > t.RetryInterval {
+		t.NextCronInterval > conf.RetryInterval && t.NextCronInterval > t.RetryInterval {
 		t.touchCronTime(cronReset)
 	} else if err == dtmimp.ErrOngoing {
 		t.touchCronTime(cronKeep)
@@ -154,6 +154,6 @@ func (t *TransGlobal) getNextCronInterval(ctype cronType) int64 {
 	} else if t.RetryInterval != 0 {
 		return t.RetryInterval
 	} else {
-		return config.RetryInterval
+		return conf.RetryInterval
 	}
 }

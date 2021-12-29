@@ -9,26 +9,27 @@ import (
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 
-	"github.com/dtm-labs/dtm/common"
 	"github.com/dtm-labs/dtm/dtmcli/dtmimp"
+	"github.com/dtm-labs/dtm/dtmsvr/config"
 	"github.com/dtm-labs/dtm/dtmsvr/storage"
+	"github.com/dtm-labs/dtm/dtmutil"
 )
 
-var config = &common.Config
+var conf = &config.Config
 
 type SqlStore struct {
 }
 
 func (s *SqlStore) Ping() error {
-	db, err := dtmimp.StandaloneDB(config.Store.GetDBConf())
+	db, err := dtmimp.StandaloneDB(conf.Store.GetDBConf())
 	dtmimp.E2P(err)
 	_, err = db.Exec("select 1")
 	return err
 }
 
 func (s *SqlStore) PopulateData(skipDrop bool) {
-	file := fmt.Sprintf("%s/dtmsvr.storage.%s.sql", common.GetSqlDir(), config.Store.Driver)
-	common.RunSQLScript(config.Store.GetDBConf(), file, skipDrop)
+	file := fmt.Sprintf("%s/dtmsvr.storage.%s.sql", dtmutil.GetSqlDir(), conf.Store.Driver)
+	dtmutil.RunSQLScript(conf.Store.GetDBConf(), file, skipDrop)
 }
 
 func (s *SqlStore) FindTransGlobalStore(gid string) *storage.TransGlobalStore {
@@ -83,7 +84,7 @@ func (s *SqlStore) LockGlobalSaveBranches(gid string, status string, branches []
 
 func (s *SqlStore) MaySaveNewTrans(global *storage.TransGlobalStore, branches []storage.TransBranchStore) error {
 	return dbGet().Transaction(func(db1 *gorm.DB) error {
-		db := &common.DB{DB: db1}
+		db := &dtmutil.DB{DB: db1}
 		dbr := db.Must().Clauses(clause.OnConflict{
 			DoNothing: true,
 		}).Create(global)
@@ -109,8 +110,8 @@ func (s *SqlStore) ChangeGlobalStatus(global *storage.TransGlobalStore, newStatu
 }
 
 func (s *SqlStore) TouchCronTime(global *storage.TransGlobalStore, nextCronInterval int64) {
-	global.NextCronTime = common.GetNextTime(nextCronInterval)
-	global.UpdateTime = common.GetNextTime(0)
+	global.NextCronTime = dtmutil.GetNextTime(nextCronInterval)
+	global.UpdateTime = dtmutil.GetNextTime(0)
 	global.NextCronInterval = nextCronInterval
 	dbGet().Must().Model(global).Where("status=? and gid=?", global.Status, global.Gid).
 		Select([]string{"next_cron_time", "update_time", "next_cron_interval"}).Updates(global)
@@ -122,7 +123,7 @@ func (s *SqlStore) LockOneGlobalTrans(expireIn time.Duration) *storage.TransGlob
 		return map[string]string{
 			"mysql":    fmt.Sprintf("date_add(now(), interval %d second)", second),
 			"postgres": fmt.Sprintf("current_timestamp + interval '%d second'", second),
-		}[config.Store.Driver]
+		}[conf.Store.Driver]
 	}
 	expire := int(expireIn / time.Second)
 	whereTime := fmt.Sprintf("next_cron_time < %s", getTime(expire))
@@ -134,7 +135,7 @@ func (s *SqlStore) LockOneGlobalTrans(expireIn time.Duration) *storage.TransGlob
 		Select([]string{"owner", "next_cron_time"}).
 		Updates(&storage.TransGlobalStore{
 			Owner:        owner,
-			NextCronTime: common.GetNextTime(common.Config.RetryInterval),
+			NextCronTime: dtmutil.GetNextTime(conf.RetryInterval),
 		})
 	if dbr.RowsAffected == 0 {
 		return nil
@@ -143,8 +144,15 @@ func (s *SqlStore) LockOneGlobalTrans(expireIn time.Duration) *storage.TransGlob
 	return global
 }
 
-func dbGet() *common.DB {
-	return common.DbGet(config.Store.GetDBConf())
+func setDBConn(db *gorm.DB) {
+	sqldb, _ := db.DB()
+	sqldb.SetMaxOpenConns(int(conf.Store.MaxOpenConns))
+	sqldb.SetMaxIdleConns(int(conf.Store.MaxIdleConns))
+	sqldb.SetConnMaxLifetime(time.Duration(conf.Store.ConnMaxLifeTime) * time.Minute)
+}
+
+func dbGet() *dtmutil.DB {
+	return dtmutil.DbGet(conf.Store.GetDBConf(), setDBConn)
 }
 
 func wrapError(err error) error {

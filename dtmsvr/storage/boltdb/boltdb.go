@@ -15,13 +15,14 @@ import (
 	bolt "go.etcd.io/bbolt"
 	"gorm.io/gorm"
 
-	"github.com/dtm-labs/dtm/common"
 	"github.com/dtm-labs/dtm/dtmcli/dtmimp"
 	"github.com/dtm-labs/dtm/dtmcli/logger"
+	"github.com/dtm-labs/dtm/dtmsvr/config"
 	"github.com/dtm-labs/dtm/dtmsvr/storage"
+	"github.com/dtm-labs/dtm/dtmutil"
 )
 
-var config = &common.Config
+var conf = &config.Config
 
 type BoltdbStore struct {
 }
@@ -42,7 +43,7 @@ func boltGet() *bolt.DB {
 		//   1. refactor this code
 		//   2. make cleanup run period, to avoid the file growup when server long-running
 		err = cleanupExpiredData(
-			time.Duration(common.Config.Store.DataExpire)*time.Second,
+			time.Duration(conf.Store.DataExpire)*time.Second,
 			db,
 		)
 		dtmimp.E2P(err)
@@ -348,8 +349,8 @@ func (s *BoltdbStore) ChangeGlobalStatus(global *storage.TransGlobalStore, newSt
 
 func (s *BoltdbStore) TouchCronTime(global *storage.TransGlobalStore, nextCronInterval int64) {
 	oldUnix := global.NextCronTime.Unix()
-	global.NextCronTime = common.GetNextTime(nextCronInterval)
-	global.UpdateTime = common.GetNextTime(0)
+	global.NextCronTime = dtmutil.GetNextTime(nextCronInterval)
+	global.UpdateTime = dtmutil.GetNextTime(0)
 	global.NextCronInterval = nextCronInterval
 	err := boltGet().Update(func(t *bolt.Tx) error {
 		g := tGetGlobal(t, global.Gid)
@@ -367,7 +368,7 @@ func (s *BoltdbStore) TouchCronTime(global *storage.TransGlobalStore, nextCronIn
 func (s *BoltdbStore) LockOneGlobalTrans(expireIn time.Duration) *storage.TransGlobalStore {
 	var trans *storage.TransGlobalStore = nil
 	min := fmt.Sprintf("%d", time.Now().Add(expireIn).Unix())
-	next := time.Now().Add(time.Duration(config.RetryInterval) * time.Second)
+	next := time.Now().Add(time.Duration(conf.RetryInterval) * time.Second)
 	err := boltGet().Update(func(t *bolt.Tx) error {
 		cursor := t.Bucket(bucketIndex).Cursor()
 		for trans == nil {

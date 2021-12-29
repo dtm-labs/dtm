@@ -14,19 +14,20 @@ import (
 	"github.com/dtm-labs/dtm/dtmcli/dtmimp"
 	"github.com/dtm-labs/dtm/dtmcli/logger"
 	"github.com/dtm-labs/dtm/dtmgrpc"
-	"github.com/dtm-labs/dtm/examples"
+	"github.com/dtm-labs/dtm/dtmutil"
+	"github.com/dtm-labs/dtm/test/busi"
 	"github.com/stretchr/testify/assert"
 	"google.golang.org/protobuf/types/known/emptypb"
 )
 
 func TestTccGrpcNormal(t *testing.T) {
-	req := examples.GenBusiReq(30, false, false)
+	req := busi.GenBusiReq(30, false, false)
 	gid := dtmimp.GetFuncName()
-	err := dtmgrpc.TccGlobalTransaction(examples.DtmGrpcServer, gid, func(tcc *dtmgrpc.TccGrpc) error {
+	err := dtmgrpc.TccGlobalTransaction(dtmutil.DefaultGrpcServer, gid, func(tcc *dtmgrpc.TccGrpc) error {
 		r := &emptypb.Empty{}
-		err := tcc.CallBranch(req, examples.BusiGrpc+"/examples.Busi/TransOut", examples.BusiGrpc+"/examples.Busi/TransOutConfirm", examples.BusiGrpc+"/examples.Busi/TransOutRevert", r)
+		err := tcc.CallBranch(req, busi.BusiGrpc+"/busi.Busi/TransOut", busi.BusiGrpc+"/busi.Busi/TransOutConfirm", busi.BusiGrpc+"/busi.Busi/TransOutRevert", r)
 		assert.Nil(t, err)
-		return tcc.CallBranch(req, examples.BusiGrpc+"/examples.Busi/TransIn", examples.BusiGrpc+"/examples.Busi/TransInConfirm", examples.BusiGrpc+"/examples.Busi/TransInRevert", r)
+		return tcc.CallBranch(req, busi.BusiGrpc+"/busi.Busi/TransIn", busi.BusiGrpc+"/busi.Busi/TransInConfirm", busi.BusiGrpc+"/busi.Busi/TransInRevert", r)
 	})
 	assert.Nil(t, err)
 	waitTransProcessed(gid)
@@ -37,13 +38,13 @@ func TestTccGrpcNormal(t *testing.T) {
 
 func TestTccGrpcRollback(t *testing.T) {
 	gid := dtmimp.GetFuncName()
-	req := examples.GenBusiReq(30, false, true)
-	err := dtmgrpc.TccGlobalTransaction(examples.DtmGrpcServer, gid, func(tcc *dtmgrpc.TccGrpc) error {
+	req := busi.GenBusiReq(30, false, true)
+	err := dtmgrpc.TccGlobalTransaction(dtmutil.DefaultGrpcServer, gid, func(tcc *dtmgrpc.TccGrpc) error {
 		r := &emptypb.Empty{}
-		err := tcc.CallBranch(req, examples.BusiGrpc+"/examples.Busi/TransOutTcc", examples.BusiGrpc+"/examples.Busi/TransOutConfirm", examples.BusiGrpc+"/examples.Busi/TransOutRevert", r)
+		err := tcc.CallBranch(req, busi.BusiGrpc+"/busi.Busi/TransOutTcc", busi.BusiGrpc+"/busi.Busi/TransOutConfirm", busi.BusiGrpc+"/busi.Busi/TransOutRevert", r)
 		assert.Nil(t, err)
-		examples.MainSwitch.TransOutRevertResult.SetOnce(dtmcli.ResultOngoing)
-		return tcc.CallBranch(req, examples.BusiGrpc+"/examples.Busi/TransInTcc", examples.BusiGrpc+"/examples.Busi/TransInConfirm", examples.BusiGrpc+"/examples.Busi/TransInRevert", r)
+		busi.MainSwitch.TransOutRevertResult.SetOnce(dtmcli.ResultOngoing)
+		return tcc.CallBranch(req, busi.BusiGrpc+"/busi.Busi/TransInTcc", busi.BusiGrpc+"/busi.Busi/TransInConfirm", busi.BusiGrpc+"/busi.Busi/TransInRevert", r)
 	})
 	assert.Error(t, err)
 	waitTransProcessed(gid)
@@ -54,13 +55,13 @@ func TestTccGrpcRollback(t *testing.T) {
 }
 
 func TestTccGrpcNested(t *testing.T) {
-	req := examples.GenBusiReq(30, false, false)
+	req := busi.GenBusiReq(30, false, false)
 	gid := dtmimp.GetFuncName()
-	err := dtmgrpc.TccGlobalTransaction(examples.DtmGrpcServer, gid, func(tcc *dtmgrpc.TccGrpc) error {
+	err := dtmgrpc.TccGlobalTransaction(dtmutil.DefaultGrpcServer, gid, func(tcc *dtmgrpc.TccGrpc) error {
 		r := &emptypb.Empty{}
-		err := tcc.CallBranch(req, examples.BusiGrpc+"/examples.Busi/TransOutTcc", examples.BusiGrpc+"/examples.Busi/TransOutConfirm", examples.BusiGrpc+"/examples.Busi/TransOutRevert", r)
+		err := tcc.CallBranch(req, busi.BusiGrpc+"/busi.Busi/TransOutTcc", busi.BusiGrpc+"/busi.Busi/TransOutConfirm", busi.BusiGrpc+"/busi.Busi/TransOutRevert", r)
 		assert.Nil(t, err)
-		return tcc.CallBranch(req, examples.BusiGrpc+"/examples.Busi/TransInTccNested", examples.BusiGrpc+"/examples.Busi/TransInConfirm", examples.BusiGrpc+"/examples.Busi/TransInRevert", r)
+		return tcc.CallBranch(req, busi.BusiGrpc+"/busi.Busi/TransInTccNested", busi.BusiGrpc+"/busi.Busi/TransInConfirm", busi.BusiGrpc+"/busi.Busi/TransInRevert", r)
 	})
 	assert.Nil(t, err)
 	waitTransProcessed(gid)
@@ -71,7 +72,7 @@ func TestTccGrpcNested(t *testing.T) {
 func TestTccGrpcType(t *testing.T) {
 	_, err := dtmgrpc.TccFromGrpc(context.Background())
 	assert.Error(t, err)
-	logger.Debugf("expecting dtmgrpcserver error")
+	logger.Debugf("expecting dtmutil.DefaultGrpcServer error")
 	err = dtmgrpc.TccGlobalTransaction("-", "", func(tcc *dtmgrpc.TccGrpc) error { return nil })
 	assert.Error(t, err)
 }

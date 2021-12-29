@@ -11,17 +11,17 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/dtm-labs/dtm/common"
 	"github.com/dtm-labs/dtm/dtmcli"
 	"github.com/dtm-labs/dtm/dtmcli/dtmimp"
 	"github.com/dtm-labs/dtm/dtmcli/logger"
-	"github.com/dtm-labs/dtm/examples"
+	"github.com/dtm-labs/dtm/dtmutil"
+	"github.com/dtm-labs/dtm/test/busi"
 	"github.com/stretchr/testify/assert"
 )
 
 // BarrierModel barrier model for gorm
 type BarrierModel struct {
-	common.ModelBase
+	dtmutil.ModelBase
 	dtmcli.BranchBarrier
 }
 
@@ -30,7 +30,7 @@ func (BarrierModel) TableName() string { return "dtm_barrier.barrier" }
 
 func TestBaseSqlDB(t *testing.T) {
 	asserts := assert.New(t)
-	db := common.DbGet(config.ExamplesDB)
+	db := dtmutil.DbGet(busi.BusiConf)
 	barrier := &dtmcli.BranchBarrier{
 		TransType: "saga",
 		Gid:       "gid2",
@@ -60,10 +60,10 @@ func TestBaseSqlDB(t *testing.T) {
 }
 
 func TestBaseHttp(t *testing.T) {
-	resp, err := dtmimp.RestyClient.R().SetQueryParam("panic_string", "1").Post(examples.Busi + "/TestPanic")
+	resp, err := dtmimp.RestyClient.R().SetQueryParam("panic_string", "1").Post(busi.Busi + "/TestPanic")
 	assert.Nil(t, err)
 	assert.Contains(t, resp.String(), "panic_string")
-	resp, err = dtmimp.RestyClient.R().SetQueryParam("panic_error", "1").Post(examples.Busi + "/TestPanic")
+	resp, err = dtmimp.RestyClient.R().SetQueryParam("panic_error", "1").Post(busi.Busi + "/TestPanic")
 	assert.Nil(t, err)
 	assert.Contains(t, resp.String(), "panic_error")
 }

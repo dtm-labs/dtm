@@ -11,14 +11,14 @@ import (
 
 	"github.com/dtm-labs/dtm/dtmcli"
 	"github.com/dtm-labs/dtm/dtmcli/dtmimp"
-	"github.com/dtm-labs/dtm/examples"
+	"github.com/dtm-labs/dtm/test/busi"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestSagaOptionsRetryOngoing(t *testing.T) {
 	saga := genSaga1(dtmimp.GetFuncName(), false, false)
 	saga.RetryInterval = 150 // CronForwardDuration is larger than RetryInterval
-	examples.MainSwitch.TransOutResult.SetOnce(dtmcli.ResultOngoing)
+	busi.MainSwitch.TransOutResult.SetOnce(dtmcli.ResultOngoing)
 	err := saga.Submit()
 	assert.Nil(t, err)
 	waitTransProcessed(saga.Gid)
@@ -30,7 +30,7 @@ func TestSagaOptionsRetryOngoing(t *testing.T) {
 func TestSagaOptionsRetryError(t *testing.T) {
 	saga := genSaga1(dtmimp.GetFuncName(), false, false)
 	saga.RetryInterval = 150 // CronForwardDuration is less than 2*RetryInterval
-	examples.MainSwitch.TransOutResult.SetOnce("ERROR")
+	busi.MainSwitch.TransOutResult.SetOnce("ERROR")
 	err := saga.Submit()
 	assert.Nil(t, err)
 	waitTransProcessed(saga.Gid)
@@ -45,7 +45,7 @@ func TestSagaOptionsRetryError(t *testing.T) {
 func TestSagaOptionsTimeout(t *testing.T) {
 	saga := genSaga(dtmimp.GetFuncName(), false, false)
 	saga.TimeoutToFail = 1800
-	examples.MainSwitch.TransOutResult.SetOnce(dtmcli.ResultOngoing)
+	busi.MainSwitch.TransOutResult.SetOnce(dtmcli.ResultOngoing)
 	saga.Submit()
 	waitTransProcessed(saga.Gid)
 	assert.Equal(t, StatusSubmitted, getTransStatus(saga.Gid))
@@ -65,7 +65,7 @@ func TestSagaOptionsNormalWait(t *testing.T) {
 
 func TestSagaOptionsCommittedOngoingWait(t *testing.T) {
 	saga := genSaga(dtmimp.GetFuncName(), false, false)
-	examples.MainSwitch.TransOutResult.SetOnce(dtmcli.ResultOngoing)
+	busi.MainSwitch.TransOutResult.SetOnce(dtmcli.ResultOngoing)
 	saga.SetOptions(&dtmcli.TransOptions{WaitResult: true})
 	err := saga.Submit()
 	assert.Error(t, err)

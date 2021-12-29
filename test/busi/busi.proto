@@ -1,9 +1,9 @@
 syntax = "proto3";
 
-package examples;
+package busi;
 import "google/protobuf/empty.proto";
 
-option go_package = "./examples";
+option go_package = "./busi";
 
 // DtmRequest request sent to dtm server
 message BusiReq {
