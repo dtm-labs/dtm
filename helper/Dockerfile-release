@@ -12,4 +12,4 @@ FROM --platform=$TARGETPLATFORM alpine:3.14
 COPY --from=builder /app/dtm/dtm /app/dtm/
 ENV IS_DOCKER=1
 WORKDIR /app/dtm
-CMD ["/app/dtm/dtm", "dtmsvr"]
+CMD ["/app/dtm/dtm"]
