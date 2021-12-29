@@ -3,7 +3,9 @@ package test
 import (
 	"testing"
 
+	"github.com/dtm-labs/dtm/dtmcli"
 	"github.com/dtm-labs/dtm/dtmcli/dtmimp"
+	"github.com/dtm-labs/dtm/dtmgrpc"
 	"github.com/dtm-labs/dtm/dtmsvr/storage/sql"
 	"github.com/dtm-labs/dtm/dtmutil"
 	"github.com/stretchr/testify/assert"
@@ -38,4 +40,9 @@ func testDbAlone(t *testing.T) {
 	db.Close()
 	_, err = dtmimp.DBExec(db, "select 1")
 	assert.NotEqual(t, nil, err)
+}
+
+func TestMustGenGid(t *testing.T) {
+	dtmgrpc.MustGenGid(dtmutil.DefaultGrpcServer)
+	dtmcli.MustGenGid(dtmutil.DefaultHttpServer)
 }
