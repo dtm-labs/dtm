@@ -17,7 +17,9 @@ func TestGeneralDB(t *testing.T) {
 }
 
 func testSql(t *testing.T) {
-	db := dtmutil.DbGet(conf.Store.GetDBConf(), sql.SetDBConn)
+	conf := conf.Store.GetDBConf()
+	conf.Host = "127.0.0.1" // use a new host to trigger SetDBConn called
+	db := dtmutil.DbGet(conf, sql.SetDBConn)
 	err := func() (rerr error) {
 		defer dtmimp.P2E(&rerr)
 		db.Must().Exec("select a")
