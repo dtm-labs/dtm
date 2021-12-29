@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"github.com/dtm-labs/dtm/dtmcli/dtmimp"
+	"github.com/dtm-labs/dtm/dtmsvr/storage/sql"
 	"github.com/dtm-labs/dtm/dtmutil"
 	"github.com/stretchr/testify/assert"
 )
@@ -16,7 +17,7 @@ func TestGeneralDB(t *testing.T) {
 }
 
 func testSql(t *testing.T) {
-	db := dtmutil.DbGet(conf.Store.GetDBConf())
+	db := dtmutil.DbGet(conf.Store.GetDBConf(), sql.SetDBConn)
 	err := func() (rerr error) {
 		defer dtmimp.P2E(&rerr)
 		db.Must().Exec("select a")

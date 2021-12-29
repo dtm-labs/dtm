@@ -1,4 +1,4 @@
-Store: # specify which engine to store trans status
+# Store: # specify which engine to store trans status
 #   Driver: 'boltdb' # default store engine
 
 #   Driver: 'redis'
@@ -7,11 +7,11 @@ Store: # specify which engine to store trans status
 #   Password: ''
 #   Port: 6379
 
-  Driver: 'mysql'
-  Host: 'localhost'
-  User: 'root'
-  Password: ''
-  Port: 3306
+#   Driver: 'mysql'
+#   Host: 'localhost'
+#   User: 'root'
+#   Password: ''
+#   Port: 3306
 
 #   Driver: 'postgres'
 #   Host: 'localhost'

@@ -18,12 +18,15 @@ func TestLoadFromEnv(t *testing.T) {
 }
 
 func TestCheckConfig(t *testing.T) {
+	MustLoadConfig("../../conf.sample.yml")
 	config := &Config
+	config.RetryInterval = 1
 	retryIntervalErr := checkConfig()
 	retryIntervalExpect := errors.New("RetryInterval should not be less than 10")
 	assert.Equal(t, retryIntervalErr, retryIntervalExpect)
 
 	config.RetryInterval = 10
+	config.TimeoutToFail = 5
 	timeoutToFailErr := checkConfig()
 	timeoutToFailExpect := errors.New("TimeoutToFail should not be less than RetryInterval")
 	assert.Equal(t, timeoutToFailErr, timeoutToFailExpect)

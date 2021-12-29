@@ -144,7 +144,7 @@ func (s *SqlStore) LockOneGlobalTrans(expireIn time.Duration) *storage.TransGlob
 	return global
 }
 
-func setDBConn(db *gorm.DB) {
+func SetDBConn(db *gorm.DB) {
 	sqldb, _ := db.DB()
 	sqldb.SetMaxOpenConns(int(conf.Store.MaxOpenConns))
 	sqldb.SetMaxIdleConns(int(conf.Store.MaxIdleConns))
@@ -152,7 +152,7 @@ func setDBConn(db *gorm.DB) {
 }
 
 func dbGet() *dtmutil.DB {
-	return dtmutil.DbGet(conf.Store.GetDBConf(), setDBConn)
+	return dtmutil.DbGet(conf.Store.GetDBConf(), SetDBConn)
 }
 
 func wrapError(err error) error {
