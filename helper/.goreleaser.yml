@@ -18,8 +18,8 @@ brews:
     description: 'A cross-language distributed transaction manager.'
     folder: Formula
     commit_author:
-      name: yedf2
+      name: dtm-labs
       email: 120050102@qq.com
     tap:
-      owner: yedf2
+      owner: dtm-labs
       name: dtm
