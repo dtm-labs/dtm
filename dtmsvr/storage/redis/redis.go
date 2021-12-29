@@ -8,14 +8,15 @@ import (
 
 	"github.com/go-redis/redis/v8"
 
-	"github.com/dtm-labs/dtm/common"
 	"github.com/dtm-labs/dtm/dtmcli/dtmimp"
 	"github.com/dtm-labs/dtm/dtmcli/logger"
+	"github.com/dtm-labs/dtm/dtmsvr/config"
 	"github.com/dtm-labs/dtm/dtmsvr/storage"
+	"github.com/dtm-labs/dtm/dtmutil"
 )
 
-// TODO: optimize this, it's very strange to use pointer to common.Config
-var config = &common.Config
+// TODO: optimize this, it's very strange to use pointer to dtmutil.Config
+var conf = &config.Config
 
 // TODO: optimize this, all function should have context as first parameter
 var ctx = context.Background()
@@ -39,7 +40,7 @@ func (s *RedisStore) PopulateData(skipDrop bool) {
 
 func (s *RedisStore) FindTransGlobalStore(gid string) *storage.TransGlobalStore {
 	logger.Debugf("calling FindTransGlobalStore: %s", gid)
-	r, err := redisGet().Get(ctx, config.Store.RedisPrefix+"_g_"+gid).Result()
+	r, err := redisGet().Get(ctx, conf.Store.RedisPrefix+"_g_"+gid).Result()
 	if err == redis.Nil {
 		return nil
 	}
@@ -55,7 +56,7 @@ func (s *RedisStore) ScanTransGlobalStores(position *string, limit int64) []stor
 	if *position != "" {
 		lid = uint64(dtmimp.MustAtoi(*position))
 	}
-	keys, cursor, err := redisGet().Scan(ctx, lid, config.Store.RedisPrefix+"_g_*", limit).Result()
+	keys, cursor, err := redisGet().Scan(ctx, lid, conf.Store.RedisPrefix+"_g_*", limit).Result()
 	dtmimp.E2P(err)
 	globals := []storage.TransGlobalStore{}
 	if len(keys) > 0 {
@@ -77,7 +78,7 @@ func (s *RedisStore) ScanTransGlobalStores(position *string, limit int64) []stor
 
 func (s *RedisStore) FindBranches(gid string) []storage.TransBranchStore {
 	logger.Debugf("calling FindBranches: %s", gid)
-	sa, err := redisGet().LRange(ctx, config.Store.RedisPrefix+"_b_"+gid, 0, -1).Result()
+	sa, err := redisGet().LRange(ctx, conf.Store.RedisPrefix+"_b_"+gid, 0, -1).Result()
 	dtmimp.E2P(err)
 	branches := make([]storage.TransBranchStore, len(sa))
 	for k, v := range sa {
@@ -97,14 +98,14 @@ type argList struct {
 
 func newArgList() *argList {
 	a := &argList{}
-	return a.AppendRaw(config.Store.RedisPrefix).AppendObject(config.Store.DataExpire)
+	return a.AppendRaw(conf.Store.RedisPrefix).AppendObject(conf.Store.DataExpire)
 }
 
 func (a *argList) AppendGid(gid string) *argList {
-	a.Keys = append(a.Keys, config.Store.RedisPrefix+"_g_"+gid)
-	a.Keys = append(a.Keys, config.Store.RedisPrefix+"_b_"+gid)
-	a.Keys = append(a.Keys, config.Store.RedisPrefix+"_u")
-	a.Keys = append(a.Keys, config.Store.RedisPrefix+"_s_"+gid)
+	a.Keys = append(a.Keys, conf.Store.RedisPrefix+"_g_"+gid)
+	a.Keys = append(a.Keys, conf.Store.RedisPrefix+"_b_"+gid)
+	a.Keys = append(a.Keys, conf.Store.RedisPrefix+"_u")
+	a.Keys = append(a.Keys, conf.Store.RedisPrefix+"_s_"+gid)
 	return a
 }
 
@@ -220,9 +221,9 @@ end
 
 func (s *RedisStore) LockOneGlobalTrans(expireIn time.Duration) *storage.TransGlobalStore {
 	expired := time.Now().Add(expireIn).Unix()
-	next := time.Now().Add(time.Duration(config.RetryInterval) * time.Second).Unix()
+	next := time.Now().Add(time.Duration(conf.RetryInterval) * time.Second).Unix()
 	args := newArgList().AppendGid("").AppendRaw(expired).AppendRaw(next)
-	lua := `-- LocakOneGlobalTrans
+	lua := `-- LockOneGlobalTrans
 local r = redis.call('ZRANGE', KEYS[3], 0, 0, 'WITHSCORES')
 local gid = r[1]
 if gid == nil then
@@ -249,8 +250,8 @@ return gid
 }
 
 func (s *RedisStore) TouchCronTime(global *storage.TransGlobalStore, nextCronInterval int64) {
-	global.NextCronTime = common.GetNextTime(nextCronInterval)
-	global.UpdateTime = common.GetNextTime(0)
+	global.NextCronTime = dtmutil.GetNextTime(nextCronInterval)
+	global.UpdateTime = dtmutil.GetNextTime(0)
 	global.NextCronInterval = nextCronInterval
 	args := newArgList().
 		AppendGid(global.Gid).
@@ -276,11 +277,11 @@ var (
 
 func redisGet() *redis.Client {
 	once.Do(func() {
-		logger.Debugf("connecting to redis: %v", config.Store)
+		logger.Debugf("connecting to redis: %v", conf.Store)
 		rdb = redis.NewClient(&redis.Options{
-			Addr:     fmt.Sprintf("%s:%d", config.Store.Host, config.Store.Port),
-			Username: config.Store.User,
-			Password: config.Store.Password,
+			Addr:     fmt.Sprintf("%s:%d", conf.Store.Host, conf.Store.Port),
+			Username: conf.Store.User,
+			Password: conf.Store.Password,
 		})
 	})
 	return rdb

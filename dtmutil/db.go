@@ -1,4 +1,4 @@
-package common
+package dtmutil
 
 import (
 	"database/sql"
@@ -96,16 +96,8 @@ func (op *tracePlugin) Initialize(db *gorm.DB) (err error) {
 	return
 }
 
-// SetDBConn set db connection conf
-func SetDBConn(db *DB) {
-	sqldb, _ := db.DB.DB()
-	sqldb.SetMaxOpenConns(int(Config.Store.MaxOpenConns))
-	sqldb.SetMaxIdleConns(int(Config.Store.MaxIdleConns))
-	sqldb.SetConnMaxLifetime(time.Duration(Config.Store.ConnMaxLifeTime) * time.Minute)
-}
-
 // DbGet get db connection for specified conf
-func DbGet(conf dtmcli.DBConf) *DB {
+func DbGet(conf dtmcli.DBConf, ops ...func(*gorm.DB)) *DB {
 	dsn := dtmimp.GetDsn(conf)
 	db, ok := dbs.Load(dsn)
 	if !ok {
@@ -116,7 +108,9 @@ func DbGet(conf dtmcli.DBConf) *DB {
 		dtmimp.E2P(err)
 		db1.Use(&tracePlugin{})
 		db = &DB{DB: db1}
-		SetDBConn(db.(*DB))
+		for _, op := range ops {
+			op(db1)
+		}
 		dbs.Store(dsn, db)
 	}
 	return db.(*DB)

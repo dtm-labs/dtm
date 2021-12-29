@@ -9,10 +9,10 @@ package dtmsvr
 import (
 	"time"
 
-	"github.com/dtm-labs/dtm/common"
 	"github.com/dtm-labs/dtm/dtmcli"
 	"github.com/dtm-labs/dtm/dtmcli/dtmimp"
 	"github.com/dtm-labs/dtm/dtmcli/logger"
+	"github.com/dtm-labs/dtm/dtmutil"
 )
 
 // Process process global transaction once
@@ -62,7 +62,7 @@ func (t *TransGlobal) processInner(branches []TransBranch) (rerr error) {
 
 func (t *TransGlobal) saveNew() ([]TransBranch, error) {
 	t.NextCronInterval = t.getNextCronInterval(cronReset)
-	t.NextCronTime = common.GetNextTime(t.NextCronInterval)
+	t.NextCronTime = dtmutil.GetNextTime(t.NextCronInterval)
 	t.Options = dtmimp.MustMarshalString(t.TransOptions)
 	if t.Options == "{}" {
 		t.Options = ""

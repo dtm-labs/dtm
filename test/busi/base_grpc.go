@@ -4,26 +4,23 @@
  * license that can be found in the LICENSE file.
  */
 
-package examples
+package busi
 
 import (
 	"context"
 	"database/sql"
 	"fmt"
 	"net"
-	"time"
 
-	"github.com/dtm-labs/dtm/dtmcli"
 	"github.com/dtm-labs/dtm/dtmcli/dtmimp"
 	"github.com/dtm-labs/dtm/dtmcli/logger"
 	"github.com/dtm-labs/dtm/dtmgrpc"
+	"github.com/dtm-labs/dtm/dtmutil"
 	"github.com/gin-gonic/gin"
 
 	"github.com/dtm-labs/dtm/dtmgrpc/dtmgimp"
 	"github.com/dtm-labs/dtm/dtmgrpc/dtmgpb"
 	grpc "google.golang.org/grpc"
-	codes "google.golang.org/grpc/codes"
-	status "google.golang.org/grpc/status"
 	emptypb "google.golang.org/protobuf/types/known/emptypb"
 )
 
@@ -38,13 +35,13 @@ var XaGrpcClient *dtmgrpc.XaGrpcClient = nil
 
 func init() {
 	setupFuncs["XaGrpcSetup"] = func(app *gin.Engine) {
-		XaGrpcClient = dtmgrpc.NewXaGrpcClient(DtmGrpcServer, config.ExamplesDB, BusiGrpc+"/examples.Busi/XaNotify")
+		XaGrpcClient = dtmgrpc.NewXaGrpcClient(dtmutil.DefaultGrpcServer, BusiConf, BusiGrpc+"/busi.Busi/XaNotify")
 	}
 }
 
 // GrpcStartup for grpc
 func GrpcStartup() {
-	conn, err := grpc.Dial(DtmGrpcServer, grpc.WithInsecure(), grpc.WithUnaryInterceptor(dtmgimp.GrpcClientLog))
+	conn, err := grpc.Dial(dtmutil.DefaultGrpcServer, grpc.WithInsecure(), grpc.WithUnaryInterceptor(dtmgimp.GrpcClientLog))
 	logger.FatalIfError(err)
 	DtmClient = dtmgpb.NewDtmClient(conn)
 	logger.Debugf("dtm client inited")
@@ -58,23 +55,9 @@ func GrpcStartup() {
 		err := s.Serve(lis)
 		logger.FatalIfError(err)
 	}()
-	time.Sleep(100 * time.Millisecond)
 }
 
-func handleGrpcBusiness(in *BusiReq, result1 string, result2 string, busi string) error {
-	res := dtmimp.OrString(result1, result2, dtmcli.ResultSuccess)
-	logger.Debugf("grpc busi %s %v %s %s result: %s", busi, in, result1, result2, res)
-	if res == dtmcli.ResultSuccess {
-		return nil
-	} else if res == dtmcli.ResultFailure {
-		return status.New(codes.Aborted, dtmcli.ResultFailure).Err()
-	} else if res == dtmcli.ResultOngoing {
-		return status.New(codes.Aborted, dtmcli.ResultOngoing).Err()
-	}
-	return status.New(codes.Internal, fmt.Sprintf("unknow result %s", res)).Err()
-}
-
-// busiServer is used to implement examples.BusiServer.
+// busiServer is used to implement busi.BusiServer.
 type busiServer struct {
 	UnimplementedBusiServer
 }
@@ -118,21 +101,13 @@ func (s *busiServer) TransOutTcc(ctx context.Context, in *BusiReq) (*emptypb.Emp
 
 func (s *busiServer) TransInXa(ctx context.Context, in *BusiReq) (*emptypb.Empty, error) {
 	return &emptypb.Empty{}, XaGrpcClient.XaLocalTransaction(ctx, in, func(db *sql.DB, xa *dtmgrpc.XaGrpc) error {
-		if in.TransInResult == dtmcli.ResultFailure {
-			return status.New(codes.Aborted, dtmcli.ResultFailure).Err()
-		}
-		_, err := dtmimp.DBExec(db, "update dtm_busi.user_account set balance=balance+? where user_id=?", in.Amount, 2)
-		return err
+		return sagaGrpcAdjustBalance(db, transInUID, in.Amount, in.TransInResult)
 	})
 }
 
 func (s *busiServer) TransOutXa(ctx context.Context, in *BusiReq) (*emptypb.Empty, error) {
 	return &emptypb.Empty{}, XaGrpcClient.XaLocalTransaction(ctx, in, func(db *sql.DB, xa *dtmgrpc.XaGrpc) error {
-		if in.TransOutResult == dtmcli.ResultFailure {
-			return status.New(codes.Aborted, dtmcli.ResultFailure).Err()
-		}
-		_, err := dtmimp.DBExec(db, "update dtm_busi.user_account set balance=balance-? where user_id=?", in.Amount, 1)
-		return err
+		return sagaGrpcAdjustBalance(db, transOutUID, in.Amount, in.TransOutResult)
 	})
 }
 
@@ -140,7 +115,11 @@ func (s *busiServer) TransInTccNested(ctx context.Context, in *BusiReq) (*emptyp
 	tcc, err := dtmgrpc.TccFromGrpc(ctx)
 	logger.FatalIfError(err)
 	r := &emptypb.Empty{}
-	err = tcc.CallBranch(in, BusiGrpc+"/examples.Busi/TransIn", BusiGrpc+"/examples.Busi/TransInConfirm", BusiGrpc+"/examples.Busi/TransInRevert", r)
+	err = tcc.CallBranch(in, BusiGrpc+"/busi.Busi/TransIn", BusiGrpc+"/busi.Busi/TransInConfirm", BusiGrpc+"/busi.Busi/TransInRevert", r)
 	logger.FatalIfError(err)
 	return r, handleGrpcBusiness(in, MainSwitch.TransInResult.Fetch(), in.TransInResult, dtmimp.GetFuncName())
+}
+
+func (s *busiServer) XaNotify(ctx context.Context, in *emptypb.Empty) (*emptypb.Empty, error) {
+	return XaGrpcClient.HandleCallback(ctx)
 }

@@ -11,7 +11,7 @@ import (
 
 	"github.com/dtm-labs/dtm/dtmcli"
 	"github.com/dtm-labs/dtm/dtmcli/dtmimp"
-	"github.com/dtm-labs/dtm/examples"
+	"github.com/dtm-labs/dtm/test/busi"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -29,7 +29,7 @@ func TestSagaConNormal(t *testing.T) {
 
 func TestSagaConRollbackNormal(t *testing.T) {
 	sagaCon := genSagaCon(dtmimp.GetFuncName(), true, false)
-	examples.MainSwitch.TransOutRevertResult.SetOnce(dtmcli.ResultOngoing)
+	busi.MainSwitch.TransOutRevertResult.SetOnce(dtmcli.ResultOngoing)
 	err := sagaCon.Submit()
 	assert.Nil(t, err)
 	waitTransProcessed(sagaCon.Gid)
@@ -52,7 +52,7 @@ func TestSagaConRollbackOrder(t *testing.T) {
 
 func TestSagaConCommittedOngoing(t *testing.T) {
 	sagaCon := genSagaCon(dtmimp.GetFuncName(), false, false)
-	examples.MainSwitch.TransOutResult.SetOnce(dtmcli.ResultOngoing)
+	busi.MainSwitch.TransOutResult.SetOnce(dtmcli.ResultOngoing)
 	sagaCon.Submit()
 	waitTransProcessed(sagaCon.Gid)
 	assert.Equal(t, []string{StatusPrepared, StatusPrepared, StatusPrepared, StatusSucceed}, getBranchesStatus(sagaCon.Gid))

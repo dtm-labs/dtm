@@ -5,7 +5,8 @@ import (
 
 	"github.com/dtm-labs/dtm/dtmcli/dtmimp"
 	"github.com/dtm-labs/dtm/dtmgrpc"
-	"github.com/dtm-labs/dtm/examples"
+	"github.com/dtm-labs/dtm/dtmutil"
+	"github.com/dtm-labs/dtm/test/busi"
 	"github.com/stretchr/testify/assert"
 	"google.golang.org/protobuf/types/known/emptypb"
 )
@@ -21,7 +22,7 @@ func TestTccGrpcCoverNotConnected(t *testing.T) {
 func TestTccGrpcCoverPanic(t *testing.T) {
 	gid := dtmimp.GetFuncName()
 	err := dtmimp.CatchP(func() {
-		_ = dtmgrpc.TccGlobalTransaction(examples.DtmGrpcServer, gid, func(tcc *dtmgrpc.TccGrpc) error {
+		_ = dtmgrpc.TccGlobalTransaction(dtmutil.DefaultGrpcServer, gid, func(tcc *dtmgrpc.TccGrpc) error {
 			panic("user panic")
 		})
 		assert.FailNow(t, "not executed")
@@ -30,16 +31,16 @@ func TestTccGrpcCoverPanic(t *testing.T) {
 }
 
 func TestTccGrpcCoverCallBranch(t *testing.T) {
-	req := examples.GenBusiReq(30, false, false)
+	req := busi.GenBusiReq(30, false, false)
 	gid := dtmimp.GetFuncName()
-	err := dtmgrpc.TccGlobalTransaction(examples.DtmGrpcServer, gid, func(tcc *dtmgrpc.TccGrpc) error {
+	err := dtmgrpc.TccGlobalTransaction(dtmutil.DefaultGrpcServer, gid, func(tcc *dtmgrpc.TccGrpc) error {
 
 		r := &emptypb.Empty{}
-		err := tcc.CallBranch(req, "not_exists://abc", examples.BusiGrpc+"/examples.Busi/TransOutConfirm", examples.BusiGrpc+"/examples.Busi/TransOutRevert", r)
+		err := tcc.CallBranch(req, "not_exists://abc", busi.BusiGrpc+"/busi.Busi/TransOutConfirm", busi.BusiGrpc+"/busi.Busi/TransOutRevert", r)
 		assert.Error(t, err)
 
 		tcc.Dtm = "localhost:01"
-		err = tcc.CallBranch(req, examples.BusiGrpc+"/examples.Busi/TransOut", examples.BusiGrpc+"/examples.Busi/TransOutConfirm", examples.BusiGrpc+"/examples.Busi/TransOutRevert", r)
+		err = tcc.CallBranch(req, busi.BusiGrpc+"/busi.Busi/TransOut", busi.BusiGrpc+"/busi.Busi/TransOutConfirm", busi.BusiGrpc+"/busi.Busi/TransOutRevert", r)
 		assert.Error(t, err)
 
 		return err

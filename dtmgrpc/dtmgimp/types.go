@@ -35,12 +35,13 @@ func GrpcServerLog(ctx context.Context, req interface{}, info *grpc.UnaryServerI
 	return m, err
 }
 
-// GrpcClientLog 打印grpc服务端的日志
+// GrpcClientLog 打印grpc调用的日志
 func GrpcClientLog(ctx context.Context, method string, req, reply interface{}, cc *grpc.ClientConn, invoker grpc.UnaryInvoker, opts ...grpc.CallOption) error {
-	logger.Debugf("grpc client calling: %s%s %v", cc.Target(), method, req)
+	logger.Debugf("grpc client calling: %s%s %v", cc.Target(), method, dtmimp.MustMarshalString(req))
 	LogDtmCtx(ctx)
 	err := invoker(ctx, method, req, reply, cc, opts...)
-	res := fmt.Sprintf("grpc client called: %s%s %v result: %v err: %v", cc.Target(), method, req, reply, err)
+	res := fmt.Sprintf("grpc client called: %s%s %s result: %s err: %v",
+		cc.Target(), method, dtmimp.MustMarshalString(req), dtmimp.MustMarshalString(reply), err)
 	if err != nil {
 		logger.Errorf("%s", res)
 	} else {

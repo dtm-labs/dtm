@@ -70,21 +70,21 @@ func TestStoreLockTrans(t *testing.T) {
 	gid := dtmimp.GetFuncName()
 	g, s := initTransGlobal(gid)
 
-	g2 := s.LockOneGlobalTrans(2 * time.Duration(config.RetryInterval) * time.Second)
+	g2 := s.LockOneGlobalTrans(2 * time.Duration(conf.RetryInterval) * time.Second)
 	assert.NotNil(t, g2)
 	assert.Equal(t, gid, g2.Gid)
 
-	s.TouchCronTime(g, 3*config.RetryInterval)
-	g2 = s.LockOneGlobalTrans(2 * time.Duration(config.RetryInterval) * time.Second)
+	s.TouchCronTime(g, 3*conf.RetryInterval)
+	g2 = s.LockOneGlobalTrans(2 * time.Duration(conf.RetryInterval) * time.Second)
 	assert.Nil(t, g2)
 
-	s.TouchCronTime(g, 1*config.RetryInterval)
-	g2 = s.LockOneGlobalTrans(2 * time.Duration(config.RetryInterval) * time.Second)
+	s.TouchCronTime(g, 1*conf.RetryInterval)
+	g2 = s.LockOneGlobalTrans(2 * time.Duration(conf.RetryInterval) * time.Second)
 	assert.NotNil(t, g2)
 	assert.Equal(t, gid, g2.Gid)
 
 	s.ChangeGlobalStatus(g, "succeed", []string{}, true)
-	g2 = s.LockOneGlobalTrans(2 * time.Duration(config.RetryInterval) * time.Second)
+	g2 = s.LockOneGlobalTrans(2 * time.Duration(conf.RetryInterval) * time.Second)
 	assert.Nil(t, g2)
 }
 
@@ -93,7 +93,7 @@ func TestStoreWait(t *testing.T) {
 }
 
 func TestUpdateBranchSql(t *testing.T) {
-	if !config.Store.IsDB() {
+	if !conf.Store.IsDB() {
 		_, err := registry.GetStore().UpdateBranches(nil, nil)
 		assert.Nil(t, err)
 	}

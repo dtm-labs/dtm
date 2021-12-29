@@ -3,14 +3,14 @@ package registry
 import (
 	"time"
 
-	"github.com/dtm-labs/dtm/common"
+	"github.com/dtm-labs/dtm/dtmsvr/config"
 	"github.com/dtm-labs/dtm/dtmsvr/storage"
 	"github.com/dtm-labs/dtm/dtmsvr/storage/boltdb"
 	"github.com/dtm-labs/dtm/dtmsvr/storage/redis"
 	"github.com/dtm-labs/dtm/dtmsvr/storage/sql"
 )
 
-var config = &common.Config
+var conf = &config.Config
 
 var stores map[string]storage.Store = map[string]storage.Store{
 	"redis":    &redis.RedisStore{},
@@ -20,7 +20,7 @@ var stores map[string]storage.Store = map[string]storage.Store{
 }
 
 func GetStore() storage.Store {
-	return stores[config.Store.Driver]
+	return stores[conf.Store.Driver]
 }
 
 // WaitStoreUp wait for db to go up

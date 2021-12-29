@@ -1,6 +1,7 @@
-package common
+package config
 
 import (
+	"errors"
 	"fmt"
 	"os"
 	"reflect"
@@ -52,4 +53,35 @@ func toUnderscoreUpper(key string) string {
 	s2 := matchFirstCap.ReplaceAllString(key, "${1}_${2}")
 	// logger.Debugf("loading from env: %s", strings.ToUpper(s2))
 	return strings.ToUpper(s2)
+}
+
+func checkConfig() error {
+	if Config.RetryInterval < 10 {
+		return errors.New("RetryInterval should not be less than 10")
+	}
+	if Config.TimeoutToFail < Config.RetryInterval {
+		return errors.New("TimeoutToFail should not be less than RetryInterval")
+	}
+	switch Config.Store.Driver {
+	case BoltDb:
+		return nil
+	case Mysql:
+		if Config.Store.Host == "" {
+			return errors.New("Db host not valid ")
+		}
+		if Config.Store.Port == 0 {
+			return errors.New("Db port not valid ")
+		}
+		if Config.Store.User == "" {
+			return errors.New("Db user not valid ")
+		}
+	case Redis:
+		if Config.Store.Host == "" {
+			return errors.New("Redis host not valid ")
+		}
+		if Config.Store.Port == 0 {
+			return errors.New("Redis port not valid ")
+		}
+	}
+	return nil
 }

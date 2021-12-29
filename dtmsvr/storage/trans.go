@@ -3,13 +3,13 @@ package storage
 import (
 	"time"
 
-	"github.com/dtm-labs/dtm/common"
 	"github.com/dtm-labs/dtm/dtmcli"
 	"github.com/dtm-labs/dtm/dtmcli/dtmimp"
+	"github.com/dtm-labs/dtm/dtmutil"
 )
 
 type TransGlobalStore struct {
-	common.ModelBase
+	dtmutil.ModelBase
 	Gid              string              `json:"gid,omitempty"`
 	TransType        string              `json:"trans_type,omitempty"`
 	Steps            []map[string]string `json:"steps,omitempty" gorm:"-"`
@@ -40,7 +40,7 @@ func (g *TransGlobalStore) String() string {
 
 // TransBranchStore branch transaction
 type TransBranchStore struct {
-	common.ModelBase
+	dtmutil.ModelBase
 	Gid          string `json:"gid,omitempty"`
 	URL          string `json:"url,omitempty"`
 	BinData      []byte

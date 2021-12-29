@@ -11,10 +11,10 @@ import (
 	"net"
 	"time"
 
-	"github.com/dtm-labs/dtm/common"
 	"github.com/dtm-labs/dtm/dtmcli/logger"
 	"github.com/dtm-labs/dtm/dtmgrpc/dtmgimp"
 	"github.com/dtm-labs/dtm/dtmgrpc/dtmgpb"
+	"github.com/dtm-labs/dtm/dtmutil"
 	"github.com/dtm-labs/dtmdriver"
 	grpc_middleware "github.com/grpc-ecosystem/go-grpc-middleware"
 	"google.golang.org/grpc"
@@ -23,13 +23,13 @@ import (
 // StartSvr StartSvr
 func StartSvr() {
 	logger.Infof("start dtmsvr")
-	app := common.GetGinApp()
+	app := dtmutil.GetGinApp()
 	app = httpMetrics(app)
 	addRoute(app)
-	logger.Infof("dtmsvr listen at: %d", config.HttpPort)
-	go app.Run(fmt.Sprintf(":%d", config.HttpPort))
+	logger.Infof("dtmsvr listen at: %d", conf.HttpPort)
+	go app.Run(fmt.Sprintf(":%d", conf.HttpPort))
 
-	lis, err := net.Listen("tcp", fmt.Sprintf(":%d", config.GrpcPort))
+	lis, err := net.Listen("tcp", fmt.Sprintf(":%d", conf.GrpcPort))
 	logger.FatalIfError(err)
 	s := grpc.NewServer(
 		grpc.UnaryInterceptor(grpc_middleware.ChainUnaryServer(
@@ -44,9 +44,9 @@ func StartSvr() {
 	go updateBranchAsync()
 
 	time.Sleep(100 * time.Millisecond)
-	err = dtmdriver.Use(config.MicroService.Driver)
+	err = dtmdriver.Use(conf.MicroService.Driver)
 	logger.FatalIfError(err)
-	err = dtmdriver.GetDriver().RegisterGrpcService(config.MicroService.Target, config.MicroService.EndPoint)
+	err = dtmdriver.GetDriver().RegisterGrpcService(conf.MicroService.Target, conf.MicroService.EndPoint)
 	logger.FatalIfError(err)
 }
 
@@ -61,7 +61,7 @@ var updateBranchAsyncChan chan branchStatus = make(chan branchStatus, 1000)
 
 func updateBranchAsync() {
 	for { // flush branches every second
-		defer common.RecoverPanic(nil)
+		defer dtmutil.RecoverPanic(nil)
 		updates := []TransBranch{}
 		started := time.Now()
 		checkInterval := 20 * time.Millisecond
@@ -69,7 +69,7 @@ func updateBranchAsync() {
 			select {
 			case updateBranch := <-updateBranchAsyncChan:
 				updates = append(updates, TransBranch{
-					ModelBase:  common.ModelBase{ID: updateBranch.id},
+					ModelBase:  dtmutil.ModelBase{ID: updateBranch.id},
 					Status:     updateBranch.status,
 					FinishTime: updateBranch.finishTime,
 				})

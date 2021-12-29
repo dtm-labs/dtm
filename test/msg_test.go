@@ -11,7 +11,8 @@ import (
 
 	"github.com/dtm-labs/dtm/dtmcli"
 	"github.com/dtm-labs/dtm/dtmcli/dtmimp"
-	"github.com/dtm-labs/dtm/examples"
+	"github.com/dtm-labs/dtm/dtmutil"
+	"github.com/dtm-labs/dtm/test/busi"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -28,10 +29,10 @@ func TestMsgTimeoutSuccess(t *testing.T) {
 	msg := genMsg(dtmimp.GetFuncName())
 	msg.Prepare("")
 	assert.Equal(t, StatusPrepared, getTransStatus(msg.Gid))
-	examples.MainSwitch.CanSubmitResult.SetOnce(dtmcli.ResultOngoing)
+	busi.MainSwitch.CanSubmitResult.SetOnce(dtmcli.ResultOngoing)
 	cronTransOnceForwardNow(180)
 	assert.Equal(t, StatusPrepared, getTransStatus(msg.Gid))
-	examples.MainSwitch.TransInResult.SetOnce(dtmcli.ResultOngoing)
+	busi.MainSwitch.TransInResult.SetOnce(dtmcli.ResultOngoing)
 	cronTransOnceForwardNow(180)
 	assert.Equal(t, StatusSubmitted, getTransStatus(msg.Gid))
 	cronTransOnce()
@@ -43,10 +44,10 @@ func TestMsgTimeoutFailed(t *testing.T) {
 	msg := genMsg(dtmimp.GetFuncName())
 	msg.Prepare("")
 	assert.Equal(t, StatusPrepared, getTransStatus(msg.Gid))
-	examples.MainSwitch.CanSubmitResult.SetOnce(dtmcli.ResultOngoing)
+	busi.MainSwitch.CanSubmitResult.SetOnce(dtmcli.ResultOngoing)
 	cronTransOnceForwardNow(180)
 	assert.Equal(t, StatusPrepared, getTransStatus(msg.Gid))
-	examples.MainSwitch.CanSubmitResult.SetOnce(dtmcli.ResultFailure)
+	busi.MainSwitch.CanSubmitResult.SetOnce(dtmcli.ResultFailure)
 	cronTransOnceForwardNow(180)
 	assert.Equal(t, []string{StatusPrepared, StatusPrepared}, getBranchesStatus(msg.Gid))
 	assert.Equal(t, StatusFailed, getTransStatus(msg.Gid))
@@ -65,10 +66,10 @@ func TestMsgAbnormal(t *testing.T) {
 }
 
 func genMsg(gid string) *dtmcli.Msg {
-	req := examples.GenTransReq(30, false, false)
-	msg := dtmcli.NewMsg(examples.DtmHttpServer, gid).
-		Add(examples.Busi+"/TransOut", &req).
-		Add(examples.Busi+"/TransIn", &req)
-	msg.QueryPrepared = examples.Busi + "/CanSubmit"
+	req := busi.GenTransReq(30, false, false)
+	msg := dtmcli.NewMsg(dtmutil.DefaultHttpServer, gid).
+		Add(busi.Busi+"/TransOut", &req).
+		Add(busi.Busi+"/TransIn", &req)
+	msg.QueryPrepared = busi.Busi + "/CanSubmit"
 	return msg
 }

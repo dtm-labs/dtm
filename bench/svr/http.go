@@ -14,11 +14,12 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/dtm-labs/dtm/common"
 	"github.com/dtm-labs/dtm/dtmcli"
 	"github.com/dtm-labs/dtm/dtmcli/dtmimp"
 	"github.com/dtm-labs/dtm/dtmcli/logger"
 	"github.com/dtm-labs/dtm/dtmsvr"
+	"github.com/dtm-labs/dtm/dtmutil"
+	"github.com/dtm-labs/dtm/test/busi"
 	"github.com/gin-gonic/gin"
 	"github.com/lithammer/shortuuid"
 )
@@ -33,7 +34,7 @@ var benchPort = dtmimp.If(os.Getenv("BENCH_PORT") == "", "8083", os.Getenv("BENC
 var benchBusi = fmt.Sprintf("http://localhost:%s%s", benchPort, benchAPI)
 
 func sdbGet() *sql.DB {
-	db, err := dtmimp.PooledDB(common.Config.ExamplesDB)
+	db, err := dtmimp.PooledDB(busi.BusiConf)
 	logger.FatalIfError(err)
 	return db
 }
@@ -91,7 +92,7 @@ func PrepareBenchDB() {
 
 // StartSvr 1
 func StartSvr() {
-	app := common.GetGinApp()
+	app := dtmutil.GetGinApp()
 	benchAddRoute(app)
 	logger.Debugf("bench listening at %d", benchPort)
 	go app.Run(fmt.Sprintf(":%s", benchPort))
@@ -127,20 +128,19 @@ func qsAdjustBalance(uid int, amount int, c *gin.Context) (interface{}, error) {
 }
 
 func benchAddRoute(app *gin.Engine) {
-	dtmHttpServer := fmt.Sprintf("http://localhost:%d/api/dtmsvr", common.Config.HttpPort)
-	app.POST(benchAPI+"/TransIn", common.WrapHandler(func(c *gin.Context) (interface{}, error) {
+	app.POST(benchAPI+"/TransIn", dtmutil.WrapHandler(func(c *gin.Context) (interface{}, error) {
 		return qsAdjustBalance(dtmimp.MustAtoi(c.Query("uid")), 1, c)
 	}))
-	app.POST(benchAPI+"/TransInCompensate", common.WrapHandler(func(c *gin.Context) (interface{}, error) {
+	app.POST(benchAPI+"/TransInCompensate", dtmutil.WrapHandler(func(c *gin.Context) (interface{}, error) {
 		return qsAdjustBalance(dtmimp.MustAtoi(c.Query("uid")), -1, c)
 	}))
-	app.POST(benchAPI+"/TransOut", common.WrapHandler(func(c *gin.Context) (interface{}, error) {
+	app.POST(benchAPI+"/TransOut", dtmutil.WrapHandler(func(c *gin.Context) (interface{}, error) {
 		return qsAdjustBalance(dtmimp.MustAtoi(c.Query("uid")), -1, c)
 	}))
-	app.POST(benchAPI+"/TransOutCompensate", common.WrapHandler(func(c *gin.Context) (interface{}, error) {
+	app.POST(benchAPI+"/TransOutCompensate", dtmutil.WrapHandler(func(c *gin.Context) (interface{}, error) {
 		return qsAdjustBalance(dtmimp.MustAtoi(c.Query("uid")), 30, c)
 	}))
-	app.Any(benchAPI+"/reloadData", common.WrapHandler(func(c *gin.Context) (interface{}, error) {
+	app.Any(benchAPI+"/reloadData", dtmutil.WrapHandler(func(c *gin.Context) (interface{}, error) {
 		reloadData()
 		mode = c.Query("m")
 		s := c.Query("sqls")
@@ -149,7 +149,7 @@ func benchAddRoute(app *gin.Engine) {
 		}
 		return nil, nil
 	}))
-	app.Any(benchAPI+"/bench", common.WrapHandler(func(c *gin.Context) (interface{}, error) {
+	app.Any(benchAPI+"/bench", dtmutil.WrapHandler(func(c *gin.Context) (interface{}, error) {
 		uid := (atomic.AddInt32(&uidCounter, 1)-1)%total + 1
 		suid := fmt.Sprintf("%d", uid)
 		suid2 := fmt.Sprintf("%d", total+1-uid)
@@ -158,7 +158,7 @@ func benchAddRoute(app *gin.Engine) {
 		params2 := fmt.Sprintf("?uid=%s", suid2)
 		logger.Debugf("mode: %s contains dtm: %t", mode, strings.Contains(mode, "dtm"))
 		if strings.Contains(mode, "dtm") {
-			saga := dtmcli.NewSaga(dtmHttpServer, fmt.Sprintf("bench-%d", uid)).
+			saga := dtmcli.NewSaga(dtmutil.DefaultHttpServer, fmt.Sprintf("bench-%d", uid)).
 				Add(benchBusi+"/TransOut"+params, benchBusi+"/TransOutCompensate"+params, req).
 				Add(benchBusi+"/TransIn"+params2, benchBusi+"/TransInCompensate"+params2, req)
 			saga.WaitResult = true
@@ -172,10 +172,10 @@ func benchAddRoute(app *gin.Engine) {
 		}
 		return nil, nil
 	}))
-	app.Any(benchAPI+"/benchEmptyUrl", common.WrapHandler(func(c *gin.Context) (interface{}, error) {
+	app.Any(benchAPI+"/benchEmptyUrl", dtmutil.WrapHandler(func(c *gin.Context) (interface{}, error) {
 		gid := shortuuid.New()
 		req := gin.H{}
-		saga := dtmcli.NewSaga(dtmHttpServer, gid).
+		saga := dtmcli.NewSaga(dtmutil.DefaultHttpServer, gid).
 			Add("", "", req).
 			Add("", "", req)
 		saga.WaitResult = true

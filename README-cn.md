@@ -12,9 +12,9 @@ DTM是一款golang开发的分布式事务管理器，解决了跨数据库、�
 
 他优雅的解决了幂等、空补偿、悬挂等分布式事务难题，提供了简单易用、高性能、易水平扩展的解决方案。
 
-作者受邀参加中国数据库大会分享[多语言环境下分布式事务实践](http://dtcc.it168.com/yicheng.html#b9)
+通俗一点说，DTM提供跨服务事务能力，一组服务要么全部成功，要么全部回滚，避免只更新了一部分数据产生的业务问题。
 
-## 谁在使用dtm
+## 谁在使用DTM(仅列出部分)
 [Tencent 腾讯](https://dtm.pub/other/using.html#tencent)
 
 [Ivydad 常青藤爸爸](https://dtm.pub/other/using.html#ivydad)
@@ -74,26 +74,23 @@ DTM是一款golang开发的分布式事务管理器，解决了跨数据库、�
 具体微服务接入使用，参见[微服务支持](https://dtm.pub/protocol/intro.html)
 ## 快速开始
 
-### 获取代码
+如果您不是Go语言，可以跳转[各语言客户端及示例](https://dtm.pub/summary/code.html#go)，里面有相关的快速开始示例
 
-`git clone https://github.com/dtm-labs/dtm && cd dtm`
+### 运行dtm
 
-### dtm依赖于mysql
+``` bash
+git clone https://github.com/dtm-labs/dtm && cd dtm
+go run main.go
+```
 
-安装[docker 20.04+](https://docs.docker.com/get-docker/)之后
+### 启动并运行一个saga示例
+`go run qs/main.go`
 
-`docker-compose -f helper/compose.mysql.yml up`
+这是一个类似跨行转账的示例，包括两个事务分支：资金转出（TransOut)、资金转入（TransIn)。DTM保证TransIn和TransOut要么全部成功，要么全部回滚，保证最终金额的正确性。
 
-> 您也可以配置使用现有的mysql，需要高级权限，允许dtm创建数据库
->
-> `cp conf.sample.yml conf.yml # 修改conf.yml`
+## 接入详解
 
-### 启动并运行saga示例
-`go run app/main.go qs`
-
-## 开始使用
-
-### 使用
+### 接入代码
 ``` GO
   // 具体业务微服务地址
   const qsBusi = "http://localhost:8081/api/busi_saga"
@@ -117,8 +114,8 @@ DTM是一款golang开发的分布式事务管理器，解决了跨数据库、�
 
 <img src="https://pic3.zhimg.com/80/v2-b7d98659093c399e182a0173a8e549ca_1440w.jpg" height=428 />
 
-### 完整示例
-参考[examples/quick_start.go](./examples/quick_start.go)
+### 更多示例
+参考[dtm-labs/dtm-examples](https://github.com/dtm-labs/dtm-examples)
 
 ## 公众号
 您可以关注公众号：分布式事务，及时跟踪dtm的最新内容
@@ -129,11 +126,3 @@ DTM是一款golang开发的分布式事务管理器，解决了跨数据库、�
 
 欢迎使用[dtm](https://github.com/dtm-labs/dtm)，或者通过dtm学习实践分布式事务相关知识，欢迎star支持我们
 
-## 谁在使用
-<div style='vertical-align: middle'>
-    <img alt='腾讯' height='80'  src='https://dtm.pub/assets/tencent.4b87bfd8.jpeg'  /img>
-    <img alt='常青藤爸爸' height='80'  src='https://dtm.pub/assets/ivydad.d0f58a94.png'  /img>
-    <img alt='镜小二' height='80'  src='https://img.epeijing.cn/official-website/assets/logo.png'  /img>
-    <img alt='极欧科技' height='80'  src='https://dtm.pub/assets/jiou.5bed10c2.png'  /img>
-    <img alt='金数智联' height='80'  src='https://dtm.pub/assets/gdci.214d305a.png'  /img>
-</div>
