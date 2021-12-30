@@ -13,13 +13,3 @@ builds:
     main: main.go
     ldflags:
       - -s -w -X main.Version={{.Version}} -X main.Commit={{.Commit}} -X main.Date={{.Date}}
-brews:
-  - homepage: 'https://d.dtm.pub'
-    description: 'A cross-language distributed transaction manager.'
-    folder: Formula
-    commit_author:
-      name: dtm-labs
-      email: 120050102@qq.com
-    tap:
-      owner: dtm-labs
-      name: dtm

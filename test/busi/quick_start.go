@@ -40,6 +40,8 @@ func QsFireRequest() string {
 		Add(qsBusi+"/TransOut", qsBusi+"/TransOutCompensate", req).
 		// 添加一个TransIn的子事务，正向操作为url: qsBusi+"/TransOut"， 逆向操作为url: qsBusi+"/TransInCompensate"
 		Add(qsBusi+"/TransIn", qsBusi+"/TransInCompensate", req)
+	// 等待事务全部完成后再返回，可选
+	saga.WaitResult = true
 	// 提交saga事务，dtm会完成所有的子事务/回滚所有的子事务
 	err := saga.Submit()
 	logger.FatalIfError(err)
