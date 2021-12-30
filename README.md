@@ -26,15 +26,15 @@ DTM是一款golang开发的分布式事务管理器，解决了跨数据库、�
 ## 亮点
 
 * 极易接入
-  - 支持HTTP，提供非常简单的接口，极大降低上手分布式事务的难度，新手也能快速接入
-* 使用简单
-  - 开发者不再担心悬挂、空补偿、幂等各类问题，框架层代为处理
+  - 零配置启动服务，提供非常简单的HTTP接口，极大降低上手分布式事务的难度，新手也能快速接入
 * 跨语言
   - 可适合多语言栈的公司使用。方便go、python、php、nodejs、ruby、c# 各类语言使用。
+* 使用简单
+  - 开发者不再担心悬挂、空补偿、幂等各类问题，首创子事务屏障技术代为处理
 * 易部署、易扩展
-  - 支持零配置，或依赖mysql|redis，部署简单，易集群化，易水平扩展
+  - 依赖mysql|redis，部署简单，易集群化，易水平扩展
 * 多种分布式事务协议支持
-  - TCC、SAGA、XA、二阶段消息
+  - TCC、SAGA、XA、二阶段消息，一站式解决所有分布式事务问题
 
 ## 与其他框架对比
 
@@ -108,6 +108,21 @@ go run main.go
 上述saga分布式事务的时序图如下：
 
 <img src="https://pic3.zhimg.com/80/v2-b7d98659093c399e182a0173a8e549ca_1440w.jpg" height=428 />
+
+### 失败情况
+在实际的业务中，子事务可能出现失败，例如转入的子账号被冻结导致转账失败。我们对业务代码进行修改，让TransIn的正向操作失败，然后看看结果
+
+``` go
+	app.POST(qsBusiAPI+"/TransIn", common.WrapHandler(func(c *gin.Context) (interface{}, error) {
+		return M{"dtm_result": "FAILURE"}, nil
+	}))
+```
+
+再运行这个例子，整个事务最终失败，时序图如下：
+
+![saga_rollback](https://pic3.zhimg.com/80/v2-8d8f1476be8a1e2e09ce97a89b4116c2_1440w.jpg)
+
+在转入操作失败的情况下，TransIn和TransOut的补偿操作被执行，保证了最终的余额和转账前是一样的。
 
 ### 更多示例
 参考[dtm-labs/dtm-examples](https://github.com/dtm-labs/dtm-examples)
