@@ -12,4 +12,4 @@ builds:
     dir: .
     main: main.go
     ldflags:
-      - -s -w -X main.Version={{.Version}} -X main.Commit={{.Commit}} -X main.Date={{.Date}}
+      - -s -w -X main.Version={{.Version}}

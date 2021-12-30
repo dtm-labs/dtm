@@ -25,18 +25,13 @@ import (
 	_ "github.com/dtm-labs/dtmdriver-protocol1"
 )
 
-var Version, Commit, Date string
+var Version string
 
 func version() {
 	if Version == "" {
 		Version = "0.0.0-dev"
-		Commit = "NA"
-		Date = "NA"
 	}
-	if len(Commit) > 8 {
-		Commit = Commit[:8]
-	}
-	fmt.Printf("version: %s commit: %s built at: %s\n", Version, Commit, Date)
+	fmt.Printf("dtm version: %s\n", Version)
 }
 
 func usage() {
