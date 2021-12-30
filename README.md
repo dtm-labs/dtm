@@ -12,9 +12,9 @@ DTM是一款golang开发的分布式事务管理器，解决了跨数据库、�
 
 他优雅的解决了幂等、空补偿、悬挂等分布式事务难题，提供了简单易用、高性能、易水平扩展的解决方案。
 
-作者受邀参加中国数据库大会分享[多语言环境下分布式事务实践](http://dtcc.it168.com/yicheng.html#b9)
+通俗一点说，DTM提供跨服务事务能力，一组服务要么全部成功，要么全部回滚，避免只更新了一部分数据产生的业务问题。
 
-## 谁在使用dtm
+## 谁在使用DTM(仅列出部分)
 [Tencent 腾讯](https://dtm.pub/other/using.html#tencent)
 
 [Ivydad 常青藤爸爸](https://dtm.pub/other/using.html#ivydad)
@@ -22,8 +22,6 @@ DTM是一款golang开发的分布式事务管理器，解决了跨数据库、�
 [Eglass 视咖镜小二](https://dtm.pub/other/using.html)
 
 [极欧科技](https://dtm.pub/other/using.html)
-
-[金数智联](https://dtm.pub/other/using.html)
 
 ## 亮点
 
@@ -34,15 +32,13 @@ DTM是一款golang开发的分布式事务管理器，解决了跨数据库、�
 * 跨语言
   - 可适合多语言栈的公司使用。方便go、python、php、nodejs、ruby、c# 各类语言使用。
 * 易部署、易扩展
-  - 仅依赖mysql，部署简单，易集群化，易水平扩展
+  - 支持零配置，或依赖mysql|redis，部署简单，易集群化，易水平扩展
 * 多种分布式事务协议支持
-  - TCC、SAGA、XA、事务消息
+  - TCC、SAGA、XA、二阶段消息
 
 ## 与其他框架对比
 
-目前开源的分布式事务框架，Java的框架较多，有大厂开源的SEATA、ServiceComb-Pack，shardingsphere，以及个人开源的himly，tcc-transaction，ByteTCC等等，其中以Seata的应用最为广泛。
-
-非Java语言类的，暂未看到除dtm之外的成熟框架，因此这里仅将DTM和Java中最成熟的Seata对比：
+非Java语言类的，暂未看到除dtm之外的成熟框架，因此这里将DTM和Java中最成熟的Seata对比：
 
 |  特性| DTM | SEATA |备注|
 |:-----:|:----:|:----:|:----:|
@@ -69,31 +65,27 @@ DTM是一款golang开发的分布式事务管理器，解决了跨数据库、�
 ## 微服务框架支持
 - [go-zero](https://github.com/zeromicro/go-zero)：一开源就非常火爆的微服务框架，首家接入dtm的微服务框架。感谢go-zero作者[kevwan](https://github.com/kevwan)的大力支持
 - [polaris](https://github.com/polarismesh/polaris): 腾讯开源的注册发现组件，以及在其上构建的微服务框架。感谢腾讯同学[ychensha](https://github.com/ychensha)的PR
-- 其他：看用户需求量，择机接入
+- 其他：看用户需求量，择机接入，参见[微服务支持](https://dtm.pub/protocol/intro.html)
 
-具体微服务接入使用，参见[微服务支持](https://dtm.pub/protocol/intro.html)
 ## 快速开始
 
-### 获取代码
+如果您不是Go语言，可以跳转[各语言客户端及示例](https://dtm.pub/summary/code.html#go)，里面有相关的快速开始示例
 
-`git clone https://github.com/dtm-labs/dtm && cd dtm`
+### 运行dtm
 
-### dtm依赖于mysql
+``` bash
+git clone https://github.com/dtm-labs/dtm && cd dtm
+go run main.go
+```
 
-安装[docker 20.04+](https://docs.docker.com/get-docker/)之后
+### 启动并运行一个saga示例
+下面运行一个类似跨行转账的示例，包括两个事务分支：资金转出（TransOut)、资金转入（TransIn)。DTM保证TransIn和TransOut要么全部成功，要么全部回滚，保证最终金额的正确性。
 
-`docker-compose -f helper/compose.mysql.yml up`
+`go run qs/main.go`
 
-> 您也可以配置使用现有的mysql，需要高级权限，允许dtm创建数据库
->
-> `cp conf.sample.yml conf.yml # 修改conf.yml`
+## 接入详解
 
-### 启动并运行saga示例
-`go run app/main.go qs`
-
-## 开始使用
-
-### 使用
+### 接入代码
 ``` GO
   // 具体业务微服务地址
   const qsBusi = "http://localhost:8081/api/busi_saga"
@@ -117,23 +109,16 @@ DTM是一款golang开发的分布式事务管理器，解决了跨数据库、�
 
 <img src="https://pic3.zhimg.com/80/v2-b7d98659093c399e182a0173a8e549ca_1440w.jpg" height=428 />
 
-### 完整示例
-参考[examples/quick_start.go](./examples/quick_start.go)
+### 更多示例
+参考[dtm-labs/dtm-examples](https://github.com/dtm-labs/dtm-examples)
 
-## 公众号
-您可以关注公众号：分布式事务，及时跟踪dtm的最新内容
-## 交流群
+## 联系我们
+### 公众号
+dtm官方公众号：分布式事务，大量干货分享，以及dtm的最新消息
+### 交流群
 请加 yedf2008 好友或者扫码加好友，验证回复 dtm 按照指引进群
 
 ![yedf2008](http://service.ivydad.com/cover/dubbingb6b5e2c0-2d2a-cd59-f7c5-c6b90aceb6f1.jpeg)
 
 欢迎使用[dtm](https://github.com/dtm-labs/dtm)，或者通过dtm学习实践分布式事务相关知识，欢迎star支持我们
 
-## 谁在使用
-<div style='vertical-align: middle'>
-    <img alt='腾讯' height='80'  src='https://dtm.pub/assets/tencent.4b87bfd8.jpeg'  /img>
-    <img alt='常青藤爸爸' height='80'  src='https://dtm.pub/assets/ivydad.d0f58a94.png'  /img>
-    <img alt='镜小二' height='80'  src='https://img.epeijing.cn/official-website/assets/logo.png'  /img>
-    <img alt='极欧科技' height='80'  src='https://dtm.pub/assets/jiou.5bed10c2.png'  /img>
-    <img alt='金数智联' height='80'  src='https://dtm.pub/assets/gdci.214d305a.png'  /img>
-</div>

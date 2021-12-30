@@ -23,8 +23,6 @@ DTM是一款golang开发的分布式事务管理器，解决了跨数据库、�
 
 [极欧科技](https://dtm.pub/other/using.html)
 
-[金数智联](https://dtm.pub/other/using.html)
-
 ## 亮点
 
 * 极易接入
@@ -34,15 +32,13 @@ DTM是一款golang开发的分布式事务管理器，解决了跨数据库、�
 * 跨语言
   - 可适合多语言栈的公司使用。方便go、python、php、nodejs、ruby、c# 各类语言使用。
 * 易部署、易扩展
-  - 仅依赖mysql，部署简单，易集群化，易水平扩展
+  - 支持零配置，或依赖mysql|redis，部署简单，易集群化，易水平扩展
 * 多种分布式事务协议支持
-  - TCC、SAGA、XA、事务消息
+  - TCC、SAGA、XA、二阶段消息
 
 ## 与其他框架对比
 
-目前开源的分布式事务框架，Java的框架较多，有大厂开源的SEATA、ServiceComb-Pack，shardingsphere，以及个人开源的himly，tcc-transaction，ByteTCC等等，其中以Seata的应用最为广泛。
-
-非Java语言类的，暂未看到除dtm之外的成熟框架，因此这里仅将DTM和Java中最成熟的Seata对比：
+非Java语言类的，暂未看到除dtm之外的成熟框架，因此这里将DTM和Java中最成熟的Seata对比：
 
 |  特性| DTM | SEATA |备注|
 |:-----:|:----:|:----:|:----:|
@@ -69,9 +65,8 @@ DTM是一款golang开发的分布式事务管理器，解决了跨数据库、�
 ## 微服务框架支持
 - [go-zero](https://github.com/zeromicro/go-zero)：一开源就非常火爆的微服务框架，首家接入dtm的微服务框架。感谢go-zero作者[kevwan](https://github.com/kevwan)的大力支持
 - [polaris](https://github.com/polarismesh/polaris): 腾讯开源的注册发现组件，以及在其上构建的微服务框架。感谢腾讯同学[ychensha](https://github.com/ychensha)的PR
-- 其他：看用户需求量，择机接入
+- 其他：看用户需求量，择机接入，参见[微服务支持](https://dtm.pub/protocol/intro.html)
 
-具体微服务接入使用，参见[微服务支持](https://dtm.pub/protocol/intro.html)
 ## 快速开始
 
 如果您不是Go语言，可以跳转[各语言客户端及示例](https://dtm.pub/summary/code.html#go)，里面有相关的快速开始示例
@@ -84,9 +79,9 @@ go run main.go
 ```
 
 ### 启动并运行一个saga示例
-`go run qs/main.go`
+下面运行一个类似跨行转账的示例，包括两个事务分支：资金转出（TransOut)、资金转入（TransIn)。DTM保证TransIn和TransOut要么全部成功，要么全部回滚，保证最终金额的正确性。
 
-这是一个类似跨行转账的示例，包括两个事务分支：资金转出（TransOut)、资金转入（TransIn)。DTM保证TransIn和TransOut要么全部成功，要么全部回滚，保证最终金额的正确性。
+`go run qs/main.go`
 
 ## 接入详解
 
@@ -117,9 +112,10 @@ go run main.go
 ### 更多示例
 参考[dtm-labs/dtm-examples](https://github.com/dtm-labs/dtm-examples)
 
-## 公众号
-您可以关注公众号：分布式事务，及时跟踪dtm的最新内容
-## 交流群
+## 联系我们
+### 公众号
+dtm官方公众号：分布式事务，大量干货分享，以及dtm的最新消息
+### 交流群
 请加 yedf2008 好友或者扫码加好友，验证回复 dtm 按照指引进群
 
 ![yedf2008](http://service.ivydad.com/cover/dubbingb6b5e2c0-2d2a-cd59-f7c5-c6b90aceb6f1.jpeg)
