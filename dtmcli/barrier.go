@@ -100,3 +100,26 @@ func (bb *BranchBarrier) CallWithDB(db *sql.DB, busiCall BarrierBusiFunc) error 
 	}
 	return bb.Call(tx, busiCall)
 }
+
+// CallWithExecReturn with *sql.DB and actualExec is  the result  Whether the busiCall is executed
+func (bb *BranchBarrier) CallWithExecReturn(db *sql.DB, busiCall func() error) (actualExec bool, rerr error) {
+	actualExec = false
+	bb.BarrierID = bb.BarrierID + 1
+	bid := fmt.Sprintf("%02d", bb.BarrierID)
+	ti := bb
+	originType := map[string]string{
+		BranchCancel:     BranchTry,
+		BranchCompensate: BranchAction,
+	}[ti.Op]
+
+	originAffected, _ := insertBarrier(db, ti.TransType, ti.Gid, ti.BranchID, originType, bid, ti.Op)
+	currentAffected, rerr := insertBarrier(db, ti.TransType, ti.Gid, ti.BranchID, ti.Op, bid, ti.Op)
+	logger.Debugf("originAffected: %d currentAffected: %d", originAffected, currentAffected)
+	if (ti.Op == BranchCancel || ti.Op == BranchCompensate) && originAffected > 0 || // 这个是空补偿
+		currentAffected == 0 { // 这个是重复请求或者悬挂
+		return
+	}
+	actualExec = true
+	rerr = busiCall()
+	return
+}
