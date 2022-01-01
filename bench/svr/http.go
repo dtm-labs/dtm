@@ -33,14 +33,14 @@ const total = 200000
 var benchPort = dtmimp.If(os.Getenv("BENCH_PORT") == "", "8083", os.Getenv("BENCH_PORT")).(string)
 var benchBusi = fmt.Sprintf("http://localhost:%s%s", benchPort, benchAPI)
 
-func sdbGet() *sql.DB {
+func pdbGet() *sql.DB {
 	db, err := dtmimp.PooledDB(busi.BusiConf)
 	logger.FatalIfError(err)
 	return db
 }
 
 func txGet() *sql.Tx {
-	db := sdbGet()
+	db := pdbGet()
 	tx, err := db.Begin()
 	logger.FatalIfError(err)
 	return tx
@@ -49,7 +49,7 @@ func txGet() *sql.Tx {
 func reloadData() {
 	time.Sleep(dtmsvr.UpdateBranchAsyncInterval * 2)
 	began := time.Now()
-	db := sdbGet()
+	db := pdbGet()
 	tables := []string{"dtm_busi.user_account", "dtm_busi.user_account_log", "dtm.trans_global", "dtm.trans_branch_op", "dtm_barrier.barrier"}
 	for _, t := range tables {
 		_, err := dtmimp.DBExec(db, fmt.Sprintf("truncate %s", t))
@@ -70,7 +70,7 @@ var mode string = ""
 var sqls int = 1
 
 func PrepareBenchDB() {
-	db := sdbGet()
+	db := pdbGet()
 	_, err := dtmimp.DBExec(db, "drop table if exists dtm_busi.user_account_log")
 	logger.FatalIfError(err)
 	_, err = dtmimp.DBExec(db, `create table if not exists dtm_busi.user_account_log (

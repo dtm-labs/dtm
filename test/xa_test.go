@@ -118,7 +118,8 @@ func TestXaNotTimeout(t *testing.T) {
 	assert.Nil(t, err)
 	waitTransProcessed(gid)
 	assert.Equal(t, StatusSubmitted, getTransStatus(gid))
-	cronTransOnce()
+	g := cronTransOnce()
+	assert.Equal(t, gid, g)
 	assert.Equal(t, StatusSucceed, getTransStatus(gid))
 	assert.Equal(t, []string{StatusPrepared, StatusSucceed}, getBranchesStatus(gid))
 }

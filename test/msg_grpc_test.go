@@ -38,7 +38,8 @@ func TestMsgGrpcTimeoutSuccess(t *testing.T) {
 	cronTransOnceForwardNow(180)
 	assert.Equal(t, StatusSubmitted, getTransStatus(msg.Gid))
 	assert.Equal(t, []string{StatusPrepared, StatusPrepared}, getBranchesStatus(msg.Gid))
-	cronTransOnce()
+	g := cronTransOnce()
+	assert.Equal(t, msg.Gid, g)
 	assert.Equal(t, StatusSucceed, getTransStatus(msg.Gid))
 	assert.Equal(t, []string{StatusSucceed, StatusSucceed}, getBranchesStatus(msg.Gid))
 }

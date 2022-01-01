@@ -7,11 +7,13 @@
 package dtmsvr
 
 import (
+	"context"
 	"time"
 
 	"github.com/dtm-labs/dtm/dtmcli"
 	"github.com/dtm-labs/dtm/dtmcli/dtmimp"
 	"github.com/dtm-labs/dtm/dtmcli/logger"
+	"github.com/dtm-labs/dtm/dtmgrpc/dtmgimp"
 	"github.com/dtm-labs/dtm/dtmgrpc/dtmgpb"
 	"github.com/dtm-labs/dtm/dtmsvr/storage"
 	"github.com/gin-gonic/gin"
@@ -69,11 +71,21 @@ func TransFromContext(c *gin.Context) *TransGlobal {
 		}
 	}
 	m.Protocol = "http"
+
+	m.Ext.Headers = map[string]string{}
+	if len(m.PassthroughHeaders) > 0 {
+		for _, h := range m.PassthroughHeaders {
+			v := c.GetHeader(h)
+			if v != "" {
+				m.Ext.Headers[h] = v
+			}
+		}
+	}
 	return &m
 }
 
 // TransFromDtmRequest TransFromContext
-func TransFromDtmRequest(c *dtmgpb.DtmRequest) *TransGlobal {
+func TransFromDtmRequest(ctx context.Context, c *dtmgpb.DtmRequest) *TransGlobal {
 	o := &dtmgpb.DtmTransOptions{}
 	if c.TransOptions != nil {
 		o = c.TransOptions
@@ -85,13 +97,24 @@ func TransFromDtmRequest(c *dtmgpb.DtmRequest) *TransGlobal {
 		Protocol:      "grpc",
 		BinPayloads:   c.BinPayloads,
 		TransOptions: dtmcli.TransOptions{
-			WaitResult:    o.WaitResult,
-			TimeoutToFail: o.TimeoutToFail,
-			RetryInterval: o.RetryInterval,
+			WaitResult:         o.WaitResult,
+			TimeoutToFail:      o.TimeoutToFail,
+			RetryInterval:      o.RetryInterval,
+			PassthroughHeaders: o.PassthroughHeaders,
+			BranchHeaders:      o.BranchHeaders,
 		},
 	}}
 	if c.Steps != "" {
 		dtmimp.MustUnmarshalString(c.Steps, &r.Steps)
+	}
+	if len(o.PassthroughHeaders) > 0 {
+		r.Ext.Headers = map[string]string{}
+		for _, h := range o.PassthroughHeaders {
+			v := dtmgimp.GetMetaFromContext(ctx, h)
+			if v != "" {
+				r.Ext.Headers[h] = v
+			}
+		}
 	}
 	return &r
 }

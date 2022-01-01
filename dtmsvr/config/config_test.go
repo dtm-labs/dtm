@@ -17,38 +17,47 @@ func TestLoadFromEnv(t *testing.T) {
 	assert.Equal(t, "d1", ms.Driver)
 }
 
-func TestCheckConfig(t *testing.T) {
+func TestLoadConfig(t *testing.T) {
 	MustLoadConfig("../../conf.sample.yml")
-	config := &Config
-	config.RetryInterval = 1
-	retryIntervalErr := checkConfig()
+}
+func TestCheckConfig(t *testing.T) {
+	conf := Config
+	conf.RetryInterval = 1
+	retryIntervalErr := checkConfig(&conf)
 	retryIntervalExpect := errors.New("RetryInterval should not be less than 10")
 	assert.Equal(t, retryIntervalErr, retryIntervalExpect)
 
-	config.RetryInterval = 10
-	config.TimeoutToFail = 5
-	timeoutToFailErr := checkConfig()
+	conf.RetryInterval = 10
+	conf.TimeoutToFail = 5
+	timeoutToFailErr := checkConfig(&conf)
 	timeoutToFailExpect := errors.New("TimeoutToFail should not be less than RetryInterval")
 	assert.Equal(t, timeoutToFailErr, timeoutToFailExpect)
 
-	config.TimeoutToFail = 20
-	driverErr := checkConfig()
+	conf.TimeoutToFail = 20
+	driverErr := checkConfig(&conf)
 	assert.Equal(t, driverErr, nil)
 
-	config.Store = Store{Driver: Mysql}
-	hostErr := checkConfig()
+	conf.Store = Store{Driver: Mysql}
+	hostErr := checkConfig(&conf)
 	hostExpect := errors.New("Db host not valid ")
 	assert.Equal(t, hostErr, hostExpect)
 
-	config.Store = Store{Driver: Mysql, Host: "127.0.0.1"}
-	portErr := checkConfig()
+	conf.Store = Store{Driver: Mysql, Host: "127.0.0.1"}
+	portErr := checkConfig(&conf)
 	portExpect := errors.New("Db port not valid ")
 	assert.Equal(t, portErr, portExpect)
 
-	config.Store = Store{Driver: Mysql, Host: "127.0.0.1", Port: 8686}
-	userErr := checkConfig()
+	conf.Store = Store{Driver: Mysql, Host: "127.0.0.1", Port: 8686}
+	userErr := checkConfig(&conf)
 	userExpect := errors.New("Db user not valid ")
 	assert.Equal(t, userErr, userExpect)
+
+	conf.Store = Store{Driver: Redis, Host: "", Port: 8686}
+	assert.Equal(t, errors.New("Redis host not valid"), checkConfig(&conf))
+
+	conf.Store = Store{Driver: Redis, Host: "127.0.0.1", Port: 0}
+	assert.Equal(t, errors.New("Redis port not valid"), checkConfig(&conf))
+
 }
 
 func TestConfig(t *testing.T) {
@@ -61,7 +70,7 @@ func TestConfig(t *testing.T) {
 func testConfigStringField(fd *string, val string, t *testing.T) {
 	old := *fd
 	*fd = val
-	str := checkConfig()
+	str := checkConfig(&Config)
 	assert.NotEqual(t, "", str)
 	*fd = old
 }
@@ -69,7 +78,7 @@ func testConfigStringField(fd *string, val string, t *testing.T) {
 func testConfigIntField(fd *int64, val int64, t *testing.T) {
 	old := *fd
 	*fd = val
-	str := checkConfig()
+	str := checkConfig(&Config)
 	assert.NotEqual(t, "", str)
 	*fd = old
 }

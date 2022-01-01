@@ -25,17 +25,17 @@ func (s *dtmServer) NewGid(ctx context.Context, in *emptypb.Empty) (*pb.DtmGidRe
 }
 
 func (s *dtmServer) Submit(ctx context.Context, in *pb.DtmRequest) (*emptypb.Empty, error) {
-	r, err := svcSubmit(TransFromDtmRequest(in))
+	r, err := svcSubmit(TransFromDtmRequest(ctx, in))
 	return &emptypb.Empty{}, dtmgimp.Result2Error(r, err)
 }
 
 func (s *dtmServer) Prepare(ctx context.Context, in *pb.DtmRequest) (*emptypb.Empty, error) {
-	r, err := svcPrepare(TransFromDtmRequest(in))
+	r, err := svcPrepare(TransFromDtmRequest(ctx, in))
 	return &emptypb.Empty{}, dtmgimp.Result2Error(r, err)
 }
 
 func (s *dtmServer) Abort(ctx context.Context, in *pb.DtmRequest) (*emptypb.Empty, error) {
-	r, err := svcAbort(TransFromDtmRequest(in))
+	r, err := svcAbort(TransFromDtmRequest(ctx, in))
 	return &emptypb.Empty{}, dtmgimp.Result2Error(r, err)
 }
 

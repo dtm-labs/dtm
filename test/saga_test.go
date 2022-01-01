@@ -31,7 +31,8 @@ func TestSagaOngoingSucceed(t *testing.T) {
 	waitTransProcessed(saga.Gid)
 	assert.Equal(t, []string{StatusPrepared, StatusPrepared, StatusPrepared, StatusPrepared}, getBranchesStatus(saga.Gid))
 	assert.Equal(t, StatusSubmitted, getTransStatus(saga.Gid))
-	cronTransOnce()
+	g := cronTransOnce()
+	assert.Equal(t, saga.Gid, g)
 	assert.Equal(t, []string{StatusPrepared, StatusSucceed, StatusPrepared, StatusSucceed}, getBranchesStatus(saga.Gid))
 	assert.Equal(t, StatusSucceed, getTransStatus(saga.Gid))
 }
@@ -43,15 +44,18 @@ func TestSagaFailed(t *testing.T) {
 	assert.Nil(t, err)
 	waitTransProcessed(saga.Gid)
 	assert.Equal(t, StatusAborting, getTransStatus(saga.Gid))
-	cronTransOnce()
+	g := cronTransOnce()
+	assert.Equal(t, saga.Gid, g)
 	assert.Equal(t, StatusFailed, getTransStatus(saga.Gid))
 	assert.Equal(t, []string{StatusSucceed, StatusSucceed, StatusSucceed, StatusFailed}, getBranchesStatus(saga.Gid))
 }
 
 func TestSagaAbnormal(t *testing.T) {
 	saga := genSaga(dtmimp.GetFuncName(), false, false)
+	busi.MainSwitch.TransOutResult.SetOnce("ONGOING")
 	err := saga.Submit()
 	assert.Nil(t, err)
+	waitTransProcessed(saga.Gid)
 	err = saga.Submit() // submit twice, ignored
 	assert.Nil(t, err)
 	waitTransProcessed(saga.Gid)

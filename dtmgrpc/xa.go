@@ -92,7 +92,13 @@ func (xc *XaGrpcClient) XaLocalTransaction(ctx context.Context, msg proto.Messag
 
 // XaGlobalTransaction start a xa global transaction
 func (xc *XaGrpcClient) XaGlobalTransaction(gid string, xaFunc XaGrpcGlobalFunc) error {
-	xa := XaGrpc{TransBase: *dtmimp.NewTransBase(gid, "xa", xc.Server, "")}
+	return xc.XaGlobalTransaction2(gid, func(xg *XaGrpc) {}, xaFunc)
+}
+
+// XaGlobalTransaction2 new version of XaGlobalTransaction. support custom
+func (xc *XaGrpcClient) XaGlobalTransaction2(gid string, custom func(*XaGrpc), xaFunc XaGrpcGlobalFunc) error {
+	xa := &XaGrpc{TransBase: *dtmimp.NewTransBase(gid, "xa", xc.Server, "")}
+	custom(xa)
 	dc := dtmgimp.MustGetDtmClient(xa.Dtm)
 	req := &dtmgpb.DtmRequest{
 		Gid:       gid,
@@ -107,7 +113,7 @@ func (xc *XaGrpcClient) XaGlobalTransaction(gid string, xaFunc XaGrpcGlobalFunc)
 		_, err := f(context.Background(), req)
 		return err
 	}, func() error {
-		return xaFunc(&xa)
+		return xaFunc(xa)
 	})
 }
 

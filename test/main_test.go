@@ -13,6 +13,7 @@ import (
 
 	"github.com/dtm-labs/dtm/dtmcli"
 	"github.com/dtm-labs/dtm/dtmcli/logger"
+	"github.com/dtm-labs/dtm/dtmgrpc"
 	"github.com/dtm-labs/dtm/dtmsvr"
 	"github.com/dtm-labs/dtm/dtmsvr/config"
 	"github.com/dtm-labs/dtm/test/busi"
@@ -32,6 +33,9 @@ func TestMain(m *testing.M) {
 	dtmsvr.NowForwardDuration = 0 * time.Second
 	dtmsvr.CronForwardDuration = 180 * time.Second
 	conf.UpdateBranchSync = 1
+
+	dtmgrpc.AddUnaryInterceptor(busi.SetGrpcHeaderForHeadersYes)
+	dtmcli.OnBeforeRequest(busi.SetHttpHeaderForHeadersYes)
 
 	tenv := os.Getenv("TEST_STORE")
 	if tenv == "boltdb" {

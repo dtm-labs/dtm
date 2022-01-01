@@ -49,7 +49,8 @@ func TestTccGrpcRollback(t *testing.T) {
 	assert.Error(t, err)
 	waitTransProcessed(gid)
 	assert.Equal(t, StatusAborting, getTransStatus(gid))
-	cronTransOnce()
+	g2 := cronTransOnce()
+	assert.Equal(t, gid, g2)
 	assert.Equal(t, StatusFailed, getTransStatus(gid))
 	assert.Equal(t, []string{StatusSucceed, StatusPrepared, StatusSucceed, StatusPrepared}, getBranchesStatus(gid))
 }
@@ -75,4 +76,23 @@ func TestTccGrpcType(t *testing.T) {
 	logger.Debugf("expecting dtmutil.DefaultGrpcServer error")
 	err = dtmgrpc.TccGlobalTransaction("-", "", func(tcc *dtmgrpc.TccGrpc) error { return nil })
 	assert.Error(t, err)
+}
+
+func TestTccGrpcHeaders(t *testing.T) {
+	gid := dtmimp.GetFuncName()
+	err := dtmgrpc.TccGlobalTransaction2(dtmutil.DefaultGrpcServer, gid, func(tg *dtmgrpc.TccGrpc) {
+		tg.BranchHeaders = map[string]string{
+			"test_header": "test",
+		}
+		tg.WaitResult = true
+	}, func(tcc *dtmgrpc.TccGrpc) error {
+		data := &busi.BusiReq{Amount: 30}
+		r := &emptypb.Empty{}
+		return tcc.CallBranch(data, busi.BusiGrpc+"/busi.Busi/TransOutHeaderYes", "", "", r)
+	})
+	assert.Nil(t, err)
+	waitTransProcessed(gid)
+	assert.Equal(t, StatusSucceed, getTransStatus(gid))
+	assert.Equal(t, []string{StatusPrepared, StatusSucceed}, getBranchesStatus(gid))
+
 }

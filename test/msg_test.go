@@ -35,7 +35,8 @@ func TestMsgTimeoutSuccess(t *testing.T) {
 	busi.MainSwitch.TransInResult.SetOnce(dtmcli.ResultOngoing)
 	cronTransOnceForwardNow(180)
 	assert.Equal(t, StatusSubmitted, getTransStatus(msg.Gid))
-	cronTransOnce()
+	g := cronTransOnce()
+	assert.Equal(t, msg.Gid, g)
 	assert.Equal(t, []string{StatusSucceed, StatusSucceed}, getBranchesStatus(msg.Gid))
 	assert.Equal(t, StatusSucceed, getTransStatus(msg.Gid))
 }
@@ -60,7 +61,7 @@ func TestMsgAbnormal(t *testing.T) {
 	assert.Nil(t, err)
 	err = msg.Submit()
 	assert.Nil(t, err)
-
+	waitTransProcessed(msg.Gid)
 	err = msg.Prepare("")
 	assert.Error(t, err)
 }

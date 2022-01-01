@@ -26,6 +26,9 @@ func (t *TransGlobal) process(branches []TransBranch) map[string]interface{} {
 	if t.Options != "" {
 		dtmimp.MustUnmarshalString(t.Options, &t.TransOptions)
 	}
+	if t.ExtData != "" {
+		dtmimp.MustUnmarshalString(t.ExtData, &t.Ext)
+	}
 
 	if !t.WaitResult {
 		go t.processInner(branches)
@@ -63,6 +66,10 @@ func (t *TransGlobal) processInner(branches []TransBranch) (rerr error) {
 func (t *TransGlobal) saveNew() ([]TransBranch, error) {
 	t.NextCronInterval = t.getNextCronInterval(cronReset)
 	t.NextCronTime = dtmutil.GetNextTime(t.NextCronInterval)
+	t.ExtData = dtmimp.MustMarshalString(t.Ext)
+	if t.ExtData == "{}" {
+		t.ExtData = ""
+	}
 	t.Options = dtmimp.MustMarshalString(t.TransOptions)
 	if t.Options == "{}" {
 		t.Options = ""

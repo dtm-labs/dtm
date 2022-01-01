@@ -9,6 +9,7 @@ package busi
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"fmt"
 	"net"
 
@@ -122,4 +123,20 @@ func (s *busiServer) TransInTccNested(ctx context.Context, in *BusiReq) (*emptyp
 
 func (s *busiServer) XaNotify(ctx context.Context, in *emptypb.Empty) (*emptypb.Empty, error) {
 	return XaGrpcClient.HandleCallback(ctx)
+}
+
+func (s *busiServer) TransOutHeaderYes(ctx context.Context, in *BusiReq) (*emptypb.Empty, error) {
+	meta := dtmgimp.GetMetaFromContext(ctx, "test_header")
+	if meta == "" {
+		return &emptypb.Empty{}, errors.New("no header found in HeaderYes")
+	}
+	return &emptypb.Empty{}, handleGrpcBusiness(in, MainSwitch.TransOutResult.Fetch(), in.TransOutResult, dtmimp.GetFuncName())
+}
+
+func (s *busiServer) TransOutHeaderNo(ctx context.Context, in *BusiReq) (*emptypb.Empty, error) {
+	meta := dtmgimp.GetMetaFromContext(ctx, "test_header")
+	if meta != "" {
+		return &emptypb.Empty{}, errors.New("header found in HeaderNo")
+	}
+	return &emptypb.Empty{}, nil
 }
