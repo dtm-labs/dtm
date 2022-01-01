@@ -17,6 +17,7 @@ import (
 	"github.com/dtm-labs/dtm/dtmsvr"
 	"github.com/dtm-labs/dtm/dtmsvr/config"
 	"github.com/dtm-labs/dtm/test/busi"
+	"github.com/go-resty/resty/v2"
 )
 
 func exitIf(code int) {
@@ -36,6 +37,7 @@ func TestMain(m *testing.M) {
 
 	dtmgrpc.AddUnaryInterceptor(busi.SetGrpcHeaderForHeadersYes)
 	dtmcli.OnBeforeRequest(busi.SetHttpHeaderForHeadersYes)
+	dtmcli.OnAfterResponse(func(c *resty.Client, resp *resty.Response) error { return nil })
 
 	tenv := os.Getenv("TEST_STORE")
 	if tenv == "boltdb" {
