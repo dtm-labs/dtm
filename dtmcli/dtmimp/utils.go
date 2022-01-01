@@ -208,7 +208,7 @@ func PooledDB(conf DBConf) (*sql.DB, error) {
 // StandaloneDB get a standalone db instance
 func StandaloneDB(conf DBConf) (*sql.DB, error) {
 	dsn := GetDsn(conf)
-	Logf("opening standalone %s: %s", conf.Driver, strings.Replace(dsn, conf.Passwrod, "****", 1))
+	Logf("opening standalone %s: %s", conf.Driver, strings.Replace(dsn, conf.Password, "****", 1))
 	return sql.Open(conf.Driver, dsn)
 }
 
@@ -236,9 +236,9 @@ func GetDsn(conf DBConf) string {
 	driver := conf.Driver
 	dsn := map[string]string{
 		"mysql": fmt.Sprintf("%s:%s@tcp(%s:%d)/%s?charset=utf8mb4&parseTime=true&loc=Local",
-			conf.User, conf.Passwrod, host, conf.Port, ""),
+			conf.User, conf.Password, host, conf.Port, ""),
 		"postgres": fmt.Sprintf("host=%s user=%s password=%s dbname='%s' port=%d sslmode=disable",
-			host, conf.User, conf.Passwrod, "", conf.Port),
+			host, conf.User, conf.Password, "", conf.Port),
 	}[driver]
 	PanicIf(dsn == "", fmt.Errorf("unknow driver: %s", driver))
 	return dsn
