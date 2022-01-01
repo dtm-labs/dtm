@@ -24,16 +24,18 @@ type MicroService struct {
 }
 
 type Store struct {
-	Driver          string `yaml:"Driver" default:"boltdb"`
-	Host            string `yaml:"Host"`
-	Port            int64  `yaml:"Port"`
-	User            string `yaml:"User"`
-	Password        string `yaml:"Password"`
-	MaxOpenConns    int64  `yaml:"MaxOpenConns" default:"500"`
-	MaxIdleConns    int64  `yaml:"MaxIdleConns" default:"500"`
-	ConnMaxLifeTime int64  `yaml:"ConnMaxLifeTime" default:"5"`
-	DataExpire      int64  `yaml:"DataExpire" default:"604800"` // Trans data will expire in 7 days. only for redis/boltdb.
-	RedisPrefix     string `yaml:"RedisPrefix" default:"{a}"`   // Redis storage prefix. store data to only one slot in cluster
+	Driver             string `yaml:"Driver" default:"boltdb"`
+	Host               string `yaml:"Host"`
+	Port               int64  `yaml:"Port"`
+	User               string `yaml:"User"`
+	Password           string `yaml:"Password"`
+	MaxOpenConns       int64  `yaml:"MaxOpenConns" default:"500"`
+	MaxIdleConns       int64  `yaml:"MaxIdleConns" default:"500"`
+	ConnMaxLifeTime    int64  `yaml:"ConnMaxLifeTime" default:"5"`
+	DataExpire         int64  `yaml:"DataExpire" default:"604800"` // Trans data will expire in 7 days. only for redis/boltdb.
+	RedisPrefix        string `yaml:"RedisPrefix" default:"{a}"`   // Redis storage prefix. store data to only one slot in cluster
+	TransGlobalTable   string `yaml:"TransGlobalTable" default:"dtm.trans_global"`
+	TransBranchOpTable string `yaml:"BranchTransOpTable" default:"dtm.trans_branch_op"`
 }
 
 func (s *Store) IsDB() bool {
@@ -77,7 +79,7 @@ func MustLoadConfig(confFile string) {
 	scont, err := json.MarshalIndent(&Config, "", "  ")
 	logger.FatalIfError(err)
 	logger.Infof("config file: %s loaded config is: \n%s", confFile, scont)
-	err = checkConfig()
+	err = checkConfig(&Config)
 	logger.FatalfIf(err != nil, `config error: '%v'.
 	please visit http://d.dtm.pub to see the config document.`, err)
 }

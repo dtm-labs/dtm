@@ -27,7 +27,13 @@ type TccGlobalFunc func(tcc *Tcc) (*resty.Response, error)
 // gid global transaction ID
 // tccFunc tcc事务函数，里面会定义全局事务的分支
 func TccGlobalTransaction(dtm string, gid string, tccFunc TccGlobalFunc) (rerr error) {
+	return TccGlobalTransaction2(dtm, gid, func(t *Tcc) {}, tccFunc)
+}
+
+// TccGlobalTransaction2 new version of TccGlobalTransaction, add custom param
+func TccGlobalTransaction2(dtm string, gid string, custom func(*Tcc), tccFunc TccGlobalFunc) (rerr error) {
 	tcc := &Tcc{TransBase: *dtmimp.NewTransBase(gid, "tcc", dtm, "")}
+	custom(tcc)
 	rerr = dtmimp.TransCallDtm(&tcc.TransBase, tcc, "prepare")
 	if rerr != nil {
 		return rerr

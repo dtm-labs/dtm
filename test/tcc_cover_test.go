@@ -27,4 +27,5 @@ func TestTccCoverPanic(t *testing.T) {
 		assert.FailNow(t, "not executed")
 	})
 	assert.Contains(t, err.Error(), "user panic")
+	waitTransProcessed(gid)
 }

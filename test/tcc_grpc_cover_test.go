@@ -28,6 +28,7 @@ func TestTccGrpcCoverPanic(t *testing.T) {
 		assert.FailNow(t, "not executed")
 	})
 	assert.Contains(t, err.Error(), "user panic")
+	waitTransProcessed(gid)
 }
 
 func TestTccGrpcCoverCallBranch(t *testing.T) {
@@ -46,4 +47,6 @@ func TestTccGrpcCoverCallBranch(t *testing.T) {
 		return err
 	})
 	assert.Error(t, err)
+	g := cronTransOnceForwardNow(300)
+	assert.Equal(t, gid, g)
 }

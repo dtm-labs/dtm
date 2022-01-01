@@ -509,6 +509,12 @@ github.com/urfave/cli/v2 v2.3.0/go.mod h1:LJmUH05zAU44vOAcrfzZQKsZbVcdbOG8rtL3/X
 github.com/xdg-go/pbkdf2 v1.0.0/go.mod h1:jrpuAogTd400dnrH08LKmI/xc1MbPOebTwRqcT5RDeI=
 github.com/xdg-go/scram v1.0.2/go.mod h1:1WAq6h33pAW+iRreB34OORO2Nf7qel3VV3fjBj+hCSs=
 github.com/xdg-go/stringprep v1.0.2/go.mod h1:8F9zXuvzgwmyT5DUm4GUfZGDdT3W+LCvS6+da4O5kxM=
+github.com/ychensha/dtmdriver-polaris v0.0.1/go.mod h1:0BdQvxXlGOlF6YVlsDoVvu8jyxdTlJZ9Kyh5t9lRA94=
+github.com/yedf/dtm v1.7.2 h1:qGjio5O+Zm5CmMfga9Eb0rsUu9nkNHxGuJwc7PEkMfc=
+github.com/yedf/dtm v1.7.2/go.mod h1:R1Q55spqLh7yHMVJhGI8RpS1iG7OvRX99pWZRlsAtME=
+github.com/yedf/dtmdriver v0.0.0-20211203060147-29426c663b6e/go.mod h1:aeo6ZWiVI0x8P8O18r6uB1cG2uw9BCQyYZaH15MlRDI=
+github.com/yedf/dtmdriver-gozero v0.0.0-20211204083751-a14485949435/go.mod h1:RYtA6oZny6LzlIRb1tPGt5bHfgqws/JaU6ogFly8ByQ=
+github.com/yedf/dtmdriver-protocol1 v0.0.0-20211205112411-d7a7052dc90e/go.mod h1:kB3NPnDKSGioVjgdfj6qgbqYJinOml45GnlHqR46Ycc=
 github.com/yuin/goldmark v1.1.27/go.mod h1:3hX8gzYuyVAZsxl0MRgGTJEmQBFcNTphYh9decYSb74=
 github.com/yuin/goldmark v1.2.1/go.mod h1:3hX8gzYuyVAZsxl0MRgGTJEmQBFcNTphYh9decYSb74=
 github.com/yuin/goldmark v1.3.5/go.mod h1:mwnBkeHKe2W/ZEtQ+71ViKU8L12m81fl3OWwC1Zlc8k=

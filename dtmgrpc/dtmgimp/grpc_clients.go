@@ -13,6 +13,7 @@ import (
 	"github.com/dtm-labs/dtm/dtmcli/dtmimp"
 	"github.com/dtm-labs/dtm/dtmcli/logger"
 	"github.com/dtm-labs/dtm/dtmgrpc/dtmgpb"
+	grpc_middleware "github.com/grpc-ecosystem/go-grpc-middleware"
 	grpc "google.golang.org/grpc"
 )
 
@@ -34,6 +35,8 @@ func (cb rawCodec) Unmarshal(data []byte, v interface{}) error {
 func (cb rawCodec) Name() string { return "dtm_raw" }
 
 var normalClients, rawClients sync.Map
+
+var ClientInterceptors = []grpc.UnaryClientInterceptor{}
 
 // MustGetDtmClient 1
 func MustGetDtmClient(grpcServer string) dtmgpb.DtmClient {
@@ -59,7 +62,9 @@ func GetGrpcConn(grpcServer string, isRaw bool) (conn *grpc.ClientConn, rerr err
 			opts = grpc.WithDefaultCallOptions(grpc.ForceCodec(rawCodec{}))
 		}
 		logger.Debugf("grpc client connecting %s", grpcServer)
-		conn, rerr := grpc.Dial(grpcServer, grpc.WithInsecure(), grpc.WithUnaryInterceptor(GrpcClientLog), opts)
+		interceptors := append(ClientInterceptors, GrpcClientLog)
+		inOpt := grpc.WithUnaryInterceptor(grpc_middleware.ChainUnaryClient(interceptors...))
+		conn, rerr := grpc.Dial(grpcServer, inOpt, grpc.WithInsecure(), opts)
 		if rerr == nil {
 			clients.Store(grpcServer, conn)
 			v = conn

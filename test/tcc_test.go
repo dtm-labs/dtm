@@ -43,7 +43,8 @@ func TestTccRollback(t *testing.T) {
 	assert.Error(t, err)
 	waitTransProcessed(gid)
 	assert.Equal(t, StatusAborting, getTransStatus(gid))
-	cronTransOnce()
+	g := cronTransOnce()
+	assert.Equal(t, gid, g)
 	assert.Equal(t, StatusFailed, getTransStatus(gid))
 	assert.Equal(t, []string{StatusSucceed, StatusPrepared, StatusSucceed, StatusPrepared}, getBranchesStatus(gid))
 }
@@ -83,4 +84,20 @@ func TestTccCompatible(t *testing.T) {
 	assert.Equal(t, StatusSucceed, getTransStatus(gid))
 	assert.Equal(t, []string{StatusPrepared, StatusSucceed, StatusPrepared, StatusSucceed}, getBranchesStatus(gid))
 
+}
+
+func TestTccHeaders(t *testing.T) {
+	req := busi.GenTransReq(30, false, false)
+	gid := dtmimp.GetFuncName()
+	err := dtmcli.TccGlobalTransaction2(dtmutil.DefaultHttpServer, gid, func(t *dtmcli.Tcc) {
+		t.BranchHeaders = map[string]string{
+			"test_header": "test",
+		}
+	}, func(tcc *dtmcli.Tcc) (*resty.Response, error) {
+		return tcc.CallBranch(req, Busi+"/TransOutHeaderYes", "", "")
+	})
+	assert.Nil(t, err)
+	waitTransProcessed(gid)
+	assert.Equal(t, StatusSucceed, getTransStatus(gid))
+	assert.Equal(t, []string{StatusPrepared, StatusSucceed}, getBranchesStatus(gid))
 }

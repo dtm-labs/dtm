@@ -18,7 +18,8 @@ import (
 func TestMsgOptionsTimeout(t *testing.T) {
 	msg := genMsg(dtmimp.GetFuncName())
 	msg.Prepare("")
-	cronTransOnce()
+	g := cronTransOnce()
+	assert.Equal(t, msg.Gid, g)
 	assert.Equal(t, StatusPrepared, getTransStatus(msg.Gid))
 	cronTransOnceForwardNow(60)
 	assert.Equal(t, StatusSucceed, getTransStatus(msg.Gid))
@@ -28,7 +29,8 @@ func TestMsgOptionsTimeoutCustom(t *testing.T) {
 	msg := genMsg(dtmimp.GetFuncName())
 	msg.TimeoutToFail = 120
 	msg.Prepare("")
-	cronTransOnce()
+	g := cronTransOnce()
+	assert.Equal(t, msg.Gid, g)
 	assert.Equal(t, StatusPrepared, getTransStatus(msg.Gid))
 	cronTransOnceForwardNow(60)
 	assert.Equal(t, StatusPrepared, getTransStatus(msg.Gid))
@@ -40,7 +42,8 @@ func TestMsgOptionsTimeoutFailed(t *testing.T) {
 	msg := genMsg(dtmimp.GetFuncName())
 	msg.TimeoutToFail = 120
 	msg.Prepare("")
-	cronTransOnce()
+	g := cronTransOnce()
+	assert.Equal(t, msg.Gid, g)
 	assert.Equal(t, StatusPrepared, getTransStatus(msg.Gid))
 	cronTransOnceForwardNow(60)
 	assert.Equal(t, StatusPrepared, getTransStatus(msg.Gid))

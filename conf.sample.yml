@@ -1,3 +1,10 @@
+#####################################################################
+### dtm can be run without any config.
+### all config in this file is optional. the default value is as specified in each line
+### all configs can be specified from env. for example:
+### Store.MaxOpenConns can also specified from env: STORE_MAX_OPEN_CONNS
+#####################################################################
+
 # Store: # specify which engine to store trans status
 #   Driver: 'boltdb' # default store engine
 
@@ -19,10 +26,12 @@
 #   Password: 'mysecretpassword'
 #   Port: '5432'
 
-### following connection config is for only Driver postgres/mysql
+### following config is for only Driver postgres/mysql
 #   MaxOpenConns: 500
 #   MaxIdleConns: 500
 #   ConnMaxLifeTime 5 # default value is 5 (minutes)
+#   TransGlobalTable: 'dtm.trans_global'
+#   TransBranchOp: 'dtm.trans_branch_op'
 
 ### flollowing config is only for some Driver
 #   DataExpire: 604800 # Trans data will expire in 7 days. only for redis/boltdb.

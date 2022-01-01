@@ -34,7 +34,8 @@ func TestSagaConRollbackNormal(t *testing.T) {
 	assert.Nil(t, err)
 	waitTransProcessed(sagaCon.Gid)
 	assert.Equal(t, StatusAborting, getTransStatus(sagaCon.Gid))
-	cronTransOnce()
+	g := cronTransOnce()
+	assert.Equal(t, sagaCon.Gid, g)
 	assert.Equal(t, StatusFailed, getTransStatus(sagaCon.Gid))
 	// TODO should fix this
 	// assert.Equal(t, []string{StatusSucceed, StatusFailed, StatusSucceed, StatusSucceed}, getBranchesStatus(sagaCon.Gid))
@@ -58,7 +59,8 @@ func TestSagaConCommittedOngoing(t *testing.T) {
 	assert.Equal(t, []string{StatusPrepared, StatusPrepared, StatusPrepared, StatusSucceed}, getBranchesStatus(sagaCon.Gid))
 	assert.Equal(t, StatusSubmitted, getTransStatus(sagaCon.Gid))
 
-	cronTransOnce()
+	g := cronTransOnce()
+	assert.Equal(t, sagaCon.Gid, g)
 	assert.Equal(t, []string{StatusPrepared, StatusSucceed, StatusPrepared, StatusSucceed}, getBranchesStatus(sagaCon.Gid))
 	assert.Equal(t, StatusSucceed, getTransStatus(sagaCon.Gid))
 }

@@ -154,4 +154,18 @@ func BaseAddRoute(app *gin.Engine) {
 	app.POST(BusiAPI+"/TccBSleepCancel", dtmutil.WrapHandler(func(c *gin.Context) (interface{}, error) {
 		return sleepCancelHandler(c)
 	}))
+	app.POST(BusiAPI+"/TransOutHeaderYes", dtmutil.WrapHandler(func(c *gin.Context) (interface{}, error) {
+		h := c.GetHeader("test_header")
+		if h == "" {
+			return nil, errors.New("no test_header found in TransOutHeaderYes")
+		}
+		return handleGeneralBusiness(c, MainSwitch.TransOutResult.Fetch(), reqFrom(c).TransOutResult, "TransOut")
+	}))
+	app.POST(BusiAPI+"/TransOutHeaderNo", dtmutil.WrapHandler(func(c *gin.Context) (interface{}, error) {
+		h := c.GetHeader("test_header")
+		if h != "" {
+			return nil, errors.New("test_header found in TransOutHeaderNo")
+		}
+		return dtmcli.MapSuccess, nil
+	}))
 }

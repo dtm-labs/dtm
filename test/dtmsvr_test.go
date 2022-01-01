@@ -10,7 +10,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/dtm-labs/dtm/dtmcli"
 	"github.com/dtm-labs/dtm/dtmcli/dtmimp"
 	"github.com/dtm-labs/dtm/dtmsvr"
 	"github.com/dtm-labs/dtm/dtmutil"
@@ -45,7 +44,7 @@ func TestUpdateBranchAsync(t *testing.T) {
 	}
 	conf.UpdateBranchSync = 0
 	saga := genSaga1(dtmimp.GetFuncName(), false, false)
-	saga.SetOptions(&dtmcli.TransOptions{WaitResult: true})
+	saga.WaitResult = true
 	err := saga.Submit()
 	assert.Nil(t, err)
 	waitTransProcessed(saga.Gid)

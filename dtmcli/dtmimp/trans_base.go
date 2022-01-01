@@ -40,9 +40,11 @@ func (g *BranchIDGen) CurrentSubBranchID() string {
 
 // TransOptions transaction options
 type TransOptions struct {
-	WaitResult    bool  `json:"wait_result,omitempty" gorm:"-"`
-	TimeoutToFail int64 `json:"timeout_to_fail,omitempty" gorm:"-"` // for trans type: xa, tcc
-	RetryInterval int64 `json:"retry_interval,omitempty" gorm:"-"`  // for trans type: msg saga xa tcc
+	WaitResult         bool              `json:"wait_result,omitempty" gorm:"-"`
+	TimeoutToFail      int64             `json:"timeout_to_fail,omitempty" gorm:"-"` // for trans type: xa, tcc
+	RetryInterval      int64             `json:"retry_interval,omitempty" gorm:"-"`  // for trans type: msg saga xa tcc
+	PassthroughHeaders []string          `json:"passthrough_headers,omitempty" gorm:"-"`
+	BranchHeaders      map[string]string `json:"branch_headers,omitempty" gorm:"-"`
 }
 
 // TransBase base for all trans
@@ -62,18 +64,14 @@ type TransBase struct {
 	QueryPrepared string `json:"query_prepared,omitempty"` // used in MSG
 }
 
-// SetOptions set options
-func (tb *TransBase) SetOptions(options *TransOptions) {
-	tb.TransOptions = *options
-}
-
 // NewTransBase new a TransBase
 func NewTransBase(gid string, transType string, dtm string, branchID string) *TransBase {
 	return &TransBase{
-		Gid:         gid,
-		TransType:   transType,
-		BranchIDGen: BranchIDGen{BranchID: branchID},
-		Dtm:         dtm,
+		Gid:          gid,
+		TransType:    transType,
+		BranchIDGen:  BranchIDGen{BranchID: branchID},
+		Dtm:          dtm,
+		TransOptions: TransOptions{PassthroughHeaders: PassthroughHeaders},
 	}
 }
 
@@ -118,6 +116,7 @@ func TransRequestBranch(t *TransBase, body interface{}, branchID string, op stri
 			"trans_type": t.TransType,
 			"op":         op,
 		}).
+		SetHeaders(t.BranchHeaders).
 		Post(url)
 	return resp, CheckResponse(resp, err)
 }

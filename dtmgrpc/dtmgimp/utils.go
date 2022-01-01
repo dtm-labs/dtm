@@ -31,9 +31,11 @@ func DtmGrpcCall(s *dtmimp.TransBase, operation string) error {
 		Gid:       s.Gid,
 		TransType: s.TransType,
 		TransOptions: &dtmgpb.DtmTransOptions{
-			WaitResult:    s.WaitResult,
-			TimeoutToFail: s.TimeoutToFail,
-			RetryInterval: s.RetryInterval,
+			WaitResult:         s.WaitResult,
+			TimeoutToFail:      s.TimeoutToFail,
+			RetryInterval:      s.RetryInterval,
+			PassthroughHeaders: s.PassthroughHeaders,
+			BranchHeaders:      s.BranchHeaders,
 		},
 		QueryPrepared: s.QueryPrepared,
 		CustomedData:  s.CustomData,
@@ -42,18 +44,27 @@ func DtmGrpcCall(s *dtmimp.TransBase, operation string) error {
 	}, &reply)
 }
 
-const mdpre string = "dtm-"
+const dtmpre string = "dtm-"
 
 // TransInfo2Ctx add trans info to grpc context
 func TransInfo2Ctx(gid, transType, branchID, op, dtm string) context.Context {
 	md := metadata.Pairs(
-		mdpre+"gid", gid,
-		mdpre+"trans_type", transType,
-		mdpre+"branch_id", branchID,
-		mdpre+"op", op,
-		mdpre+"dtm", dtm,
+		dtmpre+"gid", gid,
+		dtmpre+"trans_type", transType,
+		dtmpre+"branch_id", branchID,
+		dtmpre+"op", op,
+		dtmpre+"dtm", dtm,
 	)
 	return metadata.NewOutgoingContext(context.Background(), md)
+}
+
+// Map2Kvs map to metadata kv
+func Map2Kvs(m map[string]string) []string {
+	kvs := []string{}
+	for k, v := range m {
+		kvs = append(kvs, k, v)
+	}
+	return kvs
 }
 
 // LogDtmCtx logout dtm info in context metadata
@@ -64,8 +75,12 @@ func LogDtmCtx(ctx context.Context) {
 	}
 }
 
+func dtmGet(md metadata.MD, key string) string {
+	return mdGet(md, dtmpre+key)
+}
+
 func mdGet(md metadata.MD, key string) string {
-	v := md.Get(mdpre + key)
+	v := md.Get(key)
 	if len(v) == 0 {
 		return ""
 	}
@@ -75,7 +90,13 @@ func mdGet(md metadata.MD, key string) string {
 // TransBaseFromGrpc get trans base info from a context metadata
 func TransBaseFromGrpc(ctx context.Context) *dtmimp.TransBase {
 	md, _ := metadata.FromIncomingContext(ctx)
-	tb := dtmimp.NewTransBase(mdGet(md, "gid"), mdGet(md, "trans_type"), mdGet(md, "dtm"), mdGet(md, "branch_id"))
-	tb.Op = mdGet(md, "op")
+	tb := dtmimp.NewTransBase(dtmGet(md, "gid"), dtmGet(md, "trans_type"), dtmGet(md, "dtm"), dtmGet(md, "branch_id"))
+	tb.Op = dtmGet(md, "op")
 	return tb
+}
+
+// GetMetaFromContext get header from context
+func GetMetaFromContext(ctx context.Context, name string) string {
+	md, _ := metadata.FromIncomingContext(ctx)
+	return mdGet(md, name)
 }

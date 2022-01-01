@@ -56,6 +56,7 @@ func TestXaGrpcRollback(t *testing.T) {
 }
 
 func TestXaGrpcType(t *testing.T) {
+	gid := dtmimp.GetFuncName()
 	_, err := dtmgrpc.XaGrpcFromRequest(context.Background())
 	assert.Error(t, err)
 
@@ -63,15 +64,18 @@ func TestXaGrpcType(t *testing.T) {
 	assert.Error(t, err)
 
 	err = dtmimp.CatchP(func() {
-		busi.XaGrpcClient.XaGlobalTransaction("id1", func(xa *dtmgrpc.XaGrpc) error { panic(fmt.Errorf("hello")) })
+		busi.XaGrpcClient.XaGlobalTransaction(gid, func(xa *dtmgrpc.XaGrpc) error { panic(fmt.Errorf("hello")) })
 	})
 	assert.Error(t, err)
+	waitTransProcessed(gid)
 }
 
 func TestXaGrpcLocalError(t *testing.T) {
+	gid := dtmimp.GetFuncName()
 	xc := busi.XaGrpcClient
-	err := xc.XaGlobalTransaction(dtmimp.GetFuncName(), func(xa *dtmgrpc.XaGrpc) error {
+	err := xc.XaGlobalTransaction(gid, func(xa *dtmgrpc.XaGrpc) error {
 		return fmt.Errorf("an error")
 	})
 	assert.Error(t, err, fmt.Errorf("an error"))
+	waitTransProcessed(gid)
 }

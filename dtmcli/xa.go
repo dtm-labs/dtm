@@ -83,11 +83,17 @@ func (xc *XaClient) XaLocalTransaction(qs url.Values, xaFunc XaLocalFunc) error 
 
 // XaGlobalTransaction start a xa global transaction
 func (xc *XaClient) XaGlobalTransaction(gid string, xaFunc XaGlobalFunc) (rerr error) {
-	xa := Xa{TransBase: *dtmimp.NewTransBase(gid, "xa", xc.XaClientBase.Server, "")}
+	return xc.XaGlobalTransaction2(gid, func(x *Xa) {}, xaFunc)
+}
+
+// XaGlobalTransaction start a xa global transaction
+func (xc *XaClient) XaGlobalTransaction2(gid string, custom func(*Xa), xaFunc XaGlobalFunc) (rerr error) {
+	xa := &Xa{TransBase: *dtmimp.NewTransBase(gid, "xa", xc.XaClientBase.Server, "")}
+	custom(xa)
 	return xc.HandleGlobalTrans(&xa.TransBase, func(action string) error {
-		return dtmimp.TransCallDtm(&xa.TransBase, &xa, action)
+		return dtmimp.TransCallDtm(&xa.TransBase, xa, action)
 	}, func() error {
-		_, rerr := xaFunc(&xa)
+		_, rerr := xaFunc(xa)
 		return rerr
 	})
 }

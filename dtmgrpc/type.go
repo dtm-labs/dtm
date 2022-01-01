@@ -9,10 +9,10 @@ package dtmgrpc
 import (
 	context "context"
 
-	"github.com/dtm-labs/dtm/dtmcli"
 	"github.com/dtm-labs/dtm/dtmcli/dtmimp"
 	"github.com/dtm-labs/dtm/dtmgrpc/dtmgimp"
 	"github.com/dtm-labs/dtmdriver"
+	grpc "google.golang.org/grpc"
 	emptypb "google.golang.org/protobuf/types/known/emptypb"
 )
 
@@ -24,16 +24,11 @@ func MustGenGid(grpcServer string) string {
 	return r.Gid
 }
 
-// SetCurrentDBType set the current db type
-func SetCurrentDBType(dbType string) {
-	dtmcli.SetCurrentDBType(dbType)
-}
-
-// GetCurrentDBType set the current db type
-func GetCurrentDBType() string {
-	return dtmcli.GetCurrentDBType()
-}
-
+// UseDriver use the specified driver to handle grpc urls
 func UseDriver(driverName string) error {
 	return dtmdriver.Use(driverName)
+}
+
+func AddUnaryInterceptor(interceptor grpc.UnaryClientInterceptor) {
+	dtmgimp.ClientInterceptors = append(dtmgimp.ClientInterceptors, interceptor)
 }

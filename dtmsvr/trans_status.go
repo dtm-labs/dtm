@@ -17,6 +17,7 @@ import (
 	"github.com/dtm-labs/dtm/dtmgrpc/dtmgimp"
 	"github.com/dtm-labs/dtmdriver"
 	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/status"
 )
 
@@ -83,6 +84,9 @@ func (t *TransGlobal) getURLResult(url string, branchID, op string, branchPayloa
 		}
 		conn := dtmgimp.MustGetGrpcConn(server, true)
 		ctx := dtmgimp.TransInfo2Ctx(t.Gid, t.TransType, branchID, op, "")
+		kvs := dtmgimp.Map2Kvs(t.Ext.Headers)
+		kvs = append(kvs, dtmgimp.Map2Kvs(t.BranchHeaders)...)
+		ctx = metadata.AppendToOutgoingContext(ctx, kvs...)
 		err = conn.Invoke(ctx, method, branchPayload, &[]byte{})
 		if err == nil {
 			return dtmcli.ResultSuccess, nil
@@ -106,6 +110,8 @@ func (t *TransGlobal) getURLResult(url string, branchID, op string, branchPayloa
 			"op":         op,
 		}).
 		SetHeader("Content-type", "application/json").
+		SetHeaders(t.Ext.Headers).
+		SetHeaders(t.TransOptions.BranchHeaders).
 		Execute(dtmimp.If(branchPayload != nil || t.TransType == "xa", "POST", "GET").(string), url)
 	if err != nil {
 		return "", err

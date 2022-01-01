@@ -31,13 +31,19 @@ var MapFailure = map[string]interface{}{"dtm_result": ResultFailure}
 // RestyClient the resty object
 var RestyClient = resty.New()
 
+// PassthroughHeaders will be passed to every sub-trans call
+var PassthroughHeaders = []string{}
+
+// BarrierTableName the table name of barrier table
+var BarrierTableName = "dtm_barrier.barrier"
+
 func init() {
 	// RestyClient.SetTimeout(3 * time.Second)
 	// RestyClient.SetRetryCount(2)
 	// RestyClient.SetRetryWaitTime(1 * time.Second)
 	RestyClient.OnBeforeRequest(func(c *resty.Client, r *resty.Request) error {
 		r.URL = MayReplaceLocalhost(r.URL)
-		logger.Debugf("requesting: %s %s %v %v", r.Method, r.URL, r.Body, r.QueryParam)
+		logger.Debugf("requesting: %s %s %s", r.Method, r.URL, MustMarshalString(r.Body))
 		return nil
 	})
 	RestyClient.OnAfterResponse(func(c *resty.Client, resp *resty.Response) error {

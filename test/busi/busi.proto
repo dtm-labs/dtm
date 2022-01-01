@@ -36,5 +36,7 @@ service Busi {
   rpc TransOutBSaga(BusiReq) returns (google.protobuf.Empty) {}
   rpc TransInRevertBSaga(BusiReq) returns (google.protobuf.Empty) {}
   rpc TransOutRevertBSaga(BusiReq) returns (google.protobuf.Empty) {}
+  rpc TransOutHeaderYes(BusiReq) returns (google.protobuf.Empty) {}
+  rpc TransOutHeaderNo(BusiReq) returns (google.protobuf.Empty) {}
 }
 

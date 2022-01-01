@@ -31,7 +31,8 @@ func TestSagaGrpcRollback(t *testing.T) {
 	saga.Submit()
 	waitTransProcessed(saga.Gid)
 	assert.Equal(t, StatusAborting, getTransStatus(saga.Gid))
-	cronTransOnce()
+	g := cronTransOnce()
+	assert.Equal(t, saga.Gid, g)
 	assert.Equal(t, StatusFailed, getTransStatus(saga.Gid))
 	assert.Equal(t, []string{StatusSucceed, StatusSucceed, StatusSucceed, StatusFailed}, getBranchesStatus(saga.Gid))
 }
@@ -62,14 +63,15 @@ func TestSagaGrpcCommittedOngoing(t *testing.T) {
 	waitTransProcessed(saga.Gid)
 	assert.Equal(t, StatusSubmitted, getTransStatus(saga.Gid))
 	assert.Equal(t, []string{StatusPrepared, StatusPrepared, StatusPrepared, StatusPrepared}, getBranchesStatus(saga.Gid))
-	cronTransOnce()
+	g := cronTransOnce()
+	assert.Equal(t, saga.Gid, g)
 	assert.Equal(t, StatusSucceed, getTransStatus(saga.Gid))
 	assert.Equal(t, []string{StatusPrepared, StatusSucceed, StatusPrepared, StatusSucceed}, getBranchesStatus(saga.Gid))
 }
 
 func TestSagaGrpcNormalWait(t *testing.T) {
 	saga := genSagaGrpc(dtmimp.GetFuncName(), false, false)
-	saga.SetOptions(&dtmcli.TransOptions{WaitResult: true})
+	saga.WaitResult = true
 	saga.Submit()
 	assert.Equal(t, []string{StatusPrepared, StatusSucceed, StatusPrepared, StatusSucceed}, getBranchesStatus(saga.Gid))
 	assert.Equal(t, StatusSucceed, getTransStatus(saga.Gid))
@@ -93,4 +95,70 @@ func genSagaGrpc(gid string, outFailed bool, inFailed bool) *dtmgrpc.SagaGrpc {
 	saga.Add(busi.BusiGrpc+"/busi.Busi/TransOut", busi.BusiGrpc+"/busi.Busi/TransOutRevert", req)
 	saga.Add(busi.BusiGrpc+"/busi.Busi/TransIn", busi.BusiGrpc+"/busi.Busi/TransInRevert", req)
 	return saga
+}
+
+func TestSagaGrpcPassthroughHeadersYes(t *testing.T) {
+	gidYes := dtmimp.GetFuncName()
+	sagaYes := dtmgrpc.NewSagaGrpc(dtmutil.DefaultGrpcServer, gidYes)
+	sagaYes.WaitResult = true
+	sagaYes.PassthroughHeaders = []string{"test_header"}
+	sagaYes.Add(busi.BusiGrpc+"/busi.Busi/TransOutHeaderYes", "", nil)
+	err := sagaYes.Submit()
+	assert.Nil(t, err)
+	waitTransProcessed(gidYes)
+}
+
+func TestSagaGrpcCronPassthroughHeadersYes(t *testing.T) {
+	gidYes := dtmimp.GetFuncName()
+	sagaYes := dtmgrpc.NewSagaGrpc(dtmutil.DefaultGrpcServer, gidYes)
+	sagaYes.PassthroughHeaders = []string{"test_header"}
+	sagaYes.Add(busi.BusiGrpc+"/busi.Busi/TransOutHeaderYes", "", nil)
+	busi.MainSwitch.TransOutResult.SetOnce("ONGOING")
+	err := sagaYes.Submit()
+	assert.Nil(t, err)
+	waitTransProcessed(gidYes)
+	assert.Equal(t, StatusSubmitted, getTransStatus(gidYes))
+	g := cronTransOnce()
+	assert.Equal(t, gidYes, g)
+	assert.Equal(t, StatusSucceed, getTransStatus(gidYes))
+}
+
+func TestSagaGrpcPassthroughHeadersNo(t *testing.T) {
+	gidNo := dtmimp.GetFuncName()
+	sagaNo := dtmgrpc.NewSagaGrpc(dtmutil.DefaultGrpcServer, gidNo)
+	sagaNo.WaitResult = true
+	sagaNo.Add(busi.BusiGrpc+"/busi.Busi/TransOutHeaderNo", "", nil)
+	err := sagaNo.Submit()
+	assert.Nil(t, err)
+	waitTransProcessed(gidNo)
+}
+
+func TestSagaGrpcHeaders(t *testing.T) {
+	gidYes := dtmimp.GetFuncName()
+	sagaYes := dtmgrpc.NewSagaGrpc(dtmutil.DefaultGrpcServer, gidYes).
+		Add(busi.BusiGrpc+"/busi.Busi/TransOutHeaderYes", "", nil)
+	sagaYes.BranchHeaders = map[string]string{
+		"test_header": "test",
+	}
+	sagaYes.WaitResult = true
+	err := sagaYes.Submit()
+	assert.Nil(t, err)
+	waitTransProcessed(gidYes)
+}
+
+func TestSagaGrpcCronHeaders(t *testing.T) {
+	gidYes := dtmimp.GetFuncName()
+	sagaYes := dtmgrpc.NewSagaGrpc(dtmutil.DefaultGrpcServer, gidYes)
+	sagaYes.BranchHeaders = map[string]string{
+		"test_header": "test",
+	}
+	sagaYes.Add(busi.BusiGrpc+"/busi.Busi/TransOutHeaderYes", "", nil)
+	busi.MainSwitch.TransOutResult.SetOnce("ONGOING")
+	err := sagaYes.Submit()
+	assert.Nil(t, err)
+	waitTransProcessed(gidYes)
+	assert.Equal(t, StatusSubmitted, getTransStatus(gidYes))
+	g := cronTransOnce()
+	assert.Equal(t, gidYes, g)
+	assert.Equal(t, StatusSucceed, getTransStatus(gidYes))
 }

@@ -43,7 +43,7 @@ func TestXaCoverDTMError(t *testing.T) {
 }
 
 func TestXaCoverGidError(t *testing.T) {
-	gid := "errgid-'  '"
+	gid := dtmimp.GetFuncName() + "-'  '"
 	err := getXc().XaGlobalTransaction(gid, func(xa *dtmcli.Xa) (*resty.Response, error) {
 		req := busi.GenTransReq(30, false, false)
 		_, err := xa.CallBranch(req, busi.Busi+"/TransOutXa")
@@ -51,4 +51,5 @@ func TestXaCoverGidError(t *testing.T) {
 		return nil, err
 	})
 	assert.Error(t, err)
+	waitTransProcessed(gid)
 }
