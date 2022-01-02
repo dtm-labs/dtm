@@ -20,7 +20,8 @@ type transSagaProcessor struct {
 }
 
 func init() {
-	registorProcessorCreator("saga", func(trans *TransGlobal) transProcessor { return &transSagaProcessor{TransGlobal: trans} })
+	registorProcessorCreator("saga", func(trans *TransGlobal) transProcessor {
+		return &transSagaProcessor{TransGlobal: trans} })
 }
 
 func (t *transSagaProcessor) GenBranches() []TransBranch {
@@ -114,7 +115,8 @@ func (t *transSagaProcessor) ProcessOnce(branches []TransBranch) error {
 		toRun := []int{}
 		for current := 0; current < n; current++ {
 			br := &branchResults[current]
-			if br.op == dtmcli.BranchAction && !br.started && isPreconditionsSucceed(current) && br.status == dtmcli.StatusPrepared {
+			if br.op == dtmcli.BranchAction && !br.started && isPreconditionsSucceed(current) &&
+				br.status == dtmcli.StatusPrepared {
 				toRun = append(toRun, current)
 			}
 		}
@@ -132,11 +134,13 @@ func (t *transSagaProcessor) ProcessOnce(branches []TransBranch) error {
 	}
 	pickAndRunCompensates := func(toRunActions []int) {
 		for _, b := range toRunActions {
-			// these branches may have run. so flag them to status succeed, then run the corresponding compensate
+			// these branches may have run. so flag them to status succeed, then run the corresponding
+			// compensate
 			branchResults[b].status = dtmcli.StatusSucceed
 		}
 		for i, b := range branchResults {
-			if b.op == dtmcli.BranchCompensate && b.status != dtmcli.StatusSucceed && branchResults[i+1].status != dtmcli.StatusPrepared {
+			if b.op == dtmcli.BranchCompensate && b.status != dtmcli.StatusSucceed &&
+				branchResults[i+1].status != dtmcli.StatusPrepared {
 				rsCToStart++
 				go asyncExecBranch(i)
 			}

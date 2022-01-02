@@ -70,6 +70,7 @@ func updateBranchAsync() {
 			case updateBranch := <-updateBranchAsyncChan:
 				updates = append(updates, TransBranch{
 					ModelBase:  dtmutil.ModelBase{ID: updateBranch.id},
+					Gid:        updateBranch.gid,
 					Status:     updateBranch.status,
 					FinishTime: updateBranch.finishTime,
 				})
