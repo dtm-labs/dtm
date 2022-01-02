@@ -19,6 +19,7 @@ import (
 
 type branchStatus struct {
 	id         uint64
+	gid        string
 	status     string
 	finishTime *time.Time
 }

@@ -53,7 +53,7 @@ func (t *TransGlobal) changeBranchStatus(b *TransBranch, status string, branchPo
 		logger.Infof("LockGlobalSaveBranches ok: gid: %s old status: %s branches: %s",
 			b.Gid, dtmcli.StatusPrepared, b.String())
 	} else { // 为了性能优化，把branch的status更新异步化
-		updateBranchAsyncChan <- branchStatus{id: b.ID, status: status, finishTime: &now}
+		updateBranchAsyncChan <- branchStatus{id: b.ID, gid: t.Gid, status: status, finishTime: &now}
 	}
 }
 
