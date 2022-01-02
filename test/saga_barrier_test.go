@@ -11,7 +11,7 @@ import (
 
 	"github.com/dtm-labs/dtm/dtmcli"
 	"github.com/dtm-labs/dtm/dtmcli/dtmimp"
-	"github.com/dtm-labs/dtm/examples"
+	"github.com/dtm-labs/dtm/test/busi"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -34,7 +34,7 @@ func TestSagaBarrierRollback(t *testing.T) {
 }
 
 func genSagaBarrier(gid string, outFailed, inFailed bool) *dtmcli.Saga {
-	req := examples.GenTransReq(30, outFailed, inFailed)
+	req := busi.GenTransReq(30, outFailed, inFailed)
 	return dtmcli.NewSaga(DtmServer, gid).
 		Add(Busi+"/SagaBTransOut", Busi+"/SagaBTransOutCompensate", req).
 		Add(Busi+"/SagaBTransIn", Busi+"/SagaBTransInCompensate", req)

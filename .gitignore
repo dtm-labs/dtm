@@ -5,7 +5,7 @@ conf.yml
 main
 dist
 .idea/**
-.vscode/*.json
+.vscode
 default.etcd
 */**/*.bolt
 
@@ -13,3 +13,6 @@ default.etcd
 coverage.*
 profile.*
 test.sh
+dtm
+dtm-*
+dtm.*

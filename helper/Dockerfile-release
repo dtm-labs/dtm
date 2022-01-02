@@ -6,10 +6,10 @@ WORKDIR /app/dtm
 # RUN go env -w GOPROXY=https://mirrors.aliyun.com/goproxy/,direct
 EXPOSE 8080
 COPY . .
-RUN CGO_ENABLED=0 GOOS=$TARGETOS GOARCH=$TARGETARCH go build -ldflags="-s -w" app/main.go
+RUN CGO_ENABLED=0 GOOS=$TARGETOS GOARCH=$TARGETARCH go build -ldflags="-s -w"
 
 FROM --platform=$TARGETPLATFORM alpine:3.14
-COPY --from=builder /app/dtm/main /app/dtm/
+COPY --from=builder /app/dtm/dtm /app/dtm/
 ENV IS_DOCKER=1
 WORKDIR /app/dtm
-CMD ["/app/dtm/main", "dtmsvr"]
+ENTRYPOINT ["/app/dtm/dtm"]

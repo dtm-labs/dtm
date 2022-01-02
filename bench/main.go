@@ -5,12 +5,12 @@ import (
 	"os"
 
 	"github.com/dtm-labs/dtm/bench/svr"
-	"github.com/dtm-labs/dtm/common"
 	"github.com/dtm-labs/dtm/dtmcli"
 	"github.com/dtm-labs/dtm/dtmcli/logger"
 	"github.com/dtm-labs/dtm/dtmsvr"
+	"github.com/dtm-labs/dtm/dtmsvr/config"
 	"github.com/dtm-labs/dtm/dtmsvr/storage/registry"
-	"github.com/dtm-labs/dtm/examples"
+	"github.com/dtm-labs/dtm/test/busi"
 )
 
 var usage = `bench is a bench test server for dtmf
@@ -25,23 +25,23 @@ func hintAndExit() {
 	os.Exit(0)
 }
 
-var conf = &common.Config
+var conf = &config.Config
 
 func main() {
 	if len(os.Args) <= 1 {
 		hintAndExit()
 	}
 	logger.Infof("starting bench server")
-	common.MustLoadConfig()
+	config.MustLoadConfig("")
 	logger.InitLog(conf.LogLevel)
-	if conf.ExamplesDB.Driver != "" {
-		dtmcli.SetCurrentDBType(conf.ExamplesDB.Driver)
+	if busi.BusiConf.Driver != "" {
+		dtmcli.SetCurrentDBType(busi.BusiConf.Driver)
 		svr.PrepareBenchDB()
 	}
 	registry.WaitStoreUp()
 	dtmsvr.PopulateDB(false)
 	if os.Args[1] == "db" {
-		examples.PopulateDB(false)
+		busi.PopulateDB(false)
 	} else if os.Args[1] == "redis" || os.Args[1] == "boltdb" {
 
 	} else {

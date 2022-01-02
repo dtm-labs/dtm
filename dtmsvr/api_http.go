@@ -9,23 +9,23 @@ package dtmsvr
 import (
 	"errors"
 
-	"github.com/dtm-labs/dtm/common"
 	"github.com/dtm-labs/dtm/dtmcli"
 	"github.com/dtm-labs/dtm/dtmcli/dtmimp"
+	"github.com/dtm-labs/dtm/dtmutil"
 	"github.com/gin-gonic/gin"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
 func addRoute(engine *gin.Engine) {
-	engine.GET("/api/dtmsvr/newGid", common.WrapHandler(newGid))
-	engine.POST("/api/dtmsvr/prepare", common.WrapHandler(prepare))
-	engine.POST("/api/dtmsvr/submit", common.WrapHandler(submit))
-	engine.POST("/api/dtmsvr/abort", common.WrapHandler(abort))
-	engine.POST("/api/dtmsvr/registerBranch", common.WrapHandler(registerBranch))
-	engine.POST("/api/dtmsvr/registerXaBranch", common.WrapHandler(registerBranch))  // compatible for old sdk
-	engine.POST("/api/dtmsvr/registerTccBranch", common.WrapHandler(registerBranch)) // compatible for old sdk
-	engine.GET("/api/dtmsvr/query", common.WrapHandler(query))
-	engine.GET("/api/dtmsvr/all", common.WrapHandler(all))
+	engine.GET("/api/dtmsvr/newGid", dtmutil.WrapHandler(newGid))
+	engine.POST("/api/dtmsvr/prepare", dtmutil.WrapHandler(prepare))
+	engine.POST("/api/dtmsvr/submit", dtmutil.WrapHandler(submit))
+	engine.POST("/api/dtmsvr/abort", dtmutil.WrapHandler(abort))
+	engine.POST("/api/dtmsvr/registerBranch", dtmutil.WrapHandler(registerBranch))
+	engine.POST("/api/dtmsvr/registerXaBranch", dtmutil.WrapHandler(registerBranch))  // compatible for old sdk
+	engine.POST("/api/dtmsvr/registerTccBranch", dtmutil.WrapHandler(registerBranch)) // compatible for old sdk
+	engine.GET("/api/dtmsvr/query", dtmutil.WrapHandler(query))
+	engine.GET("/api/dtmsvr/all", dtmutil.WrapHandler(all))
 
 	// add prometheus exporter
 	h := promhttp.Handler()

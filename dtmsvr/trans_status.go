@@ -17,6 +17,7 @@ import (
 	"github.com/dtm-labs/dtm/dtmgrpc/dtmgimp"
 	"github.com/dtm-labs/dtmdriver"
 	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/status"
 )
 
@@ -47,19 +48,19 @@ func (t *TransGlobal) changeBranchStatus(b *TransBranch, status string, branchPo
 	b.Status = status
 	b.FinishTime = &now
 	b.UpdateTime = &now
-	if config.Store.Driver != dtmimp.DBTypeMysql && config.Store.Driver != dtmimp.DBTypePostgres || config.UpdateBranchSync > 0 || t.updateBranchSync {
+	if conf.Store.Driver != dtmimp.DBTypeMysql && conf.Store.Driver != dtmimp.DBTypePostgres || conf.UpdateBranchSync > 0 || t.updateBranchSync {
 		GetStore().LockGlobalSaveBranches(t.Gid, t.Status, []TransBranch{*b}, branchPos)
 		logger.Infof("LockGlobalSaveBranches ok: gid: %s old status: %s branches: %s",
 			b.Gid, dtmcli.StatusPrepared, b.String())
 	} else { // 为了性能优化，把branch的status更新异步化
-		updateBranchAsyncChan <- branchStatus{id: b.ID, status: status, finishTime: &now}
+		updateBranchAsyncChan <- branchStatus{id: b.ID, gid: t.Gid, status: status, finishTime: &now}
 	}
 }
 
 func (t *TransGlobal) isTimeout() bool {
 	timeout := t.TimeoutToFail
 	if t.TimeoutToFail == 0 && t.TransType != "saga" {
-		timeout = config.TimeoutToFail
+		timeout = conf.TimeoutToFail
 	}
 	if timeout == 0 {
 		return false
@@ -83,6 +84,9 @@ func (t *TransGlobal) getURLResult(url string, branchID, op string, branchPayloa
 		}
 		conn := dtmgimp.MustGetGrpcConn(server, true)
 		ctx := dtmgimp.TransInfo2Ctx(t.Gid, t.TransType, branchID, op, "")
+		kvs := dtmgimp.Map2Kvs(t.Ext.Headers)
+		kvs = append(kvs, dtmgimp.Map2Kvs(t.BranchHeaders)...)
+		ctx = metadata.AppendToOutgoingContext(ctx, kvs...)
 		err = conn.Invoke(ctx, method, branchPayload, &[]byte{})
 		if err == nil {
 			return dtmcli.ResultSuccess, nil
@@ -106,6 +110,8 @@ func (t *TransGlobal) getURLResult(url string, branchID, op string, branchPayloa
 			"op":         op,
 		}).
 		SetHeader("Content-type", "application/json").
+		SetHeaders(t.Ext.Headers).
+		SetHeaders(t.TransOptions.BranchHeaders).
 		Execute(dtmimp.If(branchPayload != nil || t.TransType == "xa", "POST", "GET").(string), url)
 	if err != nil {
 		return "", err
@@ -136,7 +142,7 @@ func (t *TransGlobal) execBranch(branch *TransBranch, branchPos int) error {
 	branchMetrics(t, branch, status == dtmcli.StatusSucceed)
 	// if time pass 1500ms and NextCronInterval is not default, then reset NextCronInterval
 	if err == nil && time.Since(t.lastTouched)+NowForwardDuration >= 1500*time.Millisecond ||
-		t.NextCronInterval > config.RetryInterval && t.NextCronInterval > t.RetryInterval {
+		t.NextCronInterval > conf.RetryInterval && t.NextCronInterval > t.RetryInterval {
 		t.touchCronTime(cronReset)
 	} else if err == dtmimp.ErrOngoing {
 		t.touchCronTime(cronKeep)
@@ -154,6 +160,6 @@ func (t *TransGlobal) getNextCronInterval(ctype cronType) int64 {
 	} else if t.RetryInterval != 0 {
 		return t.RetryInterval
 	} else {
-		return config.RetryInterval
+		return conf.RetryInterval
 	}
 }

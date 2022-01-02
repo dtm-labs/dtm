@@ -11,14 +11,15 @@ import (
 
 	"github.com/dtm-labs/dtm/dtmcli"
 	"github.com/dtm-labs/dtm/dtmcli/dtmimp"
-	"github.com/dtm-labs/dtm/examples"
+	"github.com/dtm-labs/dtm/test/busi"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestMsgOptionsTimeout(t *testing.T) {
 	msg := genMsg(dtmimp.GetFuncName())
 	msg.Prepare("")
-	cronTransOnce()
+	g := cronTransOnce()
+	assert.Equal(t, msg.Gid, g)
 	assert.Equal(t, StatusPrepared, getTransStatus(msg.Gid))
 	cronTransOnceForwardNow(60)
 	assert.Equal(t, StatusSucceed, getTransStatus(msg.Gid))
@@ -28,7 +29,8 @@ func TestMsgOptionsTimeoutCustom(t *testing.T) {
 	msg := genMsg(dtmimp.GetFuncName())
 	msg.TimeoutToFail = 120
 	msg.Prepare("")
-	cronTransOnce()
+	g := cronTransOnce()
+	assert.Equal(t, msg.Gid, g)
 	assert.Equal(t, StatusPrepared, getTransStatus(msg.Gid))
 	cronTransOnceForwardNow(60)
 	assert.Equal(t, StatusPrepared, getTransStatus(msg.Gid))
@@ -40,11 +42,12 @@ func TestMsgOptionsTimeoutFailed(t *testing.T) {
 	msg := genMsg(dtmimp.GetFuncName())
 	msg.TimeoutToFail = 120
 	msg.Prepare("")
-	cronTransOnce()
+	g := cronTransOnce()
+	assert.Equal(t, msg.Gid, g)
 	assert.Equal(t, StatusPrepared, getTransStatus(msg.Gid))
 	cronTransOnceForwardNow(60)
 	assert.Equal(t, StatusPrepared, getTransStatus(msg.Gid))
-	examples.MainSwitch.CanSubmitResult.SetOnce(dtmcli.ResultFailure)
+	busi.MainSwitch.CanSubmitResult.SetOnce(dtmcli.ResultFailure)
 	cronTransOnceForwardNow(180)
 	assert.Equal(t, StatusFailed, getTransStatus(msg.Gid))
 }

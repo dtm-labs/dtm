@@ -10,18 +10,15 @@ import (
 	"testing"
 	"time"
 
-	"github.com/dtm-labs/dtm/common"
-	"github.com/dtm-labs/dtm/dtmcli"
 	"github.com/dtm-labs/dtm/dtmcli/dtmimp"
 	"github.com/dtm-labs/dtm/dtmsvr"
-	"github.com/dtm-labs/dtm/examples"
-	"github.com/gin-gonic/gin"
+	"github.com/dtm-labs/dtm/dtmutil"
+	"github.com/dtm-labs/dtm/test/busi"
 	"github.com/stretchr/testify/assert"
 )
 
-var DtmServer = examples.DtmHttpServer
-var Busi = examples.Busi
-var app *gin.Engine
+var DtmServer = dtmutil.DefaultHttpServer
+var Busi = busi.Busi
 
 func getTransStatus(gid string) string {
 	return dtmsvr.GetTransGlobal(gid).Status
@@ -42,17 +39,17 @@ func assertSucceed(t *testing.T, gid string) {
 }
 
 func TestUpdateBranchAsync(t *testing.T) {
-	if config.Store.Driver != "mysql" {
+	if conf.Store.Driver != "mysql" {
 		return
 	}
-	common.Config.UpdateBranchSync = 0
+	conf.UpdateBranchSync = 0
 	saga := genSaga1(dtmimp.GetFuncName(), false, false)
-	saga.SetOptions(&dtmcli.TransOptions{WaitResult: true})
+	saga.WaitResult = true
 	err := saga.Submit()
 	assert.Nil(t, err)
 	waitTransProcessed(saga.Gid)
 	time.Sleep(dtmsvr.UpdateBranchAsyncInterval)
 	assert.Equal(t, []string{StatusPrepared, StatusSucceed}, getBranchesStatus(saga.Gid))
 	assert.Equal(t, StatusSucceed, getTransStatus(saga.Gid))
-	common.Config.UpdateBranchSync = 1
+	conf.UpdateBranchSync = 1
 }

@@ -11,7 +11,8 @@ import (
 
 	"github.com/dtm-labs/dtm/dtmcli/dtmimp"
 	"github.com/dtm-labs/dtm/dtmgrpc"
-	"github.com/dtm-labs/dtm/examples"
+	"github.com/dtm-labs/dtm/dtmutil"
+	"github.com/dtm-labs/dtm/test/busi"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -34,9 +35,9 @@ func TestSagaGrpcBarrierRollback(t *testing.T) {
 }
 
 func genSagaGrpcBarrier(gid string, outFailed bool, inFailed bool) *dtmgrpc.SagaGrpc {
-	saga := dtmgrpc.NewSagaGrpc(examples.DtmGrpcServer, gid)
-	req := examples.GenBusiReq(30, outFailed, inFailed)
-	saga.Add(examples.BusiGrpc+"/examples.Busi/TransOutBSaga", examples.BusiGrpc+"/examples.Busi/TransOutRevertBSaga", req)
-	saga.Add(examples.BusiGrpc+"/examples.Busi/TransInBSaga", examples.BusiGrpc+"/examples.Busi/TransInRevertBSaga", req)
+	saga := dtmgrpc.NewSagaGrpc(dtmutil.DefaultGrpcServer, gid)
+	req := busi.GenBusiReq(30, outFailed, inFailed)
+	saga.Add(busi.BusiGrpc+"/busi.Busi/TransOutBSaga", busi.BusiGrpc+"/busi.Busi/TransOutRevertBSaga", req)
+	saga.Add(busi.BusiGrpc+"/busi.Busi/TransInBSaga", busi.BusiGrpc+"/busi.Busi/TransInRevertBSaga", req)
 	return saga
 }

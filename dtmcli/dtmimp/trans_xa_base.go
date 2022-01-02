@@ -11,7 +11,7 @@ import (
 	"strings"
 )
 
-// XaClientBase XaClient/XaGrpcClient base
+// XaClientBase XaClient/XaGrpcClient base. shared by http and grpc
 type XaClientBase struct {
 	Server    string
 	Conf      DBConf

@@ -9,17 +9,19 @@ package test
 import (
 	"time"
 
-	"github.com/dtm-labs/dtm/common"
 	"github.com/dtm-labs/dtm/dtmcli"
 	"github.com/dtm-labs/dtm/dtmcli/dtmimp"
 	"github.com/dtm-labs/dtm/dtmcli/logger"
 	"github.com/dtm-labs/dtm/dtmsvr"
+	"github.com/dtm-labs/dtm/dtmsvr/config"
+	"github.com/dtm-labs/dtm/dtmutil"
+	"github.com/dtm-labs/dtm/test/busi"
 )
 
-var config = &common.Config
+var conf = &config.Config
 
-func dbGet() *common.DB {
-	return common.DbGet(config.ExamplesDB)
+func dbGet() *dtmutil.DB {
+	return dtmutil.DbGet(busi.BusiConf)
 }
 
 // waitTransProcessed only for test usage. wait for transaction processed once
@@ -27,21 +29,19 @@ func waitTransProcessed(gid string) {
 	logger.Debugf("waiting for gid %s", gid)
 	select {
 	case id := <-dtmsvr.TransProcessedTestChan:
-		for id != gid {
-			logger.Errorf("-------id %s not match gid %s", id, gid)
-			id = <-dtmsvr.TransProcessedTestChan
-		}
+		logger.FatalfIf(id != gid, "------- expecting: %s but %s found", gid, id)
 		logger.Debugf("finish for gid %s", gid)
 	case <-time.After(time.Duration(time.Second * 3)):
 		logger.FatalfIf(true, "Wait Trans timeout")
 	}
 }
 
-func cronTransOnce() {
+func cronTransOnce() string {
 	gid := dtmsvr.CronTransOnce()
 	if dtmsvr.TransProcessedTestChan != nil && gid != "" {
 		waitTransProcessed(gid)
 	}
+	return gid
 }
 
 var e2p = dtmimp.E2P
@@ -52,18 +52,20 @@ type TransGlobal = dtmsvr.TransGlobal
 // TransBranch alias
 type TransBranch = dtmsvr.TransBranch
 
-func cronTransOnceForwardNow(seconds int) {
+func cronTransOnceForwardNow(seconds int) string {
 	old := dtmsvr.NowForwardDuration
 	dtmsvr.NowForwardDuration = time.Duration(seconds) * time.Second
-	cronTransOnce()
+	gid := cronTransOnce()
 	dtmsvr.NowForwardDuration = old
+	return gid
 }
 
-func cronTransOnceForwardCron(seconds int) {
+func cronTransOnceForwardCron(seconds int) string {
 	old := dtmsvr.CronForwardDuration
 	dtmsvr.CronForwardDuration = time.Duration(seconds) * time.Second
-	cronTransOnce()
+	gid := cronTransOnce()
 	dtmsvr.CronForwardDuration = old
+	return gid
 }
 
 const (

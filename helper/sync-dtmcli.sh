@@ -30,8 +30,6 @@ go build || exit 1
 git add .
 git commit -m"update from dtm to version $ver"
 git push
-git tag $ver
-git push --tags
 
 
 cd ../dtmgrpc

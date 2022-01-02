@@ -10,7 +10,6 @@ import (
 	"context"
 	"testing"
 
-	"github.com/dtm-labs/dtm/dtmcli"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -20,10 +19,6 @@ func TestType(t *testing.T) {
 
 	_, err = TccFromGrpc(context.Background())
 	assert.Error(t, err)
-
-	old := GetCurrentDBType()
-	SetCurrentDBType(dtmcli.DBTypeMysql)
-	SetCurrentDBType(old)
 
 	err = UseDriver("default")
 	assert.Nil(t, err)

@@ -10,8 +10,8 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/dtm-labs/dtm/common"
 	"github.com/dtm-labs/dtm/dtmcli/dtmimp"
+	"github.com/dtm-labs/dtm/dtmsvr/config"
 	"github.com/dtm-labs/dtm/dtmsvr/storage"
 	"github.com/dtm-labs/dtm/dtmsvr/storage/registry"
 	"github.com/lithammer/shortuuid/v3"
@@ -19,6 +19,7 @@ import (
 
 type branchStatus struct {
 	id         uint64
+	gid        string
 	status     string
 	finishTime *time.Time
 }
@@ -26,7 +27,7 @@ type branchStatus struct {
 var p2e = dtmimp.P2E
 var e2p = dtmimp.E2P
 
-var config = &common.Config
+var conf = &config.Config
 
 func GetStore() storage.Store {
 	return registry.GetStore()
