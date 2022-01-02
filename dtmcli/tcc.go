@@ -16,9 +16,9 @@ type Tcc struct {
 type TccGlobalFunc func(tcc *Tcc) (*resty.Response, error)
 
 // TccGlobalTransaction begin a tcc global transaction
-// dtm dtm server addresss
-// gid global transaction id
-// tccFunc tcc transacion funciton, it'll define branch transaction
+// dtm: dtm server addresss
+// gid: global transaction id
+// tccFunc: tcc transacion funciton, it'll define branch transaction
 func TccGlobalTransaction(dtm string, gid string, tccFunc TccGlobalFunc) (rerr error) {
 	tcc := &Tcc{TransBase: *NewTransBase(gid, "tcc", dtm, "")}
 	rerr = tcc.callDtm(tcc, "prepare")
