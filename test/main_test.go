@@ -25,7 +25,7 @@ func exitIf(code int) {
 }
 
 func TestMain(m *testing.M) {
-	config.MustLoadConfig("")
+	config.MustLoadConfig("./conf.yml")
 	logger.InitLog("debug")
 	dtmcli.SetCurrentDBType(busi.BusiConf.Driver)
 	dtmsvr.TransProcessedTestChan = make(chan string, 1)
