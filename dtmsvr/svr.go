@@ -7,8 +7,13 @@
 package dtmsvr
 
 import (
+	"context"
 	"fmt"
 	"net"
+	"net/http"
+	"os"
+	"os/signal"
+	"syscall"
 	"time"
 
 	"github.com/dtm-labs/dtm/dtmcli/logger"
@@ -22,24 +27,36 @@ import (
 
 // StartSvr StartSvr
 func StartSvr() {
+	stop := make(chan os.Signal, 1)
+	signal.Notify(stop, syscall.SIGINT, syscall.SIGTERM)
+
 	logger.Infof("start dtmsvr")
 	app := dtmutil.GetGinApp()
 	app = httpMetrics(app)
 	addRoute(app)
-	logger.Infof("dtmsvr listen at: %d", conf.HttpPort)
-	go app.Run(fmt.Sprintf(":%d", conf.HttpPort))
+	httpServer := http.Server{
+		Addr:    fmt.Sprintf(":%d", conf.HttpPort),
+		Handler: app,
+	}
+	logger.Infof("dtmsvr http listening at: %d", conf.HttpPort)
+	go func() {
+		if err := httpServer.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+			logger.Errorf("dtmsvr run error: %v", err)
+		}
+	}()
 
 	lis, err := net.Listen("tcp", fmt.Sprintf(":%d", conf.GrpcPort))
 	logger.FatalIfError(err)
-	s := grpc.NewServer(
-		grpc.UnaryInterceptor(grpc_middleware.ChainUnaryServer(
-			grpc.UnaryServerInterceptor(grpcMetrics), grpc.UnaryServerInterceptor(dtmgimp.GrpcServerLog)),
-		))
-	dtmgpb.RegisterDtmServer(s, &dtmServer{})
-	logger.Infof("grpc listening at %v", lis.Addr())
+	grpcServer := grpc.NewServer(grpc.UnaryInterceptor(grpc_middleware.ChainUnaryServer(
+		grpcMetrics,
+		dtmgimp.GrpcServerLog,
+	)))
+	dtmgpb.RegisterDtmServer(grpcServer, &dtmServer{})
+	logger.Infof("dtmsvr grpc listening at: %d", conf.GrpcPort)
 	go func() {
-		err := s.Serve(lis)
-		logger.FatalIfError(err)
+		if err = grpcServer.Serve(lis); err != nil {
+			logger.Errorf("dtmsvr run error: %v", err)
+		}
 	}()
 	go updateBranchAsync()
 
@@ -48,6 +65,19 @@ func StartSvr() {
 	logger.FatalIfError(err)
 	err = dtmdriver.GetDriver().RegisterGrpcService(conf.MicroService.Target, conf.MicroService.EndPoint)
 	logger.FatalIfError(err)
+
+	<-stop
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*5)
+	defer cancel()
+	grpcServer.GracefulStop()
+	logger.Infof("dtmsvr grpc stopped")
+	err = httpServer.Shutdown(ctx)
+	if err != nil {
+		logger.Errorf("dtmsvr http shutdown error: %v", err)
+	}
+	logger.Infof("dtmsvr http stopped")
+	<-ctx.Done()
+	close(stop)
 }
 
 // PopulateDB setup mysql data

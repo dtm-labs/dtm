@@ -67,5 +67,4 @@ func main() {
 	registry.WaitStoreUp()
 	dtmsvr.StartSvr()              // 启动dtmsvr的api服务
 	go dtmsvr.CronExpiredTrans(-1) // 启动dtmsvr的定时过期查询
-	select {}
 }
