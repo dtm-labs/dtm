@@ -1,14 +1,24 @@
 # .goreleaser.yml
 project_name: dtm
 builds:
-  - env: [CGO_ENABLED=0]
+  - id: dtm_amd64
+    env: [CGO_ENABLED=0]
     goos:
       - linux
       - windows
       - darwin
     goarch:
       - amd64
-    id: 'dtm'
+    dir: .
+    main: main.go
+    ldflags:
+      - -s -w -X main.Version={{.Version}}
+  - id: dtm_arm64
+    env: [ CGO_ENABLED=0 ]
+    goos:
+      - darwin
+    goarch:
+      - arm64
     dir: .
     main: main.go
     ldflags:
