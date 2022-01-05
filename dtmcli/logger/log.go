@@ -8,13 +8,27 @@ import (
 	"go.uber.org/zap/zapcore"
 )
 
-var logger *zap.SugaredLogger = nil
+//var logger *zap.SugaredLogger = nil
+
+var logger Logger = nil
 
 func init() {
 	InitLog("info")
 }
 
-// InitLog is a initialization for a logger
+// Logger logger interface
+type Logger interface {
+	Debugf(format string, args ...interface{})
+	Infof(format string, args ...interface{})
+	Warnf(format string, args ...interface{})
+	Errorf(format string, args ...interface{})
+}
+
+func WithLogger(log Logger) {
+	logger = log
+}
+
+// InitLog is an initialization for a logger
 // level can be: debug info warn error
 func InitLog(level string) {
 	config := zap.NewProductionConfig()
