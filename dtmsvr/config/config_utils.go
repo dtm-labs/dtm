@@ -65,7 +65,7 @@ func checkConfig(conf *configType) error {
 	switch conf.Store.Driver {
 	case BoltDb:
 		return nil
-	case Mysql:
+	case Mysql, Postgres:
 		if conf.Store.Host == "" {
 			return errors.New("Db host not valid ")
 		}

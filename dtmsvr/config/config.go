@@ -14,6 +14,7 @@ const (
 	Mysql          = "mysql"
 	Redis          = "redis"
 	BoltDb         = "boltdb"
+	Postgres       = "postgres"
 )
 
 // MicroService config type for micro service
