@@ -1,9 +1,10 @@
 package logger
 
 import (
-	"go.uber.org/zap"
 	"os"
 	"testing"
+
+	"go.uber.org/zap"
 )
 
 func TestInitLog(t *testing.T) {

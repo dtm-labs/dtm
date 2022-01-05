@@ -7,8 +7,8 @@
 package dtmutil
 
 const (
-	// DefaultHttpServer default url for http server. used by test and examples
-	DefaultHttpServer = "http://localhost:36789/api/dtmsvr"
+	// DefaultHTTPServer default url for http server. used by test and examples
+	DefaultHTTPServer = "http://localhost:36789/api/dtmsvr"
 	// DefaultGrpcServer default url for grpc server. used by test and examples
 	DefaultGrpcServer = "localhost:36790"
 )

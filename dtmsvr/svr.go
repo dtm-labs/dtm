@@ -26,8 +26,10 @@ func StartSvr() {
 	app := dtmutil.GetGinApp()
 	app = httpMetrics(app)
 	addRoute(app)
-	logger.Infof("dtmsvr listen at: %d", conf.HttpPort)
-	go app.Run(fmt.Sprintf(":%d", conf.HttpPort))
+	logger.Infof("dtmsvr listen at: %d", conf.HTTPPort)
+	go func() {
+		_ = app.Run(fmt.Sprintf(":%d", conf.HTTPPort))
+	}()
 
 	lis, err := net.Listen("tcp", fmt.Sprintf(":%d", conf.GrpcPort))
 	logger.FatalIfError(err)
@@ -60,8 +62,8 @@ var UpdateBranchAsyncInterval = 200 * time.Millisecond
 var updateBranchAsyncChan chan branchStatus = make(chan branchStatus, 1000)
 
 func updateBranchAsync() {
+	defer dtmutil.RecoverPanic(nil)
 	for { // flush branches every second
-		defer dtmutil.RecoverPanic(nil)
 		updates := []TransBranch{}
 		started := time.Now()
 		checkInterval := 20 * time.Millisecond

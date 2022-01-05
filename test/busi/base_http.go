@@ -35,14 +35,17 @@ type setupFunc func(*gin.Engine)
 var setupFuncs = map[string]setupFunc{}
 
 // Busi busi service url prefix
-var Busi string = fmt.Sprintf("http://localhost:%d%s", BusiPort, BusiAPI)
+var Busi = fmt.Sprintf("http://localhost:%d%s", BusiPort, BusiAPI)
 
-var XaClient *dtmcli.XaClient = nil
+// XaClient declares xa client
+var XaClient *dtmcli.XaClient
 
+// SleepCancelHandler declares SleepCancel handler
 type SleepCancelHandler func(c *gin.Context) (interface{}, error)
 
-var sleepCancelHandler SleepCancelHandler = nil
+var sleepCancelHandler SleepCancelHandler
 
+// SetSleepCancelHandler sets SleepCancelHandler
 func SetSleepCancelHandler(handler SleepCancelHandler) {
 	sleepCancelHandler = handler
 }
@@ -61,7 +64,7 @@ func BaseAppStartup() *gin.Engine {
 		c.Next()
 	})
 	var err error
-	XaClient, err = dtmcli.NewXaClient(dtmutil.DefaultHttpServer, BusiConf, Busi+"/xa", func(path string, xa *dtmcli.XaClient) {
+	XaClient, err = dtmcli.NewXaClient(dtmutil.DefaultHTTPServer, BusiConf, Busi+"/xa", func(path string, xa *dtmcli.XaClient) {
 		app.POST(path, dtmutil.WrapHandler(func(c *gin.Context) (interface{}, error) {
 			return xa.HandleCallback(c.Query("gid"), c.Query("branch_id"), c.Query("op"))
 		}))
@@ -74,7 +77,12 @@ func BaseAppStartup() *gin.Engine {
 		v(app)
 	}
 	logger.Debugf("Starting busi at: %d", BusiPort)
-	go app.Run(fmt.Sprintf(":%d", BusiPort))
+	go func() {
+		err = app.Run(fmt.Sprintf(":%d", BusiPort))
+		if err != nil {
+			logger.Errorf("app Run trigger err: %v", err)
+		}
+	}()
 
 	return app
 }
@@ -127,7 +135,7 @@ func BaseAddRoute(app *gin.Engine) {
 			if reqFrom(c).TransOutResult == dtmcli.ResultFailure {
 				return dtmcli.ErrFailure
 			}
-			var dia gorm.Dialector = nil
+			var dia gorm.Dialector
 			if dtmcli.GetCurrentDBType() == dtmcli.DBTypeMysql {
 				dia = mysql.New(mysql.Config{Conn: db})
 			} else if dtmcli.GetCurrentDBType() == dtmcli.DBTypePostgres {

@@ -21,16 +21,18 @@ var conf = &config.Config
 // TODO: optimize this, all function should have context as first parameter
 var ctx = context.Background()
 
-// RedisStore is the storage with redis, all transaction information will bachend with redis
-type RedisStore struct {
+// Store is the storage with redis, all transaction information will bachend with redis
+type Store struct {
 }
 
-func (s *RedisStore) Ping() error {
+// Ping execs ping cmd to redis
+func (s *Store) Ping() error {
 	_, err := redisGet().Ping(ctx).Result()
 	return err
 }
 
-func (s *RedisStore) PopulateData(skipDrop bool) {
+// PopulateData populates data to redis
+func (s *Store) PopulateData(skipDrop bool) {
 	if !skipDrop {
 		_, err := redisGet().FlushAll(ctx).Result()
 		logger.Infof("call redis flushall. result: %v", err)
@@ -38,7 +40,8 @@ func (s *RedisStore) PopulateData(skipDrop bool) {
 	}
 }
 
-func (s *RedisStore) FindTransGlobalStore(gid string) *storage.TransGlobalStore {
+// FindTransGlobalStore finds TransGlobalStore by gid
+func (s *Store) FindTransGlobalStore(gid string) *storage.TransGlobalStore {
 	logger.Debugf("calling FindTransGlobalStore: %s", gid)
 	r, err := redisGet().Get(ctx, conf.Store.RedisPrefix+"_g_"+gid).Result()
 	if err == redis.Nil {
@@ -50,7 +53,8 @@ func (s *RedisStore) FindTransGlobalStore(gid string) *storage.TransGlobalStore 
 	return trans
 }
 
-func (s *RedisStore) ScanTransGlobalStores(position *string, limit int64) []storage.TransGlobalStore {
+// ScanTransGlobalStores list TransGlobalStore
+func (s *Store) ScanTransGlobalStores(position *string, limit int64) []storage.TransGlobalStore {
 	logger.Debugf("calling ScanTransGlobalStores: %s %d", *position, limit)
 	lid := uint64(0)
 	if *position != "" {
@@ -76,7 +80,8 @@ func (s *RedisStore) ScanTransGlobalStores(position *string, limit int64) []stor
 	return globals
 }
 
-func (s *RedisStore) FindBranches(gid string) []storage.TransBranchStore {
+// FindBranches finds TransBranchStore by gid
+func (s *Store) FindBranches(gid string) []storage.TransBranchStore {
 	logger.Debugf("calling FindBranches: %s", gid)
 	sa, err := redisGet().LRange(ctx, conf.Store.RedisPrefix+"_b_"+gid, 0, -1).Result()
 	dtmimp.E2P(err)
@@ -87,7 +92,8 @@ func (s *RedisStore) FindBranches(gid string) []storage.TransBranchStore {
 	return branches
 }
 
-func (s *RedisStore) UpdateBranches(branches []storage.TransBranchStore, updates []string) (int, error) {
+// UpdateBranches updates TransBranchStore
+func (s *Store) UpdateBranches(branches []storage.TransBranchStore, updates []string) (int, error) {
 	return 0, nil // not implemented
 }
 
@@ -144,7 +150,8 @@ func callLua(a *argList, lua string) (string, error) {
 	return handleRedisResult(ret, err)
 }
 
-func (s *RedisStore) MaySaveNewTrans(global *storage.TransGlobalStore, branches []storage.TransBranchStore) error {
+// MaySaveNewTrans creates branches or return error if conflict
+func (s *Store) MaySaveNewTrans(global *storage.TransGlobalStore, branches []storage.TransBranchStore) error {
 	a := newArgList().
 		AppendGid(global.Gid).
 		AppendObject(global).
@@ -171,7 +178,8 @@ redis.call('EXPIRE', KEYS[2], ARGV[2])
 	return err
 }
 
-func (s *RedisStore) LockGlobalSaveBranches(gid string, status string, branches []storage.TransBranchStore, branchStart int) {
+// LockGlobalSaveBranches saves branches in transaction
+func (s *Store) LockGlobalSaveBranches(gid string, status string, branches []storage.TransBranchStore, branchStart int) {
 	args := newArgList().
 		AppendGid(gid).
 		AppendRaw(status).
@@ -195,7 +203,8 @@ redis.call('EXPIRE', KEYS[2], ARGV[2])
 	dtmimp.E2P(err)
 }
 
-func (s *RedisStore) ChangeGlobalStatus(global *storage.TransGlobalStore, newStatus string, updates []string, finished bool) {
+// ChangeGlobalStatus changes global transaction status
+func (s *Store) ChangeGlobalStatus(global *storage.TransGlobalStore, newStatus string, updates []string, finished bool) {
 	old := global.Status
 	global.Status = newStatus
 	args := newArgList().
@@ -219,7 +228,8 @@ end
 	dtmimp.E2P(err)
 }
 
-func (s *RedisStore) LockOneGlobalTrans(expireIn time.Duration) *storage.TransGlobalStore {
+// LockOneGlobalTrans updates global transaction and return the latest.
+func (s *Store) LockOneGlobalTrans(expireIn time.Duration) *storage.TransGlobalStore {
 	expired := time.Now().Add(expireIn).Unix()
 	next := time.Now().Add(time.Duration(conf.RetryInterval) * time.Second).Unix()
 	args := newArgList().AppendGid("").AppendRaw(expired).AppendRaw(next)
@@ -249,7 +259,8 @@ return gid
 	}
 }
 
-func (s *RedisStore) TouchCronTime(global *storage.TransGlobalStore, nextCronInterval int64) {
+// TouchCronTime sets cron time
+func (s *Store) TouchCronTime(global *storage.TransGlobalStore, nextCronInterval int64) {
 	global.NextCronTime = dtmutil.GetNextTime(nextCronInterval)
 	global.UpdateTime = dtmutil.GetNextTime(0)
 	global.NextCronInterval = nextCronInterval

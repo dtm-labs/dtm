@@ -64,7 +64,7 @@ func TestSagaAbnormal(t *testing.T) {
 }
 
 func TestSagaEmptyUrl(t *testing.T) {
-	saga := dtmcli.NewSaga(dtmutil.DefaultHttpServer, dtmimp.GetFuncName())
+	saga := dtmcli.NewSaga(dtmutil.DefaultHTTPServer, dtmimp.GetFuncName())
 	req := busi.GenTransReq(30, false, false)
 	saga.Add(busi.Busi+"/TransOut", "", &req)
 	saga.Add("", "", &req)
@@ -75,7 +75,7 @@ func TestSagaEmptyUrl(t *testing.T) {
 }
 
 func genSaga(gid string, outFailed bool, inFailed bool) *dtmcli.Saga {
-	saga := dtmcli.NewSaga(dtmutil.DefaultHttpServer, gid)
+	saga := dtmcli.NewSaga(dtmutil.DefaultHTTPServer, gid)
 	req := busi.GenTransReq(30, outFailed, inFailed)
 	saga.Add(busi.Busi+"/TransOut", busi.Busi+"/TransOutRevert", &req)
 	saga.Add(busi.Busi+"/TransIn", busi.Busi+"/TransInRevert", &req)
@@ -83,7 +83,7 @@ func genSaga(gid string, outFailed bool, inFailed bool) *dtmcli.Saga {
 }
 
 func genSaga1(gid string, outFailed bool, inFailed bool) *dtmcli.Saga {
-	saga := dtmcli.NewSaga(dtmutil.DefaultHttpServer, gid)
+	saga := dtmcli.NewSaga(dtmutil.DefaultHTTPServer, gid)
 	req := busi.GenTransReq(30, outFailed, inFailed)
 	saga.Add(busi.Busi+"/TransOut", busi.Busi+"/TransOutRevert", &req)
 	return saga

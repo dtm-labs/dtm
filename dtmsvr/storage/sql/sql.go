@@ -17,22 +17,25 @@ import (
 
 var conf = &config.Config
 
-type SqlStore struct {
-}
+// Store implements storage.Store feature that for DB
+type Store struct{}
 
-func (s *SqlStore) Ping() error {
+// Ping execs ping cmd to db
+func (s *Store) Ping() error {
 	db, err := dtmimp.StandaloneDB(conf.Store.GetDBConf())
 	dtmimp.E2P(err)
 	_, err = db.Exec("select 1")
 	return err
 }
 
-func (s *SqlStore) PopulateData(skipDrop bool) {
-	file := fmt.Sprintf("%s/dtmsvr.storage.%s.sql", dtmutil.GetSqlDir(), conf.Store.Driver)
+// PopulateData populates data to db
+func (s *Store) PopulateData(skipDrop bool) {
+	file := fmt.Sprintf("%s/dtmsvr.storage.%s.sql", dtmutil.GetSQLDir(), conf.Store.Driver)
 	dtmutil.RunSQLScript(conf.Store.GetDBConf(), file, skipDrop)
 }
 
-func (s *SqlStore) FindTransGlobalStore(gid string) *storage.TransGlobalStore {
+// FindTransGlobalStore finds TransGlobalStore by gid
+func (s *Store) FindTransGlobalStore(gid string) *storage.TransGlobalStore {
 	trans := &storage.TransGlobalStore{}
 	dbr := dbGet().Model(trans).Where("gid=?", gid).First(trans)
 	if dbr.Error == gorm.ErrRecordNotFound {
@@ -42,7 +45,8 @@ func (s *SqlStore) FindTransGlobalStore(gid string) *storage.TransGlobalStore {
 	return trans
 }
 
-func (s *SqlStore) ScanTransGlobalStores(position *string, limit int64) []storage.TransGlobalStore {
+// ScanTransGlobalStores lists TransGlobalStore
+func (s *Store) ScanTransGlobalStores(position *string, limit int64) []storage.TransGlobalStore {
 	globals := []storage.TransGlobalStore{}
 	lid := math.MaxInt64
 	if *position != "" {
@@ -57,13 +61,15 @@ func (s *SqlStore) ScanTransGlobalStores(position *string, limit int64) []storag
 	return globals
 }
 
-func (s *SqlStore) FindBranches(gid string) []storage.TransBranchStore {
+// FindBranches finds TransBranchStore by gid
+func (s *Store) FindBranches(gid string) []storage.TransBranchStore {
 	branches := []storage.TransBranchStore{}
 	dbGet().Must().Where("gid=?", gid).Order("id asc").Find(&branches)
 	return branches
 }
 
-func (s *SqlStore) UpdateBranches(branches []storage.TransBranchStore, updates []string) (int, error) {
+// UpdateBranches updates TransBranchStore
+func (s *Store) UpdateBranches(branches []storage.TransBranchStore, updates []string) (int, error) {
 	db := dbGet().Clauses(clause.OnConflict{
 		OnConstraint: "trans_branch_op_pkey",
 		DoUpdates:    clause.AssignmentColumns(updates),
@@ -71,7 +77,8 @@ func (s *SqlStore) UpdateBranches(branches []storage.TransBranchStore, updates [
 	return int(db.RowsAffected), db.Error
 }
 
-func (s *SqlStore) LockGlobalSaveBranches(gid string, status string, branches []storage.TransBranchStore, branchStart int) {
+// LockGlobalSaveBranches saves branches in transaction
+func (s *Store) LockGlobalSaveBranches(gid string, status string, branches []storage.TransBranchStore, branchStart int) {
 	err := dbGet().Transaction(func(tx *gorm.DB) error {
 		g := &storage.TransGlobalStore{}
 		dbr := tx.Clauses(clause.Locking{Strength: "UPDATE"}).Model(g).Where("gid=? and status=?", gid, status).First(g)
@@ -83,7 +90,8 @@ func (s *SqlStore) LockGlobalSaveBranches(gid string, status string, branches []
 	dtmimp.E2P(err)
 }
 
-func (s *SqlStore) MaySaveNewTrans(global *storage.TransGlobalStore, branches []storage.TransBranchStore) error {
+// MaySaveNewTrans creates branches or return error if conflict
+func (s *Store) MaySaveNewTrans(global *storage.TransGlobalStore, branches []storage.TransBranchStore) error {
 	return dbGet().Transaction(func(db1 *gorm.DB) error {
 		db := &dtmutil.DB{DB: db1}
 		dbr := db.Must().Clauses(clause.OnConflict{
@@ -101,7 +109,8 @@ func (s *SqlStore) MaySaveNewTrans(global *storage.TransGlobalStore, branches []
 	})
 }
 
-func (s *SqlStore) ChangeGlobalStatus(global *storage.TransGlobalStore, newStatus string, updates []string, finished bool) {
+// ChangeGlobalStatus changes global transaction status
+func (s *Store) ChangeGlobalStatus(global *storage.TransGlobalStore, newStatus string, updates []string, finished bool) {
 	old := global.Status
 	global.Status = newStatus
 	dbr := dbGet().Must().Model(global).Where("status=? and gid=?", old, global.Gid).Select(updates).Updates(global)
@@ -110,7 +119,8 @@ func (s *SqlStore) ChangeGlobalStatus(global *storage.TransGlobalStore, newStatu
 	}
 }
 
-func (s *SqlStore) TouchCronTime(global *storage.TransGlobalStore, nextCronInterval int64) {
+// TouchCronTime sets cron time
+func (s *Store) TouchCronTime(global *storage.TransGlobalStore, nextCronInterval int64) {
 	global.NextCronTime = dtmutil.GetNextTime(nextCronInterval)
 	global.UpdateTime = dtmutil.GetNextTime(0)
 	global.NextCronInterval = nextCronInterval
@@ -118,7 +128,8 @@ func (s *SqlStore) TouchCronTime(global *storage.TransGlobalStore, nextCronInter
 		Select([]string{"next_cron_time", "update_time", "next_cron_interval"}).Updates(global)
 }
 
-func (s *SqlStore) LockOneGlobalTrans(expireIn time.Duration) *storage.TransGlobalStore {
+// LockOneGlobalTrans updates global transaction and return the latest.
+func (s *Store) LockOneGlobalTrans(expireIn time.Duration) *storage.TransGlobalStore {
 	db := dbGet()
 	getTime := func(second int) string {
 		return map[string]string{
@@ -141,10 +152,11 @@ func (s *SqlStore) LockOneGlobalTrans(expireIn time.Duration) *storage.TransGlob
 	if dbr.RowsAffected == 0 {
 		return nil
 	}
-	dbr = db.Must().Where("owner=?", owner).First(global)
+	db.Must().Where("owner=?", owner).First(global)
 	return global
 }
 
+// SetDBConn sets db conn pool
 func SetDBConn(db *gorm.DB) {
 	sqldb, _ := db.DB()
 	sqldb.SetMaxOpenConns(int(conf.Store.MaxOpenConns))

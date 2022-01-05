@@ -23,10 +23,11 @@ import (
 
 var conf = &config.Config
 
-type BoltdbStore struct {
+// Store implements storage.Store for boltdb
+type Store struct {
 }
 
-var boltDb *bolt.DB = nil
+var boltDb *bolt.DB
 var boltOnce sync.Once
 
 func boltGet() *bolt.DB {
@@ -110,7 +111,9 @@ func cleanupGlobalWithGids(t *bolt.Tx, gids map[string]struct{}) {
 	logger.Debugf("Start to cleanup %d gids", len(gids))
 	for gid := range gids {
 		logger.Debugf("Start to delete gid: %s", gid)
-		bucket.Delete([]byte(gid))
+		if err := bucket.Delete([]byte(gid)); err != nil {
+			logger.Errorf("[cleanupGlobalWithGids]Delete gid: %s trigger err: %v", gid, err)
+		}
 	}
 }
 
@@ -139,7 +142,9 @@ func cleanupBranchWithGids(t *bolt.Tx, gids map[string]struct{}) {
 	logger.Debugf("Start to cleanup %d branches", len(branchKeys))
 	for _, key := range branchKeys {
 		logger.Debugf("Start to delete branch: %s", key)
-		bucket.Delete([]byte(key))
+		if err := bucket.Delete([]byte(key)); err != nil {
+			logger.Errorf("[cleanupBranchWithGids]Delete key: %s trigger err: %v", key, err)
+		}
 	}
 }
 
@@ -165,7 +170,9 @@ func cleanupIndexWithGids(t *bolt.Tx, gids map[string]struct{}) {
 	logger.Debugf("Start to cleanup %d indexes", len(indexKeys))
 	for _, key := range indexKeys {
 		logger.Debugf("Start to delete index: %s", key)
-		bucket.Delete([]byte(key))
+		if err := bucket.Delete([]byte(key)); err != nil {
+			logger.Errorf("[cleanupIndexWithGids]Delete key: %s trigger err: %v", key, err)
+		}
 	}
 }
 
@@ -232,19 +239,39 @@ func tPutIndex(t *bolt.Tx, unix int64, gid string) {
 	dtmimp.E2P(err)
 }
 
-func (s *BoltdbStore) Ping() error {
+// Ping execs ping cmd to boltdb
+func (s *Store) Ping() error {
 	return nil
 }
 
-func (s *BoltdbStore) PopulateData(skipDrop bool) {
+// PopulateData populates data to boltdb
+func (s *Store) PopulateData(skipDrop bool) {
 	if !skipDrop {
 		err := boltGet().Update(func(t *bolt.Tx) error {
-			t.DeleteBucket(bucketIndex)
-			t.DeleteBucket(bucketBranches)
-			t.DeleteBucket(bucketGlobal)
-			t.CreateBucket(bucketIndex)
-			t.CreateBucket(bucketBranches)
-			t.CreateBucket(bucketGlobal)
+			err := t.DeleteBucket(bucketIndex)
+			if err != nil {
+				return err
+			}
+			err = t.DeleteBucket(bucketBranches)
+			if err != nil {
+				return err
+			}
+			err = t.DeleteBucket(bucketGlobal)
+			if err != nil {
+				return err
+			}
+			_, err = t.CreateBucket(bucketIndex)
+			if err != nil {
+				return err
+			}
+			_, err = t.CreateBucket(bucketBranches)
+			if err != nil {
+				return err
+			}
+			_, err = t.CreateBucket(bucketGlobal)
+			if err != nil {
+				return err
+			}
 			return nil
 		})
 		dtmimp.E2P(err)
@@ -252,7 +279,8 @@ func (s *BoltdbStore) PopulateData(skipDrop bool) {
 	}
 }
 
-func (s *BoltdbStore) FindTransGlobalStore(gid string) (trans *storage.TransGlobalStore) {
+// FindTransGlobalStore finds TransGlobalStore by gid
+func (s *Store) FindTransGlobalStore(gid string) (trans *storage.TransGlobalStore) {
 	err := boltGet().View(func(t *bolt.Tx) error {
 		trans = tGetGlobal(t, gid)
 		return nil
@@ -261,7 +289,8 @@ func (s *BoltdbStore) FindTransGlobalStore(gid string) (trans *storage.TransGlob
 	return
 }
 
-func (s *BoltdbStore) ScanTransGlobalStores(position *string, limit int64) []storage.TransGlobalStore {
+// ScanTransGlobalStores lists TransGlobalStore
+func (s *Store) ScanTransGlobalStores(position *string, limit int64) []storage.TransGlobalStore {
 	globals := []storage.TransGlobalStore{}
 	err := boltGet().View(func(t *bolt.Tx) error {
 		cursor := t.Bucket(bucketGlobal).Cursor()
@@ -287,8 +316,9 @@ func (s *BoltdbStore) ScanTransGlobalStores(position *string, limit int64) []sto
 	return globals
 }
 
-func (s *BoltdbStore) FindBranches(gid string) []storage.TransBranchStore {
-	var branches []storage.TransBranchStore = nil
+// FindBranches finds TransBranchStore by gid
+func (s *Store) FindBranches(gid string) []storage.TransBranchStore {
+	var branches []storage.TransBranchStore
 	err := boltGet().View(func(t *bolt.Tx) error {
 		branches = tGetBranches(t, gid)
 		return nil
@@ -297,11 +327,13 @@ func (s *BoltdbStore) FindBranches(gid string) []storage.TransBranchStore {
 	return branches
 }
 
-func (s *BoltdbStore) UpdateBranches(branches []storage.TransBranchStore, updates []string) (int, error) {
+// UpdateBranches updates TransBranchStore
+func (s *Store) UpdateBranches(branches []storage.TransBranchStore, updates []string) (int, error) {
 	return 0, nil // not implemented
 }
 
-func (s *BoltdbStore) LockGlobalSaveBranches(gid string, status string, branches []storage.TransBranchStore, branchStart int) {
+// LockGlobalSaveBranches saves branches in transaction
+func (s *Store) LockGlobalSaveBranches(gid string, status string, branches []storage.TransBranchStore, branchStart int) {
 	err := boltGet().Update(func(t *bolt.Tx) error {
 		g := tGetGlobal(t, gid)
 		if g == nil {
@@ -316,7 +348,8 @@ func (s *BoltdbStore) LockGlobalSaveBranches(gid string, status string, branches
 	dtmimp.E2P(err)
 }
 
-func (s *BoltdbStore) MaySaveNewTrans(global *storage.TransGlobalStore, branches []storage.TransBranchStore) error {
+// MaySaveNewTrans creates branches or return error if conflict
+func (s *Store) MaySaveNewTrans(global *storage.TransGlobalStore, branches []storage.TransBranchStore) error {
 	return boltGet().Update(func(t *bolt.Tx) error {
 		g := tGetGlobal(t, global.Gid)
 		if g != nil {
@@ -329,7 +362,8 @@ func (s *BoltdbStore) MaySaveNewTrans(global *storage.TransGlobalStore, branches
 	})
 }
 
-func (s *BoltdbStore) ChangeGlobalStatus(global *storage.TransGlobalStore, newStatus string, updates []string, finished bool) {
+// ChangeGlobalStatus changes global transaction status
+func (s *Store) ChangeGlobalStatus(global *storage.TransGlobalStore, newStatus string, updates []string, finished bool) {
 	old := global.Status
 	global.Status = newStatus
 	err := boltGet().Update(func(t *bolt.Tx) error {
@@ -346,7 +380,8 @@ func (s *BoltdbStore) ChangeGlobalStatus(global *storage.TransGlobalStore, newSt
 	dtmimp.E2P(err)
 }
 
-func (s *BoltdbStore) TouchCronTime(global *storage.TransGlobalStore, nextCronInterval int64) {
+// TouchCronTime sets cron time
+func (s *Store) TouchCronTime(global *storage.TransGlobalStore, nextCronInterval int64) {
 	oldUnix := global.NextCronTime.Unix()
 	global.NextCronTime = dtmutil.GetNextTime(nextCronInterval)
 	global.UpdateTime = dtmutil.GetNextTime(0)
@@ -364,8 +399,9 @@ func (s *BoltdbStore) TouchCronTime(global *storage.TransGlobalStore, nextCronIn
 	dtmimp.E2P(err)
 }
 
-func (s *BoltdbStore) LockOneGlobalTrans(expireIn time.Duration) *storage.TransGlobalStore {
-	var trans *storage.TransGlobalStore = nil
+// LockOneGlobalTrans updates global transaction and return the latest.
+func (s *Store) LockOneGlobalTrans(expireIn time.Duration) *storage.TransGlobalStore {
+	var trans *storage.TransGlobalStore
 	min := fmt.Sprintf("%d", time.Now().Add(expireIn).Unix())
 	next := time.Now().Add(time.Duration(conf.RetryInterval) * time.Second)
 	err := boltGet().Update(func(t *bolt.Tx) error {
