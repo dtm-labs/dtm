@@ -92,7 +92,7 @@ func TestStoreWait(t *testing.T) {
 	registry.WaitStoreUp()
 }
 
-func TestUpdateBranchSql(t *testing.T) {
+func TestUpdateBranches(t *testing.T) {
 	if !conf.Store.IsDB() {
 		_, err := registry.GetStore().UpdateBranches(nil, nil)
 		assert.Nil(t, err)
