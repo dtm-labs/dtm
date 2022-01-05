@@ -47,7 +47,7 @@ func TestMsgOptionsTimeoutFailed(t *testing.T) {
 	assert.Equal(t, StatusPrepared, getTransStatus(msg.Gid))
 	cronTransOnceForwardNow(60)
 	assert.Equal(t, StatusPrepared, getTransStatus(msg.Gid))
-	busi.MainSwitch.CanSubmitResult.SetOnce(dtmcli.ResultFailure)
+	busi.MainSwitch.QueryPreparedResult.SetOnce(dtmcli.ResultFailure)
 	cronTransOnceForwardNow(180)
 	assert.Equal(t, StatusFailed, getTransStatus(msg.Gid))
 }

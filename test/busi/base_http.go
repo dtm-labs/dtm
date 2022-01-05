@@ -99,9 +99,9 @@ func BaseAddRoute(app *gin.Engine) {
 	app.POST(BusiAPI+"/TransOutRevert", dtmutil.WrapHandler(func(c *gin.Context) (interface{}, error) {
 		return handleGeneralBusiness(c, MainSwitch.TransOutRevertResult.Fetch(), "", "TransOutRevert")
 	}))
-	app.GET(BusiAPI+"/CanSubmit", dtmutil.WrapHandler(func(c *gin.Context) (interface{}, error) {
-		logger.Debugf("%s CanSubmit", c.Query("gid"))
-		return dtmimp.OrString(MainSwitch.CanSubmitResult.Fetch(), dtmcli.ResultSuccess), nil
+	app.GET(BusiAPI+"/QueryPrepared", dtmutil.WrapHandler(func(c *gin.Context) (interface{}, error) {
+		logger.Debugf("%s QueryPrepared", c.Query("gid"))
+		return dtmimp.OrString(MainSwitch.QueryPreparedResult.Fetch(), dtmcli.ResultSuccess), nil
 	}))
 	app.POST(BusiAPI+"/TransInXa", dtmutil.WrapHandler(func(c *gin.Context) (interface{}, error) {
 		err := XaClient.XaLocalTransaction(c.Request.URL.Query(), func(db *sql.DB, xa *dtmcli.Xa) error {

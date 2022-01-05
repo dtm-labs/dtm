@@ -118,7 +118,7 @@ type mainSwitchType struct {
 	TransOutConfirmResult AutoEmptyString
 	TransInRevertResult   AutoEmptyString
 	TransOutRevertResult  AutoEmptyString
-	CanSubmitResult       AutoEmptyString
+	QueryPreparedResult   AutoEmptyString
 	NextResult            AutoEmptyString
 }
 

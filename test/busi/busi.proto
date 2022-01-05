@@ -17,7 +17,6 @@ message BusiReply {
 }
 // The dtm service definition.
 service Busi {
-  rpc CanSubmit(BusiReq) returns (BusiReply) {}
   rpc TransIn(BusiReq) returns (google.protobuf.Empty) {}
   rpc TransOut(BusiReq) returns (google.protobuf.Empty) {}
   rpc TransInRevert(BusiReq) returns (google.protobuf.Empty) {}
@@ -38,5 +37,7 @@ service Busi {
   rpc TransOutRevertBSaga(BusiReq) returns (google.protobuf.Empty) {}
   rpc TransOutHeaderYes(BusiReq) returns (google.protobuf.Empty) {}
   rpc TransOutHeaderNo(BusiReq) returns (google.protobuf.Empty) {}
+  rpc QueryPrepared(BusiReq) returns (google.protobuf.Empty) {}
+  rpc QueryPreparedB(BusiReq) returns (google.protobuf.Empty) {}
 }
 

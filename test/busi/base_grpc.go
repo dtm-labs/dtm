@@ -63,9 +63,9 @@ type busiServer struct {
 	UnimplementedBusiServer
 }
 
-func (s *busiServer) CanSubmit(ctx context.Context, in *BusiReq) (*BusiReply, error) {
-	res := MainSwitch.CanSubmitResult.Fetch()
-	return &BusiReply{Message: "a sample"}, dtmgimp.Result2Error(res, nil)
+func (s *busiServer) QueryPrepared(ctx context.Context, in *BusiReq) (*emptypb.Empty, error) {
+	res := MainSwitch.QueryPreparedResult.Fetch()
+	return &emptypb.Empty{}, dtmgimp.Result2Error(res, nil)
 }
 
 func (s *busiServer) TransIn(ctx context.Context, in *BusiReq) (*emptypb.Empty, error) {

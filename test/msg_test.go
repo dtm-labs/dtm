@@ -29,7 +29,7 @@ func TestMsgTimeoutSuccess(t *testing.T) {
 	msg := genMsg(dtmimp.GetFuncName())
 	msg.Prepare("")
 	assert.Equal(t, StatusPrepared, getTransStatus(msg.Gid))
-	busi.MainSwitch.CanSubmitResult.SetOnce(dtmcli.ResultOngoing)
+	busi.MainSwitch.QueryPreparedResult.SetOnce(dtmcli.ResultOngoing)
 	cronTransOnceForwardNow(180)
 	assert.Equal(t, StatusPrepared, getTransStatus(msg.Gid))
 	busi.MainSwitch.TransInResult.SetOnce(dtmcli.ResultOngoing)
@@ -45,10 +45,10 @@ func TestMsgTimeoutFailed(t *testing.T) {
 	msg := genMsg(dtmimp.GetFuncName())
 	msg.Prepare("")
 	assert.Equal(t, StatusPrepared, getTransStatus(msg.Gid))
-	busi.MainSwitch.CanSubmitResult.SetOnce(dtmcli.ResultOngoing)
+	busi.MainSwitch.QueryPreparedResult.SetOnce(dtmcli.ResultOngoing)
 	cronTransOnceForwardNow(180)
 	assert.Equal(t, StatusPrepared, getTransStatus(msg.Gid))
-	busi.MainSwitch.CanSubmitResult.SetOnce(dtmcli.ResultFailure)
+	busi.MainSwitch.QueryPreparedResult.SetOnce(dtmcli.ResultFailure)
 	cronTransOnceForwardNow(180)
 	assert.Equal(t, []string{StatusPrepared, StatusPrepared}, getBranchesStatus(msg.Gid))
 	assert.Equal(t, StatusFailed, getTransStatus(msg.Gid))
@@ -71,6 +71,6 @@ func genMsg(gid string) *dtmcli.Msg {
 	msg := dtmcli.NewMsg(dtmutil.DefaultHttpServer, gid).
 		Add(busi.Busi+"/TransOut", &req).
 		Add(busi.Busi+"/TransIn", &req)
-	msg.QueryPrepared = busi.Busi + "/CanSubmit"
+	msg.QueryPrepared = busi.Busi + "/QueryPrepared"
 	return msg
 }
