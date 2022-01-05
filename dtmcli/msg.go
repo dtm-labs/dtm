@@ -6,7 +6,11 @@
 
 package dtmcli
 
-import "github.com/dtm-labs/dtm/dtmcli/dtmimp"
+import (
+	"database/sql"
+
+	"github.com/dtm-labs/dtm/dtmcli/dtmimp"
+)
 
 // Msg reliable msg type
 type Msg struct {
@@ -34,4 +38,21 @@ func (s *Msg) Prepare(queryPrepared string) error {
 // Submit submit the msg
 func (s *Msg) Submit() error {
 	return dtmimp.TransCallDtm(&s.TransBase, s, "submit")
+}
+
+func (s *Msg) PrepareAndSubmit(queryPrepared string, db *sql.DB, busiCall BarrierBusiFunc) error {
+	bb, err := BarrierFrom(s.TransType, s.Gid, "00", "msg") // a special barrier for msg QueryPrepared
+	if err == nil {
+		err = bb.CallWithDB(db, func(tx *sql.Tx) error {
+			err := busiCall(tx)
+			if err == nil {
+				err = s.Prepare(queryPrepared)
+			}
+			return err
+		})
+	}
+	if err == nil {
+		err = s.Submit()
+	}
+	return err
 }

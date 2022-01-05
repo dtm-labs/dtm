@@ -102,35 +102,14 @@ func (bb *BranchBarrier) CallWithDB(db *sql.DB, busiCall BarrierBusiFunc) error 
 }
 
 func (bb *BranchBarrier) QueryPrepared(db *sql.DB) error {
-	affected, err := insertBarrier(db, bb.TransType, bb.Gid, bb.BranchID, BranchAction, bb.BranchID, bb.Op)
-	if err != nil {
-		return err
+	_, err := insertBarrier(db, bb.TransType, bb.Gid, bb.BranchID, BranchAction, bb.BranchID, "rollback")
+	var reason string
+	if err == nil {
+		sql := fmt.Sprintf("select reason from %s where gid=? and branch_id=? and op=? and barrier_id=?", dtmimp.BarrierTableName)
+		err = db.QueryRow(sql, bb.Gid, bb.BranchID, bb.Op, bb.BarrierID).Scan(&reason)
 	}
-	if affected > 0 {
+	if reason == "rollback" {
 		return ErrFailure
-	}
-	return nil
-}
-
-func (bb *BranchBarrier) PrepareAndSubmit(msg *Msg, queryPrepared string, db *sql.DB, busiCall BarrierBusiFunc) (err error) {
-	var tx *sql.Tx
-	tx, err = db.Begin()
-	if err == nil {
-		defer func() {
-			if err != nil {
-				_ = tx.Rollback()
-			}
-		}()
-		err = busiCall(tx)
-	}
-	if err == nil {
-		err = msg.Prepare(queryPrepared)
-	}
-	if err == nil {
-		err = tx.Commit()
-	}
-	if err == nil {
-		return msg.Submit() // should not assign err. or else defer may try to rollback a committed tx
 	}
 	return err
 }

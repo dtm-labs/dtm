@@ -7,6 +7,7 @@
 package test
 
 import (
+	"testing"
 	"time"
 
 	"github.com/dtm-labs/dtm/dtmcli"
@@ -16,6 +17,7 @@ import (
 	"github.com/dtm-labs/dtm/dtmsvr/config"
 	"github.com/dtm-labs/dtm/dtmutil"
 	"github.com/dtm-labs/dtm/test/busi"
+	"github.com/stretchr/testify/assert"
 )
 
 var conf = &config.Config
@@ -80,3 +82,23 @@ const (
 	// StatusAborting status for global trans status.
 	StatusAborting = dtmcli.StatusAborting
 )
+
+func getBeforeBalances() []int {
+	b1 := busi.GetBalanceByUid(busi.TransOutUID)
+	b2 := busi.GetBalanceByUid(busi.TransInUID)
+	return []int{b1, b2}
+}
+
+func assertSameBalance(t *testing.T, before []int) {
+	b1 := busi.GetBalanceByUid(busi.TransOutUID)
+	b2 := busi.GetBalanceByUid(busi.TransInUID)
+	assert.Equal(t, before[0], b1)
+	assert.Equal(t, before[1], b2)
+}
+
+func assertNotSameBalance(t *testing.T, before []int) {
+	b1 := busi.GetBalanceByUid(busi.TransOutUID)
+	b2 := busi.GetBalanceByUid(busi.TransInUID)
+	assert.NotEqual(t, before[0], b1)
+	assert.Equal(t, before[0]+before[1], b1+b2)
+}

@@ -32,15 +32,10 @@ func (*UserAccount) TableName() string {
 	return "dtm_busi.user_account"
 }
 
-func GetUserAccountByUid(uid int) *UserAccount {
+func GetBalanceByUid(uid int) int {
 	ua := UserAccount{}
-	dbr := dbGet().Must().Model(&ua).Where("user_id=?", uid).First(&ua)
-	dtmimp.E2P(dbr.Error)
-	return &ua
-}
-
-func IsEqual(ua1, ua2 *UserAccount) bool {
-	return ua1.UserId == ua2.UserId && ua1.Balance == ua2.Balance && ua1.TradingBalance == ua2.TradingBalance
+	_ = dbGet().Must().Model(&ua).Where("user_id=?", uid).First(&ua)
+	return dtmimp.MustAtoi(ua.Balance[:len(ua.Balance)-3])
 }
 
 // TransReq transaction request payload

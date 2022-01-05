@@ -102,13 +102,13 @@ func (s *busiServer) TransOutTcc(ctx context.Context, in *BusiReq) (*emptypb.Emp
 
 func (s *busiServer) TransInXa(ctx context.Context, in *BusiReq) (*emptypb.Empty, error) {
 	return &emptypb.Empty{}, XaGrpcClient.XaLocalTransaction(ctx, in, func(db *sql.DB, xa *dtmgrpc.XaGrpc) error {
-		return sagaGrpcAdjustBalance(db, transInUID, in.Amount, in.TransInResult)
+		return sagaGrpcAdjustBalance(db, TransInUID, in.Amount, in.TransInResult)
 	})
 }
 
 func (s *busiServer) TransOutXa(ctx context.Context, in *BusiReq) (*emptypb.Empty, error) {
 	return &emptypb.Empty{}, XaGrpcClient.XaLocalTransaction(ctx, in, func(db *sql.DB, xa *dtmgrpc.XaGrpc) error {
-		return sagaGrpcAdjustBalance(db, transOutUID, in.Amount, in.TransOutResult)
+		return sagaGrpcAdjustBalance(db, TransOutUID, in.Amount, in.TransOutResult)
 	})
 }
 
