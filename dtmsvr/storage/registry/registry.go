@@ -13,12 +13,13 @@ import (
 var conf = &config.Config
 
 var stores map[string]storage.Store = map[string]storage.Store{
-	"redis":    &redis.RedisStore{},
-	"mysql":    &sql.SqlStore{},
-	"postgres": &sql.SqlStore{},
-	"boltdb":   &boltdb.BoltdbStore{},
+	"redis":    &redis.Store{},
+	"mysql":    &sql.Store{},
+	"postgres": &sql.Store{},
+	"boltdb":   &boltdb.Store{},
 }
 
+// GetStore returns storage.Store
 func GetStore() storage.Store {
 	return stores[conf.Store.Driver]
 }
