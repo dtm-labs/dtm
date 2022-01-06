@@ -10,6 +10,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/dtm-labs/dtm/dtmsvr/config"
+
 	"github.com/dtm-labs/dtm/dtmcli/dtmimp"
 	"github.com/dtm-labs/dtm/dtmsvr"
 	"github.com/dtm-labs/dtm/dtmutil"
@@ -17,7 +19,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-var DtmServer = dtmutil.DefaultHttpServer
+var DtmServer = dtmutil.DefaultHTTPServer
 var Busi = busi.Busi
 
 func getTransStatus(gid string) string {
@@ -33,13 +35,8 @@ func getBranchesStatus(gid string) []string {
 	return status
 }
 
-func assertSucceed(t *testing.T, gid string) {
-	waitTransProcessed(gid)
-	assert.Equal(t, StatusSucceed, getTransStatus(gid))
-}
-
 func TestUpdateBranchAsync(t *testing.T) {
-	if conf.Store.Driver != "mysql" {
+	if conf.Store.Driver != config.Mysql {
 		return
 	}
 	conf.UpdateBranchSync = 0

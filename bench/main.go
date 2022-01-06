@@ -21,7 +21,7 @@ usage:
 `
 
 func hintAndExit() {
-	fmt.Printf(usage)
+	fmt.Print(usage)
 	os.Exit(0)
 }
 

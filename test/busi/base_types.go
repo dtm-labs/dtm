@@ -15,6 +15,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+// BusiConf defines busi conf
 var BusiConf = dtmcli.DBConf{
 	Driver: "mysql",
 	Host:   "localhost",
@@ -22,25 +23,29 @@ var BusiConf = dtmcli.DBConf{
 	User:   "root",
 }
 
+// UserAccount defines user account info
 type UserAccount struct {
-	UserId         int
+	UserID         int
 	Balance        string
 	TradingBalance string
 }
 
+// TableName returns UserAccount's table name
 func (*UserAccount) TableName() string {
 	return "dtm_busi.user_account"
 }
 
-func GetUserAccountByUid(uid int) *UserAccount {
+// GetUserAccountByUID finds UserAccount by uid
+func GetUserAccountByUID(uid int) *UserAccount {
 	ua := UserAccount{}
 	dbr := dbGet().Must().Model(&ua).Where("user_id=?", uid).First(&ua)
 	dtmimp.E2P(dbr.Error)
 	return &ua
 }
 
+// IsEqual checks ua1 and ua2 is equal
 func IsEqual(ua1, ua2 *UserAccount) bool {
-	return ua1.UserId == ua2.UserId && ua1.Balance == ua2.Balance && ua1.TradingBalance == ua2.TradingBalance
+	return ua1.UserID == ua2.UserID && ua1.Balance == ua2.Balance && ua1.TradingBalance == ua2.TradingBalance
 }
 
 // TransReq transaction request payload

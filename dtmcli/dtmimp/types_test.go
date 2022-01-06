@@ -22,4 +22,7 @@ func TestTypes(t *testing.T) {
 		idGen := BranchIDGen{subBranchID: 99}
 		idGen.NewSubBranchID()
 	})
+	if err != nil {
+		t.Fatal(err)
+	}
 }

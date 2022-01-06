@@ -65,10 +65,11 @@ func reloadData() {
 	logger.Debugf("%d users inserted. used: %dms", total, time.Since(began).Milliseconds())
 }
 
-var uidCounter int32 = 0
-var mode string = ""
-var sqls int = 1
+var uidCounter int32
+var mode = ""
+var sqls = 1
 
+// PrepareBenchDB prepares db info for bench
 func PrepareBenchDB() {
 	db := pdbGet()
 	_, err := dtmimp.DBExec(db, "drop table if exists dtm_busi.user_account_log")
@@ -95,7 +96,9 @@ func StartSvr() {
 	app := dtmutil.GetGinApp()
 	benchAddRoute(app)
 	logger.Debugf("bench listening at %d", benchPort)
-	go app.Run(fmt.Sprintf(":%s", benchPort))
+	go func() {
+		_ = app.Run(fmt.Sprintf(":%s", benchPort))
+	}()
 }
 
 func qsAdjustBalance(uid int, amount int, c *gin.Context) (interface{}, error) {
@@ -116,11 +119,13 @@ func qsAdjustBalance(uid int, amount int, c *gin.Context) (interface{}, error) {
 	if strings.Contains(mode, "barrier") {
 		barrier, err := dtmcli.BarrierFromQuery(c.Request.URL.Query())
 		logger.FatalIfError(err)
-		barrier.Call(txGet(), f)
+		err = barrier.Call(txGet(), f)
+		logger.FatalIfError(err)
 	} else {
 		tx := txGet()
-		f(tx)
-		err := tx.Commit()
+		err := f(tx)
+		logger.FatalIfError(err)
+		err = tx.Commit()
 		logger.FatalIfError(err)
 	}
 
@@ -158,7 +163,7 @@ func benchAddRoute(app *gin.Engine) {
 		params2 := fmt.Sprintf("?uid=%s", suid2)
 		logger.Debugf("mode: %s contains dtm: %t", mode, strings.Contains(mode, "dtm"))
 		if strings.Contains(mode, "dtm") {
-			saga := dtmcli.NewSaga(dtmutil.DefaultHttpServer, fmt.Sprintf("bench-%d", uid)).
+			saga := dtmcli.NewSaga(dtmutil.DefaultHTTPServer, fmt.Sprintf("bench-%d", uid)).
 				Add(benchBusi+"/TransOut"+params, benchBusi+"/TransOutCompensate"+params, req).
 				Add(benchBusi+"/TransIn"+params2, benchBusi+"/TransInCompensate"+params2, req)
 			saga.WaitResult = true
@@ -175,7 +180,7 @@ func benchAddRoute(app *gin.Engine) {
 	app.Any(benchAPI+"/benchEmptyUrl", dtmutil.WrapHandler(func(c *gin.Context) (interface{}, error) {
 		gid := shortuuid.New()
 		req := gin.H{}
-		saga := dtmcli.NewSaga(dtmutil.DefaultHttpServer, gid).
+		saga := dtmcli.NewSaga(dtmutil.DefaultHTTPServer, gid).
 			Add("", "", req).
 			Add("", "", req)
 		saga.WaitResult = true

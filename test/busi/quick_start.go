@@ -24,18 +24,25 @@ const qsBusiPort = 8082
 
 var qsBusi = fmt.Sprintf("http://localhost:%d%s", qsBusiPort, qsBusiAPI)
 
+// QsStartSvr starts server for quick start example
 func QsStartSvr() {
 	app := dtmutil.GetGinApp()
 	qsAddRoute(app)
 	logger.Infof("quick start examples listening at %d", qsBusiPort)
-	go app.Run(fmt.Sprintf(":%d", qsBusiPort))
+	go func() {
+		err := app.Run(fmt.Sprintf(":%d", qsBusiPort))
+		if err != nil {
+			logger.Errorf("quick start examples run server err: %v", err)
+		}
+	}()
 	time.Sleep(100 * time.Millisecond)
 }
 
+// QsFireRequest fires request for quick start example
 func QsFireRequest() string {
 	req := &gin.H{"amount": 30} // 微服务的载荷
 	// DtmServer为DTM服务的地址
-	saga := dtmcli.NewSaga(dtmutil.DefaultHttpServer, dtmcli.MustGenGid(dtmutil.DefaultHttpServer)).
+	saga := dtmcli.NewSaga(dtmutil.DefaultHTTPServer, dtmcli.MustGenGid(dtmutil.DefaultHTTPServer)).
 		// 添加一个TransOut的子事务，正向操作为url: qsBusi+"/TransOut"， 逆向操作为url: qsBusi+"/TransOutCompensate"
 		Add(qsBusi+"/TransOut", qsBusi+"/TransOutCompensate", req).
 		// 添加一个TransIn的子事务，正向操作为url: qsBusi+"/TransOut"， 逆向操作为url: qsBusi+"/TransInCompensate"

@@ -31,7 +31,9 @@ func (t *TransGlobal) process(branches []TransBranch) map[string]interface{} {
 	}
 
 	if !t.WaitResult {
-		go t.processInner(branches)
+		go func() {
+			_ = t.processInner(branches)
+		}()
 		return dtmcli.MapSuccess
 	}
 	submitting := t.Status == dtmcli.StatusSubmitted

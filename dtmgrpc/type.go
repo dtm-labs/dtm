@@ -29,6 +29,7 @@ func UseDriver(driverName string) error {
 	return dtmdriver.Use(driverName)
 }
 
+// AddUnaryInterceptor adds grpc interceptor
 func AddUnaryInterceptor(interceptor grpc.UnaryClientInterceptor) {
 	dtmgimp.ClientInterceptors = append(dtmgimp.ClientInterceptors, interceptor)
 }

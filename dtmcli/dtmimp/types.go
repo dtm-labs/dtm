@@ -14,6 +14,7 @@ type DB interface {
 	QueryRow(query string, args ...interface{}) *sql.Row
 }
 
+// DBConf defines db config
 type DBConf struct {
 	Driver   string `yaml:"Driver"`
 	Host     string `yaml:"Host"`

@@ -75,8 +75,8 @@ func SetGrpcHeaderForHeadersYes(ctx context.Context, method string, req, reply i
 	return invoker(ctx, method, req, reply, cc, opts...)
 }
 
-// SetHttpHeaderForHeadersYes interceptor to set head for HeadersYes
-func SetHttpHeaderForHeadersYes(c *resty.Client, r *resty.Request) error {
+// SetHTTPHeaderForHeadersYes interceptor to set head for HeadersYes
+func SetHTTPHeaderForHeadersYes(c *resty.Client, r *resty.Request) error {
 	if b, ok := r.Body.(*dtmcli.Saga); ok && strings.HasSuffix(b.Gid, "HeadersYes") {
 		logger.Debugf("set test_header for url: %s", r.URL)
 		r.SetHeader("test_header", "yes")

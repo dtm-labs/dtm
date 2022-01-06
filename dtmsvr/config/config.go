@@ -10,10 +10,16 @@ import (
 )
 
 const (
+	// DtmMetricsPort metrics port
 	DtmMetricsPort = 8889
-	Mysql          = "mysql"
-	Redis          = "redis"
-	BoltDb         = "boltdb"
+	// Mysql constant name
+	Mysql = "mysql"
+	// Redis constant name
+	Redis = "redis"
+	// BoltDb constant name
+	BoltDb = "boltdb"
+	// Postgres constant name
+	Postgres = "postgres" // Postgres
 )
 
 // MicroService config type for micro service
@@ -23,6 +29,7 @@ type MicroService struct {
 	EndPoint string `yaml:"EndPoint"`
 }
 
+// Store defines config structure
 type Store struct {
 	Driver             string `yaml:"Driver" default:"boltdb"`
 	Host               string `yaml:"Host"`
@@ -38,10 +45,12 @@ type Store struct {
 	TransBranchOpTable string `yaml:"BranchTransOpTable" default:"dtm.trans_branch_op"`
 }
 
+// IsDB checks driver is mysql or postgres
 func (s *Store) IsDB() bool {
 	return s.Driver == dtmcli.DBTypeMysql || s.Driver == dtmcli.DBTypePostgres
 }
 
+// GetDBConf returns db config
 func (s *Store) GetDBConf() dtmcli.DBConf {
 	return dtmcli.DBConf{
 		Driver:   s.Driver,
@@ -57,7 +66,7 @@ type configType struct {
 	TransCronInterval int64        `yaml:"TransCronInterval" default:"3"`
 	TimeoutToFail     int64        `yaml:"TimeoutToFail" default:"35"`
 	RetryInterval     int64        `yaml:"RetryInterval" default:"10"`
-	HttpPort          int64        `yaml:"HttpPort" default:"36789"`
+	HTTPPort          int64        `yaml:"HTTPPort" default:"36789"`
 	GrpcPort          int64        `yaml:"GrpcPort" default:"36790"`
 	MicroService      MicroService `yaml:"MicroService"`
 	UpdateBranchSync  int64        `yaml:"UpdateBranchSync"`

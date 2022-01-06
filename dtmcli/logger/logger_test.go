@@ -1,9 +1,10 @@
 package logger
 
 import (
-	"github.com/sirupsen/logrus"
 	"os"
 	"testing"
+
+	"go.uber.org/zap"
 )
 
 func TestInitLog(t *testing.T) {
@@ -18,7 +19,7 @@ func TestInitLog(t *testing.T) {
 }
 
 func TestWithLogger(t *testing.T) {
-	logger := logrus.New()
+	logger := zap.NewExample().Sugar()
 	WithLogger(logger)
 	Debugf("a debug msg")
 	Infof("a info msg")

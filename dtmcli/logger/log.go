@@ -10,7 +10,7 @@ import (
 
 //var logger *zap.SugaredLogger = nil
 
-var logger Logger = nil
+var logger Logger
 
 func init() {
 	InitLog("info")
@@ -24,6 +24,7 @@ type Logger interface {
 	Errorf(format string, args ...interface{})
 }
 
+// WithLogger sets logger to override default
 func WithLogger(log Logger) {
 	logger = log
 }
