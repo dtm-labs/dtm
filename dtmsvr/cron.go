@@ -17,10 +17,10 @@ import (
 )
 
 // NowForwardDuration will be set in test, trans may be timeout
-var NowForwardDuration time.Duration = time.Duration(0)
+var NowForwardDuration = time.Duration(0)
 
 // CronForwardDuration will be set in test. cron will fetch trans which expire in CronForwardDuration
-var CronForwardDuration time.Duration = time.Duration(0)
+var CronForwardDuration = time.Duration(0)
 
 // CronTransOnce cron expired trans. use expireIn as expire time
 func CronTransOnce() (gid string) {

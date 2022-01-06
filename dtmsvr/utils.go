@@ -24,17 +24,17 @@ type branchStatus struct {
 	finishTime *time.Time
 }
 
-var p2e = dtmimp.P2E
 var e2p = dtmimp.E2P
 
 var conf = &config.Config
 
+// GetStore returns storage.Store
 func GetStore() storage.Store {
 	return registry.GetStore()
 }
 
 // TransProcessedTestChan only for test usage. when transaction processed once, write gid to this chan
-var TransProcessedTestChan chan string = nil
+var TransProcessedTestChan chan string
 
 // GenGid generate gid, use uuid
 func GenGid() string {
@@ -44,6 +44,8 @@ func GenGid() string {
 // GetTransGlobal construct trans from db
 func GetTransGlobal(gid string) *TransGlobal {
 	trans := GetStore().FindTransGlobalStore(gid)
+	//nolint:staticcheck
 	dtmimp.PanicIf(trans == nil, fmt.Errorf("no TransGlobal with gid: %s found", gid))
+	//nolint:staticcheck
 	return &TransGlobal{TransGlobalStore: *trans}
 }
