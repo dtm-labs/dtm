@@ -111,9 +111,7 @@ func cleanupGlobalWithGids(t *bolt.Tx, gids map[string]struct{}) {
 	logger.Debugf("Start to cleanup %d gids", len(gids))
 	for gid := range gids {
 		logger.Debugf("Start to delete gid: %s", gid)
-		if err := bucket.Delete([]byte(gid)); err != nil {
-			logger.Errorf("boltdb.cleanupGlobalWithGids delete gid err: %v", err)
-		}
+		dtmimp.E2P(bucket.Delete([]byte(gid)))
 	}
 }
 
@@ -142,9 +140,7 @@ func cleanupBranchWithGids(t *bolt.Tx, gids map[string]struct{}) {
 	logger.Debugf("Start to cleanup %d branches", len(branchKeys))
 	for _, key := range branchKeys {
 		logger.Debugf("Start to delete branch: %s", key)
-		if err := bucket.Delete([]byte(key)); err != nil {
-			logger.Errorf("boltdb.cleanupBranchWithGids delete key err: %v", err)
-		}
+		dtmimp.E2P(bucket.Delete([]byte(key)))
 	}
 }
 
@@ -170,9 +166,7 @@ func cleanupIndexWithGids(t *bolt.Tx, gids map[string]struct{}) {
 	logger.Debugf("Start to cleanup %d indexes", len(indexKeys))
 	for _, key := range indexKeys {
 		logger.Debugf("Start to delete index: %s", key)
-		if err := bucket.Delete([]byte(key)); err != nil {
-			logger.Errorf("boltdb.cleanupIndexWithGids delete key err: %v", err)
-		}
+		dtmimp.E2P(bucket.Delete([]byte(key)))
 	}
 }
 
@@ -248,24 +242,15 @@ func (s *Store) Ping() error {
 func (s *Store) PopulateData(skipDrop bool) {
 	if !skipDrop {
 		err := boltGet().Update(func(t *bolt.Tx) error {
-			if err := t.DeleteBucket(bucketIndex); err != nil {
-				return err
-			}
-			if err := t.DeleteBucket(bucketBranches); err != nil {
-				return err
-			}
-			if err := t.DeleteBucket(bucketGlobal); err != nil {
-				return err
-			}
-			if _, err := t.CreateBucket(bucketIndex); err != nil {
-				return err
-			}
-			if _, err := t.CreateBucket(bucketBranches); err != nil {
-				return err
-			}
-			if _, err := t.CreateBucket(bucketGlobal); err != nil {
-				return err
-			}
+			dtmimp.E2P(t.DeleteBucket(bucketIndex))
+			dtmimp.E2P(t.DeleteBucket(bucketBranches))
+			dtmimp.E2P(t.DeleteBucket(bucketGlobal))
+			_, err := t.CreateBucket(bucketIndex)
+			dtmimp.E2P(err)
+			_, err = t.CreateBucket(bucketBranches)
+			dtmimp.E2P(err)
+			_, err = t.CreateBucket(bucketGlobal)
+			dtmimp.E2P(err)
 
 			return nil
 		})
