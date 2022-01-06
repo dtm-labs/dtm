@@ -43,11 +43,6 @@ func MustGetDtmClient(grpcServer string) dtmgpb.DtmClient {
 	return dtmgpb.NewDtmClient(MustGetGrpcConn(grpcServer, false))
 }
 
-// MustGetRawDtmClient must get raw codec grpc conn
-func MustGetRawDtmClient(grpcServer string) dtmgpb.DtmClient {
-	return dtmgpb.NewDtmClient(MustGetGrpcConn(grpcServer, true))
-}
-
 // GetGrpcConn 1
 func GetGrpcConn(grpcServer string, isRaw bool) (conn *grpc.ClientConn, rerr error) {
 	clients := &normalClients

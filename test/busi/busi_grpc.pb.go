@@ -37,7 +37,7 @@ type BusiClient interface {
 	TransOutRevertBSaga(ctx context.Context, in *BusiReq, opts ...grpc.CallOption) (*emptypb.Empty, error)
 	TransOutHeaderYes(ctx context.Context, in *BusiReq, opts ...grpc.CallOption) (*emptypb.Empty, error)
 	TransOutHeaderNo(ctx context.Context, in *BusiReq, opts ...grpc.CallOption) (*emptypb.Empty, error)
-	QueryPrepared(ctx context.Context, in *BusiReq, opts ...grpc.CallOption) (*emptypb.Empty, error)
+	QueryPrepared(ctx context.Context, in *BusiReq, opts ...grpc.CallOption) (*BusiReply, error)
 	QueryPreparedB(ctx context.Context, in *BusiReq, opts ...grpc.CallOption) (*emptypb.Empty, error)
 }
 
@@ -211,8 +211,8 @@ func (c *busiClient) TransOutHeaderNo(ctx context.Context, in *BusiReq, opts ...
 	return out, nil
 }
 
-func (c *busiClient) QueryPrepared(ctx context.Context, in *BusiReq, opts ...grpc.CallOption) (*emptypb.Empty, error) {
-	out := new(emptypb.Empty)
+func (c *busiClient) QueryPrepared(ctx context.Context, in *BusiReq, opts ...grpc.CallOption) (*BusiReply, error) {
+	out := new(BusiReply)
 	err := c.cc.Invoke(ctx, "/busi.Busi/QueryPrepared", in, out, opts...)
 	if err != nil {
 		return nil, err
@@ -251,7 +251,7 @@ type BusiServer interface {
 	TransOutRevertBSaga(context.Context, *BusiReq) (*emptypb.Empty, error)
 	TransOutHeaderYes(context.Context, *BusiReq) (*emptypb.Empty, error)
 	TransOutHeaderNo(context.Context, *BusiReq) (*emptypb.Empty, error)
-	QueryPrepared(context.Context, *BusiReq) (*emptypb.Empty, error)
+	QueryPrepared(context.Context, *BusiReq) (*BusiReply, error)
 	QueryPreparedB(context.Context, *BusiReq) (*emptypb.Empty, error)
 	mustEmbedUnimplementedBusiServer()
 }
@@ -314,7 +314,7 @@ func (UnimplementedBusiServer) TransOutHeaderYes(context.Context, *BusiReq) (*em
 func (UnimplementedBusiServer) TransOutHeaderNo(context.Context, *BusiReq) (*emptypb.Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method TransOutHeaderNo not implemented")
 }
-func (UnimplementedBusiServer) QueryPrepared(context.Context, *BusiReq) (*emptypb.Empty, error) {
+func (UnimplementedBusiServer) QueryPrepared(context.Context, *BusiReq) (*BusiReply, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method QueryPrepared not implemented")
 }
 func (UnimplementedBusiServer) QueryPreparedB(context.Context, *BusiReq) (*emptypb.Empty, error) {

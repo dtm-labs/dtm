@@ -16,6 +16,7 @@ import (
 	"github.com/dtm-labs/dtm/dtmgrpc"
 	"github.com/dtm-labs/dtm/dtmsvr"
 	"github.com/dtm-labs/dtm/dtmsvr/config"
+	"github.com/dtm-labs/dtm/dtmsvr/storage/registry"
 	"github.com/dtm-labs/dtm/test/busi"
 	"github.com/go-resty/resty/v2"
 )
@@ -55,6 +56,8 @@ func TestMain(m *testing.M) {
 		conf.Store.Password = ""
 		conf.Store.Port = 6379
 	}
+	registry.WaitStoreUp()
+
 	dtmsvr.PopulateDB(false)
 	go dtmsvr.StartSvr()
 

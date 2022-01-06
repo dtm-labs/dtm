@@ -88,10 +88,6 @@ func TestStoreLockTrans(t *testing.T) {
 	assert.Nil(t, g2)
 }
 
-func TestStoreWait(t *testing.T) {
-	registry.WaitStoreUp()
-}
-
 func TestUpdateBranches(t *testing.T) {
 	if !conf.Store.IsDB() {
 		_, err := registry.GetStore().UpdateBranches(nil, nil)
