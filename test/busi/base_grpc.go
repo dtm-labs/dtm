@@ -63,9 +63,9 @@ type busiServer struct {
 	UnimplementedBusiServer
 }
 
-func (s *busiServer) CanSubmit(ctx context.Context, in *BusiReq) (*BusiReply, error) {
-	res := MainSwitch.CanSubmitResult.Fetch()
-	return &BusiReply{Message: "a sample"}, dtmgimp.Result2Error(res, nil)
+func (s *busiServer) QueryPrepared(ctx context.Context, in *BusiReq) (*BusiReply, error) {
+	res := MainSwitch.QueryPreparedResult.Fetch()
+	return &BusiReply{Message: "a sample data"}, dtmgimp.Result2Error(res, nil)
 }
 
 func (s *busiServer) TransIn(ctx context.Context, in *BusiReq) (*emptypb.Empty, error) {
@@ -102,13 +102,13 @@ func (s *busiServer) TransOutTcc(ctx context.Context, in *BusiReq) (*emptypb.Emp
 
 func (s *busiServer) TransInXa(ctx context.Context, in *BusiReq) (*emptypb.Empty, error) {
 	return &emptypb.Empty{}, XaGrpcClient.XaLocalTransaction(ctx, in, func(db *sql.DB, xa *dtmgrpc.XaGrpc) error {
-		return sagaGrpcAdjustBalance(db, transInUID, in.Amount, in.TransInResult)
+		return sagaGrpcAdjustBalance(db, TransInUID, in.Amount, in.TransInResult)
 	})
 }
 
 func (s *busiServer) TransOutXa(ctx context.Context, in *BusiReq) (*emptypb.Empty, error) {
 	return &emptypb.Empty{}, XaGrpcClient.XaLocalTransaction(ctx, in, func(db *sql.DB, xa *dtmgrpc.XaGrpc) error {
-		return sagaGrpcAdjustBalance(db, transOutUID, in.Amount, in.TransOutResult)
+		return sagaGrpcAdjustBalance(db, TransOutUID, in.Amount, in.TransOutResult)
 	})
 }
 

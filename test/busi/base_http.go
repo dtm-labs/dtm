@@ -99,19 +99,25 @@ func BaseAddRoute(app *gin.Engine) {
 	app.POST(BusiAPI+"/TransOutRevert", dtmutil.WrapHandler(func(c *gin.Context) (interface{}, error) {
 		return handleGeneralBusiness(c, MainSwitch.TransOutRevertResult.Fetch(), "", "TransOutRevert")
 	}))
-	app.GET(BusiAPI+"/CanSubmit", dtmutil.WrapHandler(func(c *gin.Context) (interface{}, error) {
-		logger.Debugf("%s CanSubmit", c.Query("gid"))
-		return dtmimp.OrString(MainSwitch.CanSubmitResult.Fetch(), dtmcli.ResultSuccess), nil
+	app.GET(BusiAPI+"/QueryPrepared", dtmutil.WrapHandler(func(c *gin.Context) (interface{}, error) {
+		logger.Debugf("%s QueryPrepared", c.Query("gid"))
+		return dtmimp.OrString(MainSwitch.QueryPreparedResult.Fetch(), dtmcli.ResultSuccess), nil
+	}))
+	app.GET(BusiAPI+"/QueryPreparedB", dtmutil.WrapHandler(func(c *gin.Context) (interface{}, error) {
+		logger.Debugf("%s QueryPreparedB", c.Query("gid"))
+		bb := MustBarrierFromGin(c)
+		db := dbGet().ToSQLDB()
+		return error2Resp(bb.QueryPrepared(db))
 	}))
 	app.POST(BusiAPI+"/TransInXa", dtmutil.WrapHandler(func(c *gin.Context) (interface{}, error) {
 		err := XaClient.XaLocalTransaction(c.Request.URL.Query(), func(db *sql.DB, xa *dtmcli.Xa) error {
-			return sagaAdjustBalance(db, transInUID, reqFrom(c).Amount, reqFrom(c).TransInResult)
+			return SagaAdjustBalance(db, TransInUID, reqFrom(c).Amount, reqFrom(c).TransInResult)
 		})
 		return error2Resp(err)
 	}))
 	app.POST(BusiAPI+"/TransOutXa", dtmutil.WrapHandler(func(c *gin.Context) (interface{}, error) {
 		err := XaClient.XaLocalTransaction(c.Request.URL.Query(), func(db *sql.DB, xa *dtmcli.Xa) error {
-			return sagaAdjustBalance(db, transOutUID, reqFrom(c).Amount, reqFrom(c).TransOutResult)
+			return SagaAdjustBalance(db, TransOutUID, reqFrom(c).Amount, reqFrom(c).TransOutResult)
 		})
 		return error2Resp(err)
 	}))
@@ -137,7 +143,7 @@ func BaseAddRoute(app *gin.Engine) {
 			if err != nil {
 				return err
 			}
-			dbr := gdb.Exec("update dtm_busi.user_account set balance=balance-? where user_id=?", reqFrom(c).Amount, transOutUID)
+			dbr := gdb.Exec("update dtm_busi.user_account set balance=balance-? where user_id=?", reqFrom(c).Amount, TransOutUID)
 			return dbr.Error
 		})
 		return error2Resp(err)

@@ -42,7 +42,7 @@ func (t *TransGlobal) mayQueryPrepared() {
 	if !t.needProcess() || t.Status == dtmcli.StatusSubmitted {
 		return
 	}
-	body, err := t.getURLResult(t.QueryPrepared, "", "", nil)
+	body, err := t.getURLResult(t.QueryPrepared, "00", "msg", nil)
 	if strings.Contains(body, dtmcli.ResultSuccess) {
 		t.changeStatus(dtmcli.StatusSubmitted)
 	} else if strings.Contains(body, dtmcli.ResultFailure) {
@@ -50,7 +50,7 @@ func (t *TransGlobal) mayQueryPrepared() {
 	} else if strings.Contains(body, dtmcli.ResultOngoing) {
 		t.touchCronTime(cronReset)
 	} else {
-		logger.Errorf("getting result failed for %s. error: %s", t.QueryPrepared, err.Error())
+		logger.Errorf("getting result failed for %s. error: %v body %s", t.QueryPrepared, err, body)
 		t.touchCronTime(cronBackoff)
 	}
 }

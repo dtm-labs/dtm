@@ -51,8 +51,7 @@ func TestTccBarrierRollback(t *testing.T) {
 }
 
 func TestTccBarrierDisorder(t *testing.T) {
-	ua1 := busi.GetUserAccountByUid(1)
-	ua2 := busi.GetUserAccountByUid(2)
+	before := getBeforeBalances()
 	cancelFinishedChan := make(chan string, 2)
 	cancelCanReturnChan := make(chan string, 2)
 	gid := dtmimp.GetFuncName()
@@ -123,8 +122,7 @@ func TestTccBarrierDisorder(t *testing.T) {
 	assert.Error(t, err, fmt.Errorf("a cancelled tcc"))
 	assert.Equal(t, []string{StatusSucceed, StatusPrepared}, getBranchesStatus(gid))
 	assert.Equal(t, StatusFailed, getTransStatus(gid))
-	assert.True(t, busi.IsEqual(ua1, busi.GetUserAccountByUid(1)))
-	assert.True(t, busi.IsEqual(ua2, busi.GetUserAccountByUid(2)))
+	assertSameBalance(t, before)
 }
 
 func TestTccBarrierPanic(t *testing.T) {
