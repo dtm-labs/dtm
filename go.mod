@@ -1,6 +1,6 @@
 module github.com/dtm-labs/dtm
 
-go 1.15
+go 1.16
 
 require (
 	bou.ke/monkey v1.0.2 // indirect
