@@ -1,6 +1,6 @@
 module github.com/dtm-labs/dtm
 
-go 1.15
+go 1.16
 
 require (
 	github.com/dtm-labs/dtmdriver v0.0.1
