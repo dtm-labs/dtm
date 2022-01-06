@@ -50,7 +50,7 @@ func (t *TransGlobal) mayQueryPrepared() {
 	} else if strings.Contains(body, dtmcli.ResultOngoing) {
 		t.touchCronTime(cronReset)
 	} else {
-		logger.Errorf("getting result failed for %s. error: %w", t.QueryPrepared, err)
+		logger.Errorf("getting result failed for %s. error: %v body %s", t.QueryPrepared, err, body)
 		t.touchCronTime(cronBackoff)
 	}
 }

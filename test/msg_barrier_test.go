@@ -8,6 +8,7 @@ import (
 
 	"bou.ke/monkey"
 	"github.com/dtm-labs/dtm/dtmcli"
+	"github.com/dtm-labs/dtm/dtmcli/dtmimp"
 	"github.com/dtm-labs/dtm/dtmcli/logger"
 	"github.com/dtm-labs/dtm/test/busi"
 	"github.com/stretchr/testify/assert"
@@ -15,7 +16,7 @@ import (
 
 func TestMsgPrepareAndSubmit(t *testing.T) {
 	before := getBeforeBalances()
-	gid := dtmcli.MustGenGid(DtmServer)
+	gid := dtmimp.GetFuncName()
 	req := busi.GenTransReq(30, false, false)
 	msg := dtmcli.NewMsg(DtmServer, gid).
 		Add(busi.Busi+"/SagaBTransIn", req)
@@ -31,7 +32,7 @@ func TestMsgPrepareAndSubmit(t *testing.T) {
 
 func TestMsgPrepareAndSubmitBusiFailed(t *testing.T) {
 	before := getBeforeBalances()
-	gid := dtmcli.MustGenGid(DtmServer)
+	gid := dtmimp.GetFuncName()
 	req := busi.GenTransReq(30, false, false)
 	msg := dtmcli.NewMsg(DtmServer, gid).
 		Add(busi.Busi+"/SagaBTransIn", req)
@@ -44,7 +45,7 @@ func TestMsgPrepareAndSubmitBusiFailed(t *testing.T) {
 
 func TestMsgPrepareAndSubmitPrepareFailed(t *testing.T) {
 	before := getBeforeBalances()
-	gid := dtmcli.MustGenGid(DtmServer)
+	gid := dtmimp.GetFuncName()
 	req := busi.GenTransReq(30, false, false)
 	msg := dtmcli.NewMsg(DtmServer+"not-exists", gid).
 		Add(busi.Busi+"/SagaBTransIn", req)
@@ -57,7 +58,7 @@ func TestMsgPrepareAndSubmitPrepareFailed(t *testing.T) {
 
 func TestMsgPrepareAndSubmitCommitFailed(t *testing.T) {
 	before := getBeforeBalances()
-	gid := dtmcli.MustGenGid(DtmServer)
+	gid := dtmimp.GetFuncName()
 	req := busi.GenTransReq(30, false, false)
 	msg := dtmcli.NewMsg(DtmServer, gid).
 		Add(busi.Busi+"/SagaBTransIn", req)
@@ -78,7 +79,7 @@ func TestMsgPrepareAndSubmitCommitFailed(t *testing.T) {
 
 func TestMsgPrepareAndSubmitCommitAfterFailed(t *testing.T) {
 	before := getBeforeBalances()
-	gid := dtmcli.MustGenGid(DtmServer)
+	gid := dtmimp.GetFuncName()
 	req := busi.GenTransReq(30, false, false)
 	msg := dtmcli.NewMsg(DtmServer, gid).
 		Add(busi.Busi+"/SagaBTransIn", req)
