@@ -8,6 +8,7 @@ package dtmsvr
 
 import (
 	"context"
+	"sync"
 	"time"
 
 	"github.com/dtm-labs/dtm/dtmcli"
@@ -24,6 +25,13 @@ type TransGlobal struct {
 	storage.TransGlobalStore
 	lastTouched      time.Time // record the start time of process
 	updateBranchSync bool
+}
+
+// TransGlobal object pool
+var TransGlobalPool = sync.Pool{
+	New: func() interface{} {
+		return new(TransGlobal)
+	},
 }
 
 // TransBranch branch transaction
@@ -58,7 +66,7 @@ const (
 func TransFromContext(c *gin.Context) *TransGlobal {
 	b, err := c.GetRawData()
 	e2p(err)
-	m := TransGlobal{}
+	m := TransGlobalPool.Get().(*TransGlobal)
 	dtmimp.MustUnmarshal(b, &m)
 	logger.Debugf("creating trans in prepare")
 	// Payloads will be store in BinPayloads, Payloads is only used to Unmarshal
@@ -81,7 +89,7 @@ func TransFromContext(c *gin.Context) *TransGlobal {
 			}
 		}
 	}
-	return &m
+	return m
 }
 
 // TransFromDtmRequest TransFromContext
@@ -90,7 +98,8 @@ func TransFromDtmRequest(ctx context.Context, c *dtmgpb.DtmRequest) *TransGlobal
 	if c.TransOptions != nil {
 		o = c.TransOptions
 	}
-	r := TransGlobal{TransGlobalStore: storage.TransGlobalStore{
+	r := TransGlobalPool.Get().(*TransGlobal)
+	r.TransGlobalStore = storage.TransGlobalStore{
 		Gid:           c.Gid,
 		TransType:     c.TransType,
 		QueryPrepared: c.QueryPrepared,
@@ -103,7 +112,7 @@ func TransFromDtmRequest(ctx context.Context, c *dtmgpb.DtmRequest) *TransGlobal
 			PassthroughHeaders: o.PassthroughHeaders,
 			BranchHeaders:      o.BranchHeaders,
 		},
-	}}
+	}
 	if c.Steps != "" {
 		dtmimp.MustUnmarshalString(c.Steps, &r.Steps)
 	}
@@ -116,5 +125,5 @@ func TransFromDtmRequest(ctx context.Context, c *dtmgpb.DtmRequest) *TransGlobal
 			}
 		}
 	}
-	return &r
+	return r
 }

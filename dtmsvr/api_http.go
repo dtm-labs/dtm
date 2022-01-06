@@ -39,15 +39,21 @@ func newGid(c *gin.Context) (interface{}, error) {
 }
 
 func prepare(c *gin.Context) (interface{}, error) {
-	return svcPrepare(TransFromContext(c))
+	t := TransFromContext(c)
+	defer TransGlobalPool.Put(t)
+	return svcPrepare(t)
 }
 
 func submit(c *gin.Context) (interface{}, error) {
-	return svcSubmit(TransFromContext(c))
+	t := TransFromContext(c)
+	defer TransGlobalPool.Put(t)
+	return svcSubmit(t)
 }
 
 func abort(c *gin.Context) (interface{}, error) {
-	return svcAbort(TransFromContext(c))
+	t := TransFromContext(c)
+	defer TransGlobalPool.Put(t)
+	return svcAbort(t)
 }
 
 func registerBranch(c *gin.Context) (interface{}, error) {
