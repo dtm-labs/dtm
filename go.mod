@@ -3,6 +3,7 @@ module github.com/dtm-labs/dtm
 go 1.15
 
 require (
+	bou.ke/monkey v1.0.2 // indirect
 	github.com/dtm-labs/dtmdriver v0.0.1
 	github.com/dtm-labs/dtmdriver-gozero v0.0.1
 	github.com/dtm-labs/dtmdriver-polaris v0.0.2

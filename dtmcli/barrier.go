@@ -72,7 +72,7 @@ func (bb *BranchBarrier) Call(tx *sql.Tx, busiCall BarrierBusiFunc) (rerr error)
 		} else if rerr != nil {
 			tx.Rollback()
 		} else {
-			tx.Commit()
+			rerr = tx.Commit()
 		}
 	}()
 	ti := bb
@@ -102,11 +102,11 @@ func (bb *BranchBarrier) CallWithDB(db *sql.DB, busiCall BarrierBusiFunc) error 
 }
 
 func (bb *BranchBarrier) QueryPrepared(db *sql.DB) error {
-	_, err := insertBarrier(db, bb.TransType, bb.Gid, bb.BranchID, BranchAction, bb.BranchID, "rollback")
+	_, err := insertBarrier(db, bb.TransType, bb.Gid, "00", "msg", "01", "rollback")
 	var reason string
 	if err == nil {
 		sql := fmt.Sprintf("select reason from %s where gid=? and branch_id=? and op=? and barrier_id=?", dtmimp.BarrierTableName)
-		err = db.QueryRow(sql, bb.Gid, bb.BranchID, bb.Op, bb.BarrierID).Scan(&reason)
+		err = db.QueryRow(sql, bb.Gid, "00", "msg", "01").Scan(&reason)
 	}
 	if reason == "rollback" {
 		return ErrFailure
