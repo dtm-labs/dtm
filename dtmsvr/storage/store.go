@@ -3,7 +3,7 @@
  * Use of this source code is governed by a BSD-style
  * license that can be found in the LICENSE file.
  */
- 
+
 package storage
 
 import (
@@ -17,6 +17,7 @@ var ErrNotFound = errors.New("storage: NotFound")
 // ErrUniqueConflict defines the item is conflict with unique key in storage implement.
 var ErrUniqueConflict = errors.New("storage: UniqueKeyConflict")
 
+// Store defines storage relevant interface
 type Store interface {
 	Ping() error
 	PopulateData(skipDrop bool)

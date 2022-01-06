@@ -9,10 +9,12 @@ import (
 	"github.com/dtm-labs/dtm/dtmutil"
 )
 
+// TransGlobalExt defines Header info
 type TransGlobalExt struct {
 	Headers map[string]string `json:"headers,omitempty" gorm:"-"`
 }
 
+// TransGlobalStore defines GlobalStore storage info
 type TransGlobalStore struct {
 	dtmutil.ModelBase
 	Gid              string              `json:"gid,omitempty"`
