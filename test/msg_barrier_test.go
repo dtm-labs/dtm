@@ -57,6 +57,9 @@ func TestMsgPrepareAndSubmitPrepareFailed(t *testing.T) {
 }
 
 func TestMsgPrepareAndSubmitCommitFailed(t *testing.T) {
+	if conf.Store.IsDB() { // cannot patch tx.Commit, because Prepare also do Commit
+		return
+	}
 	before := getBeforeBalances()
 	gid := dtmimp.GetFuncName()
 	req := busi.GenTransReq(30, false, false)
@@ -78,6 +81,9 @@ func TestMsgPrepareAndSubmitCommitFailed(t *testing.T) {
 }
 
 func TestMsgPrepareAndSubmitCommitAfterFailed(t *testing.T) {
+	if conf.Store.IsDB() { // cannot patch tx.Commit, because Prepare also do Commit
+		return
+	}
 	before := getBeforeBalances()
 	gid := dtmimp.GetFuncName()
 	req := busi.GenTransReq(30, false, false)

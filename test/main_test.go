@@ -63,6 +63,9 @@ func TestMain(m *testing.M) {
 
 	busi.PopulateDB(false)
 	_ = busi.Startup()
-	exitIf(m.Run())
-
+	r := m.Run()
+	exitIf(r)
+	close(dtmsvr.TransProcessedTestChan)
+	gid, more := <-dtmsvr.TransProcessedTestChan
+	logger.FatalfIf(more, "extra gid: %s in test chan", gid)
 }
