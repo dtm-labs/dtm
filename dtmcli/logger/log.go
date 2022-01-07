@@ -13,7 +13,7 @@ import (
 var logger Logger = nil
 
 func init() {
-	InitLog("info")
+	InitLog(os.Getenv("LOG_LEVEL"))
 }
 
 // Logger logger interface
