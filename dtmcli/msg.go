@@ -40,6 +40,7 @@ func (s *Msg) Submit() error {
 	return dtmimp.TransCallDtm(&s.TransBase, s, "submit")
 }
 
+// PrepareAndSubmit one method for the entire busi->prepare->submit
 func (s *Msg) PrepareAndSubmit(queryPrepared string, db *sql.DB, busiCall BarrierBusiFunc) error {
 	bb, err := BarrierFrom(s.TransType, s.Gid, "00", "msg") // a special barrier for msg QueryPrepared
 	if err == nil {

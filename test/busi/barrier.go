@@ -122,3 +122,8 @@ func (s *busiServer) TransOutRevertBSaga(ctx context.Context, in *BusiReq) (*emp
 		return sagaGrpcAdjustBalance(tx, TransOutUID, in.Amount, "")
 	})
 }
+
+func (s *busiServer) QueryPreparedB(ctx context.Context, in *BusiReq) (*emptypb.Empty, error) {
+	barrier := MustBarrierFromGrpc(ctx)
+	return &emptypb.Empty{}, barrier.QueryPrepared(dbGet().ToSQLDB())
+}
