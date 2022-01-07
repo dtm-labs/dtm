@@ -29,6 +29,7 @@ type DB = dtmimp.DB
 // TransOptions transaction option
 type TransOptions = dtmimp.TransOptions
 
+// DBConf db conf
 type DBConf = dtmimp.DBConf
 
 // SetCurrentDBType set currentDBType
@@ -41,16 +42,17 @@ func GetCurrentDBType() string {
 	return dtmimp.GetCurrentDBType()
 }
 
-// SetXaSqlTimeoutMs set XaSqlTimeoutMs
-func SetXaSqlTimeoutMs(ms int) {
+// SetXaSQLTimeoutMs set XaSqlTimeoutMs
+func SetXaSQLTimeoutMs(ms int) {
 	dtmimp.XaSqlTimeoutMs = ms
 }
 
-// GetXaSqlTimeoutMs get XaSqlTimeoutMs
-func GetXaSqlTimeoutMs() int {
+// GetXaSQLTimeoutMs get XaSqlTimeoutMs
+func GetXaSQLTimeoutMs() int {
 	return dtmimp.XaSqlTimeoutMs
 }
 
+// SetBarrierTableName sets barrier table name
 func SetBarrierTableName(tablename string) {
 	dtmimp.BarrierTableName = tablename
 }
