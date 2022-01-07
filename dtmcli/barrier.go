@@ -45,7 +45,7 @@ func BarrierFrom(transType, gid, branchID, op string) (*BranchBarrier, error) {
 		Op:        op,
 	}
 	if ti.TransType == "" || ti.Gid == "" || ti.BranchID == "" || ti.Op == "" {
-		return nil, fmt.Errorf("invlid trans info: %v", ti)
+		return nil, fmt.Errorf("invalid trans info: %v", ti)
 	}
 	return ti, nil
 }
@@ -67,10 +67,10 @@ func (bb *BranchBarrier) Call(tx *sql.Tx, busiCall BarrierBusiFunc) (rerr error)
 	defer func() {
 		// Logf("barrier call error is %v", rerr)
 		if x := recover(); x != nil {
-			tx.Rollback()
+			rerr = tx.Rollback()
 			panic(x)
 		} else if rerr != nil {
-			tx.Rollback()
+			rerr = tx.Rollback()
 		} else {
 			rerr = tx.Commit()
 		}
@@ -101,6 +101,7 @@ func (bb *BranchBarrier) CallWithDB(db *sql.DB, busiCall BarrierBusiFunc) error 
 	return bb.Call(tx, busiCall)
 }
 
+// QueryPrepared queries prepared data
 func (bb *BranchBarrier) QueryPrepared(db *sql.DB) error {
 	_, err := insertBarrier(db, bb.TransType, bb.Gid, "00", "msg", "01", "rollback")
 	var reason string
