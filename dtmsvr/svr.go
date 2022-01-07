@@ -26,9 +26,9 @@ func StartSvr() {
 	app := dtmutil.GetGinApp()
 	app = httpMetrics(app)
 	addRoute(app)
-	logger.Infof("dtmsvr listen at: %d", conf.HttpPort)
+	logger.Infof("dtmsvr listen at: %d", conf.HTTPPort)
 	go func() {
-		err := app.Run(fmt.Sprintf(":%d", conf.HttpPort))
+		err := app.Run(fmt.Sprintf(":%d", conf.HTTPPort))
 		if err != nil {
 			logger.Errorf("start server err: %v", err)
 		}
