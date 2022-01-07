@@ -55,14 +55,9 @@ func SetBarrierTableName(tablename string) {
 	dtmimp.BarrierTableName = tablename
 }
 
-// OnBeforeRequest add before request middleware
-func OnBeforeRequest(middleware func(c *resty.Client, r *resty.Request) error) {
-	dtmimp.RestyClient.OnBeforeRequest(middleware)
-}
-
-// OnAfterResponse add after request middleware
-func OnAfterResponse(middleware func(c *resty.Client, resp *resty.Response) error) {
-	dtmimp.RestyClient.OnAfterResponse(middleware)
+// GetRestyClient get the resty.Client for http request
+func GetRestyClient() *resty.Client {
+	return dtmimp.RestyClient
 }
 
 // SetPassthroughHeaders experimental.
