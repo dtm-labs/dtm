@@ -24,7 +24,9 @@ func (xc *XaClientBase) HandleCallback(gid string, branchID string, action strin
 	if err != nil {
 		return err
 	}
-	defer db.Close()
+	defer func() {
+		_ = db.Close()
+	}()
 	xaID := gid + "-" + branchID
 	_, err = DBExec(db, GetDBSpecial().GetXaSQL(action, xaID))
 	if err != nil &&
@@ -41,7 +43,7 @@ func (xc *XaClientBase) HandleLocalTrans(xa *TransBase, cb func(*sql.DB) error) 
 	if rerr != nil {
 		return
 	}
-	defer func() { db.Close() }()
+	defer func() { _ = db.Close() }()
 	defer func() {
 		x := recover()
 		_, err := DBExec(db, GetDBSpecial().GetXaSQL("end", xaBranch))

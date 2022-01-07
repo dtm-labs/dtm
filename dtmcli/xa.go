@@ -86,7 +86,7 @@ func (xc *XaClient) XaGlobalTransaction(gid string, xaFunc XaGlobalFunc) (rerr e
 	return xc.XaGlobalTransaction2(gid, func(x *Xa) {}, xaFunc)
 }
 
-// XaGlobalTransaction start a xa global transaction
+// XaGlobalTransaction2 start a xa global transaction
 func (xc *XaClient) XaGlobalTransaction2(gid string, custom func(*Xa), xaFunc XaGlobalFunc) (rerr error) {
 	xa := &Xa{TransBase: *dtmimp.NewTransBase(gid, "xa", xc.XaClientBase.Server, "")}
 	custom(xa)

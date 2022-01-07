@@ -10,7 +10,7 @@ import (
 
 //var logger *zap.SugaredLogger = nil
 
-var logger Logger = nil
+var logger Logger
 
 func init() {
 	InitLog(os.Getenv("LOG_LEVEL"))
@@ -24,6 +24,7 @@ type Logger interface {
 	Errorf(format string, args ...interface{})
 }
 
+// WithLogger replaces default logger
 func WithLogger(log Logger) {
 	logger = log
 }
