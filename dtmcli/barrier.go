@@ -101,6 +101,7 @@ func (bb *BranchBarrier) CallWithDB(db *sql.DB, busiCall BarrierBusiFunc) error 
 	return bb.Call(tx, busiCall)
 }
 
+// QueryPrepared queries prepared data
 func (bb *BranchBarrier) QueryPrepared(db *sql.DB) error {
 	_, err := insertBarrier(db, bb.TransType, bb.Gid, "00", "msg", "01", "rollback")
 	var reason string
