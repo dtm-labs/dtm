@@ -67,10 +67,12 @@ func (bb *BranchBarrier) Call(tx *sql.Tx, busiCall BarrierBusiFunc) (rerr error)
 	defer func() {
 		// Logf("barrier call error is %v", rerr)
 		if x := recover(); x != nil {
-			rerr = tx.Rollback()
+			err := tx.Rollback()
+			dtmimp.E2P(err)
 			panic(x)
 		} else if rerr != nil {
-			rerr = tx.Rollback()
+			err := tx.Rollback()
+			dtmimp.E2P(err)
 		} else {
 			rerr = tx.Commit()
 		}
