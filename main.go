@@ -12,6 +12,8 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/dtm-labs/dtm/dtmcli/dtmimp"
+
 	"go.uber.org/automaxprocs/maxprocs"
 
 	"github.com/dtm-labs/dtm/dtmcli/logger"
@@ -25,6 +27,7 @@ import (
 	_ "github.com/dtm-labs/dtmdriver-protocol1"
 )
 
+// Version declares version info
 var Version string
 
 func version() {
@@ -63,7 +66,9 @@ func main() {
 	if *isReset {
 		dtmsvr.PopulateDB(false)
 	}
-	maxprocs.Set(maxprocs.Logger(logger.Infof))
+	_, err := maxprocs.Set(maxprocs.Logger(logger.Infof))
+	dtmimp.E2P(err)
+
 	registry.WaitStoreUp()
 	dtmsvr.StartSvr()              // 启动dtmsvr的api服务
 	go dtmsvr.CronExpiredTrans(-1) // 启动dtmsvr的定时过期查询
