@@ -61,7 +61,7 @@ func BaseAppStartup() *gin.Engine {
 		c.Next()
 	})
 	var err error
-	XaClient, err = dtmcli.NewXaClient(dtmutil.DefaultHttpServer, BusiConf, Busi+"/xa", func(path string, xa *dtmcli.XaClient) {
+	XaClient, err = dtmcli.NewXaClient(dtmutil.DefaultHTTPServer, BusiConf, Busi+"/xa", func(path string, xa *dtmcli.XaClient) {
 		app.POST(path, dtmutil.WrapHandler(func(c *gin.Context) (interface{}, error) {
 			return xa.HandleCallback(c.Query("gid"), c.Query("branch_id"), c.Query("op"))
 		}))

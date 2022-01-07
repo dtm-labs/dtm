@@ -44,5 +44,5 @@ func testDbAlone(t *testing.T) {
 
 func TestMustGenGid(t *testing.T) {
 	dtmgrpc.MustGenGid(dtmutil.DefaultGrpcServer)
-	dtmcli.MustGenGid(dtmutil.DefaultHttpServer)
+	dtmcli.MustGenGid(dtmutil.DefaultHTTPServer)
 }

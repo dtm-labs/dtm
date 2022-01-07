@@ -94,7 +94,7 @@ func TestSagaOptionsRollbackWait(t *testing.T) {
 
 func TestSagaPassthroughHeadersYes(t *testing.T) {
 	gidYes := dtmimp.GetFuncName()
-	sagaYes := dtmcli.NewSaga(dtmutil.DefaultHttpServer, gidYes)
+	sagaYes := dtmcli.NewSaga(dtmutil.DefaultHTTPServer, gidYes)
 	sagaYes.WaitResult = true
 	sagaYes.PassthroughHeaders = []string{"test_header"}
 	sagaYes.Add(busi.Busi+"/TransOutHeaderYes", "", nil)
@@ -105,7 +105,7 @@ func TestSagaPassthroughHeadersYes(t *testing.T) {
 
 func TestSagaCronPassthroughHeadersYes(t *testing.T) {
 	gidYes := dtmimp.GetFuncName()
-	sagaYes := dtmcli.NewSaga(dtmutil.DefaultHttpServer, gidYes)
+	sagaYes := dtmcli.NewSaga(dtmutil.DefaultHTTPServer, gidYes)
 	sagaYes.PassthroughHeaders = []string{"test_header"}
 	sagaYes.Add(busi.Busi+"/TransOutHeaderYes", "", nil)
 	busi.MainSwitch.TransOutResult.SetOnce("ONGOING")
@@ -120,7 +120,7 @@ func TestSagaCronPassthroughHeadersYes(t *testing.T) {
 
 func TestSagaPassthroughHeadersNo(t *testing.T) {
 	gidNo := dtmimp.GetFuncName()
-	sagaNo := dtmcli.NewSaga(dtmutil.DefaultHttpServer, gidNo)
+	sagaNo := dtmcli.NewSaga(dtmutil.DefaultHTTPServer, gidNo)
 	sagaNo.WaitResult = true
 	sagaNo.Add(busi.Busi+"/TransOutHeaderNo", "", nil)
 	err := sagaNo.Submit()
@@ -130,7 +130,7 @@ func TestSagaPassthroughHeadersNo(t *testing.T) {
 
 func TestSagaHeaders(t *testing.T) {
 	gidYes := dtmimp.GetFuncName()
-	sagaYes := dtmcli.NewSaga(dtmutil.DefaultHttpServer, gidYes)
+	sagaYes := dtmcli.NewSaga(dtmutil.DefaultHTTPServer, gidYes)
 	sagaYes.BranchHeaders = map[string]string{
 		"test_header": "test",
 	}
@@ -143,7 +143,7 @@ func TestSagaHeaders(t *testing.T) {
 
 func TestSagaHeadersYes1(t *testing.T) {
 	gidYes := dtmimp.GetFuncName()
-	sagaYes := dtmcli.NewSaga(dtmutil.DefaultHttpServer, gidYes)
+	sagaYes := dtmcli.NewSaga(dtmutil.DefaultHTTPServer, gidYes)
 	sagaYes.BranchHeaders = map[string]string{
 		"test_header": "test",
 	}

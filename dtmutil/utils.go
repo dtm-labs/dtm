@@ -80,8 +80,8 @@ func MustGetwd() string {
 	return wd
 }
 
-// GetSqlDir 获取调用该函数的caller源代码的目录，主要用于测试时，查找相关文件
-func GetSqlDir() string {
+// GetSQLDir 获取调用该函数的caller源代码的目录，主要用于测试时，查找相关文件
+func GetSQLDir() string {
 	wd := MustGetwd()
 	if filepath.Base(wd) == "test" {
 		wd = filepath.Dir(wd)
@@ -89,6 +89,7 @@ func GetSqlDir() string {
 	return wd + "/sqls"
 }
 
+// RecoverPanic execs recovery operation
 func RecoverPanic(err *error) {
 	if x := recover(); x != nil {
 		e := dtmimp.AsError(x)
@@ -98,6 +99,7 @@ func RecoverPanic(err *error) {
 	}
 }
 
+// GetNextTime gets next time from second
 func GetNextTime(second int64) *time.Time {
 	next := time.Now().Add(time.Duration(second) * time.Second)
 	return &next
@@ -107,7 +109,7 @@ func GetNextTime(second int64) *time.Time {
 func RunSQLScript(conf dtmcli.DBConf, script string, skipDrop bool) {
 	con, err := dtmimp.StandaloneDB(conf)
 	logger.FatalIfError(err)
-	defer func() { con.Close() }()
+	defer func() { _ = con.Close() }()
 	content, err := ioutil.ReadFile(script)
 	logger.FatalIfError(err)
 	sqls := strings.Split(string(content), ";")
