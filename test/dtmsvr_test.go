@@ -17,7 +17,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-var DtmServer = dtmutil.DefaultHttpServer
+var DtmServer = dtmutil.DefaultHTTPServer
 var Busi = busi.Busi
 
 func getTransStatus(gid string) string {

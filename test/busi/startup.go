@@ -16,8 +16,8 @@ func Startup() *gin.Engine {
 // PopulateDB populate example mysql data
 func PopulateDB(skipDrop bool) {
 	resetXaData()
-	file := fmt.Sprintf("%s/busi.%s.sql", dtmutil.GetSqlDir(), BusiConf.Driver)
+	file := fmt.Sprintf("%s/busi.%s.sql", dtmutil.GetSQLDir(), BusiConf.Driver)
 	dtmutil.RunSQLScript(BusiConf, file, skipDrop)
-	file = fmt.Sprintf("%s/dtmcli.barrier.%s.sql", dtmutil.GetSqlDir(), BusiConf.Driver)
+	file = fmt.Sprintf("%s/dtmcli.barrier.%s.sql", dtmutil.GetSQLDir(), BusiConf.Driver)
 	dtmutil.RunSQLScript(BusiConf, file, skipDrop)
 }

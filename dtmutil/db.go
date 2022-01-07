@@ -28,7 +28,7 @@ func getGormDialetor(driver string, dsn string) gorm.Dialector {
 	if driver == dtmcli.DBTypePostgres {
 		return postgres.Open(dsn)
 	}
-	dtmimp.PanicIf(driver != dtmcli.DBTypeMysql, fmt.Errorf("unkown driver: %s", driver))
+	dtmimp.PanicIf(driver != dtmcli.DBTypeMysql, fmt.Errorf("unknown driver: %s", driver))
 	return mysql.Open(dsn)
 }
 
@@ -106,7 +106,8 @@ func DbGet(conf dtmcli.DBConf, ops ...func(*gorm.DB)) *DB {
 			SkipDefaultTransaction: true,
 		})
 		dtmimp.E2P(err)
-		db1.Use(&tracePlugin{})
+		err = db1.Use(&tracePlugin{})
+		dtmimp.E2P(err)
 		db = &DB{DB: db1}
 		for _, op := range ops {
 			op(db1)
