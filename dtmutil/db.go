@@ -106,7 +106,8 @@ func DbGet(conf dtmcli.DBConf, ops ...func(*gorm.DB)) *DB {
 			SkipDefaultTransaction: true,
 		})
 		dtmimp.E2P(err)
-		dtmimp.E2P(db1.Use(&tracePlugin{}))
+		err = db1.Use(&tracePlugin{})
+		dtmimp.E2P(err)
 		db = &DB{DB: db1}
 		for _, op := range ops {
 			op(db1)
