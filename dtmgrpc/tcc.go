@@ -75,6 +75,9 @@ func TccFromGrpc(ctx context.Context) (*TccGrpc, error) {
 func (t *TccGrpc) CallBranch(busiMsg proto.Message, tryURL string, confirmURL string, cancelURL string, reply interface{}) error {
 	branchID := t.NewSubBranchID()
 	bd, err := proto.Marshal(busiMsg)
+	if err != nil {
+		return err
+	}
 	_, err = dtmgimp.MustGetDtmClient(t.Dtm).RegisterBranch(context.Background(), &dtmgpb.DtmBranchRequest{
 		Gid:         t.Gid,
 		TransType:   t.TransType,

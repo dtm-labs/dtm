@@ -26,9 +26,8 @@ func (cb rawCodec) Marshal(v interface{}) ([]byte, error) {
 func (cb rawCodec) Unmarshal(data []byte, v interface{}) error {
 	ba, ok := v.(*[]byte)
 	dtmimp.PanicIf(!ok, fmt.Errorf("please pass in *[]byte"))
-	for _, byte := range data {
-		*ba = append(*ba, byte)
-	}
+	*ba = append(*ba, data...)
+
 	return nil
 }
 
@@ -36,6 +35,7 @@ func (cb rawCodec) Name() string { return "dtm_raw" }
 
 var normalClients, rawClients sync.Map
 
+// ClientInterceptors declares grpc.UnaryClientInterceptors slice
 var ClientInterceptors = []grpc.UnaryClientInterceptor{}
 
 // MustGetDtmClient 1
