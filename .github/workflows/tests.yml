@@ -41,7 +41,7 @@ jobs:
         run: |
           go mod download
 
-      - name: Run ci lint
+      - name: Run CI lint
         run: make lint
 
       - name: Run test cover
