@@ -38,7 +38,7 @@ func GetGinApp() *gin.Engine {
 				c.Request.Body = ioutil.NopCloser(bytes.NewBuffer(rb))
 			}
 		}
-		logger.Debugf("begin %s %s query: %s body: %s", c.Request.Method, c.FullPath(), c.Request.URL.RawQuery, body)
+		logger.Debugf("begin %s %s body: %s", c.Request.Method, c.Request.URL, body)
 		c.Next()
 	})
 	app.Any("/api/ping", func(c *gin.Context) { c.JSON(200, map[string]interface{}{"msg": "pong"}) })

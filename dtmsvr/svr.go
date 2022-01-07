@@ -65,8 +65,8 @@ var UpdateBranchAsyncInterval = 200 * time.Millisecond
 var updateBranchAsyncChan chan branchStatus = make(chan branchStatus, 1000)
 
 func updateBranchAsync() {
-	defer dtmutil.RecoverPanic(nil)
-	for { // flush branches every second
+	flushBranchs := func() {
+		defer dtmutil.RecoverPanic(nil)
 		updates := []TransBranch{}
 		started := time.Now()
 		checkInterval := 20 * time.Millisecond
@@ -93,5 +93,9 @@ func updateBranchAsync() {
 				updates = []TransBranch{}
 			}
 		}
+
+	}
+	for { // flush branches every 200ms
+		flushBranchs()
 	}
 }

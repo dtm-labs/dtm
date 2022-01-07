@@ -1,5 +1,5 @@
 # syntax=docker/dockerfile:1
-FROM --platform=$TARGETPLATFORM golang:1.16.6-alpine3.14 as builder
+FROM --platform=$TARGETPLATFORM golang:1.16-alpine as builder
 ARG TARGETARCH
 ARG TARGETOS
 WORKDIR /app/dtm
@@ -8,7 +8,7 @@ EXPOSE 8080
 COPY . .
 RUN CGO_ENABLED=0 GOOS=$TARGETOS GOARCH=$TARGETARCH go build -ldflags="-s -w"
 
-FROM --platform=$TARGETPLATFORM alpine:3.14
+FROM --platform=$TARGETPLATFORM alpine
 COPY --from=builder /app/dtm/dtm /app/dtm/
 ENV IS_DOCKER=1
 WORKDIR /app/dtm

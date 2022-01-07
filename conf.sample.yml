@@ -2,7 +2,7 @@
 ### dtm can be run without any config.
 ### all config in this file is optional. the default value is as specified in each line
 ### all configs can be specified from env. for example:
-### Store.MaxOpenConns can also specified from env: STORE_MAX_OPEN_CONNS
+### MicroService.EndPoint => MICRO_SERVICE_END_POINT
 #####################################################################
 
 # Store: # specify which engine to store trans status
@@ -49,4 +49,5 @@
 # RetryInterval: 10 # the subtrans branch will be retried after this interval
 
 # LogLevel: 'info' # default: info. can be debug|info|warn|error
-
+# HttpPort: 36789
+# GrpcPort: 36790

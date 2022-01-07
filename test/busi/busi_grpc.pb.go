@@ -19,7 +19,6 @@ const _ = grpc.SupportPackageIsVersion7
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type BusiClient interface {
-	CanSubmit(ctx context.Context, in *BusiReq, opts ...grpc.CallOption) (*BusiReply, error)
 	TransIn(ctx context.Context, in *BusiReq, opts ...grpc.CallOption) (*emptypb.Empty, error)
 	TransOut(ctx context.Context, in *BusiReq, opts ...grpc.CallOption) (*emptypb.Empty, error)
 	TransInRevert(ctx context.Context, in *BusiReq, opts ...grpc.CallOption) (*emptypb.Empty, error)
@@ -38,6 +37,8 @@ type BusiClient interface {
 	TransOutRevertBSaga(ctx context.Context, in *BusiReq, opts ...grpc.CallOption) (*emptypb.Empty, error)
 	TransOutHeaderYes(ctx context.Context, in *BusiReq, opts ...grpc.CallOption) (*emptypb.Empty, error)
 	TransOutHeaderNo(ctx context.Context, in *BusiReq, opts ...grpc.CallOption) (*emptypb.Empty, error)
+	QueryPrepared(ctx context.Context, in *BusiReq, opts ...grpc.CallOption) (*BusiReply, error)
+	QueryPreparedB(ctx context.Context, in *BusiReq, opts ...grpc.CallOption) (*emptypb.Empty, error)
 }
 
 type busiClient struct {
@@ -46,15 +47,6 @@ type busiClient struct {
 
 func NewBusiClient(cc grpc.ClientConnInterface) BusiClient {
 	return &busiClient{cc}
-}
-
-func (c *busiClient) CanSubmit(ctx context.Context, in *BusiReq, opts ...grpc.CallOption) (*BusiReply, error) {
-	out := new(BusiReply)
-	err := c.cc.Invoke(ctx, "/busi.Busi/CanSubmit", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
 }
 
 func (c *busiClient) TransIn(ctx context.Context, in *BusiReq, opts ...grpc.CallOption) (*emptypb.Empty, error) {
@@ -219,11 +211,28 @@ func (c *busiClient) TransOutHeaderNo(ctx context.Context, in *BusiReq, opts ...
 	return out, nil
 }
 
+func (c *busiClient) QueryPrepared(ctx context.Context, in *BusiReq, opts ...grpc.CallOption) (*BusiReply, error) {
+	out := new(BusiReply)
+	err := c.cc.Invoke(ctx, "/busi.Busi/QueryPrepared", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *busiClient) QueryPreparedB(ctx context.Context, in *BusiReq, opts ...grpc.CallOption) (*emptypb.Empty, error) {
+	out := new(emptypb.Empty)
+	err := c.cc.Invoke(ctx, "/busi.Busi/QueryPreparedB", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // BusiServer is the server API for Busi service.
 // All implementations must embed UnimplementedBusiServer
 // for forward compatibility
 type BusiServer interface {
-	CanSubmit(context.Context, *BusiReq) (*BusiReply, error)
 	TransIn(context.Context, *BusiReq) (*emptypb.Empty, error)
 	TransOut(context.Context, *BusiReq) (*emptypb.Empty, error)
 	TransInRevert(context.Context, *BusiReq) (*emptypb.Empty, error)
@@ -242,6 +251,8 @@ type BusiServer interface {
 	TransOutRevertBSaga(context.Context, *BusiReq) (*emptypb.Empty, error)
 	TransOutHeaderYes(context.Context, *BusiReq) (*emptypb.Empty, error)
 	TransOutHeaderNo(context.Context, *BusiReq) (*emptypb.Empty, error)
+	QueryPrepared(context.Context, *BusiReq) (*BusiReply, error)
+	QueryPreparedB(context.Context, *BusiReq) (*emptypb.Empty, error)
 	mustEmbedUnimplementedBusiServer()
 }
 
@@ -249,9 +260,6 @@ type BusiServer interface {
 type UnimplementedBusiServer struct {
 }
 
-func (UnimplementedBusiServer) CanSubmit(context.Context, *BusiReq) (*BusiReply, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method CanSubmit not implemented")
-}
 func (UnimplementedBusiServer) TransIn(context.Context, *BusiReq) (*emptypb.Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method TransIn not implemented")
 }
@@ -306,6 +314,12 @@ func (UnimplementedBusiServer) TransOutHeaderYes(context.Context, *BusiReq) (*em
 func (UnimplementedBusiServer) TransOutHeaderNo(context.Context, *BusiReq) (*emptypb.Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method TransOutHeaderNo not implemented")
 }
+func (UnimplementedBusiServer) QueryPrepared(context.Context, *BusiReq) (*BusiReply, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method QueryPrepared not implemented")
+}
+func (UnimplementedBusiServer) QueryPreparedB(context.Context, *BusiReq) (*emptypb.Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method QueryPreparedB not implemented")
+}
 func (UnimplementedBusiServer) mustEmbedUnimplementedBusiServer() {}
 
 // UnsafeBusiServer may be embedded to opt out of forward compatibility for this service.
@@ -317,24 +331,6 @@ type UnsafeBusiServer interface {
 
 func RegisterBusiServer(s grpc.ServiceRegistrar, srv BusiServer) {
 	s.RegisterService(&Busi_ServiceDesc, srv)
-}
-
-func _Busi_CanSubmit_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(BusiReq)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(BusiServer).CanSubmit(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/busi.Busi/CanSubmit",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(BusiServer).CanSubmit(ctx, req.(*BusiReq))
-	}
-	return interceptor(ctx, in, info, handler)
 }
 
 func _Busi_TransIn_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
@@ -661,6 +657,42 @@ func _Busi_TransOutHeaderNo_Handler(srv interface{}, ctx context.Context, dec fu
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Busi_QueryPrepared_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(BusiReq)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BusiServer).QueryPrepared(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/busi.Busi/QueryPrepared",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BusiServer).QueryPrepared(ctx, req.(*BusiReq))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Busi_QueryPreparedB_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(BusiReq)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BusiServer).QueryPreparedB(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/busi.Busi/QueryPreparedB",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BusiServer).QueryPreparedB(ctx, req.(*BusiReq))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // Busi_ServiceDesc is the grpc.ServiceDesc for Busi service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -668,10 +700,6 @@ var Busi_ServiceDesc = grpc.ServiceDesc{
 	ServiceName: "busi.Busi",
 	HandlerType: (*BusiServer)(nil),
 	Methods: []grpc.MethodDesc{
-		{
-			MethodName: "CanSubmit",
-			Handler:    _Busi_CanSubmit_Handler,
-		},
 		{
 			MethodName: "TransIn",
 			Handler:    _Busi_TransIn_Handler,
@@ -743,6 +771,14 @@ var Busi_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "TransOutHeaderNo",
 			Handler:    _Busi_TransOutHeaderNo_Handler,
+		},
+		{
+			MethodName: "QueryPrepared",
+			Handler:    _Busi_QueryPrepared_Handler,
+		},
+		{
+			MethodName: "QueryPreparedB",
+			Handler:    _Busi_QueryPreparedB_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
