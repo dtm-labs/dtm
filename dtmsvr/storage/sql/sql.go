@@ -31,7 +31,7 @@ func (s *Store) Ping() error {
 
 // PopulateData populates data to db
 func (s *Store) PopulateData(skipDrop bool) {
-	file := fmt.Sprintf("%s/dtmsvr.storage.%s.sql", dtmutil.GetSqlDir(), conf.Store.Driver)
+	file := fmt.Sprintf("%s/dtmsvr.storage.%s.sql", dtmutil.GetSQLDir(), conf.Store.Driver)
 	dtmutil.RunSQLScript(conf.Store.GetDBConf(), file, skipDrop)
 }
 

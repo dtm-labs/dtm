@@ -21,7 +21,7 @@ func TestTccCoverNotConnected(t *testing.T) {
 func TestTccCoverPanic(t *testing.T) {
 	gid := dtmimp.GetFuncName()
 	err := dtmimp.CatchP(func() {
-		_ = dtmcli.TccGlobalTransaction(dtmutil.DefaultHttpServer, gid, func(tcc *dtmcli.Tcc) (*resty.Response, error) {
+		_ = dtmcli.TccGlobalTransaction(dtmutil.DefaultHTTPServer, gid, func(tcc *dtmcli.Tcc) (*resty.Response, error) {
 			panic("user panic")
 		})
 		assert.FailNow(t, "not executed")

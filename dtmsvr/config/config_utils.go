@@ -49,9 +49,12 @@ func loadFromEnvInner(prefix string, conf reflect.Value, defaultValue string) {
 
 func toUnderscoreUpper(key string) string {
 	key = strings.Trim(key, "_")
+	matchLastCap := regexp.MustCompile("([A-Z])([A-Z][a-z])")
+	s2 := matchLastCap.ReplaceAllString(key, "${1}_${2}")
+
 	matchFirstCap := regexp.MustCompile("([a-z])([A-Z]+)")
-	s2 := matchFirstCap.ReplaceAllString(key, "${1}_${2}")
-	// logger.Debugf("loading from env: %s", strings.ToUpper(s2))
+	s2 = matchFirstCap.ReplaceAllString(s2, "${1}_${2}")
+	// logger.Infof("loading from env: %s", strings.ToUpper(s2))
 	return strings.ToUpper(s2)
 }
 

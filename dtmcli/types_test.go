@@ -26,7 +26,7 @@ func TestTypes(t *testing.T) {
 }
 
 func TestXaSqlTimeout(t *testing.T) {
-	old := GetXaSqlTimeoutMs()
-	SetXaSqlTimeoutMs(old)
+	old := GetXaSQLTimeoutMs()
+	SetXaSQLTimeoutMs(old)
 	SetBarrierTableName(dtmimp.BarrierTableName) // just cover this func
 }

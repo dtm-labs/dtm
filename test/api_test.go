@@ -20,7 +20,7 @@ func TestAPIQuery(t *testing.T) {
 	err := genMsg(gid).Submit()
 	assert.Nil(t, err)
 	waitTransProcessed(gid)
-	resp, err := dtmimp.RestyClient.R().SetQueryParam("gid", gid).Get(dtmutil.DefaultHttpServer + "/query")
+	resp, err := dtmimp.RestyClient.R().SetQueryParam("gid", gid).Get(dtmutil.DefaultHTTPServer + "/query")
 	assert.Nil(t, err)
 	m := map[string]interface{}{}
 	assert.Equal(t, resp.StatusCode(), 200)
@@ -28,11 +28,11 @@ func TestAPIQuery(t *testing.T) {
 	assert.NotEqual(t, nil, m["transaction"])
 	assert.Equal(t, 2, len(m["branches"].([]interface{})))
 
-	resp, err = dtmimp.RestyClient.R().SetQueryParam("gid", "").Get(dtmutil.DefaultHttpServer + "/query")
+	resp, err = dtmimp.RestyClient.R().SetQueryParam("gid", "").Get(dtmutil.DefaultHTTPServer + "/query")
 	e2p(err)
 	assert.Equal(t, resp.StatusCode(), 500)
 
-	resp, err = dtmimp.RestyClient.R().SetQueryParam("gid", "1").Get(dtmutil.DefaultHttpServer + "/query")
+	resp, err = dtmimp.RestyClient.R().SetQueryParam("gid", "1").Get(dtmutil.DefaultHTTPServer + "/query")
 	e2p(err)
 	assert.Equal(t, resp.StatusCode(), 200)
 	dtmimp.MustUnmarshalString(resp.String(), &m)
@@ -47,7 +47,7 @@ func TestAPIAll(t *testing.T) {
 		assert.Nil(t, err)
 		waitTransProcessed(gid)
 	}
-	resp, err := dtmimp.RestyClient.R().SetQueryParam("limit", "1").Get(dtmutil.DefaultHttpServer + "/all")
+	resp, err := dtmimp.RestyClient.R().SetQueryParam("limit", "1").Get(dtmutil.DefaultHTTPServer + "/all")
 	assert.Nil(t, err)
 	m := map[string]interface{}{}
 	dtmimp.MustUnmarshalString(resp.String(), &m)
@@ -57,7 +57,7 @@ func TestAPIAll(t *testing.T) {
 	resp, err = dtmimp.RestyClient.R().SetQueryParams(map[string]string{
 		"limit":    "1",
 		"position": nextPos,
-	}).Get(dtmutil.DefaultHttpServer + "/all")
+	}).Get(dtmutil.DefaultHTTPServer + "/all")
 	assert.Nil(t, err)
 	dtmimp.MustUnmarshalString(resp.String(), &m)
 	nextPos2 := m["next_position"].(string)
@@ -67,7 +67,7 @@ func TestAPIAll(t *testing.T) {
 	resp, err = dtmimp.RestyClient.R().SetQueryParams(map[string]string{
 		"limit":    "1000",
 		"position": nextPos,
-	}).Get(dtmutil.DefaultHttpServer + "/all")
+	}).Get(dtmutil.DefaultHTTPServer + "/all")
 	assert.Nil(t, err)
 	dtmimp.MustUnmarshalString(resp.String(), &m)
 	nextPos3 := m["next_position"].(string)

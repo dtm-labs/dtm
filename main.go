@@ -25,6 +25,7 @@ import (
 	_ "github.com/dtm-labs/dtmdriver-protocol1"
 )
 
+// Version declares version info
 var Version string
 
 func version() {
@@ -63,7 +64,7 @@ func main() {
 	if *isReset {
 		dtmsvr.PopulateDB(false)
 	}
-	maxprocs.Set(maxprocs.Logger(logger.Infof))
+	_, _ = maxprocs.Set(maxprocs.Logger(logger.Infof))
 	registry.WaitStoreUp()
 	dtmsvr.StartSvr()              // 启动dtmsvr的api服务
 	go dtmsvr.CronExpiredTrans(-1) // 启动dtmsvr的定时过期查询

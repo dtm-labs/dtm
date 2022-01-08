@@ -31,7 +31,7 @@ func TestGin(t *testing.T) {
 		req, _ := http.NewRequest("GET", api, body)
 		w := httptest.NewRecorder()
 		app.ServeHTTP(w, req)
-		return string(w.Body.Bytes())
+		return w.Body.String()
 	}
 	assert.Equal(t, "{\"msg\":\"pong\"}", getResultString("/api/ping", nil))
 	assert.Equal(t, "1", getResultString("/api/sample", nil))
@@ -42,7 +42,7 @@ func TestFuncs(t *testing.T) {
 	wd := MustGetwd()
 	assert.NotEqual(t, "", wd)
 
-	dir1 := GetSqlDir()
+	dir1 := GetSQLDir()
 	assert.Equal(t, true, strings.HasSuffix(dir1, "/sqls"))
 
 }

@@ -17,7 +17,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-var DtmServer = dtmutil.DefaultHttpServer
+var DtmServer = dtmutil.DefaultHTTPServer
 var DtmGrpcServer = dtmutil.DefaultGrpcServer
 var Busi = busi.Busi
 
