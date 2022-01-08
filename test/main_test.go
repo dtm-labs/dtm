@@ -37,8 +37,8 @@ func TestMain(m *testing.M) {
 	conf.UpdateBranchSync = 1
 
 	dtmgrpc.AddUnaryInterceptor(busi.SetGrpcHeaderForHeadersYes)
-	dtmcli.OnBeforeRequest(busi.SetHttpHeaderForHeadersYes)
-	dtmcli.OnAfterResponse(func(c *resty.Client, resp *resty.Response) error { return nil })
+	dtmcli.GetRestyClient().OnBeforeRequest(busi.SetHttpHeaderForHeadersYes)
+	dtmcli.GetRestyClient().OnAfterResponse(func(c *resty.Client, resp *resty.Response) error { return nil })
 
 	tenv := os.Getenv("TEST_STORE")
 	if tenv == "boltdb" {

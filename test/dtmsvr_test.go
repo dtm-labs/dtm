@@ -18,6 +18,7 @@ import (
 )
 
 var DtmServer = dtmutil.DefaultHTTPServer
+var DtmGrpcServer = dtmutil.DefaultGrpcServer
 var Busi = busi.Busi
 
 func getTransStatus(gid string) string {
