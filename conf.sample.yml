@@ -48,6 +48,7 @@
 # TimeoutToFail: 35 # timeout for XA, TCC to fail. saga's timeout default to infinite, which can be overwritten in saga options
 # RetryInterval: 10 # the subtrans branch will be retried after this interval
 
+# UpdateBranchAsyncGoroutineNum: 1 # num of async goroutine to update branch status
 # LogLevel: 'info' # default: info. can be debug|info|warn|error
 # HttpPort: 36789
 # GrpcPort: 36790

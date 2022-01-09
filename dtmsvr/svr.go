@@ -46,7 +46,10 @@ func StartSvr() {
 		err := s.Serve(lis)
 		logger.FatalIfError(err)
 	}()
-	go updateBranchAsync()
+
+	for i := 0; i < int(conf.UpdateBranchAsyncGoroutineNum); i++ {
+		go updateBranchAsync()
+	}
 
 	time.Sleep(100 * time.Millisecond)
 	err = dtmdriver.Use(conf.MicroService.Driver)
