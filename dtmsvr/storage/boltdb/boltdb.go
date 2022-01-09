@@ -14,6 +14,7 @@ import (
 
 	bolt "go.etcd.io/bbolt"
 
+	"github.com/dtm-labs/dtm/dtmcli"
 	"github.com/dtm-labs/dtm/dtmcli/dtmimp"
 	"github.com/dtm-labs/dtm/dtmcli/logger"
 	"github.com/dtm-labs/dtm/dtmsvr/config"
@@ -386,7 +387,7 @@ func (s *Store) LockOneGlobalTrans(expireIn time.Duration) *storage.TransGlobalS
 	next := time.Now().Add(time.Duration(conf.RetryInterval) * time.Second)
 	err := boltGet().Update(func(t *bolt.Tx) error {
 		cursor := t.Bucket(bucketIndex).Cursor()
-		for trans == nil {
+		for trans == nil || trans.Status == dtmcli.StatusSucceed || trans.Status == dtmcli.StatusFailed {
 			k, v := cursor.First()
 			if k == nil || string(k) > min {
 				return storage.ErrNotFound
