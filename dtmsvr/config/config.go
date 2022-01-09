@@ -62,15 +62,16 @@ func (s *Store) GetDBConf() dtmcli.DBConf {
 }
 
 type configType struct {
-	Store             Store        `yaml:"Store"`
-	TransCronInterval int64        `yaml:"TransCronInterval" default:"3"`
-	TimeoutToFail     int64        `yaml:"TimeoutToFail" default:"35"`
-	RetryInterval     int64        `yaml:"RetryInterval" default:"10"`
-	HTTPPort          int64        `yaml:"HttpPort" default:"36789"`
-	GrpcPort          int64        `yaml:"GrpcPort" default:"36790"`
-	MicroService      MicroService `yaml:"MicroService"`
-	UpdateBranchSync  int64        `yaml:"UpdateBranchSync"`
-	LogLevel          string       `yaml:"LogLevel" default:"info"`
+	Store                         Store        `yaml:"Store"`
+	TransCronInterval             int64        `yaml:"TransCronInterval" default:"3"`
+	TimeoutToFail                 int64        `yaml:"TimeoutToFail" default:"35"`
+	RetryInterval                 int64        `yaml:"RetryInterval" default:"10"`
+	HTTPPort                      int64        `yaml:"HttpPort" default:"36789"`
+	GrpcPort                      int64        `yaml:"GrpcPort" default:"36790"`
+	MicroService                  MicroService `yaml:"MicroService"`
+	UpdateBranchSync              int64        `yaml:"UpdateBranchSync"`
+	UpdateBranchAsyncGoroutineNum int64        `yaml:"UpdateBranchAsyncGoroutineNum" default:"1"`
+	LogLevel                      string       `yaml:"LogLevel" default:"info"`
 }
 
 // Config 配置
