@@ -99,22 +99,22 @@ func BaseAddRoute(app *gin.Engine) {
 	app.POST(BusiAPI+"/TransOutRevert", dtmutil.WrapHandler2(func(c *gin.Context) interface{} {
 		return handleGeneralBusiness(c, MainSwitch.TransOutRevertResult.Fetch(), "", "TransOutRevert")
 	}))
-	app.POST(BusiAPI+"/TransInOld", WrapHandler(func(c *gin.Context) (interface{}, error) {
+	app.POST(BusiAPI+"/TransInOld", oldWrapHandler(func(c *gin.Context) (interface{}, error) {
 		return handleGeneralBusinessCompatible(c, MainSwitch.TransInResult.Fetch(), reqFrom(c).TransInResult, "transIn")
 	}))
-	app.POST(BusiAPI+"/TransOutOld", WrapHandler(func(c *gin.Context) (interface{}, error) {
+	app.POST(BusiAPI+"/TransOutOld", oldWrapHandler(func(c *gin.Context) (interface{}, error) {
 		return handleGeneralBusinessCompatible(c, MainSwitch.TransOutResult.Fetch(), reqFrom(c).TransOutResult, "TransOut")
 	}))
-	app.POST(BusiAPI+"/TransInConfirmOld", WrapHandler(func(c *gin.Context) (interface{}, error) {
+	app.POST(BusiAPI+"/TransInConfirmOld", oldWrapHandler(func(c *gin.Context) (interface{}, error) {
 		return handleGeneralBusinessCompatible(c, MainSwitch.TransInConfirmResult.Fetch(), "", "TransInConfirm")
 	}))
-	app.POST(BusiAPI+"/TransOutConfirmOld", WrapHandler(func(c *gin.Context) (interface{}, error) {
+	app.POST(BusiAPI+"/TransOutConfirmOld", oldWrapHandler(func(c *gin.Context) (interface{}, error) {
 		return handleGeneralBusinessCompatible(c, MainSwitch.TransOutConfirmResult.Fetch(), "", "TransOutConfirm")
 	}))
-	app.POST(BusiAPI+"/TransInRevertOld", WrapHandler(func(c *gin.Context) (interface{}, error) {
+	app.POST(BusiAPI+"/TransInRevertOld", oldWrapHandler(func(c *gin.Context) (interface{}, error) {
 		return handleGeneralBusinessCompatible(c, MainSwitch.TransInRevertResult.Fetch(), "", "TransInRevert")
 	}))
-	app.POST(BusiAPI+"/TransOutRevertOld", WrapHandler(func(c *gin.Context) (interface{}, error) {
+	app.POST(BusiAPI+"/TransOutRevertOld", oldWrapHandler(func(c *gin.Context) (interface{}, error) {
 		return handleGeneralBusinessCompatible(c, MainSwitch.TransOutRevertResult.Fetch(), "", "TransOutRevert")
 	}))
 

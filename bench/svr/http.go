@@ -101,7 +101,7 @@ func StartSvr() {
 	}()
 }
 
-func qsAdjustBalance(uid int, amount int, c *gin.Context) error {
+func qsAdjustBalance(uid int, amount int, c *gin.Context) error { // nolint: unparam
 	if strings.Contains(mode, "empty") || sqls == 0 {
 		return nil
 	}
