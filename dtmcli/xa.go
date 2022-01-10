@@ -59,8 +59,8 @@ func NewXaClient(server string, mysqlConf DBConf, notifyURL string, register XaR
 }
 
 // HandleCallback 处理commit/rollback的回调
-func (xc *XaClient) HandleCallback(gid string, branchID string, action string) (interface{}, error) {
-	return MapSuccess, xc.XaClientBase.HandleCallback(gid, branchID, action)
+func (xc *XaClient) HandleCallback(gid string, branchID string, action string) interface{} {
+	return xc.XaClientBase.HandleCallback(gid, branchID, action)
 }
 
 // XaLocalTransaction start a xa local transaction

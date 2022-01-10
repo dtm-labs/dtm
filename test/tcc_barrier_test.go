@@ -63,14 +63,14 @@ func TestTccBarrierDisorder(t *testing.T) {
 		cancelURL := Busi + "/TccBSleepCancel"
 		// 请参见子事务屏障里的时序图，这里为了模拟该时序图，手动拆解了callbranch
 		branchID := tcc.NewSubBranchID()
-		busi.SetSleepCancelHandler(func(c *gin.Context) (interface{}, error) {
-			res, err := busi.TccBarrierTransOutCancel(c)
+		busi.SetSleepCancelHandler(func(c *gin.Context) interface{} {
+			res := busi.TccBarrierTransOutCancel(c)
 			logger.Debugf("disorderHandler before cancel finish write")
 			cancelFinishedChan <- "1"
 			logger.Debugf("disorderHandler before cancel return read")
 			<-cancelCanReturnChan
 			logger.Debugf("disorderHandler after cancel return read")
-			return res, err
+			return res
 		})
 		// 注册子事务
 		resp, err := dtmimp.RestyClient.R().

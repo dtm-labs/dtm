@@ -11,6 +11,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"net/http"
 	"os"
 	"runtime"
 	"strconv"
@@ -204,37 +205,17 @@ func GetDsn(conf DBConf) string {
 	return dsn
 }
 
-// CheckResponse is check response, and return corresponding error by the condition of resp when err is nil. Otherwise, return err directly.
-func CheckResponse(resp *resty.Response, err error) error {
-	if err == nil && resp != nil {
-		if resp.IsError() {
-			return errors.New(resp.String())
-		} else if strings.Contains(resp.String(), ResultFailure) {
-			return ErrFailure
-		} else if strings.Contains(resp.String(), ResultOngoing) {
-			return ErrOngoing
-		}
+// RespAsErrorCompatible translate a resty response to error
+// compatible with version < v1.10
+func RespAsErrorCompatible(resp *resty.Response) error {
+	code := resp.StatusCode()
+	str := resp.String()
+	if code == http.StatusTooEarly || strings.Contains(str, ResultOngoing) {
+		return fmt.Errorf("%s. %w", str, ErrOngoing)
+	} else if code == http.StatusConflict || strings.Contains(str, ResultFailure) {
+		return fmt.Errorf("%s. %w", str, ErrFailure)
+	} else if code != http.StatusOK {
+		return errors.New(str)
 	}
-	return err
-}
-
-// CheckResult is check result. Return err directly if err is not nil. And return corresponding error by calling CheckResponse if resp is the type of *resty.Response.
-// Otherwise, return error by value of str, the string after marshal.
-func CheckResult(res interface{}, err error) error {
-	if err != nil {
-		return err
-	}
-	resp, ok := res.(*resty.Response)
-	if ok {
-		return CheckResponse(resp, err)
-	}
-	if res != nil {
-		str := MustMarshalString(res)
-		if strings.Contains(str, ResultFailure) {
-			return ErrFailure
-		} else if strings.Contains(str, ResultOngoing) {
-			return ErrOngoing
-		}
-	}
-	return err
+	return nil
 }

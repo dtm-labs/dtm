@@ -11,12 +11,9 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/dtm-labs/dtm/dtmcli"
 	"github.com/dtm-labs/dtm/dtmcli/dtmimp"
 	"github.com/dtm-labs/dtm/dtmcli/logger"
 	"google.golang.org/grpc"
-	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/status"
 )
 
 // GrpcServerLog 打印grpc服务端的日志
@@ -48,16 +45,4 @@ func GrpcClientLog(ctx context.Context, method string, req, reply interface{}, c
 		logger.Debugf("%s", res)
 	}
 	return err
-}
-
-// Result2Error 将通用的result转成grpc的error
-func Result2Error(res interface{}, err error) error {
-	e := dtmimp.CheckResult(res, err)
-	if e == dtmimp.ErrFailure {
-		logger.Errorf("failure: res: %v, err: %v", res, e)
-		return status.New(codes.Aborted, dtmcli.ResultFailure).Err()
-	} else if e == dtmimp.ErrOngoing {
-		return status.New(codes.Aborted, dtmcli.ResultOngoing).Err()
-	}
-	return e
 }

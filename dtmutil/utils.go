@@ -9,7 +9,9 @@ package dtmutil
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"io/ioutil"
+	"net/http"
 	"os"
 	"path/filepath"
 	"strings"
@@ -45,31 +47,60 @@ func GetGinApp() *gin.Engine {
 	return app
 }
 
-// WrapHandler name is clear
-func WrapHandler(fn func(*gin.Context) (interface{}, error)) gin.HandlerFunc {
+// WrapHandler2 wrap a function te bo the handler of gin request
+func WrapHandler2(fn func(*gin.Context) interface{}) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		began := time.Now()
-		r, err := func() (r interface{}, rerr error) {
-			defer dtmimp.P2E(&rerr)
+		var err error
+		r := func() interface{} {
+			defer dtmimp.P2E(&err)
 			return fn(c)
 		}()
-		var b = []byte{}
-		if resp, ok := r.(*resty.Response); ok { // 如果是response，则取出body直接处理
-			b = resp.Body()
-		} else if err == nil {
-			b, err = json.Marshal(r)
+
+		status := http.StatusOK
+
+		// in dtm test/busi, there are some functions, which will return a resty response
+		// pass resty response as gin's response
+		if resp, ok := r.(*resty.Response); ok {
+			b := resp.Body()
+			status = resp.StatusCode()
+			err = json.Unmarshal(b, &r)
 		}
 
-		if err != nil {
-			logger.Errorf("%2dms 500 %s %s %s %s", time.Since(began).Milliseconds(), err.Error(), c.Request.Method, c.Request.RequestURI, string(b))
-			c.JSON(500, map[string]interface{}{"code": 500, "message": err.Error()})
-		} else {
-			logger.Infof("%2dms 200 %s %s %s", time.Since(began).Milliseconds(), c.Request.Method, c.Request.RequestURI, string(b))
-			c.Status(200)
-			c.Writer.Header().Add("Content-Type", "application/json")
-			_, err = c.Writer.Write(b)
-			dtmimp.E2P(err)
+		// error maybe returned in r, assign it to err
+		if ne, ok := r.(error); ok && err == nil {
+			err = ne
 		}
+
+		// if err != nil || r == nil. then set the status and dtm_result
+		// dtm_result is for compatible with version lower than v1.10
+		// when >= v1.10, result test should base on status, not dtm_result.
+		result := map[string]interface{}{}
+		if err != nil {
+			if errors.Is(err, dtmcli.ErrFailure) {
+				status = http.StatusConflict
+				result["dtm_result"] = dtmcli.ResultFailure
+			} else if errors.Is(err, dtmcli.ErrOngoing) {
+				status = http.StatusTooEarly
+				result["dtm_result"] = dtmcli.ResultOngoing
+			} else if err != nil {
+				status = http.StatusInternalServerError
+			}
+			result["message"] = err.Error()
+			r = result
+		} else if r == nil {
+			result["dtm_result"] = dtmcli.ResultSuccess
+			r = result
+		}
+
+		b, _ := json.Marshal(r)
+		cont := string(b)
+		if status == http.StatusOK || status == http.StatusTooEarly {
+			logger.Infof("%2dms %d %s %s %s", time.Since(began).Milliseconds(), status, c.Request.Method, c.Request.RequestURI, cont)
+		} else {
+			logger.Errorf("%2dms %d %s %s %s", time.Since(began).Milliseconds(), status, c.Request.Method, c.Request.RequestURI, cont)
+		}
+		c.JSON(status, r)
 	}
 }
 

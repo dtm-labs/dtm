@@ -32,6 +32,16 @@ type TransOptions = dtmimp.TransOptions
 // DBConf declares db configuration
 type DBConf = dtmimp.DBConf
 
+// String2DtmError translate string to dtm error
+func String2DtmError(str string) error {
+	return map[string]error{
+		ResultFailure: ErrFailure,
+		ResultOngoing: ErrOngoing,
+		ResultSuccess: nil,
+		"":            nil,
+	}[str]
+}
+
 // SetCurrentDBType set currentDBType
 func SetCurrentDBType(dbType string) {
 	dtmimp.SetCurrentDBType(dbType)

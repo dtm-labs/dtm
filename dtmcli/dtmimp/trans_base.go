@@ -9,6 +9,7 @@ package dtmimp
 import (
 	"errors"
 	"fmt"
+	"net/http"
 	"net/url"
 	"strings"
 
@@ -87,7 +88,7 @@ func TransCallDtm(tb *TransBase, body interface{}, operation string) error {
 	if err != nil {
 		return err
 	}
-	if !strings.Contains(resp.String(), ResultSuccess) {
+	if resp.StatusCode() != http.StatusOK || strings.Contains(resp.String(), ResultFailure) {
 		return errors.New(resp.String())
 	}
 	return nil
@@ -118,5 +119,8 @@ func TransRequestBranch(t *TransBase, body interface{}, branchID string, op stri
 		}).
 		SetHeaders(t.BranchHeaders).
 		Post(url)
-	return resp, CheckResponse(resp, err)
+	if err == nil {
+		err = RespAsErrorCompatible(resp)
+	}
+	return resp, err
 }

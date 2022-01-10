@@ -7,8 +7,8 @@
 package dtmsvr
 
 import (
+	"errors"
 	"fmt"
-	"strings"
 
 	"github.com/dtm-labs/dtm/dtmcli"
 	"github.com/dtm-labs/dtm/dtmcli/logger"
@@ -42,15 +42,15 @@ func (t *TransGlobal) mayQueryPrepared() {
 	if !t.needProcess() || t.Status == dtmcli.StatusSubmitted {
 		return
 	}
-	body, err := t.getURLResult(t.QueryPrepared, "00", "msg", nil)
-	if strings.Contains(body, dtmcli.ResultSuccess) {
+	err := t.getURLResult(t.QueryPrepared, "00", "msg", nil)
+	if err == nil {
 		t.changeStatus(dtmcli.StatusSubmitted)
-	} else if strings.Contains(body, dtmcli.ResultFailure) {
+	} else if errors.Is(err, dtmcli.ErrFailure) {
 		t.changeStatus(dtmcli.StatusFailed)
-	} else if strings.Contains(body, dtmcli.ResultOngoing) {
+	} else if errors.Is(err, dtmcli.ErrOngoing) {
 		t.touchCronTime(cronReset)
 	} else {
-		logger.Errorf("getting result failed for %s. error: %v body %s", t.QueryPrepared, err, body)
+		logger.Errorf("getting result failed for %s. error: %v", t.QueryPrepared, err)
 		t.touchCronTime(cronBackoff)
 	}
 }

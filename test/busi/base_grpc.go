@@ -13,6 +13,7 @@ import (
 	"fmt"
 	"net"
 
+	"github.com/dtm-labs/dtm/dtmcli"
 	"github.com/dtm-labs/dtm/dtmcli/dtmimp"
 	"github.com/dtm-labs/dtm/dtmcli/logger"
 	"github.com/dtm-labs/dtm/dtmgrpc"
@@ -65,7 +66,9 @@ type busiServer struct {
 
 func (s *busiServer) QueryPrepared(ctx context.Context, in *BusiReq) (*BusiReply, error) {
 	res := MainSwitch.QueryPreparedResult.Fetch()
-	return &BusiReply{Message: "a sample data"}, dtmgimp.Result2Error(res, nil)
+	err := dtmcli.String2DtmError(res)
+
+	return &BusiReply{Message: "a sample data"}, dtmgrpc.DtmError2GrpcError(err)
 }
 
 func (s *busiServer) TransIn(ctx context.Context, in *BusiReq) (*emptypb.Empty, error) {

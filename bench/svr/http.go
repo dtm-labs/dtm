@@ -101,9 +101,9 @@ func StartSvr() {
 	}()
 }
 
-func qsAdjustBalance(uid int, amount int, c *gin.Context) (interface{}, error) {
+func qsAdjustBalance(uid int, amount int, c *gin.Context) error {
 	if strings.Contains(mode, "empty") || sqls == 0 {
-		return dtmcli.MapSuccess, nil
+		return nil
 	}
 	tb := dtmimp.TransBaseFromQuery(c.Request.URL.Query())
 	f := func(tx *sql.Tx) error {
@@ -129,32 +129,32 @@ func qsAdjustBalance(uid int, amount int, c *gin.Context) (interface{}, error) {
 		logger.FatalIfError(err)
 	}
 
-	return dtmcli.MapSuccess, nil
+	return nil
 }
 
 func benchAddRoute(app *gin.Engine) {
-	app.POST(benchAPI+"/TransIn", dtmutil.WrapHandler(func(c *gin.Context) (interface{}, error) {
+	app.POST(benchAPI+"/TransIn", dtmutil.WrapHandler2(func(c *gin.Context) interface{} {
 		return qsAdjustBalance(dtmimp.MustAtoi(c.Query("uid")), 1, c)
 	}))
-	app.POST(benchAPI+"/TransInCompensate", dtmutil.WrapHandler(func(c *gin.Context) (interface{}, error) {
+	app.POST(benchAPI+"/TransInCompensate", dtmutil.WrapHandler2(func(c *gin.Context) interface{} {
 		return qsAdjustBalance(dtmimp.MustAtoi(c.Query("uid")), -1, c)
 	}))
-	app.POST(benchAPI+"/TransOut", dtmutil.WrapHandler(func(c *gin.Context) (interface{}, error) {
+	app.POST(benchAPI+"/TransOut", dtmutil.WrapHandler2(func(c *gin.Context) interface{} {
 		return qsAdjustBalance(dtmimp.MustAtoi(c.Query("uid")), -1, c)
 	}))
-	app.POST(benchAPI+"/TransOutCompensate", dtmutil.WrapHandler(func(c *gin.Context) (interface{}, error) {
+	app.POST(benchAPI+"/TransOutCompensate", dtmutil.WrapHandler2(func(c *gin.Context) interface{} {
 		return qsAdjustBalance(dtmimp.MustAtoi(c.Query("uid")), 30, c)
 	}))
-	app.Any(benchAPI+"/reloadData", dtmutil.WrapHandler(func(c *gin.Context) (interface{}, error) {
+	app.Any(benchAPI+"/reloadData", dtmutil.WrapHandler2(func(c *gin.Context) interface{} {
 		reloadData()
 		mode = c.Query("m")
 		s := c.Query("sqls")
 		if s != "" {
 			sqls = dtmimp.MustAtoi(s)
 		}
-		return nil, nil
+		return nil
 	}))
-	app.Any(benchAPI+"/bench", dtmutil.WrapHandler(func(c *gin.Context) (interface{}, error) {
+	app.Any(benchAPI+"/bench", dtmutil.WrapHandler2(func(c *gin.Context) interface{} {
 		uid := (atomic.AddInt32(&uidCounter, 1)-1)%total + 1
 		suid := fmt.Sprintf("%d", uid)
 		suid2 := fmt.Sprintf("%d", total+1-uid)
@@ -175,16 +175,15 @@ func benchAddRoute(app *gin.Engine) {
 			_, err = dtmimp.RestyClient.R().SetBody(gin.H{}).SetQueryParam("uid", suid).Post(benchBusi + "/TransIn")
 			dtmimp.E2P(err)
 		}
-		return nil, nil
+		return nil
 	}))
-	app.Any(benchAPI+"/benchEmptyUrl", dtmutil.WrapHandler(func(c *gin.Context) (interface{}, error) {
+	app.Any(benchAPI+"/benchEmptyUrl", dtmutil.WrapHandler2(func(c *gin.Context) interface{} {
 		gid := shortuuid.New()
 		req := gin.H{}
 		saga := dtmcli.NewSaga(dtmutil.DefaultHTTPServer, gid).
 			Add("", "", req).
 			Add("", "", req)
 		saga.WaitResult = true
-		err := saga.Submit()
-		return nil, err
+		return saga.Submit()
 	}))
 }
