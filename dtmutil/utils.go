@@ -14,6 +14,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"reflect"
 	"strings"
 	"time"
 
@@ -64,6 +65,7 @@ func WrapHandler2(fn func(*gin.Context) interface{}) gin.HandlerFunc {
 		if resp, ok := r.(*resty.Response); ok {
 			b := resp.Body()
 			status = resp.StatusCode()
+			r = nil
 			err = json.Unmarshal(b, &r)
 		}
 

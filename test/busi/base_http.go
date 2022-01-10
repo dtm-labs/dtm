@@ -139,10 +139,10 @@ func BaseAddRoute(app *gin.Engine) {
 		})
 	}))
 
-	app.POST(BusiAPI+"/TransInTccParent", dtmutil.WrapHandler2(func(c *gin.Context) interface{} {
+	app.POST(BusiAPI+"/TransInTccNested", dtmutil.WrapHandler2(func(c *gin.Context) interface{} {
 		tcc, err := dtmcli.TccFromQuery(c.Request.URL.Query())
 		logger.FatalIfError(err)
-		logger.Debugf("TransInTccParent ")
+		logger.Debugf("TransInTccNested ")
 		resp, err := tcc.CallBranch(&TransReq{Amount: reqFrom(c).Amount}, Busi+"/TransIn", Busi+"/TransInConfirm", Busi+"/TransInRevert")
 		if err != nil {
 			return err
