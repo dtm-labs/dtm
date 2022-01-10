@@ -42,13 +42,15 @@
 #   Target: 'etcd://localhost:2379/dtmservice' # register dtm server to this url
 #   EndPoint: 'localhost:36790'
 
-# the unit of following configurations is second
-
+### the unit of following configurations is second
 # TransCronInterval: 3 # the interval to poll unfinished global transaction for every dtm process
 # TimeoutToFail: 35 # timeout for XA, TCC to fail. saga's timeout default to infinite, which can be overwritten in saga options
 # RetryInterval: 10 # the subtrans branch will be retried after this interval
+# RequestTimeout: 3 # the timeout of HTTP/gRPC request in dtm
 
-# UpdateBranchAsyncGoroutineNum: 1 # num of async goroutine to update branch status
 # LogLevel: 'info' # default: info. can be debug|info|warn|error
 # HttpPort: 36789
 # GrpcPort: 36790
+
+### advanced options
+# UpdateBranchAsyncGoroutineNum: 1 # num of async goroutine to update branch status

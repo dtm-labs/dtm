@@ -38,9 +38,6 @@ var PassthroughHeaders = []string{}
 var BarrierTableName = "dtm_barrier.barrier"
 
 func init() {
-	// RestyClient.SetTimeout(3 * time.Second)
-	// RestyClient.SetRetryCount(2)
-	// RestyClient.SetRetryWaitTime(1 * time.Second)
 	RestyClient.OnBeforeRequest(func(c *resty.Client, r *resty.Request) error {
 		r.URL = MayReplaceLocalhost(r.URL)
 		logger.Debugf("requesting: %s %s %s", r.Method, r.URL, MustMarshalString(r.Body))
