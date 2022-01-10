@@ -7,6 +7,7 @@
 package dtmsvr
 
 import (
+	"errors"
 	"fmt"
 	"strings"
 	"time"
@@ -72,15 +73,15 @@ func (t *TransGlobal) needProcess() bool {
 	return t.Status == dtmcli.StatusSubmitted || t.Status == dtmcli.StatusAborting || t.Status == dtmcli.StatusPrepared && t.isTimeout()
 }
 
-func (t *TransGlobal) getURLResult(url string, branchID, op string, branchPayload []byte) (string, error) {
+func (t *TransGlobal) getURLResult(url string, branchID, op string, branchPayload []byte) error {
 	if url == "" { // empty url is success
-		return dtmcli.ResultSuccess, nil
+		return nil
 	}
 	if t.Protocol == "grpc" {
 		dtmimp.PanicIf(strings.HasPrefix(url, "http"), fmt.Errorf("bad url for grpc: %s", url))
 		server, method, err := dtmdriver.GetDriver().ParseServerMethod(url)
 		if err != nil {
-			return "", err
+			return err
 		}
 		conn := dtmgimp.MustGetGrpcConn(server, true)
 		ctx := dtmgimp.TransInfo2Ctx(t.Gid, t.TransType, branchID, op, "")
@@ -89,17 +90,19 @@ func (t *TransGlobal) getURLResult(url string, branchID, op string, branchPayloa
 		ctx = metadata.AppendToOutgoingContext(ctx, kvs...)
 		err = conn.Invoke(ctx, method, branchPayload, &[]byte{})
 		if err == nil {
-			return dtmcli.ResultSuccess, nil
+			return nil
 		}
 		st, ok := status.FromError(err)
 		if ok && st.Code() == codes.Aborted {
+			// version lower then v1.10, will specify Ongoing in code Aborted
 			if st.Message() == dtmcli.ResultOngoing {
-				return dtmcli.ResultOngoing, nil
-			} else if st.Message() == dtmcli.ResultFailure {
-				return dtmcli.ResultFailure, nil
+				return dtmcli.ErrOngoing
 			}
+			return dtmcli.ErrFailure
+		} else if ok && st.Code() == codes.FailedPrecondition {
+			return dtmcli.ErrOngoing
 		}
-		return "", err
+		return err
 	}
 	dtmimp.PanicIf(!strings.HasPrefix(url, "http"), fmt.Errorf("bad url for http: %s", url))
 	resp, err := dtmimp.RestyClient.R().SetBody(string(branchPayload)).
@@ -114,24 +117,21 @@ func (t *TransGlobal) getURLResult(url string, branchID, op string, branchPayloa
 		SetHeaders(t.TransOptions.BranchHeaders).
 		Execute(dtmimp.If(branchPayload != nil || t.TransType == "xa", "POST", "GET").(string), url)
 	if err != nil {
-		return "", err
+		return err
 	}
-	return resp.String(), nil
+	return dtmimp.RespAsErrorCompatible(resp)
 }
 
 func (t *TransGlobal) getBranchResult(branch *TransBranch) (string, error) {
-	body, err := t.getURLResult(branch.URL, branch.BranchID, branch.Op, branch.BinData)
-	if err != nil {
-		return "", err
-	}
-	if strings.Contains(body, dtmcli.ResultSuccess) {
+	err := t.getURLResult(branch.URL, branch.BranchID, branch.Op, branch.BinData)
+	if err == nil {
 		return dtmcli.StatusSucceed, nil
-	} else if strings.HasSuffix(t.TransType, "saga") && branch.Op == dtmcli.BranchAction && strings.Contains(body, dtmcli.ResultFailure) {
+	} else if t.TransType == "saga" && branch.Op == dtmcli.BranchAction && errors.Is(err, dtmcli.ErrFailure) {
 		return dtmcli.StatusFailed, nil
-	} else if strings.Contains(body, dtmcli.ResultOngoing) {
-		return "", dtmimp.ErrOngoing
+	} else if errors.Is(err, dtmcli.ErrOngoing) {
+		return "", dtmcli.ErrOngoing
 	}
-	return "", fmt.Errorf("http result should contains SUCCESS|FAILURE|ONGOING. grpc error should return nil|Aborted with message(FAILURE|ONGOING). \nrefer to: https://dtm.pub/summary/arch.html#http\nunkown result will be retried: %s", body)
+	return "", fmt.Errorf("http/grpc result should be specified as in:\nhttps://dtm.pub/summary/arch.html#http\nunkown result will be retried: %s", err)
 }
 
 func (t *TransGlobal) execBranch(branch *TransBranch, branchPos int) error {

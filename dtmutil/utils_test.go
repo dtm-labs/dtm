@@ -21,11 +21,11 @@ import (
 
 func TestGin(t *testing.T) {
 	app := GetGinApp()
-	app.GET("/api/sample", WrapHandler(func(c *gin.Context) (interface{}, error) {
-		return 1, nil
+	app.GET("/api/sample", WrapHandler2(func(c *gin.Context) interface{} {
+		return 1
 	}))
-	app.GET("/api/error", WrapHandler(func(c *gin.Context) (interface{}, error) {
-		return nil, errors.New("err1")
+	app.GET("/api/error", WrapHandler2(func(c *gin.Context) interface{} {
+		return errors.New("err1")
 	}))
 	getResultString := func(api string, body io.Reader) string {
 		req, _ := http.NewRequest("GET", api, body)
@@ -35,7 +35,7 @@ func TestGin(t *testing.T) {
 	}
 	assert.Equal(t, "{\"msg\":\"pong\"}", getResultString("/api/ping", nil))
 	assert.Equal(t, "1", getResultString("/api/sample", nil))
-	assert.Equal(t, "{\"code\":500,\"message\":\"err1\"}", getResultString("/api/error", strings.NewReader("{}")))
+	assert.Equal(t, "{\"message\":\"err1\"}", getResultString("/api/error", strings.NewReader("{}")))
 }
 
 func TestFuncs(t *testing.T) {

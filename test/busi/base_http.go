@@ -39,7 +39,7 @@ var Busi string = fmt.Sprintf("http://localhost:%d%s", BusiPort, BusiAPI)
 
 var XaClient *dtmcli.XaClient = nil
 
-type SleepCancelHandler func(c *gin.Context) (interface{}, error)
+type SleepCancelHandler func(c *gin.Context) interface{}
 
 var sleepCancelHandler SleepCancelHandler = nil
 
@@ -62,7 +62,7 @@ func BaseAppStartup() *gin.Engine {
 	})
 	var err error
 	XaClient, err = dtmcli.NewXaClient(dtmutil.DefaultHTTPServer, BusiConf, Busi+"/xa", func(path string, xa *dtmcli.XaClient) {
-		app.POST(path, dtmutil.WrapHandler(func(c *gin.Context) (interface{}, error) {
+		app.POST(path, dtmutil.WrapHandler2(func(c *gin.Context) interface{} {
 			return xa.HandleCallback(c.Query("gid"), c.Query("branch_id"), c.Query("op"))
 		}))
 	})
@@ -81,55 +81,76 @@ func BaseAppStartup() *gin.Engine {
 
 // BaseAddRoute add base route handler
 func BaseAddRoute(app *gin.Engine) {
-	app.POST(BusiAPI+"/TransIn", dtmutil.WrapHandler(func(c *gin.Context) (interface{}, error) {
+	app.POST(BusiAPI+"/TransIn", dtmutil.WrapHandler2(func(c *gin.Context) interface{} {
 		return handleGeneralBusiness(c, MainSwitch.TransInResult.Fetch(), reqFrom(c).TransInResult, "transIn")
 	}))
-	app.POST(BusiAPI+"/TransOut", dtmutil.WrapHandler(func(c *gin.Context) (interface{}, error) {
+	app.POST(BusiAPI+"/TransOut", dtmutil.WrapHandler2(func(c *gin.Context) interface{} {
 		return handleGeneralBusiness(c, MainSwitch.TransOutResult.Fetch(), reqFrom(c).TransOutResult, "TransOut")
 	}))
-	app.POST(BusiAPI+"/TransInConfirm", dtmutil.WrapHandler(func(c *gin.Context) (interface{}, error) {
+	app.POST(BusiAPI+"/TransInConfirm", dtmutil.WrapHandler2(func(c *gin.Context) interface{} {
 		return handleGeneralBusiness(c, MainSwitch.TransInConfirmResult.Fetch(), "", "TransInConfirm")
 	}))
-	app.POST(BusiAPI+"/TransOutConfirm", dtmutil.WrapHandler(func(c *gin.Context) (interface{}, error) {
+	app.POST(BusiAPI+"/TransOutConfirm", dtmutil.WrapHandler2(func(c *gin.Context) interface{} {
 		return handleGeneralBusiness(c, MainSwitch.TransOutConfirmResult.Fetch(), "", "TransOutConfirm")
 	}))
-	app.POST(BusiAPI+"/TransInRevert", dtmutil.WrapHandler(func(c *gin.Context) (interface{}, error) {
+	app.POST(BusiAPI+"/TransInRevert", dtmutil.WrapHandler2(func(c *gin.Context) interface{} {
 		return handleGeneralBusiness(c, MainSwitch.TransInRevertResult.Fetch(), "", "TransInRevert")
 	}))
-	app.POST(BusiAPI+"/TransOutRevert", dtmutil.WrapHandler(func(c *gin.Context) (interface{}, error) {
+	app.POST(BusiAPI+"/TransOutRevert", dtmutil.WrapHandler2(func(c *gin.Context) interface{} {
 		return handleGeneralBusiness(c, MainSwitch.TransOutRevertResult.Fetch(), "", "TransOutRevert")
 	}))
-	app.GET(BusiAPI+"/QueryPrepared", dtmutil.WrapHandler(func(c *gin.Context) (interface{}, error) {
-		logger.Debugf("%s QueryPrepared", c.Query("gid"))
-		return dtmimp.OrString(MainSwitch.QueryPreparedResult.Fetch(), dtmcli.ResultSuccess), nil
+	app.POST(BusiAPI+"/TransInOld", oldWrapHandler(func(c *gin.Context) (interface{}, error) {
+		return handleGeneralBusinessCompatible(c, MainSwitch.TransInResult.Fetch(), reqFrom(c).TransInResult, "transIn")
 	}))
-	app.GET(BusiAPI+"/QueryPreparedB", dtmutil.WrapHandler(func(c *gin.Context) (interface{}, error) {
+	app.POST(BusiAPI+"/TransOutOld", oldWrapHandler(func(c *gin.Context) (interface{}, error) {
+		return handleGeneralBusinessCompatible(c, MainSwitch.TransOutResult.Fetch(), reqFrom(c).TransOutResult, "TransOut")
+	}))
+	app.POST(BusiAPI+"/TransInConfirmOld", oldWrapHandler(func(c *gin.Context) (interface{}, error) {
+		return handleGeneralBusinessCompatible(c, MainSwitch.TransInConfirmResult.Fetch(), "", "TransInConfirm")
+	}))
+	app.POST(BusiAPI+"/TransOutConfirmOld", oldWrapHandler(func(c *gin.Context) (interface{}, error) {
+		return handleGeneralBusinessCompatible(c, MainSwitch.TransOutConfirmResult.Fetch(), "", "TransOutConfirm")
+	}))
+	app.POST(BusiAPI+"/TransInRevertOld", oldWrapHandler(func(c *gin.Context) (interface{}, error) {
+		return handleGeneralBusinessCompatible(c, MainSwitch.TransInRevertResult.Fetch(), "", "TransInRevert")
+	}))
+	app.POST(BusiAPI+"/TransOutRevertOld", oldWrapHandler(func(c *gin.Context) (interface{}, error) {
+		return handleGeneralBusinessCompatible(c, MainSwitch.TransOutRevertResult.Fetch(), "", "TransOutRevert")
+	}))
+
+	app.GET(BusiAPI+"/QueryPrepared", dtmutil.WrapHandler2(func(c *gin.Context) interface{} {
+		logger.Debugf("%s QueryPrepared", c.Query("gid"))
+		return dtmcli.String2DtmError(dtmimp.OrString(MainSwitch.QueryPreparedResult.Fetch(), dtmcli.ResultSuccess))
+	}))
+	app.GET(BusiAPI+"/QueryPreparedB", dtmutil.WrapHandler2(func(c *gin.Context) interface{} {
 		logger.Debugf("%s QueryPreparedB", c.Query("gid"))
 		bb := MustBarrierFromGin(c)
 		db := dbGet().ToSQLDB()
-		return error2Resp(bb.QueryPrepared(db))
+		return bb.QueryPrepared(db)
 	}))
-	app.POST(BusiAPI+"/TransInXa", dtmutil.WrapHandler(func(c *gin.Context) (interface{}, error) {
-		err := XaClient.XaLocalTransaction(c.Request.URL.Query(), func(db *sql.DB, xa *dtmcli.Xa) error {
+	app.POST(BusiAPI+"/TransInXa", dtmutil.WrapHandler2(func(c *gin.Context) interface{} {
+		return XaClient.XaLocalTransaction(c.Request.URL.Query(), func(db *sql.DB, xa *dtmcli.Xa) error {
 			return SagaAdjustBalance(db, TransInUID, reqFrom(c).Amount, reqFrom(c).TransInResult)
 		})
-		return error2Resp(err)
 	}))
-	app.POST(BusiAPI+"/TransOutXa", dtmutil.WrapHandler(func(c *gin.Context) (interface{}, error) {
-		err := XaClient.XaLocalTransaction(c.Request.URL.Query(), func(db *sql.DB, xa *dtmcli.Xa) error {
+	app.POST(BusiAPI+"/TransOutXa", dtmutil.WrapHandler2(func(c *gin.Context) interface{} {
+		return XaClient.XaLocalTransaction(c.Request.URL.Query(), func(db *sql.DB, xa *dtmcli.Xa) error {
 			return SagaAdjustBalance(db, TransOutUID, reqFrom(c).Amount, reqFrom(c).TransOutResult)
 		})
-		return error2Resp(err)
 	}))
 
-	app.POST(BusiAPI+"/TransInTccParent", dtmutil.WrapHandler(func(c *gin.Context) (interface{}, error) {
+	app.POST(BusiAPI+"/TransInTccNested", dtmutil.WrapHandler2(func(c *gin.Context) interface{} {
 		tcc, err := dtmcli.TccFromQuery(c.Request.URL.Query())
 		logger.FatalIfError(err)
-		logger.Debugf("TransInTccParent ")
-		return tcc.CallBranch(&TransReq{Amount: reqFrom(c).Amount}, Busi+"/TransIn", Busi+"/TransInConfirm", Busi+"/TransInRevert")
+		logger.Debugf("TransInTccNested ")
+		resp, err := tcc.CallBranch(&TransReq{Amount: reqFrom(c).Amount}, Busi+"/TransIn", Busi+"/TransInConfirm", Busi+"/TransInRevert")
+		if err != nil {
+			return err
+		}
+		return resp
 	}))
-	app.POST(BusiAPI+"/TransOutXaGorm", dtmutil.WrapHandler(func(c *gin.Context) (interface{}, error) {
-		err := XaClient.XaLocalTransaction(c.Request.URL.Query(), func(db *sql.DB, xa *dtmcli.Xa) error {
+	app.POST(BusiAPI+"/TransOutXaGorm", dtmutil.WrapHandler2(func(c *gin.Context) interface{} {
+		return XaClient.XaLocalTransaction(c.Request.URL.Query(), func(db *sql.DB, xa *dtmcli.Xa) error {
 			if reqFrom(c).TransOutResult == dtmcli.ResultFailure {
 				return dtmcli.ErrFailure
 			}
@@ -146,32 +167,31 @@ func BaseAddRoute(app *gin.Engine) {
 			dbr := gdb.Exec("update dtm_busi.user_account set balance=balance-? where user_id=?", reqFrom(c).Amount, TransOutUID)
 			return dbr.Error
 		})
-		return error2Resp(err)
 	}))
 
-	app.POST(BusiAPI+"/TestPanic", dtmutil.WrapHandler(func(c *gin.Context) (interface{}, error) {
+	app.POST(BusiAPI+"/TestPanic", dtmutil.WrapHandler2(func(c *gin.Context) interface{} {
 		if c.Query("panic_error") != "" {
 			panic(errors.New("panic_error"))
 		} else if c.Query("panic_string") != "" {
 			panic("panic_string")
 		}
-		return "SUCCESS", nil
+		return nil
 	}))
-	app.POST(BusiAPI+"/TccBSleepCancel", dtmutil.WrapHandler(func(c *gin.Context) (interface{}, error) {
+	app.POST(BusiAPI+"/TccBSleepCancel", dtmutil.WrapHandler2(func(c *gin.Context) interface{} {
 		return sleepCancelHandler(c)
 	}))
-	app.POST(BusiAPI+"/TransOutHeaderYes", dtmutil.WrapHandler(func(c *gin.Context) (interface{}, error) {
+	app.POST(BusiAPI+"/TransOutHeaderYes", dtmutil.WrapHandler2(func(c *gin.Context) interface{} {
 		h := c.GetHeader("test_header")
 		if h == "" {
-			return nil, errors.New("no test_header found in TransOutHeaderYes")
+			return errors.New("no test_header found in TransOutHeaderYes")
 		}
 		return handleGeneralBusiness(c, MainSwitch.TransOutResult.Fetch(), reqFrom(c).TransOutResult, "TransOut")
 	}))
-	app.POST(BusiAPI+"/TransOutHeaderNo", dtmutil.WrapHandler(func(c *gin.Context) (interface{}, error) {
+	app.POST(BusiAPI+"/TransOutHeaderNo", dtmutil.WrapHandler2(func(c *gin.Context) interface{} {
 		h := c.GetHeader("test_header")
 		if h != "" {
-			return nil, errors.New("test_header found in TransOutHeaderNo")
+			return errors.New("test_header found in TransOutHeaderNo")
 		}
-		return dtmcli.MapSuccess, nil
+		return nil
 	}))
 }

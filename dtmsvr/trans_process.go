@@ -7,6 +7,7 @@
 package dtmsvr
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/dtm-labs/dtm/dtmcli"
@@ -16,13 +17,13 @@ import (
 )
 
 // Process process global transaction once
-func (t *TransGlobal) Process(branches []TransBranch) map[string]interface{} {
+func (t *TransGlobal) Process(branches []TransBranch) error {
 	r := t.process(branches)
-	transactionMetrics(t, r["dtm_result"] == dtmcli.ResultSuccess)
+	transactionMetrics(t, r == nil)
 	return r
 }
 
-func (t *TransGlobal) process(branches []TransBranch) map[string]interface{} {
+func (t *TransGlobal) process(branches []TransBranch) error {
 	if t.Options != "" {
 		dtmimp.MustUnmarshalString(t.Options, &t.TransOptions)
 	}
@@ -37,17 +38,17 @@ func (t *TransGlobal) process(branches []TransBranch) map[string]interface{} {
 				logger.Errorf("processInner err: %v", err)
 			}
 		}()
-		return dtmcli.MapSuccess
+		return nil
 	}
 	submitting := t.Status == dtmcli.StatusSubmitted
 	err := t.processInner(branches)
 	if err != nil {
-		return map[string]interface{}{"dtm_result": dtmcli.ResultFailure, "message": err.Error()}
+		return err
 	}
 	if submitting && t.Status != dtmcli.StatusSucceed {
-		return map[string]interface{}{"dtm_result": dtmcli.ResultFailure, "message": "trans failed by user"}
+		return fmt.Errorf("wait result not return success: %w", dtmcli.ErrFailure)
 	}
-	return dtmcli.MapSuccess
+	return nil
 }
 
 func (t *TransGlobal) processInner(branches []TransBranch) (rerr error) {

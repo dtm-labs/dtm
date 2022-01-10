@@ -7,6 +7,7 @@
 package dtmsvr
 
 import (
+	"errors"
 	"fmt"
 	"time"
 
@@ -106,7 +107,7 @@ func (t *transSagaProcessor) ProcessOnce(branches []TransBranch) error {
 				err = dtmimp.AsError(x)
 			}
 			resultChan <- branchResult{index: i, status: branches[i].Status, op: branches[i].Op}
-			if err != nil && err != dtmcli.ErrOngoing {
+			if err != nil && !errors.Is(err, dtmcli.ErrOngoing) {
 				logger.Errorf("exec branch error: %v", err)
 			}
 		}()

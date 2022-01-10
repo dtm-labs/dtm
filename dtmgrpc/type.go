@@ -9,12 +9,26 @@ package dtmgrpc
 import (
 	context "context"
 
+	"github.com/dtm-labs/dtm/dtmcli"
 	"github.com/dtm-labs/dtm/dtmcli/dtmimp"
 	"github.com/dtm-labs/dtm/dtmgrpc/dtmgimp"
 	"github.com/dtm-labs/dtmdriver"
 	grpc "google.golang.org/grpc"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 	emptypb "google.golang.org/protobuf/types/known/emptypb"
 )
+
+// DtmError2GrpcError translate dtm error to grpc error
+func DtmError2GrpcError(res interface{}) error {
+	e, ok := res.(error)
+	if ok && e == dtmimp.ErrFailure {
+		return status.New(codes.Aborted, dtmcli.ResultFailure).Err()
+	} else if ok && e == dtmimp.ErrOngoing {
+		return status.New(codes.FailedPrecondition, dtmcli.ResultOngoing).Err()
+	}
+	return e
+}
 
 // MustGenGid must gen a gid from grpcServer
 func MustGenGid(grpcServer string) string {

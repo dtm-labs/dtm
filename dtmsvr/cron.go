@@ -32,7 +32,8 @@ func CronTransOnce() (gid string) {
 	gid = trans.Gid
 	trans.WaitResult = true
 	branches := GetStore().FindBranches(gid)
-	trans.Process(branches)
+	err := trans.Process(branches)
+	dtmimp.E2P(err)
 	return
 }
 

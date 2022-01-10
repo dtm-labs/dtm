@@ -3,8 +3,10 @@ package busi
 import (
 	"context"
 	"database/sql"
+	"encoding/json"
 	"fmt"
 	"strings"
+	"time"
 
 	"github.com/dtm-labs/dtm/dtmcli"
 	"github.com/dtm-labs/dtm/dtmcli/dtmimp"
@@ -82,4 +84,32 @@ func SetHttpHeaderForHeadersYes(c *resty.Client, r *resty.Request) error {
 		r.SetHeader("test_header", "yes")
 	}
 	return nil
+}
+
+// oldWrapHandler old wrap handler for test use of dtm
+func oldWrapHandler(fn func(*gin.Context) (interface{}, error)) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		began := time.Now()
+		r, err := func() (r interface{}, rerr error) {
+			defer dtmimp.P2E(&rerr)
+			return fn(c)
+		}()
+		var b = []byte{}
+		if resp, ok := r.(*resty.Response); ok { // 如果是response，则取出body直接处理
+			b = resp.Body()
+		} else if err == nil {
+			b, err = json.Marshal(r)
+		}
+
+		if err != nil {
+			logger.Errorf("%2dms 500 %s %s %s %s", time.Since(began).Milliseconds(), err.Error(), c.Request.Method, c.Request.RequestURI, string(b))
+			c.JSON(500, map[string]interface{}{"code": 500, "message": err.Error()})
+		} else {
+			logger.Infof("%2dms 200 %s %s %s", time.Since(began).Milliseconds(), c.Request.Method, c.Request.RequestURI, string(b))
+			c.Status(200)
+			c.Writer.Header().Add("Content-Type", "application/json")
+			_, err = c.Writer.Write(b)
+			dtmimp.E2P(err)
+		}
+	}
 }
