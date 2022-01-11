@@ -7,11 +7,13 @@
 package dtmsvr
 
 import (
+	"errors"
 	"fmt"
 	"math/rand"
 	"runtime/debug"
 	"time"
 
+	"github.com/dtm-labs/dtm/dtmcli"
 	"github.com/dtm-labs/dtm/dtmcli/dtmimp"
 	"github.com/dtm-labs/dtm/dtmcli/logger"
 )
@@ -33,7 +35,7 @@ func CronTransOnce() (gid string) {
 	trans.WaitResult = true
 	branches := GetStore().FindBranches(gid)
 	err := trans.Process(branches)
-	dtmimp.E2P(err)
+	dtmimp.PanicIf(err != nil && !errors.Is(err, dtmcli.ErrFailure), err)
 	return
 }
 
