@@ -51,6 +51,15 @@ func TestSagaConRollbackOrder(t *testing.T) {
 	assert.Equal(t, []string{StatusSucceed, StatusFailed, StatusPrepared, StatusPrepared}, getBranchesStatus(sagaCon.Gid))
 }
 
+func TestSagaConRollbackOrder2(t *testing.T) {
+	sagaCon := genSagaCon(dtmimp.GetFuncName(), false, true)
+	sagaCon.AddBranchOrder(1, []int{0})
+	err := sagaCon.Submit()
+	assert.Nil(t, err)
+	waitTransProcessed(sagaCon.Gid)
+	assert.Equal(t, StatusFailed, getTransStatus(sagaCon.Gid))
+	assert.Equal(t, []string{StatusSucceed, StatusSucceed, StatusSucceed, StatusFailed}, getBranchesStatus(sagaCon.Gid))
+}
 func TestSagaConCommittedOngoing(t *testing.T) {
 	sagaCon := genSagaCon(dtmimp.GetFuncName(), false, false)
 	busi.MainSwitch.TransOutResult.SetOnce(dtmcli.ResultOngoing)

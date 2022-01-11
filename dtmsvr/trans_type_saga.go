@@ -118,7 +118,7 @@ func (t *transSagaProcessor) ProcessOnce(branches []TransBranch) error {
 		}
 		// if csc.concurrent, then check the cOrders. origin one step correspond to 2 step in dtmsvr
 		for _, next := range csc.cOrders[current/2] {
-			if !rollbacked(next) {
+			if !rollbacked(2 * next) {
 				return false
 			}
 		}
