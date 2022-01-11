@@ -24,7 +24,7 @@ func handleGrpcBusiness(in *BusiReq, result1 string, result2 string, busi string
 	} else if res == dtmcli.ResultFailure {
 		return status.New(codes.Aborted, dtmcli.ResultFailure).Err()
 	} else if res == dtmcli.ResultOngoing {
-		return status.New(codes.Aborted, dtmcli.ResultOngoing).Err()
+		return status.New(codes.FailedPrecondition, dtmcli.ResultOngoing).Err()
 	}
 	return status.New(codes.Internal, fmt.Sprintf("unknow result %s", res)).Err()
 }

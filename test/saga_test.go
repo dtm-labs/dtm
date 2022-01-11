@@ -24,6 +24,15 @@ func TestSagaNormal(t *testing.T) {
 	assert.Equal(t, StatusSucceed, getTransStatus(saga.Gid))
 }
 
+func TestSagaRollback(t *testing.T) {
+	saga := genSaga(dtmimp.GetFuncName(), false, true)
+	err := saga.Submit()
+	assert.Nil(t, err)
+	waitTransProcessed(saga.Gid)
+	assert.Equal(t, []string{StatusSucceed, StatusSucceed, StatusSucceed, StatusFailed}, getBranchesStatus(saga.Gid))
+	assert.Equal(t, StatusFailed, getTransStatus(saga.Gid))
+}
+
 func TestSagaOngoingSucceed(t *testing.T) {
 	saga := genSaga(dtmimp.GetFuncName(), false, false)
 	busi.MainSwitch.TransOutResult.SetOnce(dtmcli.ResultOngoing)
