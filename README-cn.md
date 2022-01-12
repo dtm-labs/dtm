@@ -118,7 +118,7 @@ go run main.go
 
 再运行这个例子，整个事务最终失败，时序图如下：
 
-![saga_rollback](https://pic3.zhimg.com/80/v2-8d8f1476be8a1e2e09ce97a89b4116c2_1440w.jpg)
+<img src="https://pic3.zhimg.com/80/v2-8d8f1476be8a1e2e09ce97a89b4116c2_1440w.jpg"  height=528 />
 
 在转入操作失败的情况下，TransIn和TransOut的补偿操作被执行，保证了最终的余额和转账前是一样的。
 

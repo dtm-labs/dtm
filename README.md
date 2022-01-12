@@ -118,7 +118,7 @@ go run main.go
 
 再运行这个例子，整个事务最终失败，时序图如下：
 
-![saga_rollback](https://pic3.zhimg.com/80/v2-8d8f1476be8a1e2e09ce97a89b4116c2_1440w.jpg)
+<img src="https://pic3.zhimg.com/80/v2-8d8f1476be8a1e2e09ce97a89b4116c2_1440w.jpg"  height=528 />
 
 在转入操作失败的情况下，TransIn和TransOut的补偿操作被执行，保证了最终的余额和转账前是一样的。
 
@@ -133,6 +133,7 @@ dtm官方公众号：分布式事务，大量干货分享，以及dtm的最新�
 
 ![yedf2008](http://service.ivydad.com/cover/dubbingb6b5e2c0-2d2a-cd59-f7c5-c6b90aceb6f1.jpeg)
 
+### github
 作者github: [https://github.com/yedf2](https://github.com/yedf2)
 
 欢迎使用[dtm](https://github.com/dtm-labs/dtm)，或者通过dtm学习实践分布式事务相关知识，欢迎star支持我们
