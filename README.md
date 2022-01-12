@@ -58,16 +58,16 @@ DTM是一款golang开发的分布式事务管理器，解决了跨数据库、�
 
 ## [教程与文档](https://dtm.pub)
 
-## [各语言客户端及示例](https://dtm.pub/summary/code.html#go)
+## [各语言客户端及示例](https://dtm.pub/ref/sdk.html#go)
 
 ## 微服务框架支持
 - [go-zero](https://github.com/zeromicro/go-zero)：一开源就非常火爆的微服务框架，首家接入dtm的微服务框架。感谢go-zero作者[kevwan](https://github.com/kevwan)的大力支持
 - [polaris](https://github.com/polarismesh/polaris): 腾讯开源的注册发现组件，以及在其上构建的微服务框架。感谢腾讯同学[ychensha](https://github.com/ychensha)的PR
-- 其他：看用户需求量，择机接入，参见[微服务支持](https://dtm.pub/protocol/intro.html)
+- 其他：看用户需求量，择机接入，参见[微服务支持](https://dtm.pub/ref/proto.html)
 
 ## 快速开始
 
-如果您不是Go语言，可以跳转[各语言客户端及示例](https://dtm.pub/summary/code.html#go)，里面有相关的快速开始示例
+如果您不是Go语言，可以跳转[各语言客户端及示例](https://dtm.pub/ref/sdk.html#go)，里面有相关的快速开始示例
 
 ### 运行dtm
 
