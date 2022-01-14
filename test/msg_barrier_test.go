@@ -15,7 +15,7 @@ import (
 )
 
 func TestMsgPrepareAndSubmit(t *testing.T) {
-	before := getBeforeBalances()
+	before := getBeforeBalances("mysql")
 	gid := dtmimp.GetFuncName()
 	req := busi.GenTransReq(30, false, false)
 	msg := dtmcli.NewMsg(DtmServer, gid).
@@ -27,11 +27,11 @@ func TestMsgPrepareAndSubmit(t *testing.T) {
 	waitTransProcessed(msg.Gid)
 	assert.Equal(t, []string{StatusSucceed}, getBranchesStatus(msg.Gid))
 	assert.Equal(t, StatusSucceed, getTransStatus(msg.Gid))
-	assertNotSameBalance(t, before)
+	assertNotSameBalance(t, before, "mysql")
 }
 
 func TestMsgPrepareAndSubmitBusiFailed(t *testing.T) {
-	before := getBeforeBalances()
+	before := getBeforeBalances("mysql")
 	gid := dtmimp.GetFuncName()
 	req := busi.GenTransReq(30, false, false)
 	msg := dtmcli.NewMsg(DtmServer, gid).
@@ -40,11 +40,11 @@ func TestMsgPrepareAndSubmitBusiFailed(t *testing.T) {
 		return errors.New("an error")
 	})
 	assert.Error(t, err)
-	assertSameBalance(t, before)
+	assertSameBalance(t, before, "mysql")
 }
 
 func TestMsgPrepareAndSubmitPrepareFailed(t *testing.T) {
-	before := getBeforeBalances()
+	before := getBeforeBalances("mysql")
 	gid := dtmimp.GetFuncName()
 	req := busi.GenTransReq(30, false, false)
 	msg := dtmcli.NewMsg(DtmServer+"not-exists", gid).
@@ -53,14 +53,14 @@ func TestMsgPrepareAndSubmitPrepareFailed(t *testing.T) {
 		return busi.SagaAdjustBalance(tx, busi.TransOutUID, -req.Amount, "SUCCESS")
 	})
 	assert.Error(t, err)
-	assertSameBalance(t, before)
+	assertSameBalance(t, before, "mysql")
 }
 
 func TestMsgPrepareAndSubmitCommitFailed(t *testing.T) {
 	if conf.Store.IsDB() { // cannot patch tx.Commit, because Prepare also do Commit
 		return
 	}
-	before := getBeforeBalances()
+	before := getBeforeBalances("mysql")
 	gid := dtmimp.GetFuncName()
 	req := busi.GenTransReq(30, false, false)
 	msg := dtmcli.NewMsg(DtmServer, gid).
@@ -77,14 +77,14 @@ func TestMsgPrepareAndSubmitCommitFailed(t *testing.T) {
 	g.Unpatch()
 	assert.Error(t, err)
 	cronTransOnceForwardNow(180)
-	assertSameBalance(t, before)
+	assertSameBalance(t, before, "mysql")
 }
 
 func TestMsgPrepareAndSubmitCommitAfterFailed(t *testing.T) {
 	if conf.Store.IsDB() { // cannot patch tx.Commit, because Prepare also do Commit
 		return
 	}
-	before := getBeforeBalances()
+	before := getBeforeBalances("mysql")
 	gid := dtmimp.GetFuncName()
 	req := busi.GenTransReq(30, false, false)
 	msg := dtmcli.NewMsg(DtmServer, gid).
@@ -101,5 +101,5 @@ func TestMsgPrepareAndSubmitCommitAfterFailed(t *testing.T) {
 	})
 	assert.Error(t, err)
 	cronTransOnceForwardNow(180)
-	assertNotSameBalance(t, before)
+	assertNotSameBalance(t, before, "mysql")
 }

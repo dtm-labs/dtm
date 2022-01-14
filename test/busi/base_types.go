@@ -32,7 +32,13 @@ func (*UserAccount) TableName() string {
 	return "dtm_busi.user_account"
 }
 
-func GetBalanceByUid(uid int) int {
+func GetBalanceByUid(uid int, store string) int {
+	if store == "redis" {
+		rd := RedisGet()
+		accA, err := rd.Get(rd.Context(), getRedisAccountKey(uid)).Result()
+		dtmimp.E2P(err)
+		return dtmimp.MustAtoi(accA)
+	}
 	ua := UserAccount{}
 	_ = dbGet().Must().Model(&ua).Where("user_id=?", uid).First(&ua)
 	return dtmimp.MustAtoi(ua.Balance[:len(ua.Balance)-3])
@@ -43,6 +49,7 @@ type TransReq struct {
 	Amount         int    `json:"amount"`
 	TransInResult  string `json:"trans_in_result"`
 	TransOutResult string `json:"trans_out_Result"`
+	Store          string `json:"store"` // default mysql, value can be mysql|redis
 }
 
 func (t *TransReq) String() string {
@@ -119,3 +126,7 @@ type mainSwitchType struct {
 
 // MainSwitch controls busi success or fail
 var MainSwitch mainSwitchType
+
+func getRedisAccountKey(uid int) string {
+	return fmt.Sprintf("{a}-redis-account-key-%d", uid)
+}

@@ -193,11 +193,13 @@ func (t *transSagaProcessor) ProcessOnce(branches []TransBranch) error {
 		}
 	}
 	prepareToCompensate := func() {
-		toRunActions := pickToRunActions()
-		for _, b := range toRunActions {
+		_ = pickToRunActions() // flag started
+		for i := 1; i < len(branchResults); i += 2 {
 			// these branches may have run. so flag them to status succeed, then run the corresponding
 			// compensate
-			branchResults[b].status = dtmcli.StatusSucceed
+			if branchResults[i].started && branchResults[i].status == dtmcli.StatusPrepared {
+				branchResults[i].status = dtmcli.StatusSucceed
+			}
 		}
 		for i, b := range branchResults {
 			if b.op == dtmcli.BranchCompensate && b.status != dtmcli.StatusSucceed &&

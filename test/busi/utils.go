@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"strings"
+	sync "sync"
 	"time"
 
 	"github.com/dtm-labs/dtm/dtmcli"
@@ -15,6 +16,7 @@ import (
 	"github.com/dtm-labs/dtm/dtmgrpc/dtmgpb"
 	"github.com/dtm-labs/dtm/dtmutil"
 	"github.com/gin-gonic/gin"
+	"github.com/go-redis/redis/v8"
 	"github.com/go-resty/resty/v2"
 	grpc "google.golang.org/grpc"
 	"google.golang.org/grpc/metadata"
@@ -112,4 +114,29 @@ func oldWrapHandler(fn func(*gin.Context) (interface{}, error)) gin.HandlerFunc 
 			dtmimp.E2P(err)
 		}
 	}
+}
+
+var (
+	rdb  *redis.Client
+	once sync.Once
+)
+
+func RedisGet() *redis.Client {
+	once.Do(func() {
+		logger.Debugf("connecting to client redis")
+		rdb = redis.NewClient(&redis.Options{
+			Addr:     "localhost:6379",
+			Username: "root",
+			Password: "",
+		})
+	})
+	return rdb
+}
+
+func SetRedisBothAccount(accountA int, accountB int) {
+	rd := RedisGet()
+	_, err := rd.Set(rd.Context(), getRedisAccountKey(TransOutUID), accountA, 0).Result()
+	dtmimp.E2P(err)
+	_, err = rd.Set(rd.Context(), getRedisAccountKey(TransInUID), accountB, 0).Result()
+	dtmimp.E2P(err)
 }

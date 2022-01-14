@@ -14,7 +14,7 @@ import (
 )
 
 func TestMsgGrpcPrepareAndSubmit(t *testing.T) {
-	before := getBeforeBalances()
+	before := getBeforeBalances("mysql")
 	gid := dtmimp.GetFuncName()
 	req := busi.GenBusiReq(30, false, false)
 	msg := dtmgrpc.NewMsgGrpc(DtmGrpcServer, gid).
@@ -26,14 +26,14 @@ func TestMsgGrpcPrepareAndSubmit(t *testing.T) {
 	waitTransProcessed(msg.Gid)
 	assert.Equal(t, []string{StatusSucceed}, getBranchesStatus(msg.Gid))
 	assert.Equal(t, StatusSucceed, getTransStatus(msg.Gid))
-	assertNotSameBalance(t, before)
+	assertNotSameBalance(t, before, "mysql")
 }
 
 func TestMsgGrpcPrepareAndSubmitCommitAfterFailed(t *testing.T) {
 	if conf.Store.IsDB() { // cannot patch tx.Commit, because Prepare also do Commit
 		return
 	}
-	before := getBeforeBalances()
+	before := getBeforeBalances("mysql")
 	gid := dtmimp.GetFuncName()
 	req := busi.GenBusiReq(30, false, false)
 	msg := dtmgrpc.NewMsgGrpc(DtmGrpcServer, gid).
@@ -50,5 +50,5 @@ func TestMsgGrpcPrepareAndSubmitCommitAfterFailed(t *testing.T) {
 	})
 	assert.Error(t, err)
 	cronTransOnceForwardNow(180)
-	assertNotSameBalance(t, before)
+	assertNotSameBalance(t, before, "mysql")
 }
