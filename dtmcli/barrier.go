@@ -136,15 +136,16 @@ if e1 ~= false then
 	return
 end
 
+redis.call('SET', KEYS[2], 'op', 'EX', ARGV[3])
+
 if ARGV[2] ~= '' then
 	local e2 = redis.call('GET', KEYS[3])
-	if e2 ~= false then
+	if e2 == false then
+		redis.call('SET', KEYS[3], 'rollback', 'EX', ARGV[3])
 		return
 	end
-	redis.call('SET', KEYS[3], 'origin', 'EX', ARGV[3])
 end
 redis.call('INCRBY', KEYS[1], ARGV[1])
-redis.call('SET', KEYS[2], 'op', 'EX', ARGV[3])
 `, []string{key, bkey1, bkey2}, amount, originOp, barrierExpire).Result()
 	logger.Debugf("lua return v: %v err: %v", v, err)
 	if err == redis.Nil {
