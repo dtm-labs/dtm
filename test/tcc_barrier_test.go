@@ -50,14 +50,23 @@ func TestTccBarrierRollback(t *testing.T) {
 	assert.Equal(t, []string{StatusSucceed, StatusPrepared, StatusSucceed, StatusPrepared}, getBranchesStatus(gid))
 }
 
-func TestTccBarrierDisorder(t *testing.T) {
-	before := getBeforeBalances()
+func TestTccBarrierDisorderMysql(t *testing.T) {
+	runTestTccBarrierDisorder(t, "mysql")
+}
+
+func TestTccBarrierDisorderRedis(t *testing.T) {
+	busi.SetRedisBothAccount(200, 200)
+	runTestTccBarrierDisorder(t, "redis")
+}
+
+func runTestTccBarrierDisorder(t *testing.T, store string) {
+	before := getBeforeBalances(store)
 	cancelFinishedChan := make(chan string, 2)
 	cancelCanReturnChan := make(chan string, 2)
-	gid := dtmimp.GetFuncName()
+	gid := dtmimp.GetFuncName() + store
 	cronFinished := make(chan string, 2)
 	err := dtmcli.TccGlobalTransaction(DtmServer, gid, func(tcc *dtmcli.Tcc) (*resty.Response, error) {
-		body := &busi.TransReq{Amount: 30}
+		body := &busi.TransReq{Amount: 30, Store: store}
 		tryURL := Busi + "/TccBTransOutTry"
 		confirmURL := Busi + "/TccBTransOutConfirm"
 		cancelURL := Busi + "/TccBSleepCancel"
@@ -122,7 +131,7 @@ func TestTccBarrierDisorder(t *testing.T) {
 	assert.Error(t, err, fmt.Errorf("a cancelled tcc"))
 	assert.Equal(t, []string{StatusSucceed, StatusPrepared}, getBranchesStatus(gid))
 	assert.Equal(t, StatusFailed, getTransStatus(gid))
-	assertSameBalance(t, before)
+	assertSameBalance(t, before, store)
 }
 
 func TestTccBarrierPanic(t *testing.T) {

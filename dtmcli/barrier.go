@@ -13,6 +13,7 @@ import (
 
 	"github.com/dtm-labs/dtm/dtmcli/dtmimp"
 	"github.com/dtm-labs/dtm/dtmcli/logger"
+	"github.com/go-redis/redis/v8"
 )
 
 // BarrierBusiFunc type for busi func
@@ -76,12 +77,12 @@ func (bb *BranchBarrier) Call(tx *sql.Tx, busiCall BarrierBusiFunc) (rerr error)
 		}
 	}()
 	ti := bb
-	originType := map[string]string{
+	originOp := map[string]string{
 		BranchCancel:     BranchTry,
 		BranchCompensate: BranchAction,
 	}[ti.Op]
 
-	originAffected, _ := insertBarrier(tx, ti.TransType, ti.Gid, ti.BranchID, originType, bid, ti.Op)
+	originAffected, _ := insertBarrier(tx, ti.TransType, ti.Gid, ti.BranchID, originOp, bid, ti.Op)
 	currentAffected, rerr := insertBarrier(tx, ti.TransType, ti.Gid, ti.BranchID, ti.Op, bid, ti.Op)
 	logger.Debugf("originAffected: %d currentAffected: %d", originAffected, currentAffected)
 	if (ti.Op == BranchCancel || ti.Op == BranchCompensate) && originAffected > 0 || // 这个是空补偿
@@ -111,6 +112,46 @@ func (bb *BranchBarrier) QueryPrepared(db *sql.DB) error {
 	}
 	if reason == "rollback" {
 		return ErrFailure
+	}
+	return err
+}
+
+// RedisCheckAdjustAmount check the value of key is valid and >= amount. then adjust the amount
+func (bb *BranchBarrier) RedisCheckAdjustAmount(rd *redis.Client, key string, amount int, barrierExpire int) error {
+	bkey1 := fmt.Sprintf("%s-%s-%s-%s-%02d", key, bb.Gid, bb.BranchID, bb.Op, bb.BarrierID)
+	originOp := map[string]string{
+		BranchCancel:     BranchTry,
+		BranchCompensate: BranchAction,
+	}[bb.Op]
+	bkey2 := fmt.Sprintf("%s-%s-%s-%s-%02d", key, bb.Gid, bb.BranchID, originOp, bb.BarrierID)
+	v, err := rd.Eval(rd.Context(), ` -- RedisCheckAdjustAmount
+local v = redis.call('GET', KEYS[1])
+local e1 = redis.call('GET', KEYS[2])
+
+if v == false or v + ARGV[1] < 0 then
+	return 'FAILURE'
+end
+
+if e1 ~= false then
+	return
+end
+
+if ARGV[2] ~= '' then
+	local e2 = redis.call('GET', KEYS[3])
+	if e2 ~= false then
+		return
+	end
+	redis.call('SET', KEYS[3], 'origin', 'EX', ARGV[3])
+end
+redis.call('INCRBY', KEYS[1], ARGV[1])
+redis.call('SET', KEYS[2], 'op', 'EX', ARGV[3])
+`, []string{key, bkey1, bkey2}, amount, originOp, barrierExpire).Result()
+	logger.Debugf("lua return v: %v err: %v", v, err)
+	if err == redis.Nil {
+		err = nil
+	}
+	if err == nil && v == ResultFailure {
+		err = ErrFailure
 	}
 	return err
 }
