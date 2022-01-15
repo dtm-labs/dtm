@@ -46,6 +46,10 @@ func svcPrepare(t *TransGlobal) interface{} {
 
 func svcAbort(t *TransGlobal) interface{} {
 	dbt := GetTransGlobal(t.Gid)
+	if dbt.TransType == "msg" && dbt.Status == dtmcli.StatusPrepared {
+		dbt.changeStatus(dtmcli.StatusFailed)
+		return nil
+	}
 	if t.TransType != "xa" && t.TransType != "tcc" || dbt.Status != dtmcli.StatusPrepared && dbt.Status != dtmcli.StatusAborting {
 		return fmt.Errorf("trans type: '%s' current status '%s', cannot abort. %w", dbt.TransType, dbt.Status, dtmcli.ErrFailure)
 	}
