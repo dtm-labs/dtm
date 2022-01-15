@@ -44,13 +44,15 @@ func (s *Msg) Submit() error {
 func (s *Msg) PrepareAndSubmit(queryPrepared string, db *sql.DB, busiCall BarrierBusiFunc) error {
 	bb, err := BarrierFrom(s.TransType, s.Gid, "00", "msg") // a special barrier for msg QueryPrepared
 	if err == nil {
-		err = bb.CallWithDB(db, func(tx *sql.Tx) error {
-			err := busiCall(tx)
-			if err == nil {
-				err = s.Prepare(queryPrepared)
+		err = s.Prepare(queryPrepared)
+	}
+	if err == nil {
+		defer func() {
+			if err != nil && bb.QueryPrepared(db) == ErrFailure {
+				_ = dtmimp.TransCallDtm(&s.TransBase, s, "abort")
 			}
-			return err
-		})
+		}()
+		err = bb.CallWithDB(db, busiCall)
 	}
 	if err == nil {
 		err = s.Submit()
