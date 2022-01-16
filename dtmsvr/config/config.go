@@ -42,7 +42,7 @@ type Store struct {
 	DataExpire         int64  `yaml:"DataExpire" default:"604800"` // Trans data will expire in 7 days. only for redis/boltdb.
 	RedisPrefix        string `yaml:"RedisPrefix" default:"{a}"`   // Redis storage prefix. store data to only one slot in cluster
 	TransGlobalTable   string `yaml:"TransGlobalTable" default:"dtm.trans_global"`
-	TransBranchOpTable string `yaml:"BranchTransOpTable" default:"dtm.trans_branch_op"`
+	TransBranchOpTable string `yaml:"TransBranchOpTable" default:"dtm.trans_branch_op"`
 }
 
 // IsDB checks config driver is mysql or postgres
