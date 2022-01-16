@@ -35,7 +35,7 @@ func StartSvr() {
 			MaxAge:     int(conf.Log.FileMaxAge),
 			Compress:   conf.Log.FileCompress != 0,
 		}
-		logger.InitRotateLog(conf.Log.Level, conf.Log.Output, conf.Log.FileName, &ll)
+		logger.InitRotateLog(conf.Log.Level, &ll)
 	}
 	dtmcli.GetRestyClient().SetTimeout(time.Duration(conf.RequestTimeout) * time.Second)
 	dtmgrpc.AddUnaryInterceptor(func(ctx context.Context, method string, req, reply interface{}, cc *grpc.ClientConn, invoker grpc.UnaryInvoker, opts ...grpc.CallOption) error {

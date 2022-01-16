@@ -43,39 +43,38 @@ func WithLogger(log Logger) {
 // InitLog is an initialization for a logger
 // level can be: debug info warn error
 func InitLog(level string) {
-	config := zap.NewProductionConfig()
-	err := config.Level.UnmarshalText([]byte(level))
-	FatalIfError(err)
-	config.EncoderConfig.EncodeTime = zapcore.ISO8601TimeEncoder
-	if os.Getenv("DTM_DEBUG") != "" {
-		config.Encoding = "console"
-		config.EncoderConfig.EncodeLevel = zapcore.CapitalColorLevelEncoder
-	}
+	config := loadConfig(level)
 	p, err := config.Build(zap.AddCallerSkip(1))
 	FatalIfError(err)
 	logger = p.Sugar()
 }
 
 // InitRotateLog is an initialization for a rotated logger by lumberjack
-func InitRotateLog(logLevel string, output, logFile string, ll *lumberjack.Logger) {
+func InitRotateLog(logLevel string, ll *lumberjack.Logger) {
+	config := loadConfig(logLevel)
+	config.OutputPaths = []string{fmt.Sprintf("lumberjack:%s", ll.Filename), "stdout"}
+	err := zap.RegisterSink("lumberjack", func(*url.URL) (zap.Sink, error) {
+		return lumberjackSink{
+			Logger: ll,
+		}, nil
+	})
+	FatalIfError(err)
+
+	p, err := config.Build(zap.AddCallerSkip(1))
+	FatalIfError(err)
+	logger = p.Sugar()
+}
+
+func loadConfig(logLevel string) zap.Config {
 	config := zap.NewProductionConfig()
 	err := config.Level.UnmarshalText([]byte(logLevel))
 	FatalIfError(err)
 	config.EncoderConfig.EncodeTime = zapcore.ISO8601TimeEncoder
-	config.Encoding = "console"
-	config.EncoderConfig.EncodeLevel = zapcore.CapitalColorLevelEncoder
-	config.OutputPaths = []string{fmt.Sprintf("lumberjack:%s", logFile), "stdout"}
-	if output == "file" {
-		err := zap.RegisterSink("lumberjack", func(*url.URL) (zap.Sink, error) {
-			return lumberjackSink{
-				Logger: ll,
-			}, nil
-		})
-		FatalIfError(err)
+	if os.Getenv("DTM_DEBUG") != "" {
+		config.Encoding = "console"
+		config.EncoderConfig.EncodeLevel = zapcore.CapitalColorLevelEncoder
 	}
-	p, err := config.Build(zap.AddCallerSkip(1))
-	FatalIfError(err)
-	logger = p.Sugar()
+	return config
 }
 
 // Debugf log to level debug
