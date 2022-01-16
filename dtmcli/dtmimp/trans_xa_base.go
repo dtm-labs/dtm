@@ -18,7 +18,7 @@ type XaClientBase struct {
 	NotifyURL string
 }
 
-// HandleCallback 处理commit/rollback的回调
+// HandleCallback Handle the callback of commit/rollback
 func (xc *XaClientBase) HandleCallback(gid string, branchID string, action string) error {
 	db, err := StandaloneDB(xc.Conf)
 	if err != nil {
