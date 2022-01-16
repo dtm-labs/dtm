@@ -1,9 +1,12 @@
 package logger
 
 import (
+	"fmt"
 	"log"
+	"net/url"
 	"os"
 
+	"github.com/natefinch/lumberjack"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 )
@@ -24,6 +27,14 @@ type Logger interface {
 	Errorf(format string, args ...interface{})
 }
 
+type lumberjackSink struct {
+	*lumberjack.Logger
+}
+
+func (lumberjackSink) Sync() error {
+	return nil
+}
+
 // WithLogger replaces default logger
 func WithLogger(log Logger) {
 	logger = log
@@ -39,6 +50,28 @@ func InitLog(level string) {
 	if os.Getenv("DTM_DEBUG") != "" {
 		config.Encoding = "console"
 		config.EncoderConfig.EncodeLevel = zapcore.CapitalColorLevelEncoder
+	}
+	p, err := config.Build(zap.AddCallerSkip(1))
+	FatalIfError(err)
+	logger = p.Sugar()
+}
+
+// InitRotateLog is an initialization for a rotated logger by lumberjack
+func InitRotateLog(logLevel string, output, logFile string, ll *lumberjack.Logger) {
+	config := zap.NewProductionConfig()
+	err := config.Level.UnmarshalText([]byte(logLevel))
+	FatalIfError(err)
+	config.EncoderConfig.EncodeTime = zapcore.ISO8601TimeEncoder
+	config.Encoding = "console"
+	config.EncoderConfig.EncodeLevel = zapcore.CapitalColorLevelEncoder
+	config.OutputPaths = []string{fmt.Sprintf("lumberjack:%s", logFile), "stdout"}
+	if output == "file" {
+		err := zap.RegisterSink("lumberjack", func(*url.URL) (zap.Sink, error) {
+			return lumberjackSink{
+				Logger: ll,
+			}, nil
+		})
+		FatalIfError(err)
 	}
 	p, err := config.Build(zap.AddCallerSkip(1))
 	FatalIfError(err)
