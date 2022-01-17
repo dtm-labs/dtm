@@ -61,7 +61,7 @@ func main() {
 	config.MustLoadConfig(*confFile)
 	conf := &config.Config
 	if *isDebug {
-		conf.Log.Level = "debug"
+		config.Config.LogLevel = "debug"
 	}
 	if conf.Log.Output == "file" {
 		ll := lumberjack.Logger{

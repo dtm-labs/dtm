@@ -33,7 +33,7 @@ func main() {
 	}
 	logger.Infof("starting bench server")
 	config.MustLoadConfig("")
-	logger.InitLog(conf.Log.Level)
+	logger.InitLog(conf.LogLevel)
 	if busi.BusiConf.Driver != "" {
 		dtmcli.SetCurrentDBType(busi.BusiConf.Driver)
 		svr.PrepareBenchDB()
