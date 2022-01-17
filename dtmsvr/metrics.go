@@ -9,6 +9,7 @@ package dtmsvr
 import (
 	"context"
 	"strings"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/prometheus/client_golang/prometheus"
@@ -17,6 +18,12 @@ import (
 )
 
 var (
+	serverInfoGauge = promauto.NewGaugeVec(prometheus.GaugeOpts{
+		Name: "dtm_server_info",
+		Help: "The information of this dtm server.",
+	},
+		[]string{"gin_version", "grpc_version"})
+
 	processTotal = promauto.NewCounterVec(prometheus.CounterOpts{
 		Name: "dtm_server_process_total",
 		Help: "All request received by dtm",
@@ -35,12 +42,22 @@ var (
 	},
 		[]string{"model", "gid", "status"})
 
+	transactionHandledTime = promauto.NewHistogramVec(prometheus.HistogramOpts{
+		Name: "dtm_transaction_handled_duration",
+		Help: "Histogram of handling latency of the transaction that handled by the server.",
+	},
+		[]string{"model", "gid"})
+
 	branchTotal = promauto.NewCounterVec(prometheus.CounterOpts{
 		Name: "dtm_branch_process_total",
 		Help: "All branches processed by dtm",
 	},
 		[]string{"model", "gid", "branchid", "branchtype", "status"})
 )
+
+func setServerInfoMetrics() {
+	serverInfoGauge.WithLabelValues(gin.Version, grpc.Version).Set(1)
+}
 
 func httpMetrics(app *gin.Engine) *gin.Engine {
 	app.Use(func(c *gin.Context) {
@@ -81,6 +98,7 @@ func transactionMetrics(global *TransGlobal, status bool) {
 	} else {
 		transactionTotal.WithLabelValues(global.TransType, global.Gid, "fail").Inc()
 	}
+	transactionHandledTime.WithLabelValues(global.TransType, global.Gid).Observe(time.Since(*global.CreateTime).Seconds())
 }
 
 func branchMetrics(global *TransGlobal, branch *TransBranch, status bool) {
