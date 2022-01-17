@@ -2,11 +2,11 @@ package logger
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 	"log"
 	"net/url"
 	"os"
+	"strings"
 
 	"github.com/natefinch/lumberjack"
 	"go.uber.org/zap"
@@ -17,15 +17,15 @@ import (
 
 var logger Logger
 
-// DefaultLogOutput is the default configuration for log output.
 const (
-	DefaultLogOutput = "default"
-	StdErrLogOutput  = "stderr"
-	StdOutLogOutput  = "stdout"
+	// StdErr is the default configuration for log output.
+	StdErr = "stderr"
+	// StdOut configuration for log output
+	StdOut = "stdout"
 )
 
 func init() {
-	InitLog(os.Getenv("LOG_LEVEL"), nil, 0, "")
+	InitLog(os.Getenv("LOG_LEVEL"))
 }
 
 // Logger logger interface
@@ -43,43 +43,21 @@ func WithLogger(log Logger) {
 
 // InitLog is an initialization for a logger
 // level can be: debug info warn error
-func InitLog(level string, outputs []string, logRotationEnable int64, logRotateConfigJSON string) {
-	if len(outputs) == 0 {
-		outputs = []string{DefaultLogOutput}
-	}
+func InitLog(level string) {
+	InitLog2(level, StdOut, 0, "")
+}
 
-	// parse outputs
-	outputPaths := make([]string, 0)
-	for _, v := range outputs {
-		switch v {
-		case DefaultLogOutput:
-			outputPaths = append(outputPaths, StdOutLogOutput)
-
-		case StdErrLogOutput:
-			outputPaths = append(outputPaths, StdErrLogOutput)
-
-		case StdOutLogOutput:
-			outputPaths = append(outputPaths, StdOutLogOutput)
-
-		default:
-			var path string
-			if logRotationEnable != 0 {
-				// append rotate scheme to logs managed by lumberjack log rotation
-				if v[0:1] == "/" {
-					path = fmt.Sprintf("lumberjack:/%%2F%s", v[1:])
-				} else {
-					path = fmt.Sprintf("lumberjack:/%s", v)
-				}
-			} else {
-				path = v
-			}
-			outputPaths = append(outputPaths, path)
+// InitLog2 specify advanced log config
+func InitLog2(level string, outputs string, logRotationEnable int64, logRotateConfigJSON string) {
+	outputPaths := strings.Split(outputs, "|")
+	for i, v := range outputPaths {
+		if logRotationEnable != 0 && v != StdErr && v != StdOut {
+			outputPaths[i] = fmt.Sprintf("lumberjack://%s", v)
 		}
 	}
 
-	// setup log rotation
 	if logRotationEnable != 0 {
-		setupLogRotation(outputs, logRotateConfigJSON)
+		setupLogRotation(logRotateConfigJSON)
 	}
 
 	config := loadConfig(level)
@@ -90,47 +68,21 @@ func InitLog(level string, outputs []string, logRotationEnable int64, logRotateC
 }
 
 type lumberjackSink struct {
-	*lumberjack.Logger
+	lumberjack.Logger
 }
 
-func (lumberjackSink) Sync() error {
+func (*lumberjackSink) Sync() error {
 	return nil
 }
 
 // setupLogRotation initializes log rotation for a single file path target.
-func setupLogRotation(logOutputs []string, logRotateConfigJSON string) {
-	var lumberjackSink lumberjackSink
-	outputFilePaths := 0
-	for _, v := range logOutputs {
-		switch v {
-		case "stdout", "stderr":
-			continue
-		default:
-			outputFilePaths++
-		}
-	}
-	// log rotation requires file target
-	if len(logOutputs) == 1 && outputFilePaths == 0 {
-		FatalIfError(fmt.Errorf("log outputs requires a single file path when LogRotationConfigJSON is defined"))
-	}
-	// support max 1 file target for log rotation
-	if outputFilePaths > 1 {
-		FatalIfError(fmt.Errorf("log outputs requires a single file path when LogRotationConfigJSON is defined"))
-	}
-
-	if err := json.Unmarshal([]byte(logRotateConfigJSON), &lumberjackSink); err != nil {
-		var unmarshalTypeError *json.UnmarshalTypeError
-		var syntaxError *json.SyntaxError
-		switch {
-		case errors.As(err, &syntaxError):
-			FatalIfError(fmt.Errorf("improperly formatted log rotation config: %w", err))
-		case errors.As(err, &unmarshalTypeError):
-			FatalIfError(fmt.Errorf("invalid log rotation config: %w", err))
-		}
-	}
+func setupLogRotation(logRotateConfigJSON string) {
 	err := zap.RegisterSink("lumberjack", func(u *url.URL) (zap.Sink, error) {
-		lumberjackSink.Filename = u.Path[1:]
-		return &lumberjackSink, nil
+		var conf lumberjackSink
+		err := json.Unmarshal([]byte(logRotateConfigJSON), &conf)
+		FatalfIf(err != nil, "bad config LogRotateConfigJSON: %v", err)
+		conf.Filename = u.Host + u.Path
+		return &conf, nil
 	})
 	FatalIfError(err)
 }
