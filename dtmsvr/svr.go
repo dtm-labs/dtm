@@ -20,23 +20,12 @@ import (
 	"github.com/dtm-labs/dtm/dtmutil"
 	"github.com/dtm-labs/dtmdriver"
 	grpc_middleware "github.com/grpc-ecosystem/go-grpc-middleware"
-	"github.com/natefinch/lumberjack"
 	"google.golang.org/grpc"
 )
 
 // StartSvr StartSvr
 func StartSvr() {
 	logger.Infof("start dtmsvr")
-	if conf.Log.Output == "file" {
-		ll := lumberjack.Logger{
-			Filename:   conf.Log.FileName,
-			MaxSize:    int(conf.Log.FileMaxSize),
-			MaxBackups: int(conf.Log.FileMaxBackups),
-			MaxAge:     int(conf.Log.FileMaxAge),
-			Compress:   conf.Log.FileCompress != 0,
-		}
-		logger.InitRotateLog(conf.Log.Level, &ll)
-	}
 	dtmcli.GetRestyClient().SetTimeout(time.Duration(conf.RequestTimeout) * time.Second)
 	dtmgrpc.AddUnaryInterceptor(func(ctx context.Context, method string, req, reply interface{}, cc *grpc.ClientConn, invoker grpc.UnaryInvoker, opts ...grpc.CallOption) error {
 		ctx2, cancel := context.WithTimeout(ctx, time.Duration(conf.RequestTimeout)*time.Second)

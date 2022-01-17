@@ -48,15 +48,7 @@
 # RetryInterval: 10 # the subtrans branch will be retried after this interval
 # RequestTimeout: 3 # the timeout of HTTP/gRPC request in dtm
 
-# Log:
-#   Level: 'info'              # default: info. can be debug|info|warn|error
-#   Output: 'console'          # default: console. can be console|file
-#   FileName: '/tmp/dtm.log'   # default: /tmp/dtm.log.
-#   FileMaxSize: 10            # default: 10, unit: MB.
-#   FileMaxBackups: 5          # default: 5.
-#   FileMaxAge: 30             # default: 30, unit: days.
-#   FileCompress: 0            # default: 0. can by 0|1, means false|true
-
+# LogLevel: 'info' # default: info. can be debug|info|warn|error
 # HttpPort: 36789
 # GrpcPort: 36790
 
