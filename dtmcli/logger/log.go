@@ -133,7 +133,6 @@ func setupLogRotation(logOutputs []string, logRotateConfigJSON string) {
 		return &lumberjackSink, nil
 	})
 	FatalIfError(err)
-	return
 }
 
 func loadConfig(logLevel string) zap.Config {
