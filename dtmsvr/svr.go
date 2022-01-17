@@ -32,6 +32,7 @@ func StartSvr() {
 		outputs = strings.Split(conf.Log.Outputs, "|")
 	}
 	logger.InitLog(conf.Log.Level, outputs, conf.Log.LogRotationEnable, conf.Log.LogRotationConfigJSON)
+
 	dtmcli.GetRestyClient().SetTimeout(time.Duration(conf.RequestTimeout) * time.Second)
 	dtmgrpc.AddUnaryInterceptor(func(ctx context.Context, method string, req, reply interface{}, cc *grpc.ClientConn, invoker grpc.UnaryInvoker, opts ...grpc.CallOption) error {
 		ctx2, cancel := context.WithTimeout(ctx, time.Duration(conf.RequestTimeout)*time.Second)
