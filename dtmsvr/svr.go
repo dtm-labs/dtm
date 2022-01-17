@@ -19,19 +19,22 @@ import (
 	"github.com/dtm-labs/dtm/dtmgrpc/dtmgpb"
 	"github.com/dtm-labs/dtm/dtmutil"
 	"github.com/dtm-labs/dtmdriver"
-	grpc_middleware "github.com/grpc-ecosystem/go-grpc-middleware"
 	"google.golang.org/grpc"
 )
 
 // StartSvr StartSvr
 func StartSvr() {
 	logger.Infof("start dtmsvr")
+	setServerInfoMetrics()
+
 	dtmcli.GetRestyClient().SetTimeout(time.Duration(conf.RequestTimeout) * time.Second)
 	dtmgrpc.AddUnaryInterceptor(func(ctx context.Context, method string, req, reply interface{}, cc *grpc.ClientConn, invoker grpc.UnaryInvoker, opts ...grpc.CallOption) error {
 		ctx2, cancel := context.WithTimeout(ctx, time.Duration(conf.RequestTimeout)*time.Second)
 		defer cancel()
 		return invoker(ctx2, method, req, reply, cc, opts...)
 	})
+
+	// start gin server
 	app := dtmutil.GetGinApp()
 	app = httpMetrics(app)
 	addRoute(app)
@@ -43,12 +46,10 @@ func StartSvr() {
 		}
 	}()
 
+	// start grpc server
 	lis, err := net.Listen("tcp", fmt.Sprintf(":%d", conf.GrpcPort))
 	logger.FatalIfError(err)
-	s := grpc.NewServer(
-		grpc.UnaryInterceptor(grpc_middleware.ChainUnaryServer(
-			grpc.UnaryServerInterceptor(grpcMetrics), grpc.UnaryServerInterceptor(dtmgimp.GrpcServerLog)),
-		))
+	s := grpc.NewServer(grpc.ChainUnaryInterceptor(grpcMetrics, dtmgimp.GrpcServerLog))
 	dtmgpb.RegisterDtmServer(s, &dtmServer{})
 	logger.Infof("grpc listening at %v", lis.Addr())
 	go func() {

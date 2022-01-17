@@ -13,7 +13,6 @@ import (
 	"github.com/dtm-labs/dtm/dtmcli/dtmimp"
 	"github.com/dtm-labs/dtm/dtmcli/logger"
 	"github.com/dtm-labs/dtm/dtmgrpc/dtmgpb"
-	grpc_middleware "github.com/grpc-ecosystem/go-grpc-middleware"
 	grpc "google.golang.org/grpc"
 )
 
@@ -58,7 +57,7 @@ func GetGrpcConn(grpcServer string, isRaw bool) (conn *grpc.ClientConn, rerr err
 		}
 		logger.Debugf("grpc client connecting %s", grpcServer)
 		interceptors := append(ClientInterceptors, GrpcClientLog)
-		inOpt := grpc.WithUnaryInterceptor(grpc_middleware.ChainUnaryClient(interceptors...))
+		inOpt := grpc.WithChainUnaryInterceptor(interceptors...)
 		conn, rerr := grpc.Dial(grpcServer, inOpt, grpc.WithInsecure(), opts)
 		if rerr == nil {
 			clients.Store(grpcServer, conn)
