@@ -49,13 +49,10 @@
 # RequestTimeout: 3 # the timeout of HTTP/gRPC request in dtm
 
 # Log:
-#   Level: 'info'              # default: info. can be debug|info|warn|error
-#   Output: 'console'          # default: console. can be console|file
-#   FileName: '/tmp/dtm.log'   # default: /tmp/dtm.log.
-#   FileMaxSize: 10            # default: 10, unit: MB.
-#   FileMaxBackups: 5          # default: 5.
-#   FileMaxAge: 30             # default: 30, unit: days.
-#   FileCompress: 0            # default: 0. can by 0|1, means false|true
+#   Level: 'info'                 # default: info. can be debug|info|warn|error
+#   Outputs:   ''                 # default: stdout, split by |, you can append files to Outputs if need. example:'stdout|/tmp/test.log'
+#   LogRotationEnable: 0          # default: 0
+#   LogRotationConfigJson: ''     # example: '{"maxsize": 100, "maxage": 0, "maxbackups": 0, "localtime": false, "compress": false}'
 
 # HttpPort: 36789
 # GrpcPort: 36790

@@ -31,13 +31,10 @@ type MicroService struct {
 
 // Log config customize log
 type Log struct {
-	Level          string `yaml:"Level" default:"info"`
-	Output         string `yaml:"Output" default:"console"`
-	FileName       string `yaml:"FileName" default:"/tmp/dtm.log"`
-	FileMaxSize    int64  `yaml:"FileMaxSize" default:"10"`
-	FileMaxBackups int64  `yaml:"FileMaxBackups" default:"5"`
-	FileMaxAge     int64  `yaml:"FileMaxAge" default:"30"`
-	FileCompress   int64  `yaml:"FileCompress" default:"0"`
+	Level                 string `yaml:"Level" default:"info"`
+	Outputs               string `yaml:"Outputs" default:""`
+	LogRotationEnable     int64  `yaml:"LogRotationEnable" default:"0"`
+	LogRotationConfigJson string `yaml:"LogRotationConfigJson" default:""`
 }
 
 // Store defines storage relevant info

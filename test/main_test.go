@@ -29,7 +29,7 @@ func exitIf(code int) {
 
 func TestMain(m *testing.M) {
 	config.MustLoadConfig("")
-	logger.InitLog("debug")
+	logger.InitLog("debug", nil, 0, "")
 	dtmcli.SetCurrentDBType(busi.BusiConf.Driver)
 	dtmsvr.TransProcessedTestChan = make(chan string, 1)
 	dtmsvr.NowForwardDuration = 0 * time.Second
