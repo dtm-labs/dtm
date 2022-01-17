@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"os"
+	"strings"
 
 	"github.com/dtm-labs/dtm/bench/svr"
 	"github.com/dtm-labs/dtm/dtmcli"
@@ -33,7 +34,11 @@ func main() {
 	}
 	logger.Infof("starting bench server")
 	config.MustLoadConfig("")
-	logger.InitLog(conf.LogLevel)
+	var outputs []string
+	if len(conf.Log.Outputs) != 0 {
+		outputs = strings.Split(conf.Log.Outputs, "|")
+	}
+	logger.InitLog(conf.Log.Level, outputs, conf.Log.LogRotationEnable, conf.Log.LogRotationConfigJSON)
 	if busi.BusiConf.Driver != "" {
 		dtmcli.SetCurrentDBType(busi.BusiConf.Driver)
 		svr.PrepareBenchDB()
