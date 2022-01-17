@@ -31,10 +31,9 @@ type MicroService struct {
 
 // Log config customize log
 type Log struct {
-	Level                 string `yaml:"Level" default:"info"`
-	Outputs               string `yaml:"Outputs" default:""`
-	LogRotationEnable     int64  `yaml:"LogRotationEnable" default:"0"`
-	LogRotationConfigJSON string `yaml:"LogRotationConfigJSON" default:""`
+	Outputs            string `yaml:"Outputs" default:"stderr"`
+	RotationEnable     int64  `yaml:"RotationEnable" default:"0"`
+	RotationConfigJSON string `yaml:"RotationConfigJSON" default:"{}"`
 }
 
 // Store defines storage relevant info
@@ -80,6 +79,7 @@ type configType struct {
 	MicroService                  MicroService `yaml:"MicroService"`
 	UpdateBranchSync              int64        `yaml:"UpdateBranchSync"`
 	UpdateBranchAsyncGoroutineNum int64        `yaml:"UpdateBranchAsyncGoroutineNum" default:"1"`
+	LogLevel                      string       `yaml:"LogLevel" default:"info"`
 	Log                           Log          `yaml:"Log"`
 }
 

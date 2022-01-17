@@ -58,9 +58,11 @@ func main() {
 		return
 	}
 	config.MustLoadConfig(*confFile)
+	conf := config.Config
 	if *isDebug {
-		config.Config.Log.Level = "debug"
+		conf.LogLevel = "debug"
 	}
+	logger.InitLog2(conf.LogLevel, conf.Log.Outputs, conf.Log.RotationEnable, conf.Log.RotationConfigJSON)
 	if *isReset {
 		dtmsvr.PopulateDB(false)
 	}
