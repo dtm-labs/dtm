@@ -58,7 +58,7 @@ func main() {
 		return
 	}
 	config.MustLoadConfig(*confFile)
-	conf := config.Config
+	conf := &config.Config
 	if *isDebug {
 		conf.LogLevel = "debug"
 	}
