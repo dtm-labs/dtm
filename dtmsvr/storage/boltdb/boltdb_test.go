@@ -1,3 +1,9 @@
+/*
+ * Copyright (c) 2021 yedf. All rights reserved.
+ * Use of this source code is governed by a BSD-style
+ * license that can be found in the LICENSE file.
+ */
+
 package boltdb
 
 import (
@@ -8,8 +14,8 @@ import (
 	. "github.com/onsi/gomega"
 	bolt "go.etcd.io/bbolt"
 
-	"github.com/yedf/dtm/dtmcli/dtmimp"
-	"github.com/yedf/dtm/dtmsvr/storage"
+	"github.com/dtm-labs/dtm/dtmcli/dtmimp"
+	"github.com/dtm-labs/dtm/dtmsvr/storage"
 )
 
 func TestInitializeBuckets(t *testing.T) {

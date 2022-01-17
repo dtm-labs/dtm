@@ -11,11 +11,14 @@ import (
 	"testing"
 	"time"
 
-	"github.com/gin-gonic/gin"
-	"github.com/yedf/dtm/common"
-	"github.com/yedf/dtm/dtmcli"
-	"github.com/yedf/dtm/dtmsvr"
-	"github.com/yedf/dtm/examples"
+	"github.com/dtm-labs/dtm/dtmcli"
+	"github.com/dtm-labs/dtm/dtmcli/logger"
+	"github.com/dtm-labs/dtm/dtmgrpc"
+	"github.com/dtm-labs/dtm/dtmsvr"
+	"github.com/dtm-labs/dtm/dtmsvr/config"
+	"github.com/dtm-labs/dtm/dtmsvr/storage/registry"
+	"github.com/dtm-labs/dtm/test/busi"
+	"github.com/go-resty/resty/v2"
 )
 
 func exitIf(code int) {
@@ -25,38 +28,44 @@ func exitIf(code int) {
 }
 
 func TestMain(m *testing.M) {
-	common.MustLoadConfig()
-	dtmcli.SetCurrentDBType(common.Config.ExamplesDB.Driver)
+	config.MustLoadConfig("")
+	logger.InitLog("debug")
+	dtmcli.SetCurrentDBType(busi.BusiConf.Driver)
 	dtmsvr.TransProcessedTestChan = make(chan string, 1)
 	dtmsvr.NowForwardDuration = 0 * time.Second
 	dtmsvr.CronForwardDuration = 180 * time.Second
-	common.Config.UpdateBranchSync = 1
+	conf.UpdateBranchSync = 1
 
-	// 启动组件
-	go dtmsvr.StartSvr()
-	examples.GrpcStartup()
-	app = examples.BaseAppStartup()
-	app.POST(examples.BusiAPI+"/TccBSleepCancel", common.WrapHandler(func(c *gin.Context) (interface{}, error) {
-		return disorderHandler(c)
-	}))
+	dtmgrpc.AddUnaryInterceptor(busi.SetGrpcHeaderForHeadersYes)
+	dtmcli.GetRestyClient().OnBeforeRequest(busi.SetHttpHeaderForHeadersYes)
+	dtmcli.GetRestyClient().OnAfterResponse(func(c *resty.Client, resp *resty.Response) error { return nil })
+
 	tenv := os.Getenv("TEST_STORE")
 	if tenv == "boltdb" {
-		config.Store.Driver = "boltdb"
+		conf.Store.Driver = "boltdb"
 	} else if tenv == "mysql" {
-		config.Store.Driver = "mysql"
-		config.Store.Host = "localhost"
-		config.Store.Port = 3306
-		config.Store.User = "root"
-		config.Store.Password = ""
+		conf.Store.Driver = "mysql"
+		conf.Store.Host = "localhost"
+		conf.Store.Port = 3306
+		conf.Store.User = "root"
+		conf.Store.Password = ""
 	} else {
-		config.Store.Driver = "redis"
-		config.Store.Host = "localhost"
-		config.Store.User = ""
-		config.Store.Password = ""
-		config.Store.Port = 6379
+		conf.Store.Driver = "redis"
+		conf.Store.Host = "localhost"
+		conf.Store.User = ""
+		conf.Store.Password = ""
+		conf.Store.Port = 6379
 	}
-	dtmsvr.PopulateDB(false)
-	examples.PopulateDB(false)
-	exitIf(m.Run())
+	registry.WaitStoreUp()
 
+	dtmsvr.PopulateDB(false)
+	go dtmsvr.StartSvr()
+
+	busi.PopulateDB(false)
+	_ = busi.Startup()
+	r := m.Run()
+	exitIf(r)
+	close(dtmsvr.TransProcessedTestChan)
+	gid, more := <-dtmsvr.TransProcessedTestChan
+	logger.FatalfIf(more, "extra gid: %s in test chan", gid)
 }

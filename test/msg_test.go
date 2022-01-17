@@ -9,10 +9,11 @@ package test
 import (
 	"testing"
 
+	"github.com/dtm-labs/dtm/dtmcli"
+	"github.com/dtm-labs/dtm/dtmcli/dtmimp"
+	"github.com/dtm-labs/dtm/dtmutil"
+	"github.com/dtm-labs/dtm/test/busi"
 	"github.com/stretchr/testify/assert"
-	"github.com/yedf/dtm/dtmcli"
-	"github.com/yedf/dtm/dtmcli/dtmimp"
-	"github.com/yedf/dtm/examples"
 )
 
 func TestMsgNormal(t *testing.T) {
@@ -28,13 +29,14 @@ func TestMsgTimeoutSuccess(t *testing.T) {
 	msg := genMsg(dtmimp.GetFuncName())
 	msg.Prepare("")
 	assert.Equal(t, StatusPrepared, getTransStatus(msg.Gid))
-	examples.MainSwitch.CanSubmitResult.SetOnce(dtmcli.ResultOngoing)
+	busi.MainSwitch.QueryPreparedResult.SetOnce(dtmcli.ResultOngoing)
 	cronTransOnceForwardNow(180)
 	assert.Equal(t, StatusPrepared, getTransStatus(msg.Gid))
-	examples.MainSwitch.TransInResult.SetOnce(dtmcli.ResultOngoing)
+	busi.MainSwitch.TransInResult.SetOnce(dtmcli.ResultOngoing)
 	cronTransOnceForwardNow(180)
 	assert.Equal(t, StatusSubmitted, getTransStatus(msg.Gid))
-	cronTransOnce()
+	g := cronTransOnce()
+	assert.Equal(t, msg.Gid, g)
 	assert.Equal(t, []string{StatusSucceed, StatusSucceed}, getBranchesStatus(msg.Gid))
 	assert.Equal(t, StatusSucceed, getTransStatus(msg.Gid))
 }
@@ -43,10 +45,10 @@ func TestMsgTimeoutFailed(t *testing.T) {
 	msg := genMsg(dtmimp.GetFuncName())
 	msg.Prepare("")
 	assert.Equal(t, StatusPrepared, getTransStatus(msg.Gid))
-	examples.MainSwitch.CanSubmitResult.SetOnce(dtmcli.ResultOngoing)
-	cronTransOnceForwardNow(180)
+	busi.MainSwitch.QueryPreparedResult.SetOnce(dtmcli.ResultOngoing)
+	cronTransOnceForwardNow(360)
 	assert.Equal(t, StatusPrepared, getTransStatus(msg.Gid))
-	examples.MainSwitch.CanSubmitResult.SetOnce(dtmcli.ResultFailure)
+	busi.MainSwitch.QueryPreparedResult.SetOnce(dtmcli.ResultFailure)
 	cronTransOnceForwardNow(180)
 	assert.Equal(t, []string{StatusPrepared, StatusPrepared}, getBranchesStatus(msg.Gid))
 	assert.Equal(t, StatusFailed, getTransStatus(msg.Gid))
@@ -59,16 +61,16 @@ func TestMsgAbnormal(t *testing.T) {
 	assert.Nil(t, err)
 	err = msg.Submit()
 	assert.Nil(t, err)
-
+	waitTransProcessed(msg.Gid)
 	err = msg.Prepare("")
 	assert.Error(t, err)
 }
 
 func genMsg(gid string) *dtmcli.Msg {
-	req := examples.GenTransReq(30, false, false)
-	msg := dtmcli.NewMsg(examples.DtmHttpServer, gid).
-		Add(examples.Busi+"/TransOut", &req).
-		Add(examples.Busi+"/TransIn", &req)
-	msg.QueryPrepared = examples.Busi + "/CanSubmit"
+	req := busi.GenTransReq(30, false, false)
+	msg := dtmcli.NewMsg(dtmutil.DefaultHTTPServer, gid).
+		Add(busi.Busi+"/TransOut", &req).
+		Add(busi.Busi+"/TransIn", &req)
+	msg.QueryPrepared = busi.Busi + "/QueryPrepared"
 	return msg
 }

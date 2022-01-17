@@ -14,7 +14,7 @@ fi
 cd ../dtmcli
 cp -rf ../dtm/dtmcli/* ./
 rm -f *_test.go
-sed -i '' -e 's/yedf\/dtm\//yedf\//g' *.go
+sed -i '' -e 's/dtm-labs\/dtm\//dtm-labs\//g' *.go */**.go
 go mod tidy
 go build || exit 1
 git add .
@@ -24,22 +24,19 @@ git tag $ver
 git push --tags
 
 cd ../dtmcli-go-sample
-go get -u github.com/yedf/dtmcli@$ver
+go get -u github.com/dtm-labs/dtmcli@$ver
 go mod tidy
 go build || exit 1
 git add .
 git commit -m"update from dtm to version $ver"
 git push
-git tag $ver
-git push --tags
 
 
 cd ../dtmgrpc
 rm -rf *.go dtmgimp
 cp -r ../dtm/dtmgrpc/* ./
-go get github.com/yedf/dtmcli@$ver
-sed -i '' -e 's/yedf\/dtm\//yedf\//g' *.go
-sed -i '' -e 's/yedf\/dtm\//yedf\//g' dtmgimp/*.go dtmgimp/*.proto
+go get github.com/dtm-labs/dtmcli@$ver
+sed -i '' -e 's/dtm-labs\/dtm\//dtm-labs\//g' *.go */**.go
 rm -rf *_test.go
 go mod tidy
 go build || exit 1
@@ -50,8 +47,8 @@ git tag $ver
 git push --tags
 
 cd ../dtmgrpc-go-sample
-go get github.com/yedf/dtmcli@$ver
-go get github.com/yedf/dtmgrpc@$ver
+go get github.com/dtm-labs/dtmcli@$ver
+go get github.com/dtm-labs/dtmgrpc@$ver
 protoc --go_out=. --go_opt=paths=source_relative --go-grpc_out=. --go-grpc_opt=paths=source_relative busi/*.proto || exit 1
 go build || exit 1
 git add .

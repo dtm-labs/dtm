@@ -1,48 +1,59 @@
+/*
+ * Copyright (c) 2021 yedf. All rights reserved.
+ * Use of this source code is governed by a BSD-style
+ * license that can be found in the LICENSE file.
+ */
+
 package boltdb
 
 import (
 	"fmt"
 	"strings"
-	"sync"
 	"time"
 
 	bolt "go.etcd.io/bbolt"
-	"gorm.io/gorm"
 
-	"github.com/yedf/dtm/common"
-	"github.com/yedf/dtm/dtmcli/dtmimp"
-	"github.com/yedf/dtm/dtmsvr/storage"
+	"github.com/dtm-labs/dtm/dtmcli"
+	"github.com/dtm-labs/dtm/dtmcli/dtmimp"
+	"github.com/dtm-labs/dtm/dtmcli/logger"
+	"github.com/dtm-labs/dtm/dtmsvr/storage"
+	"github.com/dtm-labs/dtm/dtmutil"
 )
 
-var config = &common.Config
+// Store implements storage.Store, and storage with boltdb
+type Store struct {
+	boltDb *bolt.DB
 
-type BoltdbStore struct {
+	dataExpire    int64
+	retryInterval int64
 }
 
-var boltDb *bolt.DB = nil
-var boltOnce sync.Once
+// NewStore will return the boltdb implement
+// TODO: change to options
+func NewStore(dataExpire int64, retryInterval int64) *Store {
+	s := &Store{
+		dataExpire:    dataExpire,
+		retryInterval: retryInterval,
+	}
 
-func boltGet() *bolt.DB {
-	boltOnce.Do(func() {
-		db, err := bolt.Open("./dtm.bolt", 0666, &bolt.Options{Timeout: 1 * time.Second})
-		dtmimp.E2P(err)
+	db, err := bolt.Open("./dtm.bolt", 0666, &bolt.Options{Timeout: 1 * time.Second})
+	dtmimp.E2P(err)
 
-		// NOTE: we must ensure all buckets is exists before we use it
-		err = initializeBuckets(db)
-		dtmimp.E2P(err)
+	// NOTE: we must ensure all buckets is exists before we use it
+	err = initializeBuckets(db)
+	dtmimp.E2P(err)
 
-		// TODO:
-		//   1. refactor this code
-		//   2. make cleanup run period, to avoid the file growup when server long-running
-		err = cleanupExpiredData(
-			time.Duration(common.Config.Store.DataExpire)*time.Second,
-			db,
-		)
-		dtmimp.E2P(err)
+	// TODO:
+	//   1. refactor this code
+	//   2. make cleanup run period, to avoid the file growup when server long-running
+	err = cleanupExpiredData(
+		time.Duration(dataExpire)*time.Second,
+		db,
+	)
+	dtmimp.E2P(err)
 
-		boltDb = db
-	})
-	return boltDb
+	s.boltDb = db
+	return s
 }
 
 func initializeBuckets(db *bolt.DB) error {
@@ -100,10 +111,10 @@ func cleanupGlobalWithGids(t *bolt.Tx, gids map[string]struct{}) {
 		return
 	}
 
-	dtmimp.Logf("Start to cleanup %d gids", len(gids))
+	logger.Debugf("Start to cleanup %d gids", len(gids))
 	for gid := range gids {
-		dtmimp.Logf("Start to delete gid: %s", gid)
-		bucket.Delete([]byte(gid))
+		logger.Debugf("Start to delete gid: %s", gid)
+		dtmimp.E2P(bucket.Delete([]byte(gid)))
 	}
 }
 
@@ -129,10 +140,10 @@ func cleanupBranchWithGids(t *bolt.Tx, gids map[string]struct{}) {
 		}
 	}
 
-	dtmimp.Logf("Start to cleanup %d branches", len(branchKeys))
+	logger.Debugf("Start to cleanup %d branches", len(branchKeys))
 	for _, key := range branchKeys {
-		dtmimp.Logf("Start to delete branch: %s", key)
-		bucket.Delete([]byte(key))
+		logger.Debugf("Start to delete branch: %s", key)
+		dtmimp.E2P(bucket.Delete([]byte(key)))
 	}
 }
 
@@ -155,10 +166,10 @@ func cleanupIndexWithGids(t *bolt.Tx, gids map[string]struct{}) {
 		}
 	}
 
-	dtmimp.Logf("Start to cleanup %d indexes", len(indexKeys))
+	logger.Debugf("Start to cleanup %d indexes", len(indexKeys))
 	for _, key := range indexKeys {
-		dtmimp.Logf("Start to delete index: %s", key)
-		bucket.Delete([]byte(key))
+		logger.Debugf("Start to delete index: %s", key)
+		dtmimp.E2P(bucket.Delete([]byte(key)))
 	}
 }
 
@@ -225,27 +236,35 @@ func tPutIndex(t *bolt.Tx, unix int64, gid string) {
 	dtmimp.E2P(err)
 }
 
-func (s *BoltdbStore) Ping() error {
+// Ping execs ping cmd to boltdb
+func (s *Store) Ping() error {
 	return nil
 }
 
-func (s *BoltdbStore) PopulateData(skipDrop bool) {
+// PopulateData populates data to boltdb
+func (s *Store) PopulateData(skipDrop bool) {
 	if !skipDrop {
-		err := boltGet().Update(func(t *bolt.Tx) error {
-			t.DeleteBucket(bucketIndex)
-			t.DeleteBucket(bucketBranches)
-			t.DeleteBucket(bucketGlobal)
-			t.CreateBucket(bucketIndex)
-			t.CreateBucket(bucketBranches)
-			t.CreateBucket(bucketGlobal)
+		err := s.boltDb.Update(func(t *bolt.Tx) error {
+			dtmimp.E2P(t.DeleteBucket(bucketIndex))
+			dtmimp.E2P(t.DeleteBucket(bucketBranches))
+			dtmimp.E2P(t.DeleteBucket(bucketGlobal))
+			_, err := t.CreateBucket(bucketIndex)
+			dtmimp.E2P(err)
+			_, err = t.CreateBucket(bucketBranches)
+			dtmimp.E2P(err)
+			_, err = t.CreateBucket(bucketGlobal)
+			dtmimp.E2P(err)
+
 			return nil
 		})
 		dtmimp.E2P(err)
+		logger.Infof("Reset all data for boltdb")
 	}
 }
 
-func (s *BoltdbStore) FindTransGlobalStore(gid string) (trans *storage.TransGlobalStore) {
-	err := boltGet().View(func(t *bolt.Tx) error {
+// FindTransGlobalStore finds GlobalTrans data by gid
+func (s *Store) FindTransGlobalStore(gid string) (trans *storage.TransGlobalStore) {
+	err := s.boltDb.View(func(t *bolt.Tx) error {
 		trans = tGetGlobal(t, gid)
 		return nil
 	})
@@ -253,9 +272,10 @@ func (s *BoltdbStore) FindTransGlobalStore(gid string) (trans *storage.TransGlob
 	return
 }
 
-func (s *BoltdbStore) ScanTransGlobalStores(position *string, limit int64) []storage.TransGlobalStore {
+// ScanTransGlobalStores lists GlobalTrans data
+func (s *Store) ScanTransGlobalStores(position *string, limit int64) []storage.TransGlobalStore {
 	globals := []storage.TransGlobalStore{}
-	err := boltGet().View(func(t *bolt.Tx) error {
+	err := s.boltDb.View(func(t *bolt.Tx) error {
 		cursor := t.Bucket(bucketGlobal).Cursor()
 		for k, v := cursor.First(); k != nil; k, v = cursor.Next() {
 			if string(k) == *position {
@@ -279,9 +299,10 @@ func (s *BoltdbStore) ScanTransGlobalStores(position *string, limit int64) []sto
 	return globals
 }
 
-func (s *BoltdbStore) FindBranches(gid string) []storage.TransBranchStore {
-	var branches []storage.TransBranchStore = nil
-	err := boltGet().View(func(t *bolt.Tx) error {
+// FindBranches finds Branch data by gid
+func (s *Store) FindBranches(gid string) []storage.TransBranchStore {
+	var branches []storage.TransBranchStore
+	err := s.boltDb.View(func(t *bolt.Tx) error {
 		branches = tGetBranches(t, gid)
 		return nil
 	})
@@ -289,12 +310,14 @@ func (s *BoltdbStore) FindBranches(gid string) []storage.TransBranchStore {
 	return branches
 }
 
-func (s *BoltdbStore) UpdateBranchesSql(branches []storage.TransBranchStore, updates []string) *gorm.DB {
-	return nil // not implemented
+// UpdateBranches update branches info
+func (s *Store) UpdateBranches(branches []storage.TransBranchStore, updates []string) (int, error) {
+	return 0, nil // not implemented
 }
 
-func (s *BoltdbStore) LockGlobalSaveBranches(gid string, status string, branches []storage.TransBranchStore, branchStart int) {
-	err := boltGet().Update(func(t *bolt.Tx) error {
+// LockGlobalSaveBranches creates branches
+func (s *Store) LockGlobalSaveBranches(gid string, status string, branches []storage.TransBranchStore, branchStart int) {
+	err := s.boltDb.Update(func(t *bolt.Tx) error {
 		g := tGetGlobal(t, gid)
 		if g == nil {
 			return storage.ErrNotFound
@@ -308,8 +331,9 @@ func (s *BoltdbStore) LockGlobalSaveBranches(gid string, status string, branches
 	dtmimp.E2P(err)
 }
 
-func (s *BoltdbStore) MaySaveNewTrans(global *storage.TransGlobalStore, branches []storage.TransBranchStore) error {
-	return boltGet().Update(func(t *bolt.Tx) error {
+// MaySaveNewTrans creates a new trans
+func (s *Store) MaySaveNewTrans(global *storage.TransGlobalStore, branches []storage.TransBranchStore) error {
+	return s.boltDb.Update(func(t *bolt.Tx) error {
 		g := tGetGlobal(t, global.Gid)
 		if g != nil {
 			return storage.ErrUniqueConflict
@@ -321,10 +345,11 @@ func (s *BoltdbStore) MaySaveNewTrans(global *storage.TransGlobalStore, branches
 	})
 }
 
-func (s *BoltdbStore) ChangeGlobalStatus(global *storage.TransGlobalStore, newStatus string, updates []string, finished bool) {
+// ChangeGlobalStatus changes global trans status
+func (s *Store) ChangeGlobalStatus(global *storage.TransGlobalStore, newStatus string, updates []string, finished bool) {
 	old := global.Status
 	global.Status = newStatus
-	err := boltGet().Update(func(t *bolt.Tx) error {
+	err := s.boltDb.Update(func(t *bolt.Tx) error {
 		g := tGetGlobal(t, global.Gid)
 		if g == nil || g.Status != old {
 			return storage.ErrNotFound
@@ -338,12 +363,13 @@ func (s *BoltdbStore) ChangeGlobalStatus(global *storage.TransGlobalStore, newSt
 	dtmimp.E2P(err)
 }
 
-func (s *BoltdbStore) TouchCronTime(global *storage.TransGlobalStore, nextCronInterval int64) {
+// TouchCronTime updates cronTime
+func (s *Store) TouchCronTime(global *storage.TransGlobalStore, nextCronInterval int64) {
 	oldUnix := global.NextCronTime.Unix()
-	global.NextCronTime = common.GetNextTime(nextCronInterval)
-	global.UpdateTime = common.GetNextTime(0)
+	global.NextCronTime = dtmutil.GetNextTime(nextCronInterval)
+	global.UpdateTime = dtmutil.GetNextTime(0)
 	global.NextCronInterval = nextCronInterval
-	err := boltGet().Update(func(t *bolt.Tx) error {
+	err := s.boltDb.Update(func(t *bolt.Tx) error {
 		g := tGetGlobal(t, global.Gid)
 		if g == nil || g.Gid != global.Gid {
 			return storage.ErrNotFound
@@ -356,13 +382,14 @@ func (s *BoltdbStore) TouchCronTime(global *storage.TransGlobalStore, nextCronIn
 	dtmimp.E2P(err)
 }
 
-func (s *BoltdbStore) LockOneGlobalTrans(expireIn time.Duration) *storage.TransGlobalStore {
-	var trans *storage.TransGlobalStore = nil
+// LockOneGlobalTrans finds GlobalTrans
+func (s *Store) LockOneGlobalTrans(expireIn time.Duration) *storage.TransGlobalStore {
+	var trans *storage.TransGlobalStore
 	min := fmt.Sprintf("%d", time.Now().Add(expireIn).Unix())
-	next := time.Now().Add(time.Duration(config.RetryInterval) * time.Second)
-	err := boltGet().Update(func(t *bolt.Tx) error {
+	next := time.Now().Add(time.Duration(s.retryInterval) * time.Second)
+	err := s.boltDb.Update(func(t *bolt.Tx) error {
 		cursor := t.Bucket(bucketIndex).Cursor()
-		for trans == nil {
+		for trans == nil || trans.Status == dtmcli.StatusSucceed || trans.Status == dtmcli.StatusFailed {
 			k, v := cursor.First()
 			if k == nil || string(k) > min {
 				return storage.ErrNotFound

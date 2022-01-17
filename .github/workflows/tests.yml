@@ -1,0 +1,48 @@
+name: Tests
+on:
+  push:
+    branches-ignore:
+      - 'tmp-*'
+  pull_request:
+    branches-ignore:
+      - 'tmp-*'
+
+jobs:
+  tests:
+    name: CI
+    runs-on: ubuntu-latest
+    services:
+      mysql:
+        image: 'mysql:5.7'
+        env:
+          MYSQL_ALLOW_EMPTY_PASSWORD: 1
+        volumes:
+          - /etc/localtime:/etc/localtime:ro
+          - /etc/timezone:/etc/timezone:ro
+        ports:
+          - 3306:3306
+      reids:
+        image: 'redis'
+        volumes:
+          - /etc/localtime:/etc/localtime:ro
+          - /etc/timezone:/etc/timezone:ro
+        ports:
+          - 6379:6379
+    steps:
+      - name: Set up Go 1.16
+        uses: actions/setup-go@v2
+        with:
+          go-version: '1.16'
+
+      - name: Check out code
+        uses: actions/checkout@v2
+
+      - name: Install dependencies
+        run: |
+          go mod download
+
+      - name: Run CI lint
+        run: make lint
+
+      - name: Run test cover
+        run: sh helper/test-cover.sh

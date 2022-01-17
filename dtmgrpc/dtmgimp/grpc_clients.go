@@ -8,9 +8,13 @@ package dtmgimp
 
 import (
 	"fmt"
-	"github.com/yedf/dtm/dtmcli/dtmimp"
-	grpc "google.golang.org/grpc"
 	"sync"
+
+	"github.com/dtm-labs/dtm/dtmcli/dtmimp"
+	"github.com/dtm-labs/dtm/dtmcli/logger"
+	"github.com/dtm-labs/dtm/dtmgrpc/dtmgpb"
+	grpc_middleware "github.com/grpc-ecosystem/go-grpc-middleware"
+	grpc "google.golang.org/grpc"
 )
 
 type rawCodec struct{}
@@ -22,9 +26,8 @@ func (cb rawCodec) Marshal(v interface{}) ([]byte, error) {
 func (cb rawCodec) Unmarshal(data []byte, v interface{}) error {
 	ba, ok := v.(*[]byte)
 	dtmimp.PanicIf(!ok, fmt.Errorf("please pass in *[]byte"))
-	for _, byte := range data {
-		*ba = append(*ba, byte)
-	}
+	*ba = append(*ba, data...)
+
 	return nil
 }
 
@@ -32,14 +35,12 @@ func (cb rawCodec) Name() string { return "dtm_raw" }
 
 var normalClients, rawClients sync.Map
 
-// MustGetDtmClient 1
-func MustGetDtmClient(grpcServer string) DtmClient {
-	return NewDtmClient(MustGetGrpcConn(grpcServer, false))
-}
+// ClientInterceptors declares grpc.UnaryClientInterceptors slice
+var ClientInterceptors = []grpc.UnaryClientInterceptor{}
 
-// MustGetRawDtmClient must get raw codec grpc conn
-func MustGetRawDtmClient(grpcServer string) DtmClient {
-	return NewDtmClient(MustGetGrpcConn(grpcServer, true))
+// MustGetDtmClient 1
+func MustGetDtmClient(grpcServer string) dtmgpb.DtmClient {
+	return dtmgpb.NewDtmClient(MustGetGrpcConn(grpcServer, false))
 }
 
 // GetGrpcConn 1
@@ -55,12 +56,14 @@ func GetGrpcConn(grpcServer string, isRaw bool) (conn *grpc.ClientConn, rerr err
 		if isRaw {
 			opts = grpc.WithDefaultCallOptions(grpc.ForceCodec(rawCodec{}))
 		}
-		dtmimp.Logf("grpc client connecting %s", grpcServer)
-		conn, rerr := grpc.Dial(grpcServer, grpc.WithInsecure(), grpc.WithUnaryInterceptor(GrpcClientLog), opts)
+		logger.Debugf("grpc client connecting %s", grpcServer)
+		interceptors := append(ClientInterceptors, GrpcClientLog)
+		inOpt := grpc.WithUnaryInterceptor(grpc_middleware.ChainUnaryClient(interceptors...))
+		conn, rerr := grpc.Dial(grpcServer, inOpt, grpc.WithInsecure(), opts)
 		if rerr == nil {
 			clients.Store(grpcServer, conn)
 			v = conn
-			dtmimp.Logf("grpc client inited for %s", grpcServer)
+			logger.Debugf("grpc client inited for %s", grpcServer)
 		}
 	}
 	return v.(*grpc.ClientConn), rerr

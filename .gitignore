@@ -5,10 +5,14 @@ conf.yml
 main
 dist
 .idea/**
-.vscode/*.json
+.vscode
 default.etcd
 */**/*.bolt
 
 # Output file of unit test coverage
-coverage.out
-coverage.out.tmp
+coverage.*
+profile.*
+test.sh
+dtm
+dtm-*
+dtm.*

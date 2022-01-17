@@ -4,38 +4,51 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/yedf/dtm/common"
-	"github.com/yedf/dtm/dtmcli"
-	"github.com/yedf/dtm/dtmcli/dtmimp"
-	"github.com/yedf/dtm/dtmsvr"
-	"github.com/yedf/dtm/dtmsvr/storage/registry"
-	"github.com/yedf/dtm/examples"
+	"github.com/dtm-labs/dtm/bench/svr"
+	"github.com/dtm-labs/dtm/dtmcli"
+	"github.com/dtm-labs/dtm/dtmcli/logger"
+	"github.com/dtm-labs/dtm/dtmsvr"
+	"github.com/dtm-labs/dtm/dtmsvr/config"
+	"github.com/dtm-labs/dtm/dtmsvr/storage/registry"
+	"github.com/dtm-labs/dtm/test/busi"
 )
 
-var hint = `To start the bench server, you need to specify the parameters:
-
-Available commands:
-    http              start bench server
+var usage = `bench is a bench test server for dtmf
+usage:
+    redis   prepare for redis bench test
+    db      prepare for mysql|postgres bench test
+		boltdb  prepare for boltdb bench test
 `
+
+func hintAndExit() {
+	fmt.Print(usage)
+	os.Exit(0)
+}
+
+var conf = &config.Config
 
 func main() {
 	if len(os.Args) <= 1 {
-		fmt.Printf(hint)
-		return
+		hintAndExit()
 	}
-	dtmimp.Logf("starting dtm....")
-	if os.Args[1] == "http" {
-		fmt.Println("start bench server")
-		common.MustLoadConfig()
-		dtmcli.SetCurrentDBType(common.Config.ExamplesDB.Driver)
-		registry.WaitStoreUp()
-		dtmsvr.PopulateDB(true)
-		examples.PopulateDB(true)
-		dtmsvr.StartSvr()              // 启动dtmsvr的api服务
-		go dtmsvr.CronExpiredTrans(-1) // 启动dtmsvr的定时过期查询
-		StartSvr()
-		select {}
+	logger.Infof("starting bench server")
+	config.MustLoadConfig("")
+	logger.InitLog(conf.Log.Level)
+	if busi.BusiConf.Driver != "" {
+		dtmcli.SetCurrentDBType(busi.BusiConf.Driver)
+		svr.PrepareBenchDB()
+	}
+	registry.WaitStoreUp()
+	dtmsvr.PopulateDB(false)
+	if os.Args[1] == "db" {
+		busi.PopulateDB(false)
+	} else if os.Args[1] == "redis" || os.Args[1] == "boltdb" {
+
 	} else {
-		fmt.Printf(hint)
+		hintAndExit()
 	}
+	dtmsvr.StartSvr()              // 启动dtmsvr的api服务
+	go dtmsvr.CronExpiredTrans(-1) // 启动dtmsvr的定时过期查询
+	svr.StartSvr()                 // 启动bench服务
+	select {}
 }

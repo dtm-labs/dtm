@@ -6,9 +6,9 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"github.com/yedf/dtm/dtmcli/dtmimp"
-	"github.com/yedf/dtm/dtmsvr/storage"
-	"github.com/yedf/dtm/dtmsvr/storage/registry"
+	"github.com/dtm-labs/dtm/dtmcli/dtmimp"
+	"github.com/dtm-labs/dtm/dtmsvr/storage"
+	"github.com/dtm-labs/dtm/dtmsvr/storage/registry"
 )
 
 func initTransGlobal(gid string) (*storage.TransGlobalStore, storage.Store) {
@@ -70,31 +70,27 @@ func TestStoreLockTrans(t *testing.T) {
 	gid := dtmimp.GetFuncName()
 	g, s := initTransGlobal(gid)
 
-	g2 := s.LockOneGlobalTrans(2 * time.Duration(config.RetryInterval) * time.Second)
+	g2 := s.LockOneGlobalTrans(2 * time.Duration(conf.RetryInterval) * time.Second)
 	assert.NotNil(t, g2)
 	assert.Equal(t, gid, g2.Gid)
 
-	s.TouchCronTime(g, 3*config.RetryInterval)
-	g2 = s.LockOneGlobalTrans(2 * time.Duration(config.RetryInterval) * time.Second)
+	s.TouchCronTime(g, 3*conf.RetryInterval)
+	g2 = s.LockOneGlobalTrans(2 * time.Duration(conf.RetryInterval) * time.Second)
 	assert.Nil(t, g2)
 
-	s.TouchCronTime(g, 1*config.RetryInterval)
-	g2 = s.LockOneGlobalTrans(2 * time.Duration(config.RetryInterval) * time.Second)
+	s.TouchCronTime(g, 1*conf.RetryInterval)
+	g2 = s.LockOneGlobalTrans(2 * time.Duration(conf.RetryInterval) * time.Second)
 	assert.NotNil(t, g2)
 	assert.Equal(t, gid, g2.Gid)
 
 	s.ChangeGlobalStatus(g, "succeed", []string{}, true)
-	g2 = s.LockOneGlobalTrans(2 * time.Duration(config.RetryInterval) * time.Second)
+	g2 = s.LockOneGlobalTrans(2 * time.Duration(conf.RetryInterval) * time.Second)
 	assert.Nil(t, g2)
 }
 
-func TestStoreWait(t *testing.T) {
-	registry.WaitStoreUp()
-}
-
-func TestUpdateBranchSql(t *testing.T) {
-	if !config.Store.IsDB() {
-		r := registry.GetStore().UpdateBranchesSql(nil, nil)
-		assert.Nil(t, r)
+func TestUpdateBranches(t *testing.T) {
+	if !conf.Store.IsDB() {
+		_, err := registry.GetStore().UpdateBranches(nil, nil)
+		assert.Nil(t, err)
 	}
 }

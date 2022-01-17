@@ -7,8 +7,9 @@
 package dtmsvr
 
 import (
-	"github.com/yedf/dtm/dtmcli"
-	"github.com/yedf/dtm/dtmcli/dtmimp"
+	"github.com/dtm-labs/dtm/dtmcli"
+	"github.com/dtm-labs/dtm/dtmcli/dtmimp"
+	"github.com/dtm-labs/dtm/dtmcli/logger"
 )
 
 type transTccProcessor struct {
@@ -33,7 +34,7 @@ func (t *transTccProcessor) ProcessOnce(branches []TransBranch) error {
 	op := dtmimp.If(t.Status == dtmcli.StatusSubmitted, dtmcli.BranchConfirm, dtmcli.BranchCancel).(string)
 	for current := len(branches) - 1; current >= 0; current-- {
 		if branches[current].Op == op && branches[current].Status == dtmcli.StatusPrepared {
-			dtmimp.Logf("branch info: current: %d ID: %d", current, branches[current].ID)
+			logger.Debugf("branch info: current: %d ID: %d", current, branches[current].ID)
 			err := t.execBranch(&branches[current], current)
 			if err != nil {
 				return err

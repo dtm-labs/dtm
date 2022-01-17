@@ -1,4 +1,11 @@
-Store: # specify which engine to store trans status
+#####################################################################
+### dtm can be run without any config.
+### all config in this file is optional. the default value is as specified in each line
+### all configs can be specified from env. for example:
+### MicroService.EndPoint => MICRO_SERVICE_END_POINT
+#####################################################################
+
+# Store: # specify which engine to store trans status
 #   Driver: 'boltdb' # default store engine
 
 #   Driver: 'redis'
@@ -7,11 +14,11 @@ Store: # specify which engine to store trans status
 #   Password: ''
 #   Port: 6379
 
-  Driver: 'mysql'
-  Host: 'localhost'
-  User: 'root'
-  Password: ''
-  Port: 3306
+#   Driver: 'mysql'
+#   Host: 'localhost'
+#   User: 'root'
+#   Password: ''
+#   Port: 3306
 
 #   Driver: 'postgres'
 #   Host: 'localhost'
@@ -19,10 +26,12 @@ Store: # specify which engine to store trans status
 #   Password: 'mysecretpassword'
 #   Port: '5432'
 
-### following connection config is for only Driver postgres/mysql
+### following config is for only Driver postgres/mysql
 #   MaxOpenConns: 500
 #   MaxIdleConns: 500
 #   ConnMaxLifeTime 5 # default value is 5 (minutes)
+#   TransGlobalTable: 'dtm.trans_global'
+#   TransBranchOpTable: 'dtm.trans_branch_op'
 
 ### flollowing config is only for some Driver
 #   DataExpire: 604800 # Trans data will expire in 7 days. only for redis/boltdb.
@@ -33,16 +42,23 @@ Store: # specify which engine to store trans status
 #   Target: 'etcd://localhost:2379/dtmservice' # register dtm server to this url
 #   EndPoint: 'localhost:36790'
 
-# the unit of following configurations is second
-
+### the unit of following configurations is second
 # TransCronInterval: 3 # the interval to poll unfinished global transaction for every dtm process
 # TimeoutToFail: 35 # timeout for XA, TCC to fail. saga's timeout default to infinite, which can be overwritten in saga options
 # RetryInterval: 10 # the subtrans branch will be retried after this interval
+# RequestTimeout: 3 # the timeout of HTTP/gRPC request in dtm
 
-### dtm can run examples, and examples will use following config to connect db
-ExamplesDB:
-  Driver: 'mysql'
-  Host: 'localhost'
-  User: 'root'
-  Password: ''
-  Port: 3306
+# Log:
+#   Level: 'info'              # default: info. can be debug|info|warn|error
+#   Output: 'console'          # default: console. can be console|file
+#   FileName: '/tmp/dtm.log'   # default: /tmp/dtm.log.
+#   FileMaxSize: 10            # default: 10, unit: MB.
+#   FileMaxBackups: 5          # default: 5.
+#   FileMaxAge: 30             # default: 30, unit: days.
+#   FileCompress: 0            # default: 0. can by 0|1, means false|true
+
+# HttpPort: 36789
+# GrpcPort: 36790
+
+### advanced options
+# UpdateBranchAsyncGoroutineNum: 1 # num of async goroutine to update branch status

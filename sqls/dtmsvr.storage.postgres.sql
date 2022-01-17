@@ -13,14 +13,14 @@ CREATE TABLE if not EXISTS dtm.trans_global (
   protocol varchar(45) not null,
   create_time timestamp(0) with time zone DEFAULT NULL,
   update_time timestamp(0) with time zone DEFAULT NULL,
-  commit_time timestamp(0) with time zone DEFAULT NULL,
   finish_time timestamp(0) with time zone DEFAULT NULL,
   rollback_time timestamp(0) with time zone DEFAULT NULL,
-  options varchar(256) DEFAULT '',
+  options varchar(1024) DEFAULT '',
   custom_data varchar(256) DEFAULT '',
   next_cron_interval int default null,
   next_cron_time timestamp(0) with time zone default null,
   owner varchar(128) not null default '',
+  ext_data text,
   PRIMARY KEY (id),
   CONSTRAINT gid UNIQUE (gid)
 );

@@ -7,11 +7,11 @@
 package dtmsvr
 
 import (
+	"errors"
 	"fmt"
-	"strings"
 
-	"github.com/yedf/dtm/dtmcli"
-	"github.com/yedf/dtm/dtmcli/dtmimp"
+	"github.com/dtm-labs/dtm/dtmcli"
+	"github.com/dtm-labs/dtm/dtmcli/logger"
 )
 
 type transMsgProcessor struct {
@@ -42,15 +42,15 @@ func (t *TransGlobal) mayQueryPrepared() {
 	if !t.needProcess() || t.Status == dtmcli.StatusSubmitted {
 		return
 	}
-	body, err := t.getURLResult(t.QueryPrepared, "", "", nil)
-	if strings.Contains(body, dtmcli.ResultSuccess) {
+	err := t.getURLResult(t.QueryPrepared, "00", "msg", nil)
+	if err == nil {
 		t.changeStatus(dtmcli.StatusSubmitted)
-	} else if strings.Contains(body, dtmcli.ResultFailure) {
+	} else if errors.Is(err, dtmcli.ErrFailure) {
 		t.changeStatus(dtmcli.StatusFailed)
-	} else if strings.Contains(body, dtmcli.ResultOngoing) {
+	} else if errors.Is(err, dtmcli.ErrOngoing) {
 		t.touchCronTime(cronReset)
 	} else {
-		dtmimp.LogRedf("getting result failed for %s. error: %s", t.QueryPrepared, err.Error())
+		logger.Errorf("getting result failed for %s. error: %v", t.QueryPrepared, err)
 		t.touchCronTime(cronBackoff)
 	}
 }

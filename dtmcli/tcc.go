@@ -10,8 +10,8 @@ import (
 	"fmt"
 	"net/url"
 
+	"github.com/dtm-labs/dtm/dtmcli/dtmimp"
 	"github.com/go-resty/resty/v2"
-	"github.com/yedf/dtm/dtmcli/dtmimp"
 )
 
 // Tcc struct of tcc
@@ -24,10 +24,16 @@ type TccGlobalFunc func(tcc *Tcc) (*resty.Response, error)
 
 // TccGlobalTransaction begin a tcc global transaction
 // dtm dtm server address
-// gid 全局事务id
+// gid global transaction ID
 // tccFunc tcc事务函数，里面会定义全局事务的分支
 func TccGlobalTransaction(dtm string, gid string, tccFunc TccGlobalFunc) (rerr error) {
+	return TccGlobalTransaction2(dtm, gid, func(t *Tcc) {}, tccFunc)
+}
+
+// TccGlobalTransaction2 new version of TccGlobalTransaction, add custom param
+func TccGlobalTransaction2(dtm string, gid string, custom func(*Tcc), tccFunc TccGlobalFunc) (rerr error) {
 	tcc := &Tcc{TransBase: *dtmimp.NewTransBase(gid, "tcc", dtm, "")}
+	custom(tcc)
 	rerr = dtmimp.TransCallDtm(&tcc.TransBase, tcc, "prepare")
 	if rerr != nil {
 		return rerr

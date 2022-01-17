@@ -10,9 +10,11 @@ import (
 	context "context"
 	"fmt"
 
-	"github.com/yedf/dtm/dtmcli/dtmimp"
-	"github.com/yedf/dtm/dtmgrpc/dtmgimp"
-	"github.com/yedf/dtmdriver"
+	"github.com/dtm-labs/dtm/dtmcli/dtmimp"
+	"github.com/dtm-labs/dtm/dtmgrpc/dtmgimp"
+	"github.com/dtm-labs/dtm/dtmgrpc/dtmgpb"
+	"github.com/dtm-labs/dtmdriver"
+	"google.golang.org/grpc/metadata"
 	"google.golang.org/protobuf/proto"
 )
 
@@ -29,13 +31,14 @@ type TccGlobalFunc func(tcc *TccGrpc) error
 // gid 全局事务id
 // tccFunc tcc事务函数，里面会定义全局事务的分支
 func TccGlobalTransaction(dtm string, gid string, tccFunc TccGlobalFunc) (rerr error) {
+	return TccGlobalTransaction2(dtm, gid, func(tg *TccGrpc) {}, tccFunc)
+}
+
+// TccGlobalTransaction2 new version of TccGlobalTransaction
+func TccGlobalTransaction2(dtm string, gid string, custom func(*TccGrpc), tccFunc TccGlobalFunc) (rerr error) {
 	tcc := &TccGrpc{TransBase: *dtmimp.NewTransBase(gid, "tcc", dtm, "")}
-	dc := dtmgimp.MustGetDtmClient(tcc.Dtm)
-	dr := &dtmgimp.DtmRequest{
-		Gid:       tcc.Gid,
-		TransType: tcc.TransType,
-	}
-	_, rerr = dc.Prepare(context.Background(), dr)
+	custom(tcc)
+	rerr = dtmgimp.DtmGrpcCall(&tcc.TransBase, "Prepare")
 	if rerr != nil {
 		return rerr
 	}
@@ -43,10 +46,10 @@ func TccGlobalTransaction(dtm string, gid string, tccFunc TccGlobalFunc) (rerr e
 	defer func() {
 		x := recover()
 		if x == nil && rerr == nil {
-			_, rerr = dc.Submit(context.Background(), dr)
+			rerr = dtmgimp.DtmGrpcCall(&tcc.TransBase, "Submit")
 			return
 		}
-		_, err := dc.Abort(context.Background(), dr)
+		err := dtmgimp.DtmGrpcCall(&tcc.TransBase, "Abort")
 		if rerr == nil {
 			rerr = err
 		}
@@ -72,13 +75,15 @@ func TccFromGrpc(ctx context.Context) (*TccGrpc, error) {
 func (t *TccGrpc) CallBranch(busiMsg proto.Message, tryURL string, confirmURL string, cancelURL string, reply interface{}) error {
 	branchID := t.NewSubBranchID()
 	bd, err := proto.Marshal(busiMsg)
-	_, err = dtmgimp.MustGetDtmClient(t.Dtm).RegisterBranch(context.Background(), &dtmgimp.DtmBranchRequest{
-		Gid:         t.Gid,
-		TransType:   t.TransType,
-		BranchID:    branchID,
-		BusiPayload: bd,
-		Data:        map[string]string{"confirm": confirmURL, "cancel": cancelURL},
-	})
+	if err == nil {
+		_, err = dtmgimp.MustGetDtmClient(t.Dtm).RegisterBranch(context.Background(), &dtmgpb.DtmBranchRequest{
+			Gid:         t.Gid,
+			TransType:   t.TransType,
+			BranchID:    branchID,
+			BusiPayload: bd,
+			Data:        map[string]string{"confirm": confirmURL, "cancel": cancelURL},
+		})
+	}
 	if err != nil {
 		return err
 	}
@@ -86,6 +91,7 @@ func (t *TccGrpc) CallBranch(busiMsg proto.Message, tryURL string, confirmURL st
 	if err != nil {
 		return err
 	}
-	return dtmgimp.MustGetGrpcConn(server, false).Invoke(
-		dtmgimp.TransInfo2Ctx(t.Gid, t.TransType, branchID, "try", t.Dtm), method, busiMsg, reply)
+	ctx := dtmgimp.TransInfo2Ctx(t.Gid, t.TransType, branchID, "try", t.Dtm)
+	ctx = metadata.AppendToOutgoingContext(ctx, dtmgimp.Map2Kvs(t.BranchHeaders)...)
+	return dtmgimp.MustGetGrpcConn(server, false).Invoke(ctx, method, busiMsg, reply)
 }

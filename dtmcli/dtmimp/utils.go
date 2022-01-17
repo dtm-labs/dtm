@@ -11,23 +11,37 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"log"
+	"net/http"
 	"os"
 	"runtime"
-	"runtime/debug"
 	"strconv"
 	"strings"
 	"sync"
 	"time"
 
+	"github.com/dtm-labs/dtm/dtmcli/logger"
 	"github.com/go-resty/resty/v2"
-	"go.uber.org/zap"
-	"go.uber.org/zap/zapcore"
 )
+
+// Logf an alias of Infof
+// Deprecated: use logger.Errorf
+var Logf = logger.Infof
+
+// LogRedf an alias of Errorf
+// Deprecated: use logger.Errorf
+var LogRedf = logger.Errorf
+
+// FatalIfError fatal if error is not nil
+// Deprecated: use logger.FatalIfError
+var FatalIfError = logger.FatalIfError
+
+// LogIfFatalf fatal if cond is true
+// Deprecated: use logger.FatalfIf
+var LogIfFatalf = logger.FatalfIf
 
 // AsError wrap a panic value as an error
 func AsError(x interface{}) error {
-	LogRedf("panic wrapped to error: '%v'", x)
+	logger.Errorf("panic wrapped to error: '%v'", x)
 	if e, ok := x.(error); ok {
 		return e
 	}
@@ -120,59 +134,6 @@ func MustRemarshal(from interface{}, to interface{}) {
 	E2P(err)
 }
 
-var logger *zap.SugaredLogger = nil
-
-func init() {
-	InitLog()
-}
-
-// InitLog is a initialization for a logger
-func InitLog() {
-	config := zap.NewProductionConfig()
-	config.EncoderConfig.EncodeTime = zapcore.ISO8601TimeEncoder
-	if os.Getenv("DTM_DEBUG") != "" {
-		config.Encoding = "console"
-		config.EncoderConfig.EncodeLevel = zapcore.CapitalColorLevelEncoder
-	}
-	p, err := config.Build(zap.AddCallerSkip(1))
-	if err != nil {
-		log.Fatal("create logger failed: ", err)
-	}
-	logger = p.Sugar()
-}
-
-// Logf is log stdout
-func Logf(fmt string, args ...interface{}) {
-	logger.Infof(fmt, args...)
-}
-
-// LogRedf is print error message with red color
-func LogRedf(fmt string, args ...interface{}) {
-	logger.Errorf(fmt, args...)
-}
-
-// FatalExitFunc is a Fatal exit function ，it will be replaced when testing
-var FatalExitFunc = func() { os.Exit(1) }
-
-// LogFatalf is print error message with red color, and execute FatalExitFunc
-func LogFatalf(fmt string, args ...interface{}) {
-	fmt += "\n" + string(debug.Stack())
-	LogRedf(fmt, args...)
-	FatalExitFunc()
-}
-
-// LogIfFatalf is print error message with red color, and execute LogFatalf, when condition is true
-func LogIfFatalf(condition bool, fmt string, args ...interface{}) {
-	if condition {
-		LogFatalf(fmt, args...)
-	}
-}
-
-// FatalIfError is print error message with red color, and execute LogIfFatalf.
-func FatalIfError(err error) {
-	LogIfFatalf(err != nil, "Fatal error: %v", err)
-}
-
 // GetFuncName get current call func name
 func GetFuncName() string {
 	pc, _, _, _ := runtime.Caller(1)
@@ -208,7 +169,7 @@ func PooledDB(conf DBConf) (*sql.DB, error) {
 // StandaloneDB get a standalone db instance
 func StandaloneDB(conf DBConf) (*sql.DB, error) {
 	dsn := GetDsn(conf)
-	Logf("opening standalone %s: %s", conf.Driver, strings.Replace(dsn, conf.Passwrod, "****", 1))
+	logger.Infof("opening standalone %s: %s", conf.Driver, strings.Replace(dsn, conf.Password, "****", 1))
 	return sql.Open(conf.Driver, dsn)
 }
 
@@ -223,9 +184,9 @@ func DBExec(db DB, sql string, values ...interface{}) (affected int64, rerr erro
 	used := time.Since(began) / time.Millisecond
 	if rerr == nil {
 		affected, rerr = r.RowsAffected()
-		Logf("used: %d ms affected: %d for %s %v", used, affected, sql, values)
+		logger.Debugf("used: %d ms affected: %d for %s %v", used, affected, sql, values)
 	} else {
-		LogRedf("used: %d ms exec error: %v for %s %v", used, rerr, sql, values)
+		logger.Errorf("used: %d ms exec error: %v for %s %v", used, rerr, sql, values)
 	}
 	return
 }
@@ -235,46 +196,26 @@ func GetDsn(conf DBConf) string {
 	host := MayReplaceLocalhost(conf.Host)
 	driver := conf.Driver
 	dsn := map[string]string{
-		"mysql": fmt.Sprintf("%s:%s@tcp(%s:%d)/%s?charset=utf8mb4&parseTime=true&loc=Local",
-			conf.User, conf.Passwrod, host, conf.Port, ""),
+		"mysql": fmt.Sprintf("%s:%s@tcp(%s:%d)/%s?charset=utf8mb4&parseTime=true&loc=Local&interpolateParams=true",
+			conf.User, conf.Password, host, conf.Port, ""),
 		"postgres": fmt.Sprintf("host=%s user=%s password=%s dbname='%s' port=%d sslmode=disable",
-			host, conf.User, conf.Passwrod, "", conf.Port),
+			host, conf.User, conf.Password, "", conf.Port),
 	}[driver]
 	PanicIf(dsn == "", fmt.Errorf("unknow driver: %s", driver))
 	return dsn
 }
 
-// CheckResponse is check response, and return corresponding error by the condition of resp when err is nil. Otherwise, return err directly.
-func CheckResponse(resp *resty.Response, err error) error {
-	if err == nil && resp != nil {
-		if resp.IsError() {
-			return errors.New(resp.String())
-		} else if strings.Contains(resp.String(), ResultFailure) {
-			return ErrFailure
-		} else if strings.Contains(resp.String(), ResultOngoing) {
-			return ErrOngoing
-		}
+// RespAsErrorCompatible translate a resty response to error
+// compatible with version < v1.10
+func RespAsErrorCompatible(resp *resty.Response) error {
+	code := resp.StatusCode()
+	str := resp.String()
+	if code == http.StatusTooEarly || strings.Contains(str, ResultOngoing) {
+		return fmt.Errorf("%s. %w", str, ErrOngoing)
+	} else if code == http.StatusConflict || strings.Contains(str, ResultFailure) {
+		return fmt.Errorf("%s. %w", str, ErrFailure)
+	} else if code != http.StatusOK {
+		return errors.New(str)
 	}
-	return err
-}
-
-// CheckResult is check result. Return err directly if err is not nil. And return corresponding error by calling CheckResponse if resp is the type of *resty.Response. 
-// Otherwise, return error by value of str, the string after marshal.
-func CheckResult(res interface{}, err error) error {
-	if err != nil {
-		return err
-	}
-	resp, ok := res.(*resty.Response)
-	if ok {
-		return CheckResponse(resp, err)
-	}
-	if res != nil {
-		str := MustMarshalString(res)
-		if strings.Contains(str, ResultFailure) {
-			return ErrFailure
-		} else if strings.Contains(str, ResultOngoing) {
-			return ErrOngoing
-		}
-	}
-	return err
+	return nil
 }

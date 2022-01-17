@@ -11,8 +11,8 @@ import (
 	"fmt"
 	"net/url"
 
+	"github.com/dtm-labs/dtm/dtmcli/dtmimp"
 	"github.com/go-resty/resty/v2"
-	"github.com/yedf/dtm/dtmcli/dtmimp"
 )
 
 // XaGlobalFunc type of xa global function
@@ -59,8 +59,8 @@ func NewXaClient(server string, mysqlConf DBConf, notifyURL string, register XaR
 }
 
 // HandleCallback 处理commit/rollback的回调
-func (xc *XaClient) HandleCallback(gid string, branchID string, action string) (interface{}, error) {
-	return MapSuccess, xc.XaClientBase.HandleCallback(gid, branchID, action)
+func (xc *XaClient) HandleCallback(gid string, branchID string, action string) interface{} {
+	return xc.XaClientBase.HandleCallback(gid, branchID, action)
 }
 
 // XaLocalTransaction start a xa local transaction
@@ -83,11 +83,17 @@ func (xc *XaClient) XaLocalTransaction(qs url.Values, xaFunc XaLocalFunc) error 
 
 // XaGlobalTransaction start a xa global transaction
 func (xc *XaClient) XaGlobalTransaction(gid string, xaFunc XaGlobalFunc) (rerr error) {
-	xa := Xa{TransBase: *dtmimp.NewTransBase(gid, "xa", xc.XaClientBase.Server, "")}
+	return xc.XaGlobalTransaction2(gid, func(x *Xa) {}, xaFunc)
+}
+
+// XaGlobalTransaction2 start a xa global transaction
+func (xc *XaClient) XaGlobalTransaction2(gid string, custom func(*Xa), xaFunc XaGlobalFunc) (rerr error) {
+	xa := &Xa{TransBase: *dtmimp.NewTransBase(gid, "xa", xc.XaClientBase.Server, "")}
+	custom(xa)
 	return xc.HandleGlobalTrans(&xa.TransBase, func(action string) error {
-		return dtmimp.TransCallDtm(&xa.TransBase, &xa, action)
+		return dtmimp.TransCallDtm(&xa.TransBase, xa, action)
 	}, func() error {
-		_, rerr := xaFunc(&xa)
+		_, rerr := xaFunc(xa)
 		return rerr
 	})
 }

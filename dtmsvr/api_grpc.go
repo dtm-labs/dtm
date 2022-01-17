@@ -9,9 +9,9 @@ package dtmsvr
 import (
 	"context"
 
-	"github.com/yedf/dtm/dtmcli"
-	"github.com/yedf/dtm/dtmgrpc/dtmgimp"
-	pb "github.com/yedf/dtm/dtmgrpc/dtmgimp"
+	"github.com/dtm-labs/dtm/dtmcli"
+	"github.com/dtm-labs/dtm/dtmgrpc"
+	pb "github.com/dtm-labs/dtm/dtmgrpc/dtmgpb"
 	"google.golang.org/protobuf/types/known/emptypb"
 )
 
@@ -20,31 +20,31 @@ type dtmServer struct {
 	pb.UnimplementedDtmServer
 }
 
-func (s *dtmServer) NewGid(ctx context.Context, in *emptypb.Empty) (*dtmgimp.DtmGidReply, error) {
-	return &dtmgimp.DtmGidReply{Gid: GenGid()}, nil
+func (s *dtmServer) NewGid(ctx context.Context, in *emptypb.Empty) (*pb.DtmGidReply, error) {
+	return &pb.DtmGidReply{Gid: GenGid()}, nil
 }
 
 func (s *dtmServer) Submit(ctx context.Context, in *pb.DtmRequest) (*emptypb.Empty, error) {
-	r, err := svcSubmit(TransFromDtmRequest(in))
-	return &emptypb.Empty{}, dtmgimp.Result2Error(r, err)
+	r := svcSubmit(TransFromDtmRequest(ctx, in))
+	return &emptypb.Empty{}, dtmgrpc.DtmError2GrpcError(r)
 }
 
 func (s *dtmServer) Prepare(ctx context.Context, in *pb.DtmRequest) (*emptypb.Empty, error) {
-	r, err := svcPrepare(TransFromDtmRequest(in))
-	return &emptypb.Empty{}, dtmgimp.Result2Error(r, err)
+	r := svcPrepare(TransFromDtmRequest(ctx, in))
+	return &emptypb.Empty{}, dtmgrpc.DtmError2GrpcError(r)
 }
 
 func (s *dtmServer) Abort(ctx context.Context, in *pb.DtmRequest) (*emptypb.Empty, error) {
-	r, err := svcAbort(TransFromDtmRequest(in))
-	return &emptypb.Empty{}, dtmgimp.Result2Error(r, err)
+	r := svcAbort(TransFromDtmRequest(ctx, in))
+	return &emptypb.Empty{}, dtmgrpc.DtmError2GrpcError(r)
 }
 
 func (s *dtmServer) RegisterBranch(ctx context.Context, in *pb.DtmBranchRequest) (*emptypb.Empty, error) {
-	r, err := svcRegisterBranch(in.TransType, &TransBranch{
+	r := svcRegisterBranch(in.TransType, &TransBranch{
 		Gid:      in.Gid,
 		BranchID: in.BranchID,
 		Status:   dtmcli.StatusPrepared,
 		BinData:  in.BusiPayload,
 	}, in.Data)
-	return &emptypb.Empty{}, dtmgimp.Result2Error(r, err)
+	return &emptypb.Empty{}, dtmgrpc.DtmError2GrpcError(r)
 }

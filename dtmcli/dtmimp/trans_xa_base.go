@@ -11,7 +11,7 @@ import (
 	"strings"
 )
 
-// XaClientBase XaClient/XaGrpcClient base
+// XaClientBase XaClient/XaGrpcClient base. shared by http and grpc
 type XaClientBase struct {
 	Server    string
 	Conf      DBConf
@@ -24,24 +24,26 @@ func (xc *XaClientBase) HandleCallback(gid string, branchID string, action strin
 	if err != nil {
 		return err
 	}
-	defer db.Close()
+	defer func() {
+		_ = db.Close()
+	}()
 	xaID := gid + "-" + branchID
 	_, err = DBExec(db, GetDBSpecial().GetXaSQL(action, xaID))
 	if err != nil &&
-		(strings.Contains(err.Error(), "XAER_NOTA") || strings.Contains(err.Error(), "does not exist")) { // 重复commit/rollback同一个id，报这个错误，忽略
+		(strings.Contains(err.Error(), "XAER_NOTA") || strings.Contains(err.Error(), "does not exist")) { // Repeat commit/rollback with the same id, report this error, ignore
 		err = nil
 	}
 	return err
 }
 
-// HandleLocalTrans http/grpc 处理LocalTransaction的公共方法
+// HandleLocalTrans public handler of LocalTransaction via http/grpc
 func (xc *XaClientBase) HandleLocalTrans(xa *TransBase, cb func(*sql.DB) error) (rerr error) {
 	xaBranch := xa.Gid + "-" + xa.BranchID
 	db, rerr := StandaloneDB(xc.Conf)
 	if rerr != nil {
 		return
 	}
-	defer func() { db.Close() }()
+	defer func() { _ = db.Close() }()
 	defer func() {
 		x := recover()
 		_, err := DBExec(db, GetDBSpecial().GetXaSQL("end", xaBranch))

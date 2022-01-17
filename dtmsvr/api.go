@@ -9,48 +9,56 @@ package dtmsvr
 import (
 	"fmt"
 
-	"github.com/yedf/dtm/dtmcli"
-	"github.com/yedf/dtm/dtmcli/dtmimp"
-	"github.com/yedf/dtm/dtmsvr/storage"
+	"github.com/dtm-labs/dtm/dtmcli"
+	"github.com/dtm-labs/dtm/dtmcli/dtmimp"
+	"github.com/dtm-labs/dtm/dtmcli/logger"
+	"github.com/dtm-labs/dtm/dtmsvr/storage"
 )
 
-func svcSubmit(t *TransGlobal) (interface{}, error) {
+func svcSubmit(t *TransGlobal) interface{} {
 	t.Status = dtmcli.StatusSubmitted
-	err := t.saveNew()
+	branches, err := t.saveNew()
 
 	if err == storage.ErrUniqueConflict {
 		dbt := GetTransGlobal(t.Gid)
 		if dbt.Status == dtmcli.StatusPrepared {
 			dbt.changeStatus(t.Status)
+			branches = GetStore().FindBranches(t.Gid)
 		} else if dbt.Status != dtmcli.StatusSubmitted {
-			return map[string]interface{}{"dtm_result": dtmcli.ResultFailure, "message": fmt.Sprintf("current status '%s', cannot sumbmit", dbt.Status)}, nil
+			return fmt.Errorf("current status '%s', cannot sumbmit. %w", dbt.Status, dtmcli.ErrFailure)
 		}
 	}
-	return t.Process(), nil
+	return t.Process(branches)
 }
 
-func svcPrepare(t *TransGlobal) (interface{}, error) {
+func svcPrepare(t *TransGlobal) interface{} {
 	t.Status = dtmcli.StatusPrepared
-	err := t.saveNew()
+	_, err := t.saveNew()
 	if err == storage.ErrUniqueConflict {
 		dbt := GetTransGlobal(t.Gid)
 		if dbt.Status != dtmcli.StatusPrepared {
-			return map[string]interface{}{"dtm_result": dtmcli.ResultFailure, "message": fmt.Sprintf("current status '%s', cannot prepare", dbt.Status)}, nil
+			return fmt.Errorf("current status '%s', cannot prepare. %w", dbt.Status, dtmcli.ErrFailure)
 		}
+		return nil
 	}
-	return dtmcli.MapSuccess, nil
+	return err
 }
 
-func svcAbort(t *TransGlobal) (interface{}, error) {
+func svcAbort(t *TransGlobal) interface{} {
 	dbt := GetTransGlobal(t.Gid)
+	if dbt.TransType == "msg" && dbt.Status == dtmcli.StatusPrepared {
+		dbt.changeStatus(dtmcli.StatusFailed)
+		return nil
+	}
 	if t.TransType != "xa" && t.TransType != "tcc" || dbt.Status != dtmcli.StatusPrepared && dbt.Status != dtmcli.StatusAborting {
-		return map[string]interface{}{"dtm_result": dtmcli.ResultFailure, "message": fmt.Sprintf("trans type: '%s' current status '%s', cannot abort", dbt.TransType, dbt.Status)}, nil
+		return fmt.Errorf("trans type: '%s' current status '%s', cannot abort. %w", dbt.TransType, dbt.Status, dtmcli.ErrFailure)
 	}
 	dbt.changeStatus(dtmcli.StatusAborting)
-	return dbt.Process(), nil
+	branches := GetStore().FindBranches(t.Gid)
+	return dbt.Process(branches)
 }
 
-func svcRegisterBranch(transType string, branch *TransBranch, data map[string]string) (ret interface{}, rerr error) {
+func svcRegisterBranch(transType string, branch *TransBranch, data map[string]string) error {
 	branches := []TransBranch{*branch, *branch}
 	if transType == "tcc" {
 		for i, b := range []string{dtmcli.BranchCancel, dtmcli.BranchConfirm} {
@@ -63,7 +71,7 @@ func svcRegisterBranch(transType string, branch *TransBranch, data map[string]st
 		branches[1].Op = dtmcli.BranchCommit
 		branches[1].URL = data["url"]
 	} else {
-		return nil, fmt.Errorf("unknow trans type: %s", transType)
+		return fmt.Errorf("unknow trans type: %s", transType)
 	}
 
 	err := dtmimp.CatchP(func() {
@@ -71,7 +79,10 @@ func svcRegisterBranch(transType string, branch *TransBranch, data map[string]st
 	})
 	if err == storage.ErrNotFound {
 		msg := fmt.Sprintf("no trans with gid: %s status: %s found", branch.Gid, dtmcli.StatusPrepared)
-		return map[string]interface{}{"dtm_result": dtmcli.ResultFailure, "message": msg}, nil
+		logger.Errorf(msg)
+		return fmt.Errorf("message: %s %w", msg, dtmcli.ErrFailure)
 	}
-	return dtmimp.If(err != nil, nil, dtmcli.MapSuccess), err
+	logger.Infof("LockGlobalSaveBranches result: %v: gid: %s old status: %s branches: %s",
+		err, branch.Gid, dtmcli.StatusPrepared, dtmimp.MustMarshalString(branches))
+	return err
 }

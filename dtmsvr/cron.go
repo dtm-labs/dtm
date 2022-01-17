@@ -7,19 +7,22 @@
 package dtmsvr
 
 import (
+	"errors"
 	"fmt"
 	"math/rand"
 	"runtime/debug"
 	"time"
 
-	"github.com/yedf/dtm/dtmcli/dtmimp"
+	"github.com/dtm-labs/dtm/dtmcli"
+	"github.com/dtm-labs/dtm/dtmcli/dtmimp"
+	"github.com/dtm-labs/dtm/dtmcli/logger"
 )
 
 // NowForwardDuration will be set in test, trans may be timeout
-var NowForwardDuration time.Duration = time.Duration(0)
+var NowForwardDuration = time.Duration(0)
 
 // CronForwardDuration will be set in test. cron will fetch trans which expire in CronForwardDuration
-var CronForwardDuration time.Duration = time.Duration(0)
+var CronForwardDuration = time.Duration(0)
 
 // CronTransOnce cron expired trans. use expireIn as expire time
 func CronTransOnce() (gid string) {
@@ -30,7 +33,9 @@ func CronTransOnce() (gid string) {
 	}
 	gid = trans.Gid
 	trans.WaitResult = true
-	trans.Process()
+	branches := GetStore().FindBranches(gid)
+	err := trans.Process(branches)
+	dtmimp.PanicIf(err != nil && !errors.Is(err, dtmcli.ErrFailure), err)
 	return
 }
 
@@ -49,12 +54,13 @@ func lockOneTrans(expireIn time.Duration) *TransGlobal {
 	if global == nil {
 		return nil
 	}
+	logger.Infof("cron job return a trans: %s", global.String())
 	return &TransGlobal{TransGlobalStore: *global}
 }
 
 func handlePanic(perr *error) {
 	if err := recover(); err != nil {
-		dtmimp.LogRedf("----recovered panic %v\n%s", err, string(debug.Stack()))
+		logger.Errorf("----recovered panic %v\n%s", err, string(debug.Stack()))
 		if perr != nil {
 			*perr = fmt.Errorf("dtm panic: %v", err)
 		}
@@ -62,8 +68,8 @@ func handlePanic(perr *error) {
 }
 
 func sleepCronTime() {
-	normal := time.Duration((float64(config.TransCronInterval) - rand.Float64()) * float64(time.Second))
+	normal := time.Duration((float64(conf.TransCronInterval) - rand.Float64()) * float64(time.Second))
 	interval := dtmimp.If(CronForwardDuration > 0, 1*time.Millisecond, normal).(time.Duration)
-	dtmimp.Logf("sleeping for %v milli", interval/time.Microsecond)
+	logger.Debugf("sleeping for %v milli", interval/time.Microsecond)
 	time.Sleep(interval)
 }

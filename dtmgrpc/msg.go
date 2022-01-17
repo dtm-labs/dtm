@@ -7,9 +7,11 @@
 package dtmgrpc
 
 import (
-	"github.com/yedf/dtm/dtmcli"
-	"github.com/yedf/dtm/dtmcli/dtmimp"
-	"github.com/yedf/dtm/dtmgrpc/dtmgimp"
+	"database/sql"
+
+	"github.com/dtm-labs/dtm/dtmcli"
+	"github.com/dtm-labs/dtm/dtmcli/dtmimp"
+	"github.com/dtm-labs/dtm/dtmgrpc/dtmgimp"
 	"google.golang.org/protobuf/proto"
 )
 
@@ -39,4 +41,22 @@ func (s *MsgGrpc) Prepare(queryPrepared string) error {
 // Submit submit the msg
 func (s *MsgGrpc) Submit() error {
 	return dtmgimp.DtmGrpcCall(&s.TransBase, "Submit")
+}
+
+// PrepareAndSubmit one method for the entire busi->prepare->submit
+func (s *MsgGrpc) PrepareAndSubmit(queryPrepared string, db *sql.DB, busiCall dtmcli.BarrierBusiFunc) error {
+	bb, err := dtmcli.BarrierFrom(s.TransType, s.Gid, "00", "msg") // a special barrier for msg QueryPrepared
+	if err == nil {
+		err = bb.CallWithDB(db, func(tx *sql.Tx) error {
+			err := busiCall(tx)
+			if err == nil {
+				err = s.Prepare(queryPrepared)
+			}
+			return err
+		})
+	}
+	if err == nil {
+		err = s.Submit()
+	}
+	return err
 }

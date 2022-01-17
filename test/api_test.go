@@ -10,9 +10,9 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/dtm-labs/dtm/dtmcli/dtmimp"
+	"github.com/dtm-labs/dtm/dtmutil"
 	"github.com/stretchr/testify/assert"
-	"github.com/yedf/dtm/dtmcli/dtmimp"
-	"github.com/yedf/dtm/examples"
 )
 
 func TestAPIQuery(t *testing.T) {
@@ -20,7 +20,7 @@ func TestAPIQuery(t *testing.T) {
 	err := genMsg(gid).Submit()
 	assert.Nil(t, err)
 	waitTransProcessed(gid)
-	resp, err := dtmimp.RestyClient.R().SetQueryParam("gid", gid).Get(examples.DtmHttpServer + "/query")
+	resp, err := dtmimp.RestyClient.R().SetQueryParam("gid", gid).Get(dtmutil.DefaultHTTPServer + "/query")
 	assert.Nil(t, err)
 	m := map[string]interface{}{}
 	assert.Equal(t, resp.StatusCode(), 200)
@@ -28,11 +28,11 @@ func TestAPIQuery(t *testing.T) {
 	assert.NotEqual(t, nil, m["transaction"])
 	assert.Equal(t, 2, len(m["branches"].([]interface{})))
 
-	resp, err = dtmimp.RestyClient.R().SetQueryParam("gid", "").Get(examples.DtmHttpServer + "/query")
+	resp, err = dtmimp.RestyClient.R().SetQueryParam("gid", "").Get(dtmutil.DefaultHTTPServer + "/query")
 	e2p(err)
 	assert.Equal(t, resp.StatusCode(), 500)
 
-	resp, err = dtmimp.RestyClient.R().SetQueryParam("gid", "1").Get(examples.DtmHttpServer + "/query")
+	resp, err = dtmimp.RestyClient.R().SetQueryParam("gid", "1").Get(dtmutil.DefaultHTTPServer + "/query")
 	e2p(err)
 	assert.Equal(t, resp.StatusCode(), 200)
 	dtmimp.MustUnmarshalString(resp.String(), &m)
@@ -47,7 +47,7 @@ func TestAPIAll(t *testing.T) {
 		assert.Nil(t, err)
 		waitTransProcessed(gid)
 	}
-	resp, err := dtmimp.RestyClient.R().SetQueryParam("limit", "1").Get(examples.DtmHttpServer + "/all")
+	resp, err := dtmimp.RestyClient.R().SetQueryParam("limit", "1").Get(dtmutil.DefaultHTTPServer + "/all")
 	assert.Nil(t, err)
 	m := map[string]interface{}{}
 	dtmimp.MustUnmarshalString(resp.String(), &m)
@@ -57,7 +57,7 @@ func TestAPIAll(t *testing.T) {
 	resp, err = dtmimp.RestyClient.R().SetQueryParams(map[string]string{
 		"limit":    "1",
 		"position": nextPos,
-	}).Get(examples.DtmHttpServer + "/all")
+	}).Get(dtmutil.DefaultHTTPServer + "/all")
 	assert.Nil(t, err)
 	dtmimp.MustUnmarshalString(resp.String(), &m)
 	nextPos2 := m["next_position"].(string)
@@ -67,9 +67,15 @@ func TestAPIAll(t *testing.T) {
 	resp, err = dtmimp.RestyClient.R().SetQueryParams(map[string]string{
 		"limit":    "1000",
 		"position": nextPos,
-	}).Get(examples.DtmHttpServer + "/all")
+	}).Get(dtmutil.DefaultHTTPServer + "/all")
 	assert.Nil(t, err)
 	dtmimp.MustUnmarshalString(resp.String(), &m)
 	nextPos3 := m["next_position"].(string)
 	assert.Equal(t, "", nextPos3)
+}
+
+func TestDtmMetrics(t *testing.T) {
+	rest, err := dtmimp.RestyClient.R().Get("http://localhost:36789/api/metrics")
+	assert.Nil(t, err)
+	assert.Equal(t, rest.StatusCode(), 200)
 }

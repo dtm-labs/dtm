@@ -9,6 +9,7 @@ package dtmimp
 import (
 	"errors"
 
+	"github.com/dtm-labs/dtm/dtmcli/logger"
 	"github.com/go-resty/resty/v2"
 )
 
@@ -18,8 +19,8 @@ var ErrFailure = errors.New("FAILURE")
 // ErrOngoing error of ONGOING
 var ErrOngoing = errors.New("ONGOING")
 
-// XaSqlTimeoutMs milliseconds for Xa sql to timeout
-var XaSqlTimeoutMs = 15000
+// XaSQLTimeoutMs milliseconds for Xa sql to timeout
+var XaSQLTimeoutMs = 15000
 
 // MapSuccess HTTP result of SUCCESS
 var MapSuccess = map[string]interface{}{"dtm_result": ResultSuccess}
@@ -30,18 +31,21 @@ var MapFailure = map[string]interface{}{"dtm_result": ResultFailure}
 // RestyClient the resty object
 var RestyClient = resty.New()
 
+// PassthroughHeaders will be passed to every sub-trans call
+var PassthroughHeaders = []string{}
+
+// BarrierTableName the table name of barrier table
+var BarrierTableName = "dtm_barrier.barrier"
+
 func init() {
-	// RestyClient.SetTimeout(3 * time.Second)
-	// RestyClient.SetRetryCount(2)
-	// RestyClient.SetRetryWaitTime(1 * time.Second)
 	RestyClient.OnBeforeRequest(func(c *resty.Client, r *resty.Request) error {
 		r.URL = MayReplaceLocalhost(r.URL)
-		Logf("requesting: %s %s %v %v", r.Method, r.URL, r.Body, r.QueryParam)
+		logger.Debugf("requesting: %s %s %s", r.Method, r.URL, MustMarshalString(r.Body))
 		return nil
 	})
 	RestyClient.OnAfterResponse(func(c *resty.Client, resp *resty.Response) error {
 		r := resp.Request
-		Logf("requested: %s %s %s", r.Method, r.URL, resp.String())
+		logger.Debugf("requested: %s %s %s", r.Method, r.URL, resp.String())
 		return nil
 	})
 }

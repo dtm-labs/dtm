@@ -9,7 +9,8 @@ package dtmcli
 import (
 	"fmt"
 
-	"github.com/yedf/dtm/dtmcli/dtmimp"
+	"github.com/dtm-labs/dtm/dtmcli/dtmimp"
+	"github.com/go-resty/resty/v2"
 )
 
 // MustGenGid generate a new gid
@@ -28,7 +29,18 @@ type DB = dtmimp.DB
 // TransOptions transaction option
 type TransOptions = dtmimp.TransOptions
 
+// DBConf declares db configuration
 type DBConf = dtmimp.DBConf
+
+// String2DtmError translate string to dtm error
+func String2DtmError(str string) error {
+	return map[string]error{
+		ResultFailure: ErrFailure,
+		ResultOngoing: ErrOngoing,
+		ResultSuccess: nil,
+		"":            nil,
+	}[str]
+}
 
 // SetCurrentDBType set currentDBType
 func SetCurrentDBType(dbType string) {
@@ -40,12 +52,30 @@ func GetCurrentDBType() string {
 	return dtmimp.GetCurrentDBType()
 }
 
-// SetXaSqlTimeoutMs set XaSqlTimeoutMs
-func SetXaSqlTimeoutMs(ms int) {
-	dtmimp.XaSqlTimeoutMs = ms
+// SetXaSQLTimeoutMs set XaSQLTimeoutMs
+func SetXaSQLTimeoutMs(ms int) {
+	dtmimp.XaSQLTimeoutMs = ms
 }
 
-// GetXaSqlTimeoutMs get XaSqlTimeoutMs
-func GetXaSqlTimeoutMs() int {
-	return dtmimp.XaSqlTimeoutMs
+// GetXaSQLTimeoutMs get XaSQLTimeoutMs
+func GetXaSQLTimeoutMs() int {
+	return dtmimp.XaSQLTimeoutMs
+}
+
+// SetBarrierTableName sets barrier table name
+func SetBarrierTableName(tablename string) {
+	dtmimp.BarrierTableName = tablename
+}
+
+// GetRestyClient get the resty.Client for http request
+func GetRestyClient() *resty.Client {
+	return dtmimp.RestyClient
+}
+
+// SetPassthroughHeaders experimental.
+// apply to http header and grpc metadata
+// dtm server will save these headers in trans creating request.
+// and then passthrough them to sub-trans
+func SetPassthroughHeaders(headers []string) {
+	dtmimp.PassthroughHeaders = headers
 }

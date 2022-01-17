@@ -22,6 +22,6 @@ func TestSetNextCron(t *testing.T) {
 	tg.RetryInterval = 15
 	assert.Equal(t, int64(15), tg.getNextCronInterval(cronReset))
 	tg.RetryInterval = 0
-	assert.Equal(t, config.RetryInterval, tg.getNextCronInterval(cronReset))
-	assert.Equal(t, config.RetryInterval*2, tg.getNextCronInterval(cronBackoff))
+	assert.Equal(t, conf.RetryInterval, tg.getNextCronInterval(cronReset))
+	assert.Equal(t, conf.RetryInterval*2, tg.getNextCronInterval(cronBackoff))
 }

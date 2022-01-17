@@ -7,63 +7,75 @@
 package dtmsvr
 
 import (
+	"fmt"
 	"time"
 
-	"github.com/yedf/dtm/common"
-	"github.com/yedf/dtm/dtmcli"
-	"github.com/yedf/dtm/dtmcli/dtmimp"
+	"github.com/dtm-labs/dtm/dtmcli"
+	"github.com/dtm-labs/dtm/dtmcli/dtmimp"
+	"github.com/dtm-labs/dtm/dtmcli/logger"
+	"github.com/dtm-labs/dtm/dtmutil"
 )
 
 // Process process global transaction once
-func (t *TransGlobal) Process() map[string]interface{} {
-	r := t.process()
-	transactionMetrics(t, r["dtm_result"] == dtmcli.ResultSuccess)
+func (t *TransGlobal) Process(branches []TransBranch) error {
+	r := t.process(branches)
+	transactionMetrics(t, r == nil)
 	return r
 }
 
-func (t *TransGlobal) process() map[string]interface{} {
+func (t *TransGlobal) process(branches []TransBranch) error {
 	if t.Options != "" {
 		dtmimp.MustUnmarshalString(t.Options, &t.TransOptions)
 	}
+	if t.ExtData != "" {
+		dtmimp.MustUnmarshalString(t.ExtData, &t.Ext)
+	}
 
 	if !t.WaitResult {
-		go t.processInner()
-		return dtmcli.MapSuccess
+		go func() {
+			err := t.processInner(branches)
+			if err != nil {
+				logger.Errorf("processInner err: %v", err)
+			}
+		}()
+		return nil
 	}
 	submitting := t.Status == dtmcli.StatusSubmitted
-	err := t.processInner()
+	err := t.processInner(branches)
 	if err != nil {
-		return map[string]interface{}{"dtm_result": dtmcli.ResultFailure, "message": err.Error()}
+		return err
 	}
 	if submitting && t.Status != dtmcli.StatusSucceed {
-		return map[string]interface{}{"dtm_result": dtmcli.ResultFailure, "message": "trans failed by user"}
+		return fmt.Errorf("wait result not return success: %w", dtmcli.ErrFailure)
 	}
-	return dtmcli.MapSuccess
+	return nil
 }
 
-func (t *TransGlobal) processInner() (rerr error) {
+func (t *TransGlobal) processInner(branches []TransBranch) (rerr error) {
 	defer handlePanic(&rerr)
 	defer func() {
-		if rerr != nil {
-			dtmimp.LogRedf("processInner got error: %s", rerr.Error())
+		if rerr != nil && rerr != dtmcli.ErrOngoing {
+			logger.Errorf("processInner got error: %s", rerr.Error())
 		}
 		if TransProcessedTestChan != nil {
-			dtmimp.Logf("processed: %s", t.Gid)
+			logger.Debugf("processed: %s", t.Gid)
 			TransProcessedTestChan <- t.Gid
-			dtmimp.Logf("notified: %s", t.Gid)
+			logger.Debugf("notified: %s", t.Gid)
 		}
 	}()
-	dtmimp.Logf("processing: %s status: %s", t.Gid, t.Status)
-	branches := GetStore().FindBranches(t.Gid)
+	logger.Debugf("processing: %s status: %s", t.Gid, t.Status)
 	t.lastTouched = time.Now()
 	rerr = t.getProcessor().ProcessOnce(branches)
 	return
 }
 
-func (t *TransGlobal) saveNew() error {
-	branches := t.getProcessor().GenBranches()
+func (t *TransGlobal) saveNew() ([]TransBranch, error) {
 	t.NextCronInterval = t.getNextCronInterval(cronReset)
-	t.NextCronTime = common.GetNextTime(t.NextCronInterval)
+	t.NextCronTime = dtmutil.GetNextTime(t.NextCronInterval)
+	t.ExtData = dtmimp.MustMarshalString(t.Ext)
+	if t.ExtData == "{}" {
+		t.ExtData = ""
+	}
 	t.Options = dtmimp.MustMarshalString(t.TransOptions)
 	if t.Options == "{}" {
 		t.Options = ""
@@ -71,5 +83,13 @@ func (t *TransGlobal) saveNew() error {
 	now := time.Now()
 	t.CreateTime = &now
 	t.UpdateTime = &now
-	return GetStore().MaySaveNewTrans(&t.TransGlobalStore, branches)
+	branches := t.getProcessor().GenBranches()
+	for i := range branches {
+		branches[i].CreateTime = &now
+		branches[i].UpdateTime = &now
+	}
+	err := GetStore().MaySaveNewTrans(&t.TransGlobalStore, branches)
+	logger.Infof("MaySaveNewTrans result: %v, global: %v branches: %v",
+		err, t.TransGlobalStore.String(), dtmimp.MustMarshalString(branches))
+	return branches, err
 }

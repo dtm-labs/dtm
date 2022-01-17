@@ -12,18 +12,18 @@ import (
 	"fmt"
 	"strings"
 	"testing"
-	"time"
 
+	"github.com/dtm-labs/dtm/dtmcli"
+	"github.com/dtm-labs/dtm/dtmcli/dtmimp"
+	"github.com/dtm-labs/dtm/dtmcli/logger"
+	"github.com/dtm-labs/dtm/test/busi"
 	"github.com/gin-gonic/gin"
 	"github.com/go-resty/resty/v2"
 	"github.com/stretchr/testify/assert"
-	"github.com/yedf/dtm/dtmcli"
-	"github.com/yedf/dtm/dtmcli/dtmimp"
-	"github.com/yedf/dtm/examples"
 )
 
 func TestTccBarrierNormal(t *testing.T) {
-	req := examples.GenTransReq(30, false, false)
+	req := busi.GenTransReq(30, false, false)
 	gid := dtmimp.GetFuncName()
 	err := dtmcli.TccGlobalTransaction(DtmServer, gid, func(tcc *dtmcli.Tcc) (*resty.Response, error) {
 		_, err := tcc.CallBranch(req, Busi+"/TccBTransOutTry", Busi+"/TccBTransOutConfirm", Busi+"/TccBTransOutCancel")
@@ -37,7 +37,7 @@ func TestTccBarrierNormal(t *testing.T) {
 }
 
 func TestTccBarrierRollback(t *testing.T) {
-	req := examples.GenTransReq(30, false, true)
+	req := busi.GenTransReq(30, false, true)
 	gid := dtmimp.GetFuncName()
 	err := dtmcli.TccGlobalTransaction(DtmServer, gid, func(tcc *dtmcli.Tcc) (*resty.Response, error) {
 		_, err := tcc.CallBranch(req, Busi+"/TccBTransOutTry", Busi+"/TccBTransOutConfirm", Busi+"/TccBTransOutCancel")
@@ -50,30 +50,37 @@ func TestTccBarrierRollback(t *testing.T) {
 	assert.Equal(t, []string{StatusSucceed, StatusPrepared, StatusSucceed, StatusPrepared}, getBranchesStatus(gid))
 }
 
-var disorderHandler func(c *gin.Context) (interface{}, error) = nil
+func TestTccBarrierDisorderMysql(t *testing.T) {
+	runTestTccBarrierDisorder(t, "mysql")
+}
 
-func TestTccBarrierDisorder(t *testing.T) {
-	timeoutChan := make(chan string, 2)
-	finishedChan := make(chan string, 2)
-	gid := dtmimp.GetFuncName()
+func TestTccBarrierDisorderRedis(t *testing.T) {
+	busi.SetRedisBothAccount(200, 200)
+	runTestTccBarrierDisorder(t, "redis")
+}
+
+func runTestTccBarrierDisorder(t *testing.T, store string) {
+	before := getBeforeBalances(store)
+	cancelFinishedChan := make(chan string, 2)
+	cancelCanReturnChan := make(chan string, 2)
+	gid := dtmimp.GetFuncName() + store
+	cronFinished := make(chan string, 2)
 	err := dtmcli.TccGlobalTransaction(DtmServer, gid, func(tcc *dtmcli.Tcc) (*resty.Response, error) {
-		body := &examples.TransReq{Amount: 30}
+		body := &busi.TransReq{Amount: 30, Store: store}
 		tryURL := Busi + "/TccBTransOutTry"
 		confirmURL := Busi + "/TccBTransOutConfirm"
 		cancelURL := Busi + "/TccBSleepCancel"
 		// 请参见子事务屏障里的时序图，这里为了模拟该时序图，手动拆解了callbranch
 		branchID := tcc.NewSubBranchID()
-		sleeped := false
-		disorderHandler = func(c *gin.Context) (interface{}, error) {
-			res, err := examples.TccBarrierTransOutCancel(c)
-			if !sleeped {
-				sleeped = true
-				dtmimp.Logf("sleep before cancel return")
-				<-timeoutChan
-				finishedChan <- "1"
-			}
-			return res, err
-		}
+		busi.SetSleepCancelHandler(func(c *gin.Context) interface{} {
+			res := busi.TccBarrierTransOutCancel(c)
+			logger.Debugf("disorderHandler before cancel finish write")
+			cancelFinishedChan <- "1"
+			logger.Debugf("disorderHandler before cancel return read")
+			<-cancelCanReturnChan
+			logger.Debugf("disorderHandler after cancel return read")
+			return res
+		})
 		// 注册子事务
 		resp, err := dtmimp.RestyClient.R().
 			SetBody(map[string]interface{}{
@@ -88,37 +95,43 @@ func TestTccBarrierDisorder(t *testing.T) {
 		assert.Nil(t, err)
 		assert.Contains(t, resp.String(), dtmcli.ResultSuccess)
 
-		go func() {
-			dtmimp.Logf("sleeping to wait for tcc try timeout")
-			<-timeoutChan
-			r, _ := dtmimp.RestyClient.R().
-				SetBody(body).
-				SetQueryParams(map[string]string{
-					"dtm":        tcc.Dtm,
-					"gid":        tcc.Gid,
-					"branch_id":  branchID,
-					"trans_type": "tcc",
-					"op":         dtmcli.BranchTry,
-				}).
-				Post(tryURL)
-			assert.True(t, strings.Contains(r.String(), dtmcli.ResultSuccess)) // 这个是悬挂操作，为了简单起见，依旧让他返回成功
-			finishedChan <- "1"
-		}()
-		dtmimp.Logf("cron to timeout and then call cancel")
-		go cronTransOnceForwardNow(300)
-		time.Sleep(100 * time.Millisecond)
-		dtmimp.Logf("cron to timeout and then call cancelled twice")
-		cronTransOnceForwardNow(300)
-		timeoutChan <- "wake"
-		timeoutChan <- "wake"
-		<-finishedChan
-		<-finishedChan
-		time.Sleep(100 * time.Millisecond)
+		logger.Debugf("cron to timeout and then call cancelled twice")
+		cron := func() {
+			cronTransOnceForwardNow(300)
+			logger.Debugf("cronFinished write")
+			cronFinished <- "1"
+			logger.Debugf("cronFinished after write")
+		}
+		go cron()
+		<-cancelFinishedChan
+		go cron()
+		<-cancelFinishedChan
+		cancelCanReturnChan <- "1"
+		cancelCanReturnChan <- "1"
+		logger.Debugf("after cancelCanRetrun 2 write")
+		// after cancel then run try
+		r, _ := dtmimp.RestyClient.R().
+			SetBody(body).
+			SetQueryParams(map[string]string{
+				"dtm":        tcc.Dtm,
+				"gid":        tcc.Gid,
+				"branch_id":  branchID,
+				"trans_type": "tcc",
+				"op":         dtmcli.BranchTry,
+			}).
+			Post(tryURL)
+		assert.True(t, strings.Contains(r.String(), dtmcli.ResultSuccess)) // 这个是悬挂操作，为了简单起见，依旧让他返回成功
+		logger.Debugf("cronFinished read")
+		<-cronFinished
+		<-cronFinished
+		logger.Debugf("cronFinished after read")
+
 		return nil, fmt.Errorf("a cancelled tcc")
 	})
 	assert.Error(t, err, fmt.Errorf("a cancelled tcc"))
 	assert.Equal(t, []string{StatusSucceed, StatusPrepared}, getBranchesStatus(gid))
 	assert.Equal(t, StatusFailed, getTransStatus(gid))
+	assertSameBalance(t, before, store)
 }
 
 func TestTccBarrierPanic(t *testing.T) {

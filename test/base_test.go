@@ -11,16 +11,17 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/dtm-labs/dtm/dtmcli"
+	"github.com/dtm-labs/dtm/dtmcli/dtmimp"
+	"github.com/dtm-labs/dtm/dtmcli/logger"
+	"github.com/dtm-labs/dtm/dtmutil"
+	"github.com/dtm-labs/dtm/test/busi"
 	"github.com/stretchr/testify/assert"
-	"github.com/yedf/dtm/common"
-	"github.com/yedf/dtm/dtmcli"
-	"github.com/yedf/dtm/dtmcli/dtmimp"
-	"github.com/yedf/dtm/examples"
 )
 
 // BarrierModel barrier model for gorm
 type BarrierModel struct {
-	common.ModelBase
+	dtmutil.ModelBase
 	dtmcli.BranchBarrier
 }
 
@@ -29,7 +30,7 @@ func (BarrierModel) TableName() string { return "dtm_barrier.barrier" }
 
 func TestBaseSqlDB(t *testing.T) {
 	asserts := assert.New(t)
-	db := common.DbGet(config.ExamplesDB)
+	db := dtmutil.DbGet(busi.BusiConf)
 	barrier := &dtmcli.BranchBarrier{
 		TransType: "saga",
 		Gid:       "gid2",
@@ -40,7 +41,7 @@ func TestBaseSqlDB(t *testing.T) {
 	tx, err := db.ToSQLDB().Begin()
 	asserts.Nil(err)
 	err = barrier.Call(tx, func(tx *sql.Tx) error {
-		dtmimp.Logf("rollback gid2")
+		logger.Debugf("rollback gid2")
 		return fmt.Errorf("gid2 error")
 	})
 	asserts.Error(err, fmt.Errorf("gid2 error"))
@@ -50,7 +51,7 @@ func TestBaseSqlDB(t *testing.T) {
 	asserts.Equal(dbr.RowsAffected, int64(0))
 	barrier.BarrierID = 0
 	err = barrier.CallWithDB(db.ToSQLDB(), func(tx *sql.Tx) error {
-		dtmimp.Logf("submit gid2")
+		logger.Debugf("submit gid2")
 		return nil
 	})
 	asserts.Nil(err)
@@ -59,10 +60,10 @@ func TestBaseSqlDB(t *testing.T) {
 }
 
 func TestBaseHttp(t *testing.T) {
-	resp, err := dtmimp.RestyClient.R().SetQueryParam("panic_string", "1").Post(examples.Busi + "/TestPanic")
+	resp, err := dtmimp.RestyClient.R().SetQueryParam("panic_string", "1").Post(busi.Busi + "/TestPanic")
 	assert.Nil(t, err)
 	assert.Contains(t, resp.String(), "panic_string")
-	resp, err = dtmimp.RestyClient.R().SetQueryParam("panic_error", "1").Post(examples.Busi + "/TestPanic")
+	resp, err = dtmimp.RestyClient.R().SetQueryParam("panic_error", "1").Post(busi.Busi + "/TestPanic")
 	assert.Nil(t, err)
 	assert.Contains(t, resp.String(), "panic_error")
 }

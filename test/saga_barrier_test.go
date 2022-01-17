@@ -9,10 +9,10 @@ package test
 import (
 	"testing"
 
+	"github.com/dtm-labs/dtm/dtmcli"
+	"github.com/dtm-labs/dtm/dtmcli/dtmimp"
+	"github.com/dtm-labs/dtm/test/busi"
 	"github.com/stretchr/testify/assert"
-	"github.com/yedf/dtm/dtmcli"
-	"github.com/yedf/dtm/dtmcli/dtmimp"
-	"github.com/yedf/dtm/examples"
 )
 
 func TestSagaBarrierNormal(t *testing.T) {
@@ -34,7 +34,7 @@ func TestSagaBarrierRollback(t *testing.T) {
 }
 
 func genSagaBarrier(gid string, outFailed, inFailed bool) *dtmcli.Saga {
-	req := examples.GenTransReq(30, outFailed, inFailed)
+	req := busi.GenTransReq(30, outFailed, inFailed)
 	return dtmcli.NewSaga(DtmServer, gid).
 		Add(Busi+"/SagaBTransOut", Busi+"/SagaBTransOutCompensate", req).
 		Add(Busi+"/SagaBTransIn", Busi+"/SagaBTransInCompensate", req)

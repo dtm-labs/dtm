@@ -10,40 +10,42 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/google/uuid"
-
-	"github.com/yedf/dtm/common"
-	"github.com/yedf/dtm/dtmcli/dtmimp"
-	"github.com/yedf/dtm/dtmsvr/storage"
-	"github.com/yedf/dtm/dtmsvr/storage/registry"
+	"github.com/dtm-labs/dtm/dtmcli/dtmimp"
+	"github.com/dtm-labs/dtm/dtmsvr/config"
+	"github.com/dtm-labs/dtm/dtmsvr/storage"
+	"github.com/dtm-labs/dtm/dtmsvr/storage/registry"
+	"github.com/lithammer/shortuuid/v3"
 )
 
 type branchStatus struct {
 	id         uint64
+	gid        string
 	status     string
 	finishTime *time.Time
 }
 
-var p2e = dtmimp.P2E
 var e2p = dtmimp.E2P
 
-var config = &common.Config
+var conf = &config.Config
 
+// GetStore returns storage.Store
 func GetStore() storage.Store {
 	return registry.GetStore()
 }
 
 // TransProcessedTestChan only for test usage. when transaction processed once, write gid to this chan
-var TransProcessedTestChan chan string = nil
+var TransProcessedTestChan chan string
 
 // GenGid generate gid, use uuid
 func GenGid() string {
-	return uuid.NewString()
+	return shortuuid.New()
 }
 
 // GetTransGlobal construct trans from db
 func GetTransGlobal(gid string) *TransGlobal {
 	trans := GetStore().FindTransGlobalStore(gid)
+	//nolint:staticcheck
 	dtmimp.PanicIf(trans == nil, fmt.Errorf("no TransGlobal with gid: %s found", gid))
+	//nolint:staticcheck
 	return &TransGlobal{TransGlobalStore: *trans}
 }

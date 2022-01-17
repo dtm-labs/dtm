@@ -1,8 +1,8 @@
-![license](https://img.shields.io/github/license/yedf/dtm)
-[![Build Status](https://travis-ci.com/yedf/dtm.svg?branch=main)](https://travis-ci.com/yedf/dtm)
-[![Coverage Status](https://coveralls.io/repos/github/yedf/dtm/badge.svg?branch=main)](https://coveralls.io/github/yedf/dtm?branch=main)
-[![Go Report Card](https://goreportcard.com/badge/github.com/yedf/dtm)](https://goreportcard.com/report/github.com/yedf/dtm)
-[![Go Reference](https://pkg.go.dev/badge/github.com/yedf/dtm.svg)](https://pkg.go.dev/github.com/yedf/dtm)
+![license](https://img.shields.io/github/license/dtm-labs/dtm)
+![Build Status](https://github.com/dtm-labs/dtm/actions/workflows/tests.yml/badge.svg?branch=main)
+[![codecov](https://codecov.io/gh/dtm-labs/dtm/branch/main/graph/badge.svg?token=UKKEYQLP3F)](https://codecov.io/gh/dtm-labs/dtm)
+[![Go Report Card](https://goreportcard.com/badge/github.com/dtm-labs/dtm)](https://goreportcard.com/report/github.com/dtm-labs/dtm)
+[![Go Reference](https://pkg.go.dev/badge/github.com/dtm-labs/dtm.svg)](https://pkg.go.dev/github.com/dtm-labs/dtm)
 [![Mentioned in Awesome Go](https://awesome.re/mentioned-badge-flat.svg)](https://github.com/avelino/awesome-go#database)
 
 # [中文文档](http://dtm.pub)
@@ -62,7 +62,7 @@ The following is a comparison of the main features of dtm and Seata.
 | Transactional Messaging | <span style="color:green">✓</span>                                                            | <span style="color:red">✗</span>                                                                 | dtm provides Transactional Messaging similar to RocketMQ               |
 | Multiple DBs in a service |<span style="color:green">✓</span>|<span style="color:red">✗</span>||
 | Communication protocols | <span style="color:green">HTTP, gRPC</span>                                                   | <span style="color:green">Dubbo, no HTTP</span>                                             |                                                                     |
-| Star count              | <img src="https://img.shields.io/github/stars/yedf/dtm.svg?style=social" alt="github stars"/> | <img src="https://img.shields.io/github/stars/seata/seata.svg?style=social" alt="github stars"/> | dtm 0.1 is released from 20210604 and under fast development                    |
+| Star count              | <img src="https://img.shields.io/github/stars/dtm-labs/dtm.svg?style=social" alt="github stars"/> | <img src="https://img.shields.io/github/stars/seata/seata.svg?style=social" alt="github stars"/> | dtm 0.1 is released from 20210604 and under fast development                    |
 
 From the features' comparison above, if your language stack includes languages other than Java, then dtm is the one for you.
 If your language stack is Java, you can also choose to access dtm and use sub-transaction barrier technology to simplify your business development.
@@ -73,7 +73,7 @@ If your language stack is Java, you can also choose to access dtm and use sub-tr
 
 ### Install
 
-`git clone https://github.com/yedf/dtm`
+`git clone https://github.com/dtm-labs/dtm`
 
 ### Configure Mysql
 

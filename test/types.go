@@ -7,40 +7,43 @@
 package test
 
 import (
+	"testing"
 	"time"
 
-	"github.com/yedf/dtm/common"
-	"github.com/yedf/dtm/dtmcli"
-	"github.com/yedf/dtm/dtmcli/dtmimp"
-	"github.com/yedf/dtm/dtmsvr"
+	"github.com/dtm-labs/dtm/dtmcli"
+	"github.com/dtm-labs/dtm/dtmcli/dtmimp"
+	"github.com/dtm-labs/dtm/dtmcli/logger"
+	"github.com/dtm-labs/dtm/dtmsvr"
+	"github.com/dtm-labs/dtm/dtmsvr/config"
+	"github.com/dtm-labs/dtm/dtmutil"
+	"github.com/dtm-labs/dtm/test/busi"
+	"github.com/stretchr/testify/assert"
 )
 
-var config = &common.Config
+var conf = &config.Config
 
-func dbGet() *common.DB {
-	return common.DbGet(config.ExamplesDB)
+func dbGet() *dtmutil.DB {
+	return dtmutil.DbGet(busi.BusiConf)
 }
 
 // waitTransProcessed only for test usage. wait for transaction processed once
 func waitTransProcessed(gid string) {
-	dtmimp.Logf("waiting for gid %s", gid)
+	logger.Debugf("waiting for gid %s", gid)
 	select {
 	case id := <-dtmsvr.TransProcessedTestChan:
-		for id != gid {
-			dtmimp.LogRedf("-------id %s not match gid %s", id, gid)
-			id = <-dtmsvr.TransProcessedTestChan
-		}
-		dtmimp.Logf("finish for gid %s", gid)
-	case <-time.After(time.Duration(time.Second * 3)):
-		dtmimp.LogFatalf("Wait Trans timeout")
+		logger.FatalfIf(id != gid, "------- expecting: %s but %s found", gid, id)
+		logger.Debugf("finish for gid %s", gid)
+	case <-time.After(time.Duration(time.Second * 4)):
+		logger.FatalfIf(true, "Wait Trans timeout")
 	}
 }
 
-func cronTransOnce() {
+func cronTransOnce() string {
 	gid := dtmsvr.CronTransOnce()
 	if dtmsvr.TransProcessedTestChan != nil && gid != "" {
 		waitTransProcessed(gid)
 	}
+	return gid
 }
 
 var e2p = dtmimp.E2P
@@ -51,18 +54,20 @@ type TransGlobal = dtmsvr.TransGlobal
 // TransBranch alias
 type TransBranch = dtmsvr.TransBranch
 
-func cronTransOnceForwardNow(seconds int) {
+func cronTransOnceForwardNow(seconds int) string {
 	old := dtmsvr.NowForwardDuration
 	dtmsvr.NowForwardDuration = time.Duration(seconds) * time.Second
-	cronTransOnce()
+	gid := cronTransOnce()
 	dtmsvr.NowForwardDuration = old
+	return gid
 }
 
-func cronTransOnceForwardCron(seconds int) {
+func cronTransOnceForwardCron(seconds int) string {
 	old := dtmsvr.CronForwardDuration
 	dtmsvr.CronForwardDuration = time.Duration(seconds) * time.Second
-	cronTransOnce()
+	gid := cronTransOnce()
 	dtmsvr.CronForwardDuration = old
+	return gid
 }
 
 const (
@@ -77,3 +82,23 @@ const (
 	// StatusAborting status for global trans status.
 	StatusAborting = dtmcli.StatusAborting
 )
+
+func getBeforeBalances(store string) []int {
+	b1 := busi.GetBalanceByUid(busi.TransOutUID, store)
+	b2 := busi.GetBalanceByUid(busi.TransInUID, store)
+	return []int{b1, b2}
+}
+
+func assertSameBalance(t *testing.T, before []int, store string) {
+	b1 := busi.GetBalanceByUid(busi.TransOutUID, store)
+	b2 := busi.GetBalanceByUid(busi.TransInUID, store)
+	assert.Equal(t, before[0], b1)
+	assert.Equal(t, before[1], b2)
+}
+
+func assertNotSameBalance(t *testing.T, before []int, store string) {
+	b1 := busi.GetBalanceByUid(busi.TransOutUID, store)
+	b2 := busi.GetBalanceByUid(busi.TransInUID, store)
+	assert.NotEqual(t, before[0], b1)
+	assert.Equal(t, before[0]+before[1], b1+b2)
+}
