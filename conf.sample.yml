@@ -48,7 +48,12 @@
 # RetryInterval: 10 # the subtrans branch will be retried after this interval
 # RequestTimeout: 3 # the timeout of HTTP/gRPC request in dtm
 
-# LogLevel: 'info' # default: info. can be debug|info|warn|error
+# LogLevel: 'info'              # default: info. can be debug|info|warn|error
+# Log:
+#   Outputs: 'stderr'           # default: stderr, split by |, you can append files to Outputs if need. example:'stderr|/tmp/test.log'
+#   RotationEnable: 0           # default: 0
+#   RotationConfigJson: '{}'    # example: '{"maxsize": 100, "maxage": 0, "maxbackups": 0, "localtime": false, "compress": false}'
+
 # HttpPort: 36789
 # GrpcPort: 36790
 

@@ -29,6 +29,13 @@ type MicroService struct {
 	EndPoint string `yaml:"EndPoint"`
 }
 
+// Log config customize log
+type Log struct {
+	Outputs            string `yaml:"Outputs" default:"stderr"`
+	RotationEnable     int64  `yaml:"RotationEnable" default:"0"`
+	RotationConfigJSON string `yaml:"RotationConfigJSON" default:"{}"`
+}
+
 // Store defines storage relevant info
 type Store struct {
 	Driver             string `yaml:"Driver" default:"boltdb"`
@@ -73,6 +80,7 @@ type configType struct {
 	UpdateBranchSync              int64        `yaml:"UpdateBranchSync"`
 	UpdateBranchAsyncGoroutineNum int64        `yaml:"UpdateBranchAsyncGoroutineNum" default:"1"`
 	LogLevel                      string       `yaml:"LogLevel" default:"info"`
+	Log                           Log          `yaml:"Log"`
 }
 
 // Config 配置
