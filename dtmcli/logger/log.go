@@ -17,6 +17,7 @@ import (
 
 var logger Logger
 
+// DefaultLogOutput is the default configuration for log output.
 const (
 	DefaultLogOutput = "default"
 	StdErrLogOutput  = "stderr"
@@ -78,7 +79,7 @@ func InitLog(level string, outputs []string, logRotationEnable int64, logRotateC
 
 	// setup log rotation
 	if logRotationEnable != 0 {
-		_ = setupLogRotation(outputs, logRotateConfigJSON)
+		setupLogRotation(outputs, logRotateConfigJSON)
 	}
 
 	config := loadConfig(level)
@@ -97,7 +98,7 @@ func (lumberjackSink) Sync() error {
 }
 
 // setupLogRotation initializes log rotation for a single file path target.
-func setupLogRotation(logOutputs []string, logRotateConfigJSON string) error {
+func setupLogRotation(logOutputs []string, logRotateConfigJSON string) {
 	var lumberjackSink lumberjackSink
 	outputFilePaths := 0
 	for _, v := range logOutputs {
@@ -110,11 +111,11 @@ func setupLogRotation(logOutputs []string, logRotateConfigJSON string) error {
 	}
 	// log rotation requires file target
 	if len(logOutputs) == 1 && outputFilePaths == 0 {
-		FatalIfError(fmt.Errorf("log outputs requires a single file path when LogRotationConfigJson is defined"))
+		FatalIfError(fmt.Errorf("log outputs requires a single file path when LogRotationConfigJSON is defined"))
 	}
 	// support max 1 file target for log rotation
 	if outputFilePaths > 1 {
-		FatalIfError(fmt.Errorf("log outputs requires a single file path when LogRotationConfigJson is defined"))
+		FatalIfError(fmt.Errorf("log outputs requires a single file path when LogRotationConfigJSON is defined"))
 	}
 
 	if err := json.Unmarshal([]byte(logRotateConfigJSON), &lumberjackSink); err != nil {
@@ -132,7 +133,7 @@ func setupLogRotation(logOutputs []string, logRotateConfigJSON string) error {
 		return &lumberjackSink, nil
 	})
 	FatalIfError(err)
-	return nil
+	return
 }
 
 func loadConfig(logLevel string) zap.Config {

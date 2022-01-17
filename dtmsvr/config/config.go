@@ -34,7 +34,7 @@ type Log struct {
 	Level                 string `yaml:"Level" default:"info"`
 	Outputs               string `yaml:"Outputs" default:""`
 	LogRotationEnable     int64  `yaml:"LogRotationEnable" default:"0"`
-	LogRotationConfigJson string `yaml:"LogRotationConfigJson" default:""`
+	LogRotationConfigJSON string `yaml:"LogRotationConfigJSON" default:""`
 }
 
 // Store defines storage relevant info

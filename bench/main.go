@@ -38,7 +38,7 @@ func main() {
 	if len(conf.Log.Outputs) != 0 {
 		outputs = strings.Split(conf.Log.Outputs, "|")
 	}
-	logger.InitLog(conf.Log.Level, outputs, conf.Log.LogRotationEnable, conf.Log.LogRotationConfigJson)
+	logger.InitLog(conf.Log.Level, outputs, conf.Log.LogRotationEnable, conf.Log.LogRotationConfigJSON)
 	if busi.BusiConf.Driver != "" {
 		dtmcli.SetCurrentDBType(busi.BusiConf.Driver)
 		svr.PrepareBenchDB()
