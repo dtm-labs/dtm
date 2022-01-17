@@ -57,7 +57,7 @@ func InitLog2(level string, outputs string, logRotationEnable int64, logRotateCo
 	}
 
 	if logRotationEnable != 0 {
-		setupLogRotation(outputPaths, logRotateConfigJSON)
+		setupLogRotation(logRotateConfigJSON)
 	}
 
 	config := loadConfig(level)
@@ -76,7 +76,7 @@ func (*lumberjackSink) Sync() error {
 }
 
 // setupLogRotation initializes log rotation for a single file path target.
-func setupLogRotation(logOutputs []string, logRotateConfigJSON string) {
+func setupLogRotation(logRotateConfigJSON string) {
 	err := zap.RegisterSink("lumberjack", func(u *url.URL) (zap.Sink, error) {
 		var conf lumberjackSink
 		err := json.Unmarshal([]byte(logRotateConfigJSON), &conf)
