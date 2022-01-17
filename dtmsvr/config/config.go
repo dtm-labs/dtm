@@ -29,6 +29,17 @@ type MicroService struct {
 	EndPoint string `yaml:"EndPoint"`
 }
 
+// Log config customize log
+type Log struct {
+	Level          string `yaml:"Level" default:"info"`
+	Output         string `yaml:"Output" default:"console"`
+	FileName       string `yaml:"FileName" default:"/tmp/dtm.log"`
+	FileMaxSize    int64  `yaml:"FileMaxSize" default:"10"`
+	FileMaxBackups int64  `yaml:"FileMaxBackups" default:"5"`
+	FileMaxAge     int64  `yaml:"FileMaxAge" default:"30"`
+	FileCompress   int64  `yaml:"FileCompress" default:"0"`
+}
+
 // Store defines storage relevant info
 type Store struct {
 	Driver             string `yaml:"Driver" default:"boltdb"`
@@ -72,7 +83,7 @@ type configType struct {
 	MicroService                  MicroService `yaml:"MicroService"`
 	UpdateBranchSync              int64        `yaml:"UpdateBranchSync"`
 	UpdateBranchAsyncGoroutineNum int64        `yaml:"UpdateBranchAsyncGoroutineNum" default:"1"`
-	LogLevel                      string       `yaml:"LogLevel" default:"info"`
+	Log                           Log          `yaml:"Log"`
 }
 
 // Config 配置

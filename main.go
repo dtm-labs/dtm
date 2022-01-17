@@ -59,7 +59,7 @@ func main() {
 	}
 	config.MustLoadConfig(*confFile)
 	if *isDebug {
-		config.Config.LogLevel = "debug"
+		config.Config.Log.Level = "debug"
 	}
 	if *isReset {
 		dtmsvr.PopulateDB(false)
