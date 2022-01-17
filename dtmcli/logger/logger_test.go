@@ -46,5 +46,7 @@ func TestInitRotateLog(t *testing.T) {
 	Errorf("a error msg")
 	FatalfIf(false, "nothing")
 	FatalIfError(nil)
+	s := lumberjackSink{&ll}
+	_ = s.Sync()
 	_ = os.Remove("test.log")
 }

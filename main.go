@@ -18,6 +18,7 @@ import (
 	"github.com/dtm-labs/dtm/dtmsvr"
 	"github.com/dtm-labs/dtm/dtmsvr/config"
 	"github.com/dtm-labs/dtm/dtmsvr/storage/registry"
+	"github.com/natefinch/lumberjack"
 
 	// load the microserver driver
 	_ "github.com/dtm-labs/dtmdriver-gozero"
@@ -58,9 +59,23 @@ func main() {
 		return
 	}
 	config.MustLoadConfig(*confFile)
+	conf := &config.Config
 	if *isDebug {
-		config.Config.Log.Level = "debug"
+		conf.Log.Level = "debug"
 	}
+	if conf.Log.Output == "file" {
+		ll := lumberjack.Logger{
+			Filename:   conf.Log.FileName,
+			MaxSize:    int(conf.Log.FileMaxSize),
+			MaxBackups: int(conf.Log.FileMaxBackups),
+			MaxAge:     int(conf.Log.FileMaxAge),
+			Compress:   conf.Log.FileCompress != 0,
+		}
+		logger.InitRotateLog(conf.Log.Level, &ll)
+	} else {
+		logger.InitLog(conf.Log.Level)
+	}
+
 	if *isReset {
 		dtmsvr.PopulateDB(false)
 	}
