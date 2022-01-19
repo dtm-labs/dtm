@@ -17,12 +17,12 @@ func TestInitLog(t *testing.T) {
 	FatalfIf(false, "nothing")
 	FatalIfError(nil)
 
-	InitLog2("debug", "test.log|stderr", 0, "")
+	InitLog2("debug", "test.log,stderr", 0, "")
 	Debugf("a debug msg to console and file")
 
-	InitLog2("debug", "test2.log|/tmp/dtm-test1.log|/tmp/dtm-test.log|stdout|stderr", 1,
+	InitLog2("debug", "test2.log,/tmp/dtm-test1.log,/tmp/dtm-test.log,stdout,stderr", 1,
 		"{\"maxsize\": 1, \"maxage\": 1, \"maxbackups\": 1, \"compress\": false}")
-	Debugf("a debug msg to /tmp/dtm-test.log|test2.log|stdout|stderr")
+	Debugf("a debug msg to /tmp/dtm-test.log and test2.log and stdout and stderr")
 
 	// _ = os.Remove("test.log")
 }
