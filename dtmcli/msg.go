@@ -8,6 +8,7 @@ package dtmcli
 
 import (
 	"database/sql"
+	"errors"
 
 	"github.com/dtm-labs/dtm/dtmcli/dtmimp"
 )
@@ -55,10 +56,10 @@ func (s *Msg) PrepareAndSubmitBarrier(queryPrepared string, busiCall func(bb *Br
 	}
 	if err == nil {
 		err = busiCall(bb)
-		if err != nil && err != ErrFailure {
-			_, err = dtmimp.TransRequestBranch(&s.TransBase, nil, bb.BranchID, bb.Op, queryPrepared)
+		if err != nil && !errors.Is(err, ErrFailure) {
+			_, err = dtmimp.TransRequestBranch(&s.TransBase, "GET", nil, bb.BranchID, bb.Op, queryPrepared)
 		}
-		if err == ErrFailure {
+		if errors.Is(err, ErrFailure) {
 			_ = dtmimp.TransCallDtm(&s.TransBase, s, "abort")
 		}
 	}

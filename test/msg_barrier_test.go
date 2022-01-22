@@ -99,7 +99,7 @@ func TestMsgPrepareAndSubmitCommitAfterFailed(t *testing.T) {
 		})
 		return err
 	})
-	assert.Error(t, err)
-	cronTransOnceForwardNow(180)
+	assert.Nil(t, err) // final commit will ignore error after submit
+	waitTransProcessed(gid)
 	assertNotSameBalance(t, before, "mysql")
 }
