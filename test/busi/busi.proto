@@ -39,5 +39,6 @@ service Busi {
   rpc TransOutHeaderNo(BusiReq) returns (google.protobuf.Empty) {}
   rpc QueryPrepared(BusiReq) returns (BusiReply) {}
   rpc QueryPreparedB(BusiReq) returns (google.protobuf.Empty) {}
+  rpc QueryPreparedRedis(BusiReq) returns (google.protobuf.Empty) {}
 }
 

@@ -148,7 +148,7 @@ var file_test_busi_busi_proto_rawDesc = []byte{
 	0x6e, 0x73, 0x49, 0x6e, 0x52, 0x65, 0x73, 0x75, 0x6c, 0x74, 0x22, 0x25, 0x0a, 0x09, 0x42, 0x75,
 	0x73, 0x69, 0x52, 0x65, 0x70, 0x6c, 0x79, 0x12, 0x18, 0x0a, 0x07, 0x6d, 0x65, 0x73, 0x73, 0x61,
 	0x67, 0x65, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x07, 0x6d, 0x65, 0x73, 0x73, 0x61, 0x67,
-	0x65, 0x32, 0x8d, 0x09, 0x0a, 0x04, 0x42, 0x75, 0x73, 0x69, 0x12, 0x32, 0x0a, 0x07, 0x54, 0x72,
+	0x65, 0x32, 0xcc, 0x09, 0x0a, 0x04, 0x42, 0x75, 0x73, 0x69, 0x12, 0x32, 0x0a, 0x07, 0x54, 0x72,
 	0x61, 0x6e, 0x73, 0x49, 0x6e, 0x12, 0x0d, 0x2e, 0x62, 0x75, 0x73, 0x69, 0x2e, 0x42, 0x75, 0x73,
 	0x69, 0x52, 0x65, 0x71, 0x1a, 0x16, 0x2e, 0x67, 0x6f, 0x6f, 0x67, 0x6c, 0x65, 0x2e, 0x70, 0x72,
 	0x6f, 0x74, 0x6f, 0x62, 0x75, 0x66, 0x2e, 0x45, 0x6d, 0x70, 0x74, 0x79, 0x22, 0x00, 0x12, 0x33,
@@ -221,8 +221,12 @@ var file_test_busi_busi_proto_rawDesc = []byte{
 	0x72, 0x65, 0x70, 0x61, 0x72, 0x65, 0x64, 0x42, 0x12, 0x0d, 0x2e, 0x62, 0x75, 0x73, 0x69, 0x2e,
 	0x42, 0x75, 0x73, 0x69, 0x52, 0x65, 0x71, 0x1a, 0x16, 0x2e, 0x67, 0x6f, 0x6f, 0x67, 0x6c, 0x65,
 	0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x62, 0x75, 0x66, 0x2e, 0x45, 0x6d, 0x70, 0x74, 0x79, 0x22,
-	0x00, 0x42, 0x08, 0x5a, 0x06, 0x2e, 0x2f, 0x62, 0x75, 0x73, 0x69, 0x62, 0x06, 0x70, 0x72, 0x6f,
-	0x74, 0x6f, 0x33,
+	0x00, 0x12, 0x3d, 0x0a, 0x12, 0x51, 0x75, 0x65, 0x72, 0x79, 0x50, 0x72, 0x65, 0x70, 0x61, 0x72,
+	0x65, 0x64, 0x52, 0x65, 0x64, 0x69, 0x73, 0x12, 0x0d, 0x2e, 0x62, 0x75, 0x73, 0x69, 0x2e, 0x42,
+	0x75, 0x73, 0x69, 0x52, 0x65, 0x71, 0x1a, 0x16, 0x2e, 0x67, 0x6f, 0x6f, 0x67, 0x6c, 0x65, 0x2e,
+	0x70, 0x72, 0x6f, 0x74, 0x6f, 0x62, 0x75, 0x66, 0x2e, 0x45, 0x6d, 0x70, 0x74, 0x79, 0x22, 0x00,
+	0x42, 0x08, 0x5a, 0x06, 0x2e, 0x2f, 0x62, 0x75, 0x73, 0x69, 0x62, 0x06, 0x70, 0x72, 0x6f, 0x74,
+	0x6f, 0x33,
 }
 
 var (
@@ -264,28 +268,30 @@ var file_test_busi_busi_proto_depIdxs = []int32{
 	0,  // 17: busi.Busi.TransOutHeaderNo:input_type -> busi.BusiReq
 	0,  // 18: busi.Busi.QueryPrepared:input_type -> busi.BusiReq
 	0,  // 19: busi.Busi.QueryPreparedB:input_type -> busi.BusiReq
-	2,  // 20: busi.Busi.TransIn:output_type -> google.protobuf.Empty
-	2,  // 21: busi.Busi.TransOut:output_type -> google.protobuf.Empty
-	2,  // 22: busi.Busi.TransInRevert:output_type -> google.protobuf.Empty
-	2,  // 23: busi.Busi.TransOutRevert:output_type -> google.protobuf.Empty
-	2,  // 24: busi.Busi.TransInConfirm:output_type -> google.protobuf.Empty
-	2,  // 25: busi.Busi.TransOutConfirm:output_type -> google.protobuf.Empty
-	2,  // 26: busi.Busi.XaNotify:output_type -> google.protobuf.Empty
-	2,  // 27: busi.Busi.TransInXa:output_type -> google.protobuf.Empty
-	2,  // 28: busi.Busi.TransOutXa:output_type -> google.protobuf.Empty
-	2,  // 29: busi.Busi.TransInTcc:output_type -> google.protobuf.Empty
-	2,  // 30: busi.Busi.TransOutTcc:output_type -> google.protobuf.Empty
-	2,  // 31: busi.Busi.TransInTccNested:output_type -> google.protobuf.Empty
-	2,  // 32: busi.Busi.TransInBSaga:output_type -> google.protobuf.Empty
-	2,  // 33: busi.Busi.TransOutBSaga:output_type -> google.protobuf.Empty
-	2,  // 34: busi.Busi.TransInRevertBSaga:output_type -> google.protobuf.Empty
-	2,  // 35: busi.Busi.TransOutRevertBSaga:output_type -> google.protobuf.Empty
-	2,  // 36: busi.Busi.TransOutHeaderYes:output_type -> google.protobuf.Empty
-	2,  // 37: busi.Busi.TransOutHeaderNo:output_type -> google.protobuf.Empty
-	1,  // 38: busi.Busi.QueryPrepared:output_type -> busi.BusiReply
-	2,  // 39: busi.Busi.QueryPreparedB:output_type -> google.protobuf.Empty
-	20, // [20:40] is the sub-list for method output_type
-	0,  // [0:20] is the sub-list for method input_type
+	0,  // 20: busi.Busi.QueryPreparedRedis:input_type -> busi.BusiReq
+	2,  // 21: busi.Busi.TransIn:output_type -> google.protobuf.Empty
+	2,  // 22: busi.Busi.TransOut:output_type -> google.protobuf.Empty
+	2,  // 23: busi.Busi.TransInRevert:output_type -> google.protobuf.Empty
+	2,  // 24: busi.Busi.TransOutRevert:output_type -> google.protobuf.Empty
+	2,  // 25: busi.Busi.TransInConfirm:output_type -> google.protobuf.Empty
+	2,  // 26: busi.Busi.TransOutConfirm:output_type -> google.protobuf.Empty
+	2,  // 27: busi.Busi.XaNotify:output_type -> google.protobuf.Empty
+	2,  // 28: busi.Busi.TransInXa:output_type -> google.protobuf.Empty
+	2,  // 29: busi.Busi.TransOutXa:output_type -> google.protobuf.Empty
+	2,  // 30: busi.Busi.TransInTcc:output_type -> google.protobuf.Empty
+	2,  // 31: busi.Busi.TransOutTcc:output_type -> google.protobuf.Empty
+	2,  // 32: busi.Busi.TransInTccNested:output_type -> google.protobuf.Empty
+	2,  // 33: busi.Busi.TransInBSaga:output_type -> google.protobuf.Empty
+	2,  // 34: busi.Busi.TransOutBSaga:output_type -> google.protobuf.Empty
+	2,  // 35: busi.Busi.TransInRevertBSaga:output_type -> google.protobuf.Empty
+	2,  // 36: busi.Busi.TransOutRevertBSaga:output_type -> google.protobuf.Empty
+	2,  // 37: busi.Busi.TransOutHeaderYes:output_type -> google.protobuf.Empty
+	2,  // 38: busi.Busi.TransOutHeaderNo:output_type -> google.protobuf.Empty
+	1,  // 39: busi.Busi.QueryPrepared:output_type -> busi.BusiReply
+	2,  // 40: busi.Busi.QueryPreparedB:output_type -> google.protobuf.Empty
+	2,  // 41: busi.Busi.QueryPreparedRedis:output_type -> google.protobuf.Empty
+	21, // [21:42] is the sub-list for method output_type
+	0,  // [0:21] is the sub-list for method input_type
 	0,  // [0:0] is the sub-list for extension type_name
 	0,  // [0:0] is the sub-list for extension extendee
 	0,  // [0:0] is the sub-list for field type_name

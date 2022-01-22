@@ -8,6 +8,7 @@ package dtmgrpc
 
 import (
 	"database/sql"
+	"errors"
 
 	"github.com/dtm-labs/dtm/dtmcli"
 	"github.com/dtm-labs/dtm/dtmcli/dtmimp"
@@ -45,15 +46,27 @@ func (s *MsgGrpc) Submit() error {
 
 // PrepareAndSubmit one method for the entire busi->prepare->submit
 func (s *MsgGrpc) PrepareAndSubmit(queryPrepared string, db *sql.DB, busiCall dtmcli.BarrierBusiFunc) error {
+	return s.PrepareAndSubmitBarrier(queryPrepared, func(bb *dtmcli.BranchBarrier) error {
+		return bb.CallWithDB(db, busiCall)
+	})
+}
+
+// PrepareAndSubmit one method for the entire busi->prepare->submit
+func (s *MsgGrpc) PrepareAndSubmitBarrier(queryPrepared string, busiCall func(bb *dtmcli.BranchBarrier) error) error {
 	bb, err := dtmcli.BarrierFrom(s.TransType, s.Gid, "00", "msg") // a special barrier for msg QueryPrepared
 	if err == nil {
-		err = bb.CallWithDB(db, func(tx *sql.Tx) error {
-			err := busiCall(tx)
-			if err == nil {
-				err = s.Prepare(queryPrepared)
-			}
-			return err
-		})
+		err = s.Prepare(queryPrepared)
+	}
+	if err == nil {
+		err = busiCall(bb)
+		if err != nil && !errors.Is(err, dtmcli.ErrFailure) {
+			var reply interface{}
+			err = dtmgimp.InvokeBranch(&s.TransBase, nil, queryPrepared, &reply, bb.BranchID, bb.Op)
+			err = GrpcError2DtmError(err)
+		}
+		if errors.Is(err, dtmcli.ErrFailure) {
+			_ = dtmgimp.DtmGrpcCall(&s.TransBase, "Abort")
+		}
 	}
 	if err == nil {
 		err = s.Submit()

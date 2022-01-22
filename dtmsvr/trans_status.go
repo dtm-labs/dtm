@@ -15,11 +15,10 @@ import (
 	"github.com/dtm-labs/dtm/dtmcli"
 	"github.com/dtm-labs/dtm/dtmcli/dtmimp"
 	"github.com/dtm-labs/dtm/dtmcli/logger"
+	"github.com/dtm-labs/dtm/dtmgrpc"
 	"github.com/dtm-labs/dtm/dtmgrpc/dtmgimp"
 	"github.com/dtm-labs/dtmdriver"
-	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/metadata"
-	"google.golang.org/grpc/status"
 )
 
 func (t *TransGlobal) touchCronTime(ctype cronType) {
@@ -92,17 +91,7 @@ func (t *TransGlobal) getURLResult(url string, branchID, op string, branchPayloa
 		if err == nil {
 			return nil
 		}
-		st, ok := status.FromError(err)
-		if ok && st.Code() == codes.Aborted {
-			// version lower then v1.10, will specify Ongoing in code Aborted
-			if st.Message() == dtmcli.ResultOngoing {
-				return dtmcli.ErrOngoing
-			}
-			return dtmcli.ErrFailure
-		} else if ok && st.Code() == codes.FailedPrecondition {
-			return dtmcli.ErrOngoing
-		}
-		return err
+		return dtmgrpc.GrpcError2DtmError(err)
 	}
 	dtmimp.PanicIf(!strings.HasPrefix(url, "http"), fmt.Errorf("bad url for http: %s", url))
 	resp, err := dtmimp.RestyClient.R().SetBody(string(branchPayload)).
