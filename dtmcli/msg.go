@@ -42,17 +42,25 @@ func (s *Msg) Submit() error {
 
 // PrepareAndSubmit one method for the entire busi->prepare->submit
 func (s *Msg) PrepareAndSubmit(queryPrepared string, db *sql.DB, busiCall BarrierBusiFunc) error {
+	return s.PrepareAndSubmitBarrier(queryPrepared, func(bb *BranchBarrier) error {
+		return bb.CallWithDB(db, busiCall)
+	})
+}
+
+// PrepareAndSubmitBarrier one method for the entire busi->prepare->submit
+func (s *Msg) PrepareAndSubmitBarrier(queryPrepared string, busiCall func(bb *BranchBarrier) error) error {
 	bb, err := BarrierFrom(s.TransType, s.Gid, "00", "msg") // a special barrier for msg QueryPrepared
 	if err == nil {
 		err = s.Prepare(queryPrepared)
 	}
 	if err == nil {
-		defer func() {
-			if err != nil && bb.QueryPrepared(db) == ErrFailure {
-				_ = dtmimp.TransCallDtm(&s.TransBase, s, "abort")
-			}
-		}()
-		err = bb.CallWithDB(db, busiCall)
+		err = busiCall(bb)
+		if err != nil && err != ErrFailure {
+			_, err = dtmimp.TransRequestBranch(&s.TransBase, nil, bb.BranchID, bb.Op, queryPrepared)
+		}
+		if err == ErrFailure {
+			_ = dtmimp.TransCallDtm(&s.TransBase, s, "abort")
+		}
 	}
 	if err == nil {
 		err = s.Submit()
