@@ -49,7 +49,7 @@ func InitLog(level string) {
 
 // InitLog2 specify advanced log config
 func InitLog2(level string, outputs string, logRotationEnable int64, logRotateConfigJSON string) {
-	outputPaths := strings.Split(outputs, "|")
+	outputPaths := strings.Split(outputs, ",")
 	for i, v := range outputPaths {
 		if logRotationEnable != 0 && v != StdErr && v != StdOut {
 			outputPaths[i] = fmt.Sprintf("lumberjack://%s", v)
