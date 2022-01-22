@@ -11,6 +11,7 @@ import (
 	"database/sql"
 
 	"github.com/dtm-labs/dtm/dtmcli"
+	"github.com/dtm-labs/dtm/dtmsvr/config"
 	"github.com/dtm-labs/dtm/dtmutil"
 	"github.com/gin-gonic/gin"
 	emptypb "google.golang.org/protobuf/types/known/emptypb"
@@ -87,7 +88,7 @@ func init() {
 			if req.TransOutResult != "" {
 				return dtmcli.String2DtmError(req.TransOutResult)
 			}
-			if req.Store == "redis" {
+			if req.Store == config.Redis {
 				return MustBarrierFromGin(c).RedisCheckAdjustAmount(RedisGet(), getRedisAccountKey(TransOutUID), req.Amount, 7*86400)
 			}
 
@@ -96,7 +97,7 @@ func init() {
 			})
 		}))
 		app.POST(BusiAPI+"/TccBTransOutConfirm", dtmutil.WrapHandler2(func(c *gin.Context) interface{} {
-			if reqFrom(c).Store == "redis" {
+			if reqFrom(c).Store == config.Redis {
 				return nil
 			}
 			return MustBarrierFromGin(c).Call(txGet(), func(tx *sql.Tx) error {

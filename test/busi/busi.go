@@ -13,7 +13,10 @@ import (
 	status "google.golang.org/grpc/status"
 )
 
+// TransOutUID 1
 const TransOutUID = 1
+
+// TransInUID 2
 const TransInUID = 2
 
 func handleGrpcBusiness(in *BusiReq, result1 string, result2 string, busi string) error {
@@ -58,6 +61,7 @@ func sagaGrpcAdjustBalance(db dtmcli.DB, uid int, amount int64, result string) e
 	return err
 }
 
+// SagaAdjustBalance 1
 func SagaAdjustBalance(db dtmcli.DB, uid int, amount int, result string) error {
 	if strings.Contains(result, dtmcli.ResultFailure) {
 		return dtmcli.ErrFailure

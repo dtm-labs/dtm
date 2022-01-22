@@ -89,6 +89,7 @@ func TestSagaGrpcEmptyUrl(t *testing.T) {
 	assert.Equal(t, StatusSucceed, getTransStatus(saga.Gid))
 }
 
+//nolint: unparam
 func genSagaGrpc(gid string, outFailed bool, inFailed bool) *dtmgrpc.SagaGrpc {
 	saga := dtmgrpc.NewSagaGrpc(dtmutil.DefaultGrpcServer, gid)
 	req := busi.GenBusiReq(30, outFailed, inFailed)

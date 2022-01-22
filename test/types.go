@@ -84,21 +84,21 @@ const (
 )
 
 func getBeforeBalances(store string) []int {
-	b1 := busi.GetBalanceByUid(busi.TransOutUID, store)
-	b2 := busi.GetBalanceByUid(busi.TransInUID, store)
+	b1 := busi.GetBalanceByUID(busi.TransOutUID, store)
+	b2 := busi.GetBalanceByUID(busi.TransInUID, store)
 	return []int{b1, b2}
 }
 
 func assertSameBalance(t *testing.T, before []int, store string) {
-	b1 := busi.GetBalanceByUid(busi.TransOutUID, store)
-	b2 := busi.GetBalanceByUid(busi.TransInUID, store)
+	b1 := busi.GetBalanceByUID(busi.TransOutUID, store)
+	b2 := busi.GetBalanceByUID(busi.TransInUID, store)
 	assert.Equal(t, before[0], b1)
 	assert.Equal(t, before[1], b2)
 }
 
 func assertNotSameBalance(t *testing.T, before []int, store string) {
-	b1 := busi.GetBalanceByUid(busi.TransOutUID, store)
-	b2 := busi.GetBalanceByUid(busi.TransInUID, store)
+	b1 := busi.GetBalanceByUID(busi.TransOutUID, store)
+	b2 := busi.GetBalanceByUID(busi.TransInUID, store)
 	assert.NotEqual(t, before[0], b1)
 	assert.Equal(t, before[0]+before[1], b1+b2)
 }

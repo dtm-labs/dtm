@@ -108,7 +108,7 @@ func TestXaNotTimeout(t *testing.T) {
 			cronTransOnceForwardNow(0) // not timeout,
 			timeoutChan <- 0
 		}()
-		_ = <-timeoutChan
+		<-timeoutChan
 		req := busi.GenTransReq(30, false, false)
 		_, err := xa.CallBranch(req, busi.Busi+"/TransOutXa")
 		assert.Nil(t, err)

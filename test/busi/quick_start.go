@@ -24,14 +24,18 @@ const qsBusiPort = 8082
 
 var qsBusi = fmt.Sprintf("http://localhost:%d%s", qsBusiPort, qsBusiAPI)
 
+// QsStartSvr quick start: start server
 func QsStartSvr() {
 	app := dtmutil.GetGinApp()
 	qsAddRoute(app)
 	logger.Infof("quick start examples listening at %d", qsBusiPort)
-	go app.Run(fmt.Sprintf(":%d", qsBusiPort))
+	go func() {
+		_ = app.Run(fmt.Sprintf(":%d", qsBusiPort))
+	}()
 	time.Sleep(100 * time.Millisecond)
 }
 
+// QsFireRequest quick start: fire request
 func QsFireRequest() string {
 	req := &gin.H{"amount": 30} // 微服务的载荷
 	// DtmServer为DTM服务的地址

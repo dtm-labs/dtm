@@ -15,6 +15,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+// BusiConf 1
 var BusiConf = dtmcli.DBConf{
 	Driver: "mysql",
 	Host:   "localhost",
@@ -22,17 +23,20 @@ var BusiConf = dtmcli.DBConf{
 	User:   "root",
 }
 
+// UserAccount 1
 type UserAccount struct {
-	UserId         int
+	UserID         int
 	Balance        string
 	TradingBalance string
 }
 
+// TableName 1
 func (*UserAccount) TableName() string {
 	return "dtm_busi.user_account"
 }
 
-func GetBalanceByUid(uid int, store string) int {
+// GetBalanceByUID 1
+func GetBalanceByUID(uid int, store string) int {
 	if store == "redis" {
 		rd := RedisGet()
 		accA, err := rd.Get(rd.Context(), getRedisAccountKey(uid)).Result()

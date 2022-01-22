@@ -37,7 +37,7 @@ func TestMain(m *testing.M) {
 	conf.UpdateBranchSync = 1
 
 	dtmgrpc.AddUnaryInterceptor(busi.SetGrpcHeaderForHeadersYes)
-	dtmcli.GetRestyClient().OnBeforeRequest(busi.SetHttpHeaderForHeadersYes)
+	dtmcli.GetRestyClient().OnBeforeRequest(busi.SetHTTPHeaderForHeadersYes)
 	dtmcli.GetRestyClient().OnAfterResponse(func(c *resty.Client, resp *resty.Response) error { return nil })
 
 	tenv := os.Getenv("TEST_STORE")
@@ -68,4 +68,5 @@ func TestMain(m *testing.M) {
 	close(dtmsvr.TransProcessedTestChan)
 	gid, more := <-dtmsvr.TransProcessedTestChan
 	logger.FatalfIf(more, "extra gid: %s in test chan", gid)
+	os.Exit(0)
 }

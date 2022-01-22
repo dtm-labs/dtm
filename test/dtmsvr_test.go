@@ -12,6 +12,7 @@ import (
 
 	"github.com/dtm-labs/dtm/dtmcli/dtmimp"
 	"github.com/dtm-labs/dtm/dtmsvr"
+	"github.com/dtm-labs/dtm/dtmsvr/config"
 	"github.com/dtm-labs/dtm/dtmutil"
 	"github.com/dtm-labs/dtm/test/busi"
 	"github.com/stretchr/testify/assert"
@@ -34,13 +35,8 @@ func getBranchesStatus(gid string) []string {
 	return status
 }
 
-func assertSucceed(t *testing.T, gid string) {
-	waitTransProcessed(gid)
-	assert.Equal(t, StatusSucceed, getTransStatus(gid))
-}
-
 func TestUpdateBranchAsync(t *testing.T) {
-	if conf.Store.Driver != "mysql" {
+	if conf.Store.Driver != config.Mysql {
 		return
 	}
 	conf.UpdateBranchSync = 0
