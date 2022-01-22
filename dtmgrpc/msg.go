@@ -60,8 +60,7 @@ func (s *MsgGrpc) Do(queryPrepared string, busiCall func(bb *dtmcli.BranchBarrie
 	if err == nil {
 		err = busiCall(bb)
 		if err != nil && !errors.Is(err, dtmcli.ErrFailure) {
-			var reply interface{}
-			err = dtmgimp.InvokeBranch(&s.TransBase, nil, queryPrepared, &reply, bb.BranchID, bb.Op)
+			err = dtmgimp.InvokeBranch(&s.TransBase, true, nil, queryPrepared, &[]byte{}, bb.BranchID, bb.Op)
 			err = GrpcError2DtmError(err)
 		}
 		if errors.Is(err, dtmcli.ErrFailure) {

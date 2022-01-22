@@ -118,5 +118,5 @@ func (xc *XaGrpcClient) XaGlobalTransaction2(gid string, custom func(*XaGrpc), x
 
 // CallBranch call a xa branch
 func (x *XaGrpc) CallBranch(msg proto.Message, url string, reply interface{}) error {
-	return dtmgimp.InvokeBranch(&x.TransBase, msg, url, reply, x.NewSubBranchID(), "action")
+	return dtmgimp.InvokeBranch(&x.TransBase, false, msg, url, reply, x.NewSubBranchID(), "action")
 }

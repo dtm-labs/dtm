@@ -51,12 +51,12 @@ func GrpcClientLog(ctx context.Context, method string, req, reply interface{}, c
 }
 
 // InvokeURL invoke a url for trans
-func InvokeBranch(t *dtmimp.TransBase, msg proto.Message, url string, reply interface{}, branchID string, op string) error {
+func InvokeBranch(t *dtmimp.TransBase, isRaw bool, msg proto.Message, url string, reply interface{}, branchID string, op string) error {
 	server, method, err := dtmdriver.GetDriver().ParseServerMethod(url)
 	if err != nil {
 		return err
 	}
 	ctx := TransInfo2Ctx(t.Gid, t.TransType, branchID, op, t.Dtm)
 	ctx = metadata.AppendToOutgoingContext(ctx, Map2Kvs(t.BranchHeaders)...)
-	return MustGetGrpcConn(server, false).Invoke(ctx, method, msg, reply)
+	return MustGetGrpcConn(server, isRaw).Invoke(ctx, method, msg, reply)
 }

@@ -11,6 +11,7 @@ import (
 	"database/sql"
 
 	"github.com/dtm-labs/dtm/dtmcli"
+	"github.com/dtm-labs/dtm/dtmgrpc"
 	"github.com/dtm-labs/dtm/dtmsvr/config"
 	"github.com/dtm-labs/dtm/dtmutil"
 	"github.com/gin-gonic/gin"
@@ -149,5 +150,6 @@ func (s *busiServer) TransOutRevertBSaga(ctx context.Context, in *BusiReq) (*emp
 
 func (s *busiServer) QueryPreparedB(ctx context.Context, in *BusiReq) (*emptypb.Empty, error) {
 	barrier := MustBarrierFromGrpc(ctx)
-	return &emptypb.Empty{}, barrier.QueryPrepared(dbGet().ToSQLDB())
+	err := barrier.QueryPrepared(dbGet().ToSQLDB())
+	return &emptypb.Empty{}, dtmgrpc.DtmError2GrpcError(err)
 }
