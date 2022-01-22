@@ -41,15 +41,15 @@ func (s *Msg) Submit() error {
 	return dtmimp.TransCallDtm(&s.TransBase, s, "submit")
 }
 
-// PrepareAndSubmit one method for the entire busi->prepare->submit
+// PrepareAndSubmit one method for the entire prepare->busi->submit
 func (s *Msg) PrepareAndSubmit(queryPrepared string, db *sql.DB, busiCall BarrierBusiFunc) error {
-	return s.PrepareAndSubmitBarrier(queryPrepared, func(bb *BranchBarrier) error {
+	return s.Do(queryPrepared, func(bb *BranchBarrier) error {
 		return bb.CallWithDB(db, busiCall)
 	})
 }
 
-// PrepareAndSubmitBarrier one method for the entire busi->prepare->submit
-func (s *Msg) PrepareAndSubmitBarrier(queryPrepared string, busiCall func(bb *BranchBarrier) error) error {
+// Do one method for the entire prepare->busi->submit
+func (s *Msg) Do(queryPrepared string, busiCall func(bb *BranchBarrier) error) error {
 	bb, err := BarrierFrom(s.TransType, s.Gid, "00", "msg") // a special barrier for msg QueryPrepared
 	if err == nil {
 		err = s.Prepare(queryPrepared)
