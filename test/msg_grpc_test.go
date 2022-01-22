@@ -28,31 +28,32 @@ func TestMsgGrpcNormal(t *testing.T) {
 }
 
 func TestMsgGrpcTimeoutSuccess(t *testing.T) {
-	msg := genGrpcMsg(dtmimp.GetFuncName())
+	gid := dtmimp.GetFuncName()
+	msg := genGrpcMsg(gid)
 	err := msg.Prepare("")
 	assert.Nil(t, err)
 	busi.MainSwitch.QueryPreparedResult.SetOnce(dtmcli.ResultOngoing)
-	cronTransOnceForwardNow(180)
+	cronTransOnceForwardNow(t, gid, 180)
 	assert.Equal(t, StatusPrepared, getTransStatus(msg.Gid))
 	busi.MainSwitch.TransOutResult.SetOnce(dtmcli.ResultOngoing)
-	cronTransOnceForwardNow(180)
+	cronTransOnceForwardNow(t, gid, 180)
 	assert.Equal(t, StatusSubmitted, getTransStatus(msg.Gid))
 	assert.Equal(t, []string{StatusPrepared, StatusPrepared}, getBranchesStatus(msg.Gid))
-	g := cronTransOnce()
-	assert.Equal(t, msg.Gid, g)
+	cronTransOnce(t, gid)
 	assert.Equal(t, StatusSucceed, getTransStatus(msg.Gid))
 	assert.Equal(t, []string{StatusSucceed, StatusSucceed}, getBranchesStatus(msg.Gid))
 }
 
 func TestMsgGrpcTimeoutFailed(t *testing.T) {
-	msg := genGrpcMsg(dtmimp.GetFuncName())
+	gid := dtmimp.GetFuncName()
+	msg := genGrpcMsg(gid)
 	msg.Prepare("")
 	assert.Equal(t, StatusPrepared, getTransStatus(msg.Gid))
 	busi.MainSwitch.QueryPreparedResult.SetOnce(dtmcli.ResultOngoing)
-	cronTransOnceForwardNow(180)
+	cronTransOnceForwardNow(t, gid, 180)
 	assert.Equal(t, StatusPrepared, getTransStatus(msg.Gid))
 	busi.MainSwitch.QueryPreparedResult.SetOnce(dtmcli.ResultFailure)
-	cronTransOnceForwardNow(180)
+	cronTransOnceForwardNow(t, gid, 180)
 	assert.Equal(t, StatusFailed, getTransStatus(msg.Gid))
 	assert.Equal(t, []string{StatusPrepared, StatusPrepared}, getBranchesStatus(msg.Gid))
 }

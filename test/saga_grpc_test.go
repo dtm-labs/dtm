@@ -26,13 +26,13 @@ func TestSagaGrpcNormal(t *testing.T) {
 }
 
 func TestSagaGrpcRollback(t *testing.T) {
-	saga := genSagaGrpc(dtmimp.GetFuncName(), false, true)
+	gid := dtmimp.GetFuncName()
+	saga := genSagaGrpc(gid, false, true)
 	busi.MainSwitch.TransOutRevertResult.SetOnce(dtmcli.ResultOngoing)
 	saga.Submit()
 	waitTransProcessed(saga.Gid)
 	assert.Equal(t, StatusAborting, getTransStatus(saga.Gid))
-	g := cronTransOnce()
-	assert.Equal(t, saga.Gid, g)
+	cronTransOnce(t, gid)
 	assert.Equal(t, StatusFailed, getTransStatus(saga.Gid))
 	assert.Equal(t, []string{StatusSucceed, StatusSucceed, StatusSucceed, StatusFailed}, getBranchesStatus(saga.Gid))
 }
@@ -57,20 +57,21 @@ func TestSagaGrpcCurrentOrder(t *testing.T) {
 }
 
 func TestSagaGrpcCommittedOngoing(t *testing.T) {
-	saga := genSagaGrpc(dtmimp.GetFuncName(), false, false)
+	gid := dtmimp.GetFuncName()
+	saga := genSagaGrpc(gid, false, false)
 	busi.MainSwitch.TransOutResult.SetOnce(dtmcli.ResultOngoing)
 	saga.Submit()
 	waitTransProcessed(saga.Gid)
 	assert.Equal(t, StatusSubmitted, getTransStatus(saga.Gid))
 	assert.Equal(t, []string{StatusPrepared, StatusPrepared, StatusPrepared, StatusPrepared}, getBranchesStatus(saga.Gid))
-	g := cronTransOnce()
-	assert.Equal(t, saga.Gid, g)
+	cronTransOnce(t, gid)
 	assert.Equal(t, StatusSucceed, getTransStatus(saga.Gid))
 	assert.Equal(t, []string{StatusPrepared, StatusSucceed, StatusPrepared, StatusSucceed}, getBranchesStatus(saga.Gid))
 }
 
 func TestSagaGrpcNormalWait(t *testing.T) {
-	saga := genSagaGrpc(dtmimp.GetFuncName(), false, false)
+	gid := dtmimp.GetFuncName()
+	saga := genSagaGrpc(gid, false, false)
 	saga.WaitResult = true
 	saga.Submit()
 	assert.Equal(t, []string{StatusPrepared, StatusSucceed, StatusPrepared, StatusSucceed}, getBranchesStatus(saga.Gid))
@@ -119,8 +120,7 @@ func TestSagaGrpcCronPassthroughHeadersYes(t *testing.T) {
 	assert.Nil(t, err)
 	waitTransProcessed(gidYes)
 	assert.Equal(t, StatusSubmitted, getTransStatus(gidYes))
-	g := cronTransOnce()
-	assert.Equal(t, gidYes, g)
+	cronTransOnce(t, gidYes)
 	assert.Equal(t, StatusSucceed, getTransStatus(gidYes))
 }
 
@@ -159,7 +159,6 @@ func TestSagaGrpcCronHeaders(t *testing.T) {
 	assert.Nil(t, err)
 	waitTransProcessed(gidYes)
 	assert.Equal(t, StatusSubmitted, getTransStatus(gidYes))
-	g := cronTransOnce()
-	assert.Equal(t, gidYes, g)
+	cronTransOnce(t, gidYes)
 	assert.Equal(t, StatusSucceed, getTransStatus(gidYes))
 }

@@ -16,38 +16,38 @@ import (
 )
 
 func TestMsgOptionsTimeout(t *testing.T) {
-	msg := genMsg(dtmimp.GetFuncName())
+	gid := dtmimp.GetFuncName()
+	msg := genMsg(gid)
 	msg.Prepare("")
-	g := cronTransOnce()
-	assert.Equal(t, msg.Gid, g)
+	cronTransOnce(t, gid)
 	assert.Equal(t, StatusPrepared, getTransStatus(msg.Gid))
-	cronTransOnceForwardNow(60)
+	cronTransOnceForwardNow(t, gid, 60)
 	assert.Equal(t, StatusSucceed, getTransStatus(msg.Gid))
 }
 
 func TestMsgOptionsTimeoutCustom(t *testing.T) {
-	msg := genMsg(dtmimp.GetFuncName())
+	gid := dtmimp.GetFuncName()
+	msg := genMsg(gid)
 	msg.TimeoutToFail = 120
 	msg.Prepare("")
-	g := cronTransOnce()
-	assert.Equal(t, msg.Gid, g)
+	cronTransOnce(t, gid)
 	assert.Equal(t, StatusPrepared, getTransStatus(msg.Gid))
-	cronTransOnceForwardNow(60)
+	cronTransOnceForwardNow(t, gid, 60)
 	assert.Equal(t, StatusPrepared, getTransStatus(msg.Gid))
-	cronTransOnceForwardNow(180)
+	cronTransOnceForwardNow(t, gid, 180)
 	assert.Equal(t, StatusSucceed, getTransStatus(msg.Gid))
 }
 
 func TestMsgOptionsTimeoutFailed(t *testing.T) {
-	msg := genMsg(dtmimp.GetFuncName())
+	gid := dtmimp.GetFuncName()
+	msg := genMsg(gid)
 	msg.TimeoutToFail = 120
 	msg.Prepare("")
-	g := cronTransOnce()
-	assert.Equal(t, msg.Gid, g)
+	cronTransOnce(t, gid)
 	assert.Equal(t, StatusPrepared, getTransStatus(msg.Gid))
-	cronTransOnceForwardNow(60)
+	cronTransOnceForwardNow(t, gid, 60)
 	assert.Equal(t, StatusPrepared, getTransStatus(msg.Gid))
 	busi.MainSwitch.QueryPreparedResult.SetOnce(dtmcli.ResultFailure)
-	cronTransOnceForwardNow(180)
+	cronTransOnceForwardNow(t, gid, 180)
 	assert.Equal(t, StatusFailed, getTransStatus(msg.Gid))
 }

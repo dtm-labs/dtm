@@ -97,7 +97,7 @@ func runTestTccBarrierDisorder(t *testing.T, store string) {
 
 		logger.Debugf("cron to timeout and then call cancelled twice")
 		cron := func() {
-			cronTransOnceForwardNow(300)
+			cronTransOnceForwardNow(t, gid, 300)
 			logger.Debugf("cronFinished write")
 			cronFinished <- "1"
 			logger.Debugf("cronFinished after write")

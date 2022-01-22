@@ -49,6 +49,6 @@ func TestMsgGrpcPrepareAndSubmitCommitAfterFailed(t *testing.T) {
 		return err
 	})
 	assert.Error(t, err)
-	cronTransOnceForwardNow(180)
+	cronTransOnceForwardNow(t, gid, 180)
 	assertNotSameBalance(t, before, "mysql")
 }

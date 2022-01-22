@@ -76,7 +76,6 @@ func TestMsgPrepareAndSubmitCommitFailed(t *testing.T) {
 	})
 	g.Unpatch()
 	assert.Error(t, err)
-	cronTransOnceForwardNow(180)
 	assertSameBalance(t, before, "mysql")
 }
 

@@ -47,6 +47,5 @@ func TestTccGrpcCoverCallBranch(t *testing.T) {
 		return err
 	})
 	assert.Error(t, err)
-	g := cronTransOnceForwardNow(300)
-	assert.Equal(t, gid, g)
+	cronTransOnceForwardNow(t, gid, 300)
 }

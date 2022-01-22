@@ -27,7 +27,7 @@ func TestXaCoverDBError(t *testing.T) {
 	getXc().Conf.Driver = "no-driver" // make xa rollback failed
 	waitTransProcessed(gid)
 	getXc().Conf.Driver = oldDriver
-	cronTransOnceForwardNow(500) // rollback succeeded here
+	cronTransOnceForwardNow(t, gid, 500) // rollback succeeded here
 	assert.Equal(t, StatusFailed, getTransStatus(gid))
 }
 

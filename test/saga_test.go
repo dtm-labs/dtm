@@ -34,27 +34,27 @@ func TestSagaRollback(t *testing.T) {
 }
 
 func TestSagaOngoingSucceed(t *testing.T) {
+	gid := dtmimp.GetFuncName()
 	saga := genSaga(dtmimp.GetFuncName(), false, false)
 	busi.MainSwitch.TransOutResult.SetOnce(dtmcli.ResultOngoing)
 	saga.Submit()
 	waitTransProcessed(saga.Gid)
 	assert.Equal(t, []string{StatusPrepared, StatusPrepared, StatusPrepared, StatusPrepared}, getBranchesStatus(saga.Gid))
 	assert.Equal(t, StatusSubmitted, getTransStatus(saga.Gid))
-	g := cronTransOnce()
-	assert.Equal(t, saga.Gid, g)
+	cronTransOnce(t, gid)
 	assert.Equal(t, []string{StatusPrepared, StatusSucceed, StatusPrepared, StatusSucceed}, getBranchesStatus(saga.Gid))
 	assert.Equal(t, StatusSucceed, getTransStatus(saga.Gid))
 }
 
 func TestSagaFailed(t *testing.T) {
+	gid := dtmimp.GetFuncName()
 	saga := genSaga(dtmimp.GetFuncName(), false, true)
 	busi.MainSwitch.TransOutRevertResult.SetOnce("ERROR")
 	err := saga.Submit()
 	assert.Nil(t, err)
 	waitTransProcessed(saga.Gid)
 	assert.Equal(t, StatusAborting, getTransStatus(saga.Gid))
-	g := cronTransOnce()
-	assert.Equal(t, saga.Gid, g)
+	cronTransOnce(t, gid)
 	assert.Equal(t, StatusFailed, getTransStatus(saga.Gid))
 	assert.Equal(t, []string{StatusSucceed, StatusSucceed, StatusSucceed, StatusFailed}, getBranchesStatus(saga.Gid))
 }
