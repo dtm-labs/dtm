@@ -131,6 +131,7 @@ type mainSwitchType struct {
 // MainSwitch controls busi success or fail
 var MainSwitch mainSwitchType
 
+// GetRedisAccountKey return redis key for uid
 func GetRedisAccountKey(uid int) string {
 	return fmt.Sprintf("{a}-redis-account-key-%d", uid)
 }
