@@ -20,7 +20,7 @@ func TestMsgPrepareAndSubmit(t *testing.T) {
 	req := busi.GenTransReq(30, false, false)
 	msg := dtmcli.NewMsg(DtmServer, gid).
 		Add(busi.Busi+"/SagaBTransIn", req)
-	err := msg.PrepareAndSubmit(Busi+"/QueryPreparedB", dbGet().ToSQLDB(), func(tx *sql.Tx) error {
+	err := msg.DoAndSubmitDB(Busi+"/QueryPreparedB", dbGet().ToSQLDB(), func(tx *sql.Tx) error {
 		return busi.SagaAdjustBalance(tx, busi.TransOutUID, -req.Amount, "SUCCESS")
 	})
 	assert.Nil(t, err)
@@ -36,7 +36,7 @@ func TestMsgPrepareAndSubmitBusiFailed(t *testing.T) {
 	req := busi.GenTransReq(30, false, false)
 	msg := dtmcli.NewMsg(DtmServer, gid).
 		Add(busi.Busi+"/SagaBTransIn", req)
-	err := msg.PrepareAndSubmit(Busi+"/QueryPreparedB", dbGet().ToSQLDB(), func(tx *sql.Tx) error {
+	err := msg.DoAndSubmitDB(Busi+"/QueryPreparedB", dbGet().ToSQLDB(), func(tx *sql.Tx) error {
 		return errors.New("an error")
 	})
 	assert.Error(t, err)
@@ -49,7 +49,7 @@ func TestMsgPrepareAndSubmitPrepareFailed(t *testing.T) {
 	req := busi.GenTransReq(30, false, false)
 	msg := dtmcli.NewMsg(DtmServer+"not-exists", gid).
 		Add(busi.Busi+"/SagaBTransIn", req)
-	err := msg.PrepareAndSubmit(Busi+"/QueryPreparedB", dbGet().ToSQLDB(), func(tx *sql.Tx) error {
+	err := msg.DoAndSubmitDB(Busi+"/QueryPreparedB", dbGet().ToSQLDB(), func(tx *sql.Tx) error {
 		return busi.SagaAdjustBalance(tx, busi.TransOutUID, -req.Amount, "SUCCESS")
 	})
 	assert.Error(t, err)
@@ -66,7 +66,7 @@ func TestMsgPrepareAndSubmitCommitFailed(t *testing.T) {
 	msg := dtmcli.NewMsg(DtmServer, gid).
 		Add(busi.Busi+"/SagaBTransIn", req)
 	var g *monkey.PatchGuard
-	err := msg.PrepareAndSubmit(Busi+"/QueryPreparedB", dbGet().ToSQLDB(), func(tx *sql.Tx) error {
+	err := msg.DoAndSubmitDB(Busi+"/QueryPreparedB", dbGet().ToSQLDB(), func(tx *sql.Tx) error {
 		g = monkey.PatchInstanceMethod(reflect.TypeOf(tx), "Commit", func(tx *sql.Tx) error {
 			logger.Debugf("tx.Commit rollback and return error in test")
 			_ = tx.Rollback()
@@ -76,7 +76,6 @@ func TestMsgPrepareAndSubmitCommitFailed(t *testing.T) {
 	})
 	g.Unpatch()
 	assert.Error(t, err)
-	cronTransOnceForwardNow(180)
 	assertSameBalance(t, before, "mysql")
 }
 
@@ -90,7 +89,7 @@ func TestMsgPrepareAndSubmitCommitAfterFailed(t *testing.T) {
 	msg := dtmcli.NewMsg(DtmServer, gid).
 		Add(busi.Busi+"/SagaBTransIn", req)
 	var guard *monkey.PatchGuard
-	err := msg.PrepareAndSubmit(Busi+"/QueryPreparedB", dbGet().ToSQLDB(), func(tx *sql.Tx) error {
+	err := msg.DoAndSubmitDB(Busi+"/QueryPreparedB", dbGet().ToSQLDB(), func(tx *sql.Tx) error {
 		err := busi.SagaAdjustBalance(tx, busi.TransOutUID, -req.Amount, "SUCCESS")
 		guard = monkey.PatchInstanceMethod(reflect.TypeOf(tx), "Commit", func(tx *sql.Tx) error {
 			guard.Unpatch()
@@ -100,6 +99,6 @@ func TestMsgPrepareAndSubmitCommitAfterFailed(t *testing.T) {
 		return err
 	})
 	assert.Error(t, err)
-	cronTransOnceForwardNow(180)
+	waitTransProcessed(gid)
 	assertNotSameBalance(t, before, "mysql")
 }

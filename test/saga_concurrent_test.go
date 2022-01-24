@@ -28,14 +28,14 @@ func TestSagaConNormal(t *testing.T) {
 }
 
 func TestSagaConRollbackNormal(t *testing.T) {
-	sagaCon := genSagaCon(dtmimp.GetFuncName(), true, false)
+	gid := dtmimp.GetFuncName()
+	sagaCon := genSagaCon(gid, true, false)
 	busi.MainSwitch.TransOutRevertResult.SetOnce(dtmcli.ResultOngoing)
 	err := sagaCon.Submit()
 	assert.Nil(t, err)
 	waitTransProcessed(sagaCon.Gid)
 	assert.Equal(t, StatusAborting, getTransStatus(sagaCon.Gid))
-	g := cronTransOnce()
-	assert.Equal(t, sagaCon.Gid, g)
+	cronTransOnce(t, gid)
 	assert.Equal(t, StatusFailed, getTransStatus(sagaCon.Gid))
 	// TODO should fix this
 	// assert.Equal(t, []string{StatusSucceed, StatusFailed, StatusSucceed, StatusSucceed}, getBranchesStatus(sagaCon.Gid))
@@ -61,15 +61,15 @@ func TestSagaConRollbackOrder2(t *testing.T) {
 	assert.Equal(t, []string{StatusSucceed, StatusSucceed, StatusSucceed, StatusFailed}, getBranchesStatus(sagaCon.Gid))
 }
 func TestSagaConCommittedOngoing(t *testing.T) {
-	sagaCon := genSagaCon(dtmimp.GetFuncName(), false, false)
+	gid := dtmimp.GetFuncName()
+	sagaCon := genSagaCon(gid, false, false)
 	busi.MainSwitch.TransOutResult.SetOnce(dtmcli.ResultOngoing)
 	sagaCon.Submit()
 	waitTransProcessed(sagaCon.Gid)
 	assert.Equal(t, []string{StatusPrepared, StatusPrepared, StatusPrepared, StatusSucceed}, getBranchesStatus(sagaCon.Gid))
 	assert.Equal(t, StatusSubmitted, getTransStatus(sagaCon.Gid))
 
-	g := cronTransOnce()
-	assert.Equal(t, sagaCon.Gid, g)
+	cronTransOnce(t, gid)
 	assert.Equal(t, []string{StatusPrepared, StatusSucceed, StatusPrepared, StatusSucceed}, getBranchesStatus(sagaCon.Gid))
 	assert.Equal(t, StatusSucceed, getTransStatus(sagaCon.Gid))
 }

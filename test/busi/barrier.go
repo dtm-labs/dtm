@@ -11,6 +11,8 @@ import (
 	"database/sql"
 
 	"github.com/dtm-labs/dtm/dtmcli"
+	"github.com/dtm-labs/dtm/dtmgrpc"
+	"github.com/dtm-labs/dtm/dtmsvr/config"
 	"github.com/dtm-labs/dtm/dtmutil"
 	"github.com/gin-gonic/gin"
 	emptypb "google.golang.org/protobuf/types/known/emptypb"
@@ -71,24 +73,24 @@ func init() {
 			})
 		}))
 		app.POST(BusiAPI+"/SagaRedisTransIn", dtmutil.WrapHandler2(func(c *gin.Context) interface{} {
-			return MustBarrierFromGin(c).RedisCheckAdjustAmount(RedisGet(), getRedisAccountKey(TransInUID), reqFrom(c).Amount, 7*86400)
+			return MustBarrierFromGin(c).RedisCheckAdjustAmount(RedisGet(), GetRedisAccountKey(TransInUID), reqFrom(c).Amount, 7*86400)
 		}))
 		app.POST(BusiAPI+"/SagaRedisTransInCom", dtmutil.WrapHandler2(func(c *gin.Context) interface{} {
-			return MustBarrierFromGin(c).RedisCheckAdjustAmount(RedisGet(), getRedisAccountKey(TransInUID), -reqFrom(c).Amount, 7*86400)
+			return MustBarrierFromGin(c).RedisCheckAdjustAmount(RedisGet(), GetRedisAccountKey(TransInUID), -reqFrom(c).Amount, 7*86400)
 		}))
 		app.POST(BusiAPI+"/SagaRedisTransOut", dtmutil.WrapHandler2(func(c *gin.Context) interface{} {
-			return MustBarrierFromGin(c).RedisCheckAdjustAmount(RedisGet(), getRedisAccountKey(TransOutUID), -reqFrom(c).Amount, 7*86400)
+			return MustBarrierFromGin(c).RedisCheckAdjustAmount(RedisGet(), GetRedisAccountKey(TransOutUID), -reqFrom(c).Amount, 7*86400)
 		}))
 		app.POST(BusiAPI+"/SagaRedisTransOutCom", dtmutil.WrapHandler2(func(c *gin.Context) interface{} {
-			return MustBarrierFromGin(c).RedisCheckAdjustAmount(RedisGet(), getRedisAccountKey(TransOutUID), reqFrom(c).Amount, 7*86400)
+			return MustBarrierFromGin(c).RedisCheckAdjustAmount(RedisGet(), GetRedisAccountKey(TransOutUID), reqFrom(c).Amount, 7*86400)
 		}))
 		app.POST(BusiAPI+"/TccBTransOutTry", dtmutil.WrapHandler2(func(c *gin.Context) interface{} {
 			req := reqFrom(c)
 			if req.TransOutResult != "" {
 				return dtmcli.String2DtmError(req.TransOutResult)
 			}
-			if req.Store == "redis" {
-				return MustBarrierFromGin(c).RedisCheckAdjustAmount(RedisGet(), getRedisAccountKey(TransOutUID), req.Amount, 7*86400)
+			if req.Store == config.Redis {
+				return MustBarrierFromGin(c).RedisCheckAdjustAmount(RedisGet(), GetRedisAccountKey(TransOutUID), req.Amount, 7*86400)
 			}
 
 			return MustBarrierFromGin(c).Call(txGet(), func(tx *sql.Tx) error {
@@ -96,7 +98,7 @@ func init() {
 			})
 		}))
 		app.POST(BusiAPI+"/TccBTransOutConfirm", dtmutil.WrapHandler2(func(c *gin.Context) interface{} {
-			if reqFrom(c).Store == "redis" {
+			if reqFrom(c).Store == config.Redis {
 				return nil
 			}
 			return MustBarrierFromGin(c).Call(txGet(), func(tx *sql.Tx) error {
@@ -111,7 +113,7 @@ func init() {
 func TccBarrierTransOutCancel(c *gin.Context) interface{} {
 	req := reqFrom(c)
 	if req.Store == "redis" {
-		return MustBarrierFromGin(c).RedisCheckAdjustAmount(RedisGet(), getRedisAccountKey(TransOutUID), -req.Amount, 7*86400)
+		return MustBarrierFromGin(c).RedisCheckAdjustAmount(RedisGet(), GetRedisAccountKey(TransOutUID), -req.Amount, 7*86400)
 	}
 	return MustBarrierFromGin(c).Call(txGet(), func(tx *sql.Tx) error {
 		return tccAdjustTrading(tx, TransOutUID, reqFrom(c).Amount)
@@ -146,7 +148,34 @@ func (s *busiServer) TransOutRevertBSaga(ctx context.Context, in *BusiReq) (*emp
 	})
 }
 
+func (s *busiServer) TransInRedis(ctx context.Context, in *BusiReq) (*emptypb.Empty, error) {
+	barrier := MustBarrierFromGrpc(ctx)
+	return &emptypb.Empty{}, barrier.RedisCheckAdjustAmount(RedisGet(), GetRedisAccountKey(TransInUID), int(in.Amount), 86400)
+}
+
+func (s *busiServer) TransOutRedis(ctx context.Context, in *BusiReq) (*emptypb.Empty, error) {
+	barrier := MustBarrierFromGrpc(ctx)
+	return &emptypb.Empty{}, barrier.RedisCheckAdjustAmount(RedisGet(), GetRedisAccountKey(TransOutUID), int(-in.Amount), 86400)
+}
+
+func (s *busiServer) TransInRevertRedis(ctx context.Context, in *BusiReq) (*emptypb.Empty, error) {
+	barrier := MustBarrierFromGrpc(ctx)
+	return &emptypb.Empty{}, barrier.RedisCheckAdjustAmount(RedisGet(), GetRedisAccountKey(TransInUID), -int(in.Amount), 86400)
+}
+
+func (s *busiServer) TransOutRevertRedis(ctx context.Context, in *BusiReq) (*emptypb.Empty, error) {
+	barrier := MustBarrierFromGrpc(ctx)
+	return &emptypb.Empty{}, barrier.RedisCheckAdjustAmount(RedisGet(), GetRedisAccountKey(TransOutUID), int(in.Amount), 86400)
+}
+
 func (s *busiServer) QueryPreparedB(ctx context.Context, in *BusiReq) (*emptypb.Empty, error) {
 	barrier := MustBarrierFromGrpc(ctx)
-	return &emptypb.Empty{}, barrier.QueryPrepared(dbGet().ToSQLDB())
+	err := barrier.QueryPrepared(dbGet().ToSQLDB())
+	return &emptypb.Empty{}, dtmgrpc.DtmError2GrpcError(err)
+}
+
+func (s *busiServer) QueryPreparedRedis(ctx context.Context, in *BusiReq) (*emptypb.Empty, error) {
+	barrier := MustBarrierFromGrpc(ctx)
+	err := barrier.RedisQueryPrepared(RedisGet(), 86400)
+	return &emptypb.Empty{}, dtmgrpc.DtmError2GrpcError(err)
 }

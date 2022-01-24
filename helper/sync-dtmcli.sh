@@ -13,7 +13,7 @@ fi
 
 cd ../dtmcli
 cp -rf ../dtm/dtmcli/* ./
-rm -f *_test.go
+rm -f *_test.go logger/*.log
 sed -i '' -e 's/dtm-labs\/dtm\//dtm-labs\//g' *.go */**.go
 go mod tidy
 go build || exit 1

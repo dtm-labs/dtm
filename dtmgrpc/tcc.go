@@ -13,8 +13,6 @@ import (
 	"github.com/dtm-labs/dtm/dtmcli/dtmimp"
 	"github.com/dtm-labs/dtm/dtmgrpc/dtmgimp"
 	"github.com/dtm-labs/dtm/dtmgrpc/dtmgpb"
-	"github.com/dtm-labs/dtmdriver"
-	"google.golang.org/grpc/metadata"
 	"google.golang.org/protobuf/proto"
 )
 
@@ -87,11 +85,5 @@ func (t *TccGrpc) CallBranch(busiMsg proto.Message, tryURL string, confirmURL st
 	if err != nil {
 		return err
 	}
-	server, method, err := dtmdriver.GetDriver().ParseServerMethod(tryURL)
-	if err != nil {
-		return err
-	}
-	ctx := dtmgimp.TransInfo2Ctx(t.Gid, t.TransType, branchID, "try", t.Dtm)
-	ctx = metadata.AppendToOutgoingContext(ctx, dtmgimp.Map2Kvs(t.BranchHeaders)...)
-	return dtmgimp.MustGetGrpcConn(server, false).Invoke(ctx, method, busiMsg, reply)
+	return dtmgimp.InvokeBranch(&t.TransBase, false, busiMsg, tryURL, reply, branchID, "try")
 }

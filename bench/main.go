@@ -34,13 +34,13 @@ func main() {
 	logger.Infof("starting bench server")
 	config.MustLoadConfig("")
 	logger.InitLog(conf.LogLevel)
-	if busi.BusiConf.Driver != "" {
-		dtmcli.SetCurrentDBType(busi.BusiConf.Driver)
-		svr.PrepareBenchDB()
-	}
 	registry.WaitStoreUp()
 	dtmsvr.PopulateDB(false)
 	if os.Args[1] == "db" {
+		if busi.BusiConf.Driver == "mysql" {
+			dtmcli.SetCurrentDBType(busi.BusiConf.Driver)
+			svr.PrepareBenchDB()
+		}
 		busi.PopulateDB(false)
 	} else if os.Args[1] == "redis" || os.Args[1] == "boltdb" {
 

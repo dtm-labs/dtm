@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
+	"os"
 	"strings"
 	sync "sync"
 	"time"
@@ -79,8 +80,8 @@ func SetGrpcHeaderForHeadersYes(ctx context.Context, method string, req, reply i
 	return invoker(ctx, method, req, reply, cc, opts...)
 }
 
-// SetHttpHeaderForHeadersYes interceptor to set head for HeadersYes
-func SetHttpHeaderForHeadersYes(c *resty.Client, r *resty.Request) error {
+// SetHTTPHeaderForHeadersYes interceptor to set head for HeadersYes
+func SetHTTPHeaderForHeadersYes(c *resty.Client, r *resty.Request) error {
 	if b, ok := r.Body.(*dtmcli.Saga); ok && strings.HasSuffix(b.Gid, "HeadersYes") {
 		logger.Debugf("set test_header for url: %s", r.URL)
 		r.SetHeader("test_header", "yes")
@@ -121,11 +122,12 @@ var (
 	once sync.Once
 )
 
+// RedisGet 1
 func RedisGet() *redis.Client {
 	once.Do(func() {
 		logger.Debugf("connecting to client redis")
 		rdb = redis.NewClient(&redis.Options{
-			Addr:     "localhost:6379",
+			Addr:     dtmimp.OrString(os.Getenv("BUSI_REDIS"), "localhost:6379"),
 			Username: "root",
 			Password: "",
 		})
@@ -133,10 +135,11 @@ func RedisGet() *redis.Client {
 	return rdb
 }
 
+// SetRedisBothAccount 1
 func SetRedisBothAccount(accountA int, accountB int) {
 	rd := RedisGet()
-	_, err := rd.Set(rd.Context(), getRedisAccountKey(TransOutUID), accountA, 0).Result()
+	_, err := rd.Set(rd.Context(), GetRedisAccountKey(TransOutUID), accountA, 0).Result()
 	dtmimp.E2P(err)
-	_, err = rd.Set(rd.Context(), getRedisAccountKey(TransInUID), accountB, 0).Result()
+	_, err = rd.Set(rd.Context(), GetRedisAccountKey(TransInUID), accountB, 0).Result()
 	dtmimp.E2P(err)
 }

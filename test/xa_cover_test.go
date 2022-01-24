@@ -20,15 +20,14 @@ func TestXaCoverDBError(t *testing.T) {
 		getXc().Conf.Driver = "no-driver"
 		_, err = xa.CallBranch(req, busi.Busi+"/TransInXa")
 		assert.Error(t, err)
-		getXc().Conf.Driver = oldDriver // make abort succeed
 		return nil, err
 	})
 	assert.Error(t, err)
-	getXc().Conf.Driver = "no-driver" // make xa rollback failed
 	waitTransProcessed(gid)
 	getXc().Conf.Driver = oldDriver
-	cronTransOnceForwardNow(500) // rollback succeeded here
+	cronTransOnceForwardNow(t, gid, 500) // rollback succeeded here
 	assert.Equal(t, StatusFailed, getTransStatus(gid))
+	assert.Equal(t, []string{StatusSucceed, StatusPrepared}, getBranchesStatus(gid))
 }
 
 func TestXaCoverDTMError(t *testing.T) {

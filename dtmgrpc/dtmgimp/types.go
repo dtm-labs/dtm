@@ -13,7 +13,10 @@ import (
 
 	"github.com/dtm-labs/dtm/dtmcli/dtmimp"
 	"github.com/dtm-labs/dtm/dtmcli/logger"
+	"github.com/dtm-labs/dtmdriver"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/metadata"
+	"google.golang.org/protobuf/proto"
 )
 
 // GrpcServerLog 打印grpc服务端的日志
@@ -45,4 +48,15 @@ func GrpcClientLog(ctx context.Context, method string, req, reply interface{}, c
 		logger.Debugf("%s", res)
 	}
 	return err
+}
+
+// InvokeBranch invoke a url for trans
+func InvokeBranch(t *dtmimp.TransBase, isRaw bool, msg proto.Message, url string, reply interface{}, branchID string, op string) error {
+	server, method, err := dtmdriver.GetDriver().ParseServerMethod(url)
+	if err != nil {
+		return err
+	}
+	ctx := TransInfo2Ctx(t.Gid, t.TransType, branchID, op, t.Dtm)
+	ctx = metadata.AppendToOutgoingContext(ctx, Map2Kvs(t.BranchHeaders)...)
+	return MustGetGrpcConn(server, isRaw).Invoke(ctx, method, msg, reply)
 }

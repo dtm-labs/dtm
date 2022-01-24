@@ -106,8 +106,8 @@ func TransRegisterBranch(tb *TransBase, added map[string]string, operation strin
 	return TransCallDtm(tb, m, operation)
 }
 
-// TransRequestBranch TransBAse request branch result
-func TransRequestBranch(t *TransBase, body interface{}, branchID string, op string, url string) (*resty.Response, error) {
+// TransRequestBranch TransBase request branch result
+func TransRequestBranch(t *TransBase, method string, body interface{}, branchID string, op string, url string) (*resty.Response, error) {
 	resp, err := RestyClient.R().
 		SetBody(body).
 		SetQueryParams(map[string]string{
@@ -118,7 +118,7 @@ func TransRequestBranch(t *TransBase, body interface{}, branchID string, op stri
 			"op":         op,
 		}).
 		SetHeaders(t.BranchHeaders).
-		Post(url)
+		Execute(method, url)
 	if err == nil {
 		err = RespAsErrorCompatible(resp)
 	}

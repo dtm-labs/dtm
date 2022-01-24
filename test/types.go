@@ -38,12 +38,12 @@ func waitTransProcessed(gid string) {
 	}
 }
 
-func cronTransOnce() string {
-	gid := dtmsvr.CronTransOnce()
+func cronTransOnce(t *testing.T, gid string) {
+	gid2 := dtmsvr.CronTransOnce()
+	assert.Equal(t, gid, gid2)
 	if dtmsvr.TransProcessedTestChan != nil && gid != "" {
 		waitTransProcessed(gid)
 	}
-	return gid
 }
 
 var e2p = dtmimp.E2P
@@ -54,20 +54,18 @@ type TransGlobal = dtmsvr.TransGlobal
 // TransBranch alias
 type TransBranch = dtmsvr.TransBranch
 
-func cronTransOnceForwardNow(seconds int) string {
+func cronTransOnceForwardNow(t *testing.T, gid string, seconds int) {
 	old := dtmsvr.NowForwardDuration
 	dtmsvr.NowForwardDuration = time.Duration(seconds) * time.Second
-	gid := cronTransOnce()
+	cronTransOnce(t, gid)
 	dtmsvr.NowForwardDuration = old
-	return gid
 }
 
-func cronTransOnceForwardCron(seconds int) string {
+func cronTransOnceForwardCron(t *testing.T, gid string, seconds int) {
 	old := dtmsvr.CronForwardDuration
 	dtmsvr.CronForwardDuration = time.Duration(seconds) * time.Second
-	gid := cronTransOnce()
+	cronTransOnce(t, gid)
 	dtmsvr.CronForwardDuration = old
-	return gid
 }
 
 const (
@@ -84,21 +82,21 @@ const (
 )
 
 func getBeforeBalances(store string) []int {
-	b1 := busi.GetBalanceByUid(busi.TransOutUID, store)
-	b2 := busi.GetBalanceByUid(busi.TransInUID, store)
+	b1 := busi.GetBalanceByUID(busi.TransOutUID, store)
+	b2 := busi.GetBalanceByUID(busi.TransInUID, store)
 	return []int{b1, b2}
 }
 
 func assertSameBalance(t *testing.T, before []int, store string) {
-	b1 := busi.GetBalanceByUid(busi.TransOutUID, store)
-	b2 := busi.GetBalanceByUid(busi.TransInUID, store)
+	b1 := busi.GetBalanceByUID(busi.TransOutUID, store)
+	b2 := busi.GetBalanceByUID(busi.TransInUID, store)
 	assert.Equal(t, before[0], b1)
 	assert.Equal(t, before[1], b2)
 }
 
 func assertNotSameBalance(t *testing.T, before []int, store string) {
-	b1 := busi.GetBalanceByUid(busi.TransOutUID, store)
-	b2 := busi.GetBalanceByUid(busi.TransInUID, store)
+	b1 := busi.GetBalanceByUID(busi.TransOutUID, store)
+	b2 := busi.GetBalanceByUID(busi.TransInUID, store)
 	assert.NotEqual(t, before[0], b1)
 	assert.Equal(t, before[0]+before[1], b1+b2)
 }

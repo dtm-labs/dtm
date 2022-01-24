@@ -35,14 +35,17 @@ type setupFunc func(*gin.Engine)
 var setupFuncs = map[string]setupFunc{}
 
 // Busi busi service url prefix
-var Busi string = fmt.Sprintf("http://localhost:%d%s", BusiPort, BusiAPI)
+var Busi = fmt.Sprintf("http://localhost:%d%s", BusiPort, BusiAPI)
 
-var XaClient *dtmcli.XaClient = nil
+// XaClient 1
+var XaClient *dtmcli.XaClient
 
+// SleepCancelHandler 1
 type SleepCancelHandler func(c *gin.Context) interface{}
 
-var sleepCancelHandler SleepCancelHandler = nil
+var sleepCancelHandler SleepCancelHandler
 
+// SetSleepCancelHandler 1
 func SetSleepCancelHandler(handler SleepCancelHandler) {
 	sleepCancelHandler = handler
 }
@@ -74,8 +77,9 @@ func BaseAppStartup() *gin.Engine {
 		v(app)
 	}
 	logger.Debugf("Starting busi at: %d", BusiPort)
-	go app.Run(fmt.Sprintf(":%d", BusiPort))
-
+	go func() {
+		_ = app.Run(fmt.Sprintf(":%d", BusiPort))
+	}()
 	return app
 }
 
@@ -128,6 +132,11 @@ func BaseAddRoute(app *gin.Engine) {
 		db := dbGet().ToSQLDB()
 		return bb.QueryPrepared(db)
 	}))
+	app.GET(BusiAPI+"/RedisQueryPrepared", dtmutil.WrapHandler2(func(c *gin.Context) interface{} {
+		logger.Debugf("%s RedisQueryPrepared", c.Query("gid"))
+		bb := MustBarrierFromGin(c)
+		return bb.RedisQueryPrepared(RedisGet(), 86400)
+	}))
 	app.POST(BusiAPI+"/TransInXa", dtmutil.WrapHandler2(func(c *gin.Context) interface{} {
 		return XaClient.XaLocalTransaction(c.Request.URL.Query(), func(db *sql.DB, xa *dtmcli.Xa) error {
 			return SagaAdjustBalance(db, TransInUID, reqFrom(c).Amount, reqFrom(c).TransInResult)
@@ -154,7 +163,7 @@ func BaseAddRoute(app *gin.Engine) {
 			if reqFrom(c).TransOutResult == dtmcli.ResultFailure {
 				return dtmcli.ErrFailure
 			}
-			var dia gorm.Dialector = nil
+			var dia gorm.Dialector
 			if dtmcli.GetCurrentDBType() == dtmcli.DBTypeMysql {
 				dia = mysql.New(mysql.Config{Conn: db})
 			} else if dtmcli.GetCurrentDBType() == dtmcli.DBTypePostgres {

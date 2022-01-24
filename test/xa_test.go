@@ -89,7 +89,7 @@ func TestXaTimeout(t *testing.T) {
 	timeoutChan := make(chan int, 1)
 	err := getXc().XaGlobalTransaction(gid, func(xa *dtmcli.Xa) (*resty.Response, error) {
 		go func() {
-			cronTransOnceForwardNow(300)
+			cronTransOnceForwardNow(t, gid, 300)
 			timeoutChan <- 0
 		}()
 		<-timeoutChan
@@ -105,10 +105,10 @@ func TestXaNotTimeout(t *testing.T) {
 	timeoutChan := make(chan int, 1)
 	err := getXc().XaGlobalTransaction(gid, func(xa *dtmcli.Xa) (*resty.Response, error) {
 		go func() {
-			cronTransOnceForwardNow(0) // not timeout,
+			cronTransOnceForwardNow(t, gid, 0) // not timeout,
 			timeoutChan <- 0
 		}()
-		_ = <-timeoutChan
+		<-timeoutChan
 		req := busi.GenTransReq(30, false, false)
 		_, err := xa.CallBranch(req, busi.Busi+"/TransOutXa")
 		assert.Nil(t, err)
@@ -118,8 +118,7 @@ func TestXaNotTimeout(t *testing.T) {
 	assert.Nil(t, err)
 	waitTransProcessed(gid)
 	assert.Equal(t, StatusSubmitted, getTransStatus(gid))
-	g := cronTransOnce()
-	assert.Equal(t, gid, g)
+	cronTransOnce(t, gid)
 	assert.Equal(t, StatusSucceed, getTransStatus(gid))
 	assert.Equal(t, []string{StatusPrepared, StatusSucceed}, getBranchesStatus(gid))
 }

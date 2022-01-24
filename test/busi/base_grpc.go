@@ -27,13 +27,13 @@ import (
 )
 
 // BusiGrpc busi service grpc address
-var BusiGrpc string = fmt.Sprintf("localhost:%d", BusiGrpcPort)
+var BusiGrpc = fmt.Sprintf("localhost:%d", BusiGrpcPort)
 
 // DtmClient grpc client for dtm
-var DtmClient dtmgpb.DtmClient = nil
+var DtmClient dtmgpb.DtmClient
 
 // XaGrpcClient XA client connection
-var XaGrpcClient *dtmgrpc.XaGrpcClient = nil
+var XaGrpcClient *dtmgrpc.XaGrpcClient
 
 func init() {
 	setupFuncs["XaGrpcSetup"] = func(app *gin.Engine) {

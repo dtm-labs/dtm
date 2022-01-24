@@ -17,19 +17,20 @@ import (
 )
 
 func TestSagaOptionsRetryOngoing(t *testing.T) {
+	gid := dtmimp.GetFuncName()
 	saga := genSaga1(dtmimp.GetFuncName(), false, false)
 	saga.RetryInterval = 150 // CronForwardDuration is larger than RetryInterval
 	busi.MainSwitch.TransOutResult.SetOnce(dtmcli.ResultOngoing)
 	err := saga.Submit()
 	assert.Nil(t, err)
 	waitTransProcessed(saga.Gid)
-	g := cronTransOnce()
-	assert.Equal(t, saga.Gid, g)
+	cronTransOnce(t, gid)
 	assert.Equal(t, StatusSucceed, getTransStatus(saga.Gid))
 	assert.Equal(t, []string{StatusPrepared, StatusSucceed}, getBranchesStatus(saga.Gid))
 }
 
 func TestSagaOptionsRetryError(t *testing.T) {
+	gid := dtmimp.GetFuncName()
 	saga := genSaga1(dtmimp.GetFuncName(), false, false)
 	saga.RetryInterval = 150 // CronForwardDuration is less than 2*RetryInterval
 	busi.MainSwitch.TransOutResult.SetOnce("ERROR")
@@ -38,22 +39,21 @@ func TestSagaOptionsRetryError(t *testing.T) {
 	waitTransProcessed(saga.Gid)
 	assert.Equal(t, StatusSubmitted, getTransStatus(saga.Gid))
 	assert.Equal(t, []string{StatusPrepared, StatusPrepared}, getBranchesStatus(saga.Gid))
-	g := cronTransOnce()
-	assert.Equal(t, "", g)
-	g = cronTransOnceForwardCron(360)
-	assert.Equal(t, saga.Gid, g)
+	cronTransOnce(t, "")
+	cronTransOnceForwardCron(t, gid, 360)
 	assert.Equal(t, StatusSucceed, getTransStatus(saga.Gid))
 	assert.Equal(t, []string{StatusPrepared, StatusSucceed}, getBranchesStatus(saga.Gid))
 }
 
 func TestSagaOptionsTimeout(t *testing.T) {
+	gid := dtmimp.GetFuncName()
 	saga := genSaga(dtmimp.GetFuncName(), false, false)
 	saga.TimeoutToFail = 1800
 	busi.MainSwitch.TransOutResult.SetOnce(dtmcli.ResultOngoing)
 	saga.Submit()
 	waitTransProcessed(saga.Gid)
 	assert.Equal(t, StatusSubmitted, getTransStatus(saga.Gid))
-	cronTransOnceForwardNow(3600)
+	cronTransOnceForwardNow(t, gid, 3600)
 	assert.Equal(t, StatusFailed, getTransStatus(saga.Gid))
 }
 
@@ -68,6 +68,7 @@ func TestSagaOptionsNormalWait(t *testing.T) {
 }
 
 func TestSagaOptionsCommittedOngoingWait(t *testing.T) {
+	gid := dtmimp.GetFuncName()
 	saga := genSaga(dtmimp.GetFuncName(), false, false)
 	busi.MainSwitch.TransOutResult.SetOnce(dtmcli.ResultOngoing)
 	saga.WaitResult = true
@@ -76,8 +77,7 @@ func TestSagaOptionsCommittedOngoingWait(t *testing.T) {
 	assert.Equal(t, []string{StatusPrepared, StatusPrepared, StatusPrepared, StatusPrepared}, getBranchesStatus(saga.Gid))
 	assert.Equal(t, StatusSubmitted, getTransStatus(saga.Gid))
 	waitTransProcessed(saga.Gid)
-	g := cronTransOnce()
-	assert.Equal(t, saga.Gid, g)
+	cronTransOnce(t, gid)
 	assert.Equal(t, []string{StatusPrepared, StatusSucceed, StatusPrepared, StatusSucceed}, getBranchesStatus(saga.Gid))
 	assert.Equal(t, StatusSucceed, getTransStatus(saga.Gid))
 }
@@ -113,8 +113,7 @@ func TestSagaCronPassthroughHeadersYes(t *testing.T) {
 	assert.Nil(t, err)
 	waitTransProcessed(gidYes)
 	assert.Equal(t, StatusSubmitted, getTransStatus(gidYes))
-	g := cronTransOnce()
-	assert.Equal(t, gidYes, g)
+	cronTransOnce(t, gidYes)
 	assert.Equal(t, StatusSucceed, getTransStatus(gidYes))
 }
 
@@ -153,7 +152,6 @@ func TestSagaHeadersYes1(t *testing.T) {
 	assert.Nil(t, err)
 	waitTransProcessed(gidYes)
 	assert.Equal(t, StatusSubmitted, getTransStatus(gidYes))
-	g := cronTransOnce()
-	assert.Equal(t, gidYes, g)
+	cronTransOnce(t, gidYes)
 	assert.Equal(t, StatusSucceed, getTransStatus(gidYes))
 }

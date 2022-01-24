@@ -26,30 +26,31 @@ func TestMsgNormal(t *testing.T) {
 }
 
 func TestMsgTimeoutSuccess(t *testing.T) {
-	msg := genMsg(dtmimp.GetFuncName())
+	gid := dtmimp.GetFuncName()
+	msg := genMsg(gid)
 	msg.Prepare("")
 	assert.Equal(t, StatusPrepared, getTransStatus(msg.Gid))
 	busi.MainSwitch.QueryPreparedResult.SetOnce(dtmcli.ResultOngoing)
-	cronTransOnceForwardNow(180)
+	cronTransOnceForwardNow(t, gid, 180)
 	assert.Equal(t, StatusPrepared, getTransStatus(msg.Gid))
 	busi.MainSwitch.TransInResult.SetOnce(dtmcli.ResultOngoing)
-	cronTransOnceForwardNow(180)
+	cronTransOnceForwardNow(t, gid, 180)
 	assert.Equal(t, StatusSubmitted, getTransStatus(msg.Gid))
-	g := cronTransOnce()
-	assert.Equal(t, msg.Gid, g)
+	cronTransOnce(t, gid)
 	assert.Equal(t, []string{StatusSucceed, StatusSucceed}, getBranchesStatus(msg.Gid))
 	assert.Equal(t, StatusSucceed, getTransStatus(msg.Gid))
 }
 
 func TestMsgTimeoutFailed(t *testing.T) {
-	msg := genMsg(dtmimp.GetFuncName())
+	gid := dtmimp.GetFuncName()
+	msg := genMsg(gid)
 	msg.Prepare("")
 	assert.Equal(t, StatusPrepared, getTransStatus(msg.Gid))
 	busi.MainSwitch.QueryPreparedResult.SetOnce(dtmcli.ResultOngoing)
-	cronTransOnceForwardNow(360)
+	cronTransOnceForwardNow(t, gid, 360)
 	assert.Equal(t, StatusPrepared, getTransStatus(msg.Gid))
 	busi.MainSwitch.QueryPreparedResult.SetOnce(dtmcli.ResultFailure)
-	cronTransOnceForwardNow(180)
+	cronTransOnceForwardNow(t, gid, 180)
 	assert.Equal(t, []string{StatusPrepared, StatusPrepared}, getBranchesStatus(msg.Gid))
 	assert.Equal(t, StatusFailed, getTransStatus(msg.Gid))
 }

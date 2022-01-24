@@ -30,6 +30,21 @@ func DtmError2GrpcError(res interface{}) error {
 	return e
 }
 
+// GrpcError2DtmError translate grpc error to dtm error
+func GrpcError2DtmError(err error) error {
+	st, ok := status.FromError(err)
+	if ok && st.Code() == codes.Aborted {
+		// version lower then v1.10, will specify Ongoing in code Aborted
+		if st.Message() == dtmcli.ResultOngoing {
+			return dtmcli.ErrOngoing
+		}
+		return dtmcli.ErrFailure
+	} else if ok && st.Code() == codes.FailedPrecondition {
+		return dtmcli.ErrOngoing
+	}
+	return err
+}
+
 // MustGenGid must gen a gid from grpcServer
 func MustGenGid(grpcServer string) string {
 	dc := dtmgimp.MustGetDtmClient(grpcServer)

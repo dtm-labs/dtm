@@ -7,6 +7,7 @@
 package svr
 
 import (
+	"context"
 	"database/sql"
 	"fmt"
 	"os"
@@ -132,6 +133,8 @@ func qsAdjustBalance(uid int, amount int, c *gin.Context) error { // nolint: unp
 	return nil
 }
 
+var stockKey = "{a}--stock-1"
+
 func benchAddRoute(app *gin.Engine) {
 	app.POST(benchAPI+"/TransIn", dtmutil.WrapHandler2(func(c *gin.Context) interface{} {
 		return qsAdjustBalance(dtmimp.MustAtoi(c.Query("uid")), 1, c)
@@ -185,5 +188,20 @@ func benchAddRoute(app *gin.Engine) {
 			Add("", "", req)
 		saga.WaitResult = true
 		return saga.Submit()
+	}))
+	app.Any(benchAPI+"/benchFlashSalesReset", dtmutil.WrapHandler2(func(c *gin.Context) interface{} {
+		_, err := busi.RedisGet().FlushAll(context.Background()).Result()
+		logger.FatalIfError(err)
+		_, err = busi.RedisGet().Set(context.Background(), stockKey, "0", 86400*time.Second).Result()
+		logger.FatalIfError(err)
+		return nil
+	}))
+	app.Any(benchAPI+"/benchFlashSales", dtmutil.WrapHandler2(func(c *gin.Context) interface{} {
+		gid := "{a}-" + shortuuid.New()
+		msg := dtmcli.NewMsg(dtmutil.DefaultHTTPServer, gid).
+			Add("", nil)
+		return msg.DoAndSubmit("", func(bb *dtmcli.BranchBarrier) error {
+			return bb.RedisCheckAdjustAmount(busi.RedisGet(), stockKey, -1, 86400)
+		})
 	}))
 }

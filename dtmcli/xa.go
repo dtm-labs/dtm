@@ -101,5 +101,5 @@ func (xc *XaClient) XaGlobalTransaction2(gid string, custom func(*Xa), xaFunc Xa
 // CallBranch call a xa branch
 func (x *Xa) CallBranch(body interface{}, url string) (*resty.Response, error) {
 	branchID := x.NewSubBranchID()
-	return dtmimp.TransRequestBranch(&x.TransBase, body, branchID, BranchAction, url)
+	return dtmimp.TransRequestBranch(&x.TransBase, "POST", body, branchID, BranchAction, url)
 }

@@ -43,8 +43,7 @@ func TestTccRollback(t *testing.T) {
 	assert.Error(t, err)
 	waitTransProcessed(gid)
 	assert.Equal(t, StatusAborting, getTransStatus(gid))
-	g := cronTransOnce()
-	assert.Equal(t, gid, g)
+	cronTransOnce(t, gid)
 	assert.Equal(t, StatusFailed, getTransStatus(gid))
 	assert.Equal(t, []string{StatusSucceed, StatusPrepared, StatusSucceed, StatusPrepared}, getBranchesStatus(gid))
 }
@@ -58,7 +57,7 @@ func TestTccTimeout(t *testing.T) {
 		_, err := tcc.CallBranch(req, Busi+"/TransOut", Busi+"/TransOutConfirm", Busi+"/TransOutRevert")
 		assert.Nil(t, err)
 		go func() {
-			cronTransOnceForwardNow(300)
+			cronTransOnceForwardNow(t, gid, 300)
 			timeoutChan <- 0
 		}()
 		<-timeoutChan
