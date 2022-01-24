@@ -37,6 +37,10 @@ type BusiClient interface {
 	TransOutRevertBSaga(ctx context.Context, in *BusiReq, opts ...grpc.CallOption) (*emptypb.Empty, error)
 	TransOutHeaderYes(ctx context.Context, in *BusiReq, opts ...grpc.CallOption) (*emptypb.Empty, error)
 	TransOutHeaderNo(ctx context.Context, in *BusiReq, opts ...grpc.CallOption) (*emptypb.Empty, error)
+	TransInRedis(ctx context.Context, in *BusiReq, opts ...grpc.CallOption) (*emptypb.Empty, error)
+	TransOutRedis(ctx context.Context, in *BusiReq, opts ...grpc.CallOption) (*emptypb.Empty, error)
+	TransInRevertRedis(ctx context.Context, in *BusiReq, opts ...grpc.CallOption) (*emptypb.Empty, error)
+	TransOutRevertRedis(ctx context.Context, in *BusiReq, opts ...grpc.CallOption) (*emptypb.Empty, error)
 	QueryPrepared(ctx context.Context, in *BusiReq, opts ...grpc.CallOption) (*BusiReply, error)
 	QueryPreparedB(ctx context.Context, in *BusiReq, opts ...grpc.CallOption) (*emptypb.Empty, error)
 	QueryPreparedRedis(ctx context.Context, in *BusiReq, opts ...grpc.CallOption) (*emptypb.Empty, error)
@@ -212,6 +216,42 @@ func (c *busiClient) TransOutHeaderNo(ctx context.Context, in *BusiReq, opts ...
 	return out, nil
 }
 
+func (c *busiClient) TransInRedis(ctx context.Context, in *BusiReq, opts ...grpc.CallOption) (*emptypb.Empty, error) {
+	out := new(emptypb.Empty)
+	err := c.cc.Invoke(ctx, "/busi.Busi/TransInRedis", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *busiClient) TransOutRedis(ctx context.Context, in *BusiReq, opts ...grpc.CallOption) (*emptypb.Empty, error) {
+	out := new(emptypb.Empty)
+	err := c.cc.Invoke(ctx, "/busi.Busi/TransOutRedis", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *busiClient) TransInRevertRedis(ctx context.Context, in *BusiReq, opts ...grpc.CallOption) (*emptypb.Empty, error) {
+	out := new(emptypb.Empty)
+	err := c.cc.Invoke(ctx, "/busi.Busi/TransInRevertRedis", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *busiClient) TransOutRevertRedis(ctx context.Context, in *BusiReq, opts ...grpc.CallOption) (*emptypb.Empty, error) {
+	out := new(emptypb.Empty)
+	err := c.cc.Invoke(ctx, "/busi.Busi/TransOutRevertRedis", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *busiClient) QueryPrepared(ctx context.Context, in *BusiReq, opts ...grpc.CallOption) (*BusiReply, error) {
 	out := new(BusiReply)
 	err := c.cc.Invoke(ctx, "/busi.Busi/QueryPrepared", in, out, opts...)
@@ -261,6 +301,10 @@ type BusiServer interface {
 	TransOutRevertBSaga(context.Context, *BusiReq) (*emptypb.Empty, error)
 	TransOutHeaderYes(context.Context, *BusiReq) (*emptypb.Empty, error)
 	TransOutHeaderNo(context.Context, *BusiReq) (*emptypb.Empty, error)
+	TransInRedis(context.Context, *BusiReq) (*emptypb.Empty, error)
+	TransOutRedis(context.Context, *BusiReq) (*emptypb.Empty, error)
+	TransInRevertRedis(context.Context, *BusiReq) (*emptypb.Empty, error)
+	TransOutRevertRedis(context.Context, *BusiReq) (*emptypb.Empty, error)
 	QueryPrepared(context.Context, *BusiReq) (*BusiReply, error)
 	QueryPreparedB(context.Context, *BusiReq) (*emptypb.Empty, error)
 	QueryPreparedRedis(context.Context, *BusiReq) (*emptypb.Empty, error)
@@ -324,6 +368,18 @@ func (UnimplementedBusiServer) TransOutHeaderYes(context.Context, *BusiReq) (*em
 }
 func (UnimplementedBusiServer) TransOutHeaderNo(context.Context, *BusiReq) (*emptypb.Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method TransOutHeaderNo not implemented")
+}
+func (UnimplementedBusiServer) TransInRedis(context.Context, *BusiReq) (*emptypb.Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method TransInRedis not implemented")
+}
+func (UnimplementedBusiServer) TransOutRedis(context.Context, *BusiReq) (*emptypb.Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method TransOutRedis not implemented")
+}
+func (UnimplementedBusiServer) TransInRevertRedis(context.Context, *BusiReq) (*emptypb.Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method TransInRevertRedis not implemented")
+}
+func (UnimplementedBusiServer) TransOutRevertRedis(context.Context, *BusiReq) (*emptypb.Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method TransOutRevertRedis not implemented")
 }
 func (UnimplementedBusiServer) QueryPrepared(context.Context, *BusiReq) (*BusiReply, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method QueryPrepared not implemented")
@@ -671,6 +727,78 @@ func _Busi_TransOutHeaderNo_Handler(srv interface{}, ctx context.Context, dec fu
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Busi_TransInRedis_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(BusiReq)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BusiServer).TransInRedis(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/busi.Busi/TransInRedis",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BusiServer).TransInRedis(ctx, req.(*BusiReq))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Busi_TransOutRedis_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(BusiReq)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BusiServer).TransOutRedis(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/busi.Busi/TransOutRedis",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BusiServer).TransOutRedis(ctx, req.(*BusiReq))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Busi_TransInRevertRedis_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(BusiReq)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BusiServer).TransInRevertRedis(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/busi.Busi/TransInRevertRedis",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BusiServer).TransInRevertRedis(ctx, req.(*BusiReq))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Busi_TransOutRevertRedis_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(BusiReq)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BusiServer).TransOutRevertRedis(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/busi.Busi/TransOutRevertRedis",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BusiServer).TransOutRevertRedis(ctx, req.(*BusiReq))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _Busi_QueryPrepared_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(BusiReq)
 	if err := dec(in); err != nil {
@@ -803,6 +931,22 @@ var Busi_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "TransOutHeaderNo",
 			Handler:    _Busi_TransOutHeaderNo_Handler,
+		},
+		{
+			MethodName: "TransInRedis",
+			Handler:    _Busi_TransInRedis_Handler,
+		},
+		{
+			MethodName: "TransOutRedis",
+			Handler:    _Busi_TransOutRedis_Handler,
+		},
+		{
+			MethodName: "TransInRevertRedis",
+			Handler:    _Busi_TransInRevertRedis_Handler,
+		},
+		{
+			MethodName: "TransOutRevertRedis",
+			Handler:    _Busi_TransOutRevertRedis_Handler,
 		},
 		{
 			MethodName: "QueryPrepared",
