@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
+	"os"
 	"strings"
 	sync "sync"
 	"time"
@@ -126,7 +127,7 @@ func RedisGet() *redis.Client {
 	once.Do(func() {
 		logger.Debugf("connecting to client redis")
 		rdb = redis.NewClient(&redis.Options{
-			Addr:     "localhost:6379",
+			Addr:     dtmimp.OrString(os.Getenv("BUSI_REDIS"), "localhost:6379"),
 			Username: "root",
 			Password: "",
 		})
