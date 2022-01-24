@@ -137,8 +137,8 @@ func RedisGet() *redis.Client {
 // SetRedisBothAccount 1
 func SetRedisBothAccount(accountA int, accountB int) {
 	rd := RedisGet()
-	_, err := rd.Set(rd.Context(), getRedisAccountKey(TransOutUID), accountA, 0).Result()
+	_, err := rd.Set(rd.Context(), GetRedisAccountKey(TransOutUID), accountA, 0).Result()
 	dtmimp.E2P(err)
-	_, err = rd.Set(rd.Context(), getRedisAccountKey(TransInUID), accountB, 0).Result()
+	_, err = rd.Set(rd.Context(), GetRedisAccountKey(TransInUID), accountB, 0).Result()
 	dtmimp.E2P(err)
 }

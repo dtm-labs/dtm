@@ -39,7 +39,7 @@ func (*UserAccount) TableName() string {
 func GetBalanceByUID(uid int, store string) int {
 	if store == "redis" {
 		rd := RedisGet()
-		accA, err := rd.Get(rd.Context(), getRedisAccountKey(uid)).Result()
+		accA, err := rd.Get(rd.Context(), GetRedisAccountKey(uid)).Result()
 		dtmimp.E2P(err)
 		return dtmimp.MustAtoi(accA)
 	}
@@ -131,6 +131,6 @@ type mainSwitchType struct {
 // MainSwitch controls busi success or fail
 var MainSwitch mainSwitchType
 
-func getRedisAccountKey(uid int) string {
+func GetRedisAccountKey(uid int) string {
 	return fmt.Sprintf("{a}-redis-account-key-%d", uid)
 }

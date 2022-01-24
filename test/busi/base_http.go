@@ -132,6 +132,11 @@ func BaseAddRoute(app *gin.Engine) {
 		db := dbGet().ToSQLDB()
 		return bb.QueryPrepared(db)
 	}))
+	app.GET(BusiAPI+"/RedisQueryPrepared", dtmutil.WrapHandler2(func(c *gin.Context) interface{} {
+		logger.Debugf("%s RedisQueryPrepared", c.Query("gid"))
+		bb := MustBarrierFromGin(c)
+		return bb.RedisQueryPrepared(RedisGet(), 86400)
+	}))
 	app.POST(BusiAPI+"/TransInXa", dtmutil.WrapHandler2(func(c *gin.Context) interface{} {
 		return XaClient.XaLocalTransaction(c.Request.URL.Query(), func(db *sql.DB, xa *dtmcli.Xa) error {
 			return SagaAdjustBalance(db, TransInUID, reqFrom(c).Amount, reqFrom(c).TransInResult)
