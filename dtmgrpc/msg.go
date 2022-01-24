@@ -44,31 +44,35 @@ func (s *MsgGrpc) Submit() error {
 	return dtmgimp.DtmGrpcCall(&s.TransBase, "Submit")
 }
 
-// PrepareAndSubmit one method for the entire prepare->busi->submit
-func (s *MsgGrpc) PrepareAndSubmit(queryPrepared string, db *sql.DB, busiCall dtmcli.BarrierBusiFunc) error {
-	return s.Do(queryPrepared, func(bb *dtmcli.BranchBarrier) error {
+// DoAndSubmitDB short method for Do on db type. please see Do
+func (s *MsgGrpc) DoAndSubmitDB(queryPrepared string, db *sql.DB, busiCall dtmcli.BarrierBusiFunc) error {
+	return s.DoAndSubmit(queryPrepared, func(bb *dtmcli.BranchBarrier) error {
 		return bb.CallWithDB(db, busiCall)
 	})
 }
 
-// Do one method for the entire prepare->busi->submit
-func (s *MsgGrpc) Do(queryPrepared string, busiCall func(bb *dtmcli.BranchBarrier) error) error {
+// DoAndSubmit one method for the entire prepare->busi->submit
+// if busiCall return ErrFailure, then abort is called directly
+// if busiCall return not nil error other than ErrFailure, then DoAndSubmit will call queryPrepared to get the result
+func (s *MsgGrpc) DoAndSubmit(queryPrepared string, busiCall func(bb *dtmcli.BranchBarrier) error) error {
 	bb, err := dtmcli.BarrierFrom(s.TransType, s.Gid, "00", "msg") // a special barrier for msg QueryPrepared
 	if err == nil {
 		err = s.Prepare(queryPrepared)
 	}
 	if err == nil {
-		err = busiCall(bb)
-		if err != nil && !errors.Is(err, dtmcli.ErrFailure) {
+		errb := busiCall(bb)
+		if errb != nil && !errors.Is(err, dtmcli.ErrFailure) {
 			err = dtmgimp.InvokeBranch(&s.TransBase, true, nil, queryPrepared, &[]byte{}, bb.BranchID, bb.Op)
 			err = GrpcError2DtmError(err)
 		}
-		if errors.Is(err, dtmcli.ErrFailure) {
+		if errors.Is(err, dtmcli.ErrFailure) || errors.Is(errb, dtmcli.ErrFailure) {
 			_ = dtmgimp.DtmGrpcCall(&s.TransBase, "Abort")
+		} else if err == nil {
+			err = s.Submit()
 		}
-	}
-	if err == nil {
-		err = s.Submit()
+		if errb != nil {
+			return errb
+		}
 	}
 	return err
 }

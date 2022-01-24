@@ -30,6 +30,7 @@ func DtmError2GrpcError(res interface{}) error {
 	return e
 }
 
+// GrpcError2DtmError translate grpc error to dtm error
 func GrpcError2DtmError(err error) error {
 	st, ok := status.FromError(err)
 	if ok && st.Code() == codes.Aborted {

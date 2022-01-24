@@ -50,7 +50,7 @@ func GrpcClientLog(ctx context.Context, method string, req, reply interface{}, c
 	return err
 }
 
-// InvokeURL invoke a url for trans
+// InvokeBranch invoke a url for trans
 func InvokeBranch(t *dtmimp.TransBase, isRaw bool, msg proto.Message, url string, reply interface{}, branchID string, op string) error {
 	server, method, err := dtmdriver.GetDriver().ParseServerMethod(url)
 	if err != nil {
