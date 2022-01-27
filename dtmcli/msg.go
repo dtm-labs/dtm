@@ -41,7 +41,7 @@ func (s *Msg) Submit() error {
 	return dtmimp.TransCallDtm(&s.TransBase, s, "submit")
 }
 
-// DoAndSubmitDB short method for Do on db type. please see Do
+// DoAndSubmitDB short method for Do on db type. please see DoAndSubmit
 func (s *Msg) DoAndSubmitDB(queryPrepared string, db *sql.DB, busiCall BarrierBusiFunc) error {
 	return s.DoAndSubmit(queryPrepared, func(bb *BranchBarrier) error {
 		return bb.CallWithDB(db, busiCall)
@@ -49,6 +49,7 @@ func (s *Msg) DoAndSubmitDB(queryPrepared string, db *sql.DB, busiCall BarrierBu
 }
 
 // DoAndSubmit one method for the entire prepare->busi->submit
+// the error returned by busiCall will be returned
 // if busiCall return ErrFailure, then abort is called directly
 // if busiCall return not nil error other than ErrFailure, then DoAndSubmit will call queryPrepared to get the result
 func (s *Msg) DoAndSubmit(queryPrepared string, busiCall func(bb *BranchBarrier) error) error {
