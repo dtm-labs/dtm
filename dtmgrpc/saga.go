@@ -43,5 +43,6 @@ func (s *SagaGrpc) EnableConcurrent() *SagaGrpc {
 
 // Submit submit the saga trans
 func (s *SagaGrpc) Submit() error {
+	s.Saga.AddConcurrentContext()
 	return dtmgimp.DtmGrpcCall(&s.Saga.TransBase, "Submit")
 }
