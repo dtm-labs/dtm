@@ -88,7 +88,7 @@ func init() {
 			if req.TransOutResult != "" {
 				return dtmcli.String2DtmError(req.TransOutResult)
 			}
-			if req.Store == "redis" {
+			if req.Store == Redis {
 				return MustBarrierFromGin(c).RedisCheckAdjustAmount(RedisGet(), GetRedisAccountKey(TransOutUID), req.Amount, 7*86400)
 			}
 
@@ -97,7 +97,7 @@ func init() {
 			})
 		}))
 		app.POST(BusiAPI+"/TccBTransOutConfirm", dtmutil.WrapHandler2(func(c *gin.Context) interface{} {
-			if reqFrom(c).Store == "redis" {
+			if reqFrom(c).Store == Redis {
 				return nil
 			}
 			return MustBarrierFromGin(c).Call(txGet(), func(tx *sql.Tx) error {
@@ -111,7 +111,7 @@ func init() {
 // TccBarrierTransOutCancel will be use in test
 func TccBarrierTransOutCancel(c *gin.Context) interface{} {
 	req := reqFrom(c)
-	if req.Store == "redis" {
+	if req.Store == Redis {
 		return MustBarrierFromGin(c).RedisCheckAdjustAmount(RedisGet(), GetRedisAccountKey(TransOutUID), -req.Amount, 7*86400)
 	}
 	return MustBarrierFromGin(c).Call(txGet(), func(tx *sql.Tx) error {

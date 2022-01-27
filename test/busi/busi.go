@@ -19,6 +19,9 @@ const TransOutUID = 1
 // TransInUID 2
 const TransInUID = 2
 
+// Redis 1
+const Redis = "redis"
+
 func handleGrpcBusiness(in *BusiReq, result1 string, result2 string, busi string) error {
 	res := dtmimp.OrString(result1, result2, dtmcli.ResultSuccess)
 	logger.Debugf("grpc busi %s %v %s %s result: %s", busi, in, result1, result2, res)
