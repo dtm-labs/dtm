@@ -12,7 +12,6 @@ import (
 
 	"github.com/dtm-labs/dtm/dtmcli"
 	"github.com/dtm-labs/dtm/dtmgrpc"
-	"github.com/dtm-labs/dtm/dtmsvr/config"
 	"github.com/dtm-labs/dtm/dtmutil"
 	"github.com/gin-gonic/gin"
 	emptypb "google.golang.org/protobuf/types/known/emptypb"
