@@ -10,6 +10,5 @@ RUN CGO_ENABLED=0 GOOS=$TARGETOS GOARCH=$TARGETARCH go build -ldflags="-s -w"
 
 FROM --platform=$TARGETPLATFORM alpine
 COPY --from=builder /app/dtm/dtm /app/dtm/
-ENV IS_DOCKER=1
 WORKDIR /app/dtm
 ENTRYPOINT ["/app/dtm/dtm"]

@@ -81,14 +81,20 @@ func (bb *BranchBarrier) Call(tx *sql.Tx, busiCall BarrierBusiFunc) (rerr error)
 		BranchCompensate: BranchAction,
 	}[ti.Op]
 
-	originAffected, _ := insertBarrier(tx, ti.TransType, ti.Gid, ti.BranchID, originOp, bid, ti.Op)
+	originAffected, oerr := insertBarrier(tx, ti.TransType, ti.Gid, ti.BranchID, originOp, bid, ti.Op)
 	currentAffected, rerr := insertBarrier(tx, ti.TransType, ti.Gid, ti.BranchID, ti.Op, bid, ti.Op)
 	logger.Debugf("originAffected: %d currentAffected: %d", originAffected, currentAffected)
-	if (ti.Op == BranchCancel || ti.Op == BranchCompensate) && originAffected > 0 || // 这个是空补偿
-		currentAffected == 0 { // 这个是重复请求或者悬挂
+	if rerr == nil {
+		rerr = oerr
+	}
+
+	if (ti.Op == BranchCancel || ti.Op == BranchCompensate) && originAffected > 0 || // null compensate
+		currentAffected == 0 { // repeated request or dangled request
 		return
 	}
-	rerr = busiCall(tx)
+	if rerr == nil {
+		rerr = busiCall(tx)
+	}
 	return
 }
 
