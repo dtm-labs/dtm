@@ -96,6 +96,7 @@ func TransFromDtmRequest(ctx context.Context, c *dtmgpb.DtmRequest) *TransGlobal
 		QueryPrepared: c.QueryPrepared,
 		Protocol:      "grpc",
 		BinPayloads:   c.BinPayloads,
+		CustomData:    c.CustomedData,
 		TransOptions: dtmcli.TransOptions{
 			WaitResult:         o.WaitResult,
 			TimeoutToFail:      o.TimeoutToFail,

@@ -43,8 +43,13 @@ func (s *Saga) EnableConcurrent() *Saga {
 
 // Submit submit the saga trans
 func (s *Saga) Submit() error {
+	s.AddConcurrentContext()
+	return dtmimp.TransCallDtm(&s.TransBase, s, "submit")
+}
+
+// AddConcurrentContext adds concurrent options to the request context
+func (s *Saga) AddConcurrentContext() {
 	if s.concurrent {
 		s.CustomData = dtmimp.MustMarshalString(map[string]interface{}{"orders": s.orders, "concurrent": s.concurrent})
 	}
-	return dtmimp.TransCallDtm(&s.TransBase, s, "submit")
 }
