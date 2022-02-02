@@ -219,3 +219,16 @@ func RespAsErrorCompatible(resp *resty.Response) error {
 	}
 	return nil
 }
+
+func DeferDo(rerr *error, success func() error, fail func() error) {
+	defer func() {
+		if x := recover(); x != nil {
+			_ = fail()
+			panic(x)
+		} else if *rerr != nil {
+			_ = fail()
+		} else {
+			*rerr = success()
+		}
+	}()
+}

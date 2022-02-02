@@ -64,17 +64,11 @@ func insertBarrier(tx DB, transType string, gid string, branchID string, op stri
 func (bb *BranchBarrier) Call(tx *sql.Tx, busiCall BarrierBusiFunc) (rerr error) {
 	bb.BarrierID = bb.BarrierID + 1
 	bid := fmt.Sprintf("%02d", bb.BarrierID)
-	defer func() {
-		// Logf("barrier call error is %v", rerr)
-		if x := recover(); x != nil {
-			_ = tx.Rollback()
-			panic(x)
-		} else if rerr != nil {
-			_ = tx.Rollback()
-		} else {
-			rerr = tx.Commit()
-		}
-	}()
+	defer dtmimp.DeferDo(&rerr, func() error {
+		return tx.Commit()
+	}, func() error {
+		return tx.Rollback()
+	})
 	ti := bb
 	originOp := map[string]string{
 		BranchCancel:     BranchTry,
