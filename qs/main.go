@@ -7,12 +7,9 @@
 package main
 
 import (
-	"github.com/dtm-labs/dtm/dtmcli/logger"
 	"github.com/dtm-labs/dtm/test/busi"
 )
 
 func main() {
-	busi.QsStartSvr()
-	gid := busi.QsFireRequest()
-	logger.Infof("transaction: %s succeed", gid)
+	busi.QsMain()
 }
