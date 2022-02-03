@@ -21,13 +21,20 @@ jobs:
           - /etc/timezone:/etc/timezone:ro
         ports:
           - 3306:3306
-      reids:
+      redis:
         image: 'redis'
         volumes:
           - /etc/localtime:/etc/localtime:ro
           - /etc/timezone:/etc/timezone:ro
         ports:
           - 6379:6379
+      mongo:
+        image: 'yedf/mongo-rs'
+        volumes:
+          - /etc/localtime:/etc/localtime:ro
+          - /etc/timezone:/etc/timezone:ro
+        ports:
+          - 27017:27017
     steps:
       - name: Set up Go 1.16
         uses: actions/setup-go@v2
