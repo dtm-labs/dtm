@@ -14,6 +14,7 @@ import (
 	"github.com/dtm-labs/dtm/dtmgrpc"
 	"github.com/dtm-labs/dtm/dtmutil"
 	"github.com/gin-gonic/gin"
+	"go.mongodb.org/mongo-driver/mongo"
 	emptypb "google.golang.org/protobuf/types/known/emptypb"
 )
 
@@ -83,21 +84,46 @@ func init() {
 		app.POST(BusiAPI+"/SagaRedisTransOutCom", dtmutil.WrapHandler2(func(c *gin.Context) interface{} {
 			return MustBarrierFromGin(c).RedisCheckAdjustAmount(RedisGet(), GetRedisAccountKey(TransOutUID), reqFrom(c).Amount, 7*86400)
 		}))
+		app.POST(BusiAPI+"/SagaMongoTransIn", dtmutil.WrapHandler2(func(c *gin.Context) interface{} {
+			return MustBarrierFromGin(c).MongoCall(MongoGet(), func(sc mongo.SessionContext) error {
+				return SagaMongoAdjustBalance(sc, sc.Client(), TransInUID, reqFrom(c).Amount, reqFrom(c).TransInResult)
+			})
+		}))
+		app.POST(BusiAPI+"/SagaMongoTransInCom", dtmutil.WrapHandler2(func(c *gin.Context) interface{} {
+			return MustBarrierFromGin(c).MongoCall(MongoGet(), func(sc mongo.SessionContext) error {
+				return SagaMongoAdjustBalance(sc, sc.Client(), TransInUID, -reqFrom(c).Amount, "")
+			})
+		}))
+		app.POST(BusiAPI+"/SagaMongoTransOut", dtmutil.WrapHandler2(func(c *gin.Context) interface{} {
+			return MustBarrierFromGin(c).MongoCall(MongoGet(), func(sc mongo.SessionContext) error {
+				return SagaMongoAdjustBalance(sc, sc.Client(), TransOutUID, -reqFrom(c).Amount, reqFrom(c).TransOutResult)
+			})
+		}))
+		app.POST(BusiAPI+"/SagaMongoTransOutCom", dtmutil.WrapHandler2(func(c *gin.Context) interface{} {
+			return MustBarrierFromGin(c).MongoCall(MongoGet(), func(sc mongo.SessionContext) error {
+				return SagaMongoAdjustBalance(sc, sc.Client(), TransOutUID, reqFrom(c).Amount, "")
+			})
+		}))
 		app.POST(BusiAPI+"/TccBTransOutTry", dtmutil.WrapHandler2(func(c *gin.Context) interface{} {
 			req := reqFrom(c)
 			if req.TransOutResult != "" {
 				return dtmcli.String2DtmError(req.TransOutResult)
 			}
+			bb := MustBarrierFromGin(c)
 			if req.Store == Redis {
-				return MustBarrierFromGin(c).RedisCheckAdjustAmount(RedisGet(), GetRedisAccountKey(TransOutUID), req.Amount, 7*86400)
+				return bb.RedisCheckAdjustAmount(RedisGet(), GetRedisAccountKey(TransOutUID), req.Amount, 7*86400)
+			} else if req.Store == Mongo {
+				return bb.MongoCall(MongoGet(), func(sc mongo.SessionContext) error {
+					return SagaMongoAdjustBalance(sc, sc.Client(), TransOutUID, -req.Amount, "")
+				})
 			}
 
-			return MustBarrierFromGin(c).Call(txGet(), func(tx *sql.Tx) error {
+			return bb.Call(txGet(), func(tx *sql.Tx) error {
 				return tccAdjustTrading(tx, TransOutUID, -req.Amount)
 			})
 		}))
 		app.POST(BusiAPI+"/TccBTransOutConfirm", dtmutil.WrapHandler2(func(c *gin.Context) interface{} {
-			if reqFrom(c).Store == Redis {
+			if reqFrom(c).Store == Redis || reqFrom(c).Store == Mongo {
 				return nil
 			}
 			return MustBarrierFromGin(c).Call(txGet(), func(tx *sql.Tx) error {
@@ -111,10 +137,16 @@ func init() {
 // TccBarrierTransOutCancel will be use in test
 func TccBarrierTransOutCancel(c *gin.Context) interface{} {
 	req := reqFrom(c)
+	bb := MustBarrierFromGin(c)
 	if req.Store == Redis {
-		return MustBarrierFromGin(c).RedisCheckAdjustAmount(RedisGet(), GetRedisAccountKey(TransOutUID), -req.Amount, 7*86400)
+		return bb.RedisCheckAdjustAmount(RedisGet(), GetRedisAccountKey(TransOutUID), -req.Amount, 7*86400)
 	}
-	return MustBarrierFromGin(c).Call(txGet(), func(tx *sql.Tx) error {
+	if req.Store == Mongo {
+		return bb.MongoCall(MongoGet(), func(sc mongo.SessionContext) error {
+			return SagaMongoAdjustBalance(sc, sc.Client(), TransOutUID, reqFrom(c).Amount, "")
+		})
+	}
+	return bb.Call(txGet(), func(tx *sql.Tx) error {
 		return tccAdjustTrading(tx, TransOutUID, reqFrom(c).Amount)
 	})
 }

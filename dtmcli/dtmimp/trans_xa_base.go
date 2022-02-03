@@ -44,23 +44,19 @@ func (xc *XaClientBase) HandleLocalTrans(xa *TransBase, cb func(*sql.DB) error) 
 		return
 	}
 	defer func() { _ = db.Close() }()
-	defer func() {
-		x := recover()
-		_, err := DBExec(db, GetDBSpecial().GetXaSQL("end", xaBranch))
-		if x == nil && rerr == nil && err == nil {
-			_, err = DBExec(db, GetDBSpecial().GetXaSQL("prepare", xaBranch))
-		}
-		if rerr == nil {
-			rerr = err
-		}
-		if x != nil {
-			panic(x)
-		}
-	}()
+	defer DeferDo(&rerr, func() error {
+		_, err := DBExec(db, GetDBSpecial().GetXaSQL("prepare", xaBranch))
+		return err
+	}, func() error {
+		return nil
+	})
 	_, rerr = DBExec(db, GetDBSpecial().GetXaSQL("start", xaBranch))
 	if rerr != nil {
 		return
 	}
+	defer func() {
+		_, _ = DBExec(db, GetDBSpecial().GetXaSQL("end", xaBranch))
+	}()
 	rerr = cb(db)
 	return
 }
@@ -72,17 +68,11 @@ func (xc *XaClientBase) HandleGlobalTrans(xa *TransBase, callDtm func(string) er
 		return
 	}
 	// 小概率情况下，prepare成功了，但是由于网络状况导致上面Failure，那么不执行下面defer的内容，等待超时后再回滚标记事务失败，也没有问题
-	defer func() {
-		x := recover()
-		operation := If(x != nil || rerr != nil, "abort", "submit").(string)
-		err := callDtm(operation)
-		if rerr == nil { // 如果用户函数没有返回错误，那么返回dtm的
-			rerr = err
-		}
-		if x != nil {
-			panic(x)
-		}
-	}()
+	defer DeferDo(&rerr, func() error {
+		return callDtm("submit")
+	}, func() error {
+		return callDtm("abort")
+	})
 	rerr = callBusi()
 	return
 }

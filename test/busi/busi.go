@@ -1,6 +1,7 @@
 package busi
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"strings"
@@ -9,6 +10,8 @@ import (
 	"github.com/dtm-labs/dtm/dtmcli/dtmimp"
 	"github.com/dtm-labs/dtm/dtmcli/logger"
 	"github.com/gin-gonic/gin"
+	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/mongo"
 	codes "google.golang.org/grpc/codes"
 	status "google.golang.org/grpc/status"
 )
@@ -21,6 +24,9 @@ const TransInUID = 2
 
 // Redis 1
 const Redis = "redis"
+
+// Mongo 1
+const Mongo = "mongo"
 
 func handleGrpcBusiness(in *BusiReq, result1 string, result2 string, busi string) error {
 	res := dtmimp.OrString(result1, result2, dtmcli.ResultSuccess)
@@ -72,6 +78,19 @@ func SagaAdjustBalance(db dtmcli.DB, uid int, amount int, result string) error {
 	_, err := dtmimp.DBExec(db, "update dtm_busi.user_account set balance = balance + ? where user_id = ?", amount, uid)
 	return err
 }
+
+// SagaMongoAdjustBalance 1
+func SagaMongoAdjustBalance(ctx context.Context, mc *mongo.Client, uid int, amount int, result string) error {
+	if strings.Contains(result, dtmcli.ResultFailure) {
+		return dtmcli.ErrFailure
+	}
+	_, err := mc.Database("dtm_busi").Collection("user_account").UpdateOne(ctx,
+		bson.D{{Key: "user_id", Value: uid}},
+		bson.D{{Key: "$inc", Value: bson.D{{Key: "balance", Value: amount}}}})
+	logger.Debugf("dtm_busi.user_account $inc balance of %d by %d err: %v", uid, amount, err)
+	return err
+}
+
 func tccAdjustTrading(db dtmcli.DB, uid int, amount int) error {
 	affected, err := dtmimp.DBExec(db, `update dtm_busi.user_account set trading_balance=trading_balance+?
 		 where user_id=? and trading_balance + ? + balance >= 0`, amount, uid, amount)

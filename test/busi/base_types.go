@@ -7,12 +7,14 @@
 package busi
 
 import (
+	"context"
 	"fmt"
 
 	"github.com/dtm-labs/dtm/dtmcli"
 	"github.com/dtm-labs/dtm/dtmcli/dtmimp"
 	"github.com/dtm-labs/dtm/dtmcli/logger"
 	"github.com/gin-gonic/gin"
+	"go.mongodb.org/mongo-driver/bson"
 )
 
 // BusiConf 1
@@ -42,6 +44,13 @@ func GetBalanceByUID(uid int, store string) int {
 		accA, err := rd.Get(rd.Context(), GetRedisAccountKey(uid)).Result()
 		dtmimp.E2P(err)
 		return dtmimp.MustAtoi(accA)
+	} else if store == "mongo" {
+		mg := MongoGet()
+		account := mg.Database("dtm_busi").Collection("user_account")
+		var result bson.M
+		err := account.FindOne(context.Background(), bson.D{{Key: "user_id", Value: uid}}).Decode(&result)
+		dtmimp.E2P(err)
+		return int(result["balance"].(int32))
 	}
 	ua := UserAccount{}
 	_ = dbGet().Must().Model(&ua).Where("user_id=?", uid).First(&ua)

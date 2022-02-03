@@ -54,6 +54,10 @@ func TestTccBarrierDisorderMysql(t *testing.T) {
 	runTestTccBarrierDisorder(t, "mysql")
 }
 
+func TestTccBarrierDisorderMongo(t *testing.T) {
+	runTestTccBarrierDisorder(t, "mongo")
+}
+
 func TestTccBarrierDisorderRedis(t *testing.T) {
 	busi.SetRedisBothAccount(200, 200)
 	runTestTccBarrierDisorder(t, "redis")
