@@ -79,7 +79,10 @@ go run main.go
 ### 启动并运行一个saga示例
 下面运行一个类似跨行转账的示例，包括两个事务分支：资金转出（TransOut)、资金转入（TransIn)。DTM保证TransIn和TransOut要么全部成功，要么全部回滚，保证最终金额的正确性。
 
-`go run qs/main.go`
+``` bash
+git clone https://github.com/dtm-labs/dtmcli-go-sample && cd dtmcli-go-sample
+go run main.go
+```
 
 ## 接入详解
 
@@ -111,9 +114,10 @@ go run main.go
 在实际的业务中，子事务可能出现失败，例如转入的子账号被冻结导致转账失败。我们对业务代码进行修改，让TransIn的正向操作失败，然后看看结果
 
 ``` go
-	app.POST(qsBusiAPI+"/TransIn", common.WrapHandler2(func(c *gin.Context) interface{} {
-		return dtmcli.ErrFailure
-	}))
+	app.POST(qsBusiAPI+"/TransIn", func(c *gin.Context) {
+		logger.Infof("TransIn")
+		c.JSON(409, "") // Status 409 表示失败，不再重试，直接回滚
+	})
 ```
 
 再运行这个例子，整个事务最终失败，时序图如下：
