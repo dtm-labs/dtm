@@ -220,6 +220,7 @@ func RespAsErrorCompatible(resp *resty.Response) error {
 	return nil
 }
 
+// DeferDo a common defer do used in dtmcli/dtmgrpc
 func DeferDo(rerr *error, success func() error, fail func() error) {
 	defer func() {
 		if x := recover(); x != nil {

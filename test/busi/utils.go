@@ -19,6 +19,9 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/go-redis/redis/v8"
 	"github.com/go-resty/resty/v2"
+	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
 	grpc "google.golang.org/grpc"
 	"google.golang.org/grpc/metadata"
 )
@@ -135,11 +138,59 @@ func RedisGet() *redis.Client {
 	return rdb
 }
 
+var (
+	mongoOnce sync.Once
+	mongoc    *mongo.Client
+)
+
+// MongoGet get mongo client
+func MongoGet() *mongo.Client {
+	mongoOnce.Do(func() {
+		ctx := context.Background()
+		client, err := mongo.Connect(ctx, options.Client().ApplyURI("mongodb://localhost:27017/?retryWrites=false"))
+		dtmimp.E2P(err)
+		mongoc = client
+	})
+	return mongoc
+}
+
 // SetRedisBothAccount 1
-func SetRedisBothAccount(accountA int, accountB int) {
+func SetRedisBothAccount(amountA int, ammountB int) {
 	rd := RedisGet()
-	_, err := rd.Set(rd.Context(), GetRedisAccountKey(TransOutUID), accountA, 0).Result()
+	_, err := rd.Set(rd.Context(), GetRedisAccountKey(TransOutUID), amountA, 0).Result()
 	dtmimp.E2P(err)
-	_, err = rd.Set(rd.Context(), GetRedisAccountKey(TransInUID), accountB, 0).Result()
+	_, err = rd.Set(rd.Context(), GetRedisAccountKey(TransInUID), ammountB, 0).Result()
 	dtmimp.E2P(err)
+}
+
+// SetMongoBothAccount 1
+func SetMongoBothAccount(amountA int, amountB int) {
+	mc := MongoGet()
+	col := mc.Database("dtm_busi").Collection("user_account")
+	_, err := col.InsertOne(context.Background(), bson.D{{Key: "user_id", Value: TransOutUID}, {Key: "balance", Value: amountA}})
+	dtmimp.E2P(err)
+	_, err = col.InsertOne(context.Background(), bson.D{{Key: "user_id", Value: TransInUID}, {Key: "balance", Value: amountB}})
+	dtmimp.E2P(err)
+
+}
+
+// SetupMongoBarrierAndBusi 1
+func SetupMongoBarrierAndBusi() {
+	mc := MongoGet()
+	err := mc.Database("dtm_busi").Drop(context.Background())
+	dtmimp.E2P(err)
+	err = mc.Database("dtm_barrier").Drop(context.Background())
+	dtmimp.E2P(err)
+	col := mc.Database("dtm_barrier").Collection("barrier")
+	_, err = col.Indexes().CreateOne(context.Background(), mongo.IndexModel{
+		Keys: bson.D{
+			{Key: "gid", Value: 1},
+			{Key: "branch_id", Value: 1},
+			{Key: "op", Value: 1},
+			{Key: "barrier_id", Value: 1},
+		},
+		Options: options.Index().SetUnique(true),
+	})
+	dtmimp.E2P(err)
+	SetMongoBothAccount(10000, 10000)
 }

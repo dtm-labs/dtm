@@ -32,3 +32,10 @@ services:
       - /etc/timezone:/etc/timezone:ro
     ports:
       - '6379:6379'
+  mongo:
+    image: yedf/mongo-rs
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - /etc/timezone:/etc/timezone:ro
+    ports:
+      - '27017:27017'

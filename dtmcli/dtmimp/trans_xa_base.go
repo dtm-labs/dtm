@@ -54,7 +54,9 @@ func (xc *XaClientBase) HandleLocalTrans(xa *TransBase, cb func(*sql.DB) error) 
 	if rerr != nil {
 		return
 	}
-	defer DBExec(db, GetDBSpecial().GetXaSQL("end", xaBranch))
+	defer func() {
+		_, _ = DBExec(db, GetDBSpecial().GetXaSQL("end", xaBranch))
+	}()
 	rerr = cb(db)
 	return
 }
