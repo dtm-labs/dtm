@@ -15,7 +15,7 @@ DTM是一款golang开发的分布式事务管理器，提供了傻瓜式的使�
 - 微服务架构中跨服务更新数据保证一致性
 
 他优雅的解决了幂等、空补偿、悬挂等分布式事务难题，提供跨语言，跨存储引擎组合事务的强大功能：
-![feature](https://pica.zhimg.com/80/v2-2f66cb3074e68d38c29694318680acac_1440w.png)
+<img src="https://pica.zhimg.com/80/v2-2f66cb3074e68d38c29694318680acac_1440w.png" height=250 />
 
 ## 谁在使用DTM(仅列出部分)
 [Tencent 腾讯](https://dtm.pub/other/using.html#tencent)
