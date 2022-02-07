@@ -5,7 +5,6 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
-	"os"
 	"strings"
 	sync "sync"
 	"time"
@@ -130,7 +129,7 @@ func RedisGet() *redis.Client {
 	once.Do(func() {
 		logger.Debugf("connecting to client redis")
 		rdb = redis.NewClient(&redis.Options{
-			Addr:     dtmimp.OrString(os.Getenv("BUSI_REDIS"), "localhost:6379"),
+			Addr:     fmt.Sprintf("%s:6379", StoreHost),
 			Username: "root",
 			Password: "",
 		})
@@ -146,8 +145,9 @@ var (
 // MongoGet get mongo client
 func MongoGet() *mongo.Client {
 	mongoOnce.Do(func() {
+		uri := fmt.Sprintf("mongodb://%s:27017/?retryWrites=false", StoreHost)
 		ctx := context.Background()
-		client, err := mongo.Connect(ctx, options.Client().ApplyURI("mongodb://localhost:27017/?retryWrites=false"))
+		client, err := mongo.Connect(ctx, options.Client().ApplyURI(uri))
 		dtmimp.E2P(err)
 		mongoc = client
 	})
