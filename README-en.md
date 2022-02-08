@@ -93,10 +93,10 @@ If your language stack is Java, you can also choose to access dtm and use sub-tr
   req := &gin.H{"amount": 30} // micro-service payload
 	// DtmServer is the address of DTM micro-service
 	saga := dtmcli.NewSaga(DtmServer, dtmcli.MustGenGid(DtmServer)).
-		// add a TransOut subtraction，forward operation with url: qsBusi+"/TransOut", reverse compensation operation with url: qsBusi+"/TransOutCompensate"
-		Add(qsBusi+"/TransOut", qsBusi+"/TransOutCompensate", req).
-		// add a TransIn subtraction, forward operation with url: qsBusi+"/TransIn", reverse compensation operation with url: qsBusi+"/TransInCompensate"
-		Add(qsBusi+"/TransIn", qsBusi+"/TransInCompensate", req)
+		// add a TransOut subtraction，forward operation with url: qsBusi+"/TransOut", reverse compensation operation with url: qsBusi+"/TransOutCom"
+		Add(qsBusi+"/TransOut", qsBusi+"/TransOutCom", req).
+		// add a TransIn subtraction, forward operation with url: qsBusi+"/TransIn", reverse compensation operation with url: qsBusi+"/TransInCom"
+		Add(qsBusi+"/TransIn", qsBusi+"/TransInCom", req)
 	// submit the created saga transaction，dtm ensures all subtractions either complete or get revoked
 	err := saga.Submit()
 ```

@@ -139,13 +139,13 @@ func benchAddRoute(app *gin.Engine) {
 	app.POST(benchAPI+"/TransIn", dtmutil.WrapHandler2(func(c *gin.Context) interface{} {
 		return qsAdjustBalance(dtmimp.MustAtoi(c.Query("uid")), 1, c)
 	}))
-	app.POST(benchAPI+"/TransInCompensate", dtmutil.WrapHandler2(func(c *gin.Context) interface{} {
+	app.POST(benchAPI+"/TransInCom", dtmutil.WrapHandler2(func(c *gin.Context) interface{} {
 		return qsAdjustBalance(dtmimp.MustAtoi(c.Query("uid")), -1, c)
 	}))
 	app.POST(benchAPI+"/TransOut", dtmutil.WrapHandler2(func(c *gin.Context) interface{} {
 		return qsAdjustBalance(dtmimp.MustAtoi(c.Query("uid")), -1, c)
 	}))
-	app.POST(benchAPI+"/TransOutCompensate", dtmutil.WrapHandler2(func(c *gin.Context) interface{} {
+	app.POST(benchAPI+"/TransOutCom", dtmutil.WrapHandler2(func(c *gin.Context) interface{} {
 		return qsAdjustBalance(dtmimp.MustAtoi(c.Query("uid")), 30, c)
 	}))
 	app.Any(benchAPI+"/reloadData", dtmutil.WrapHandler2(func(c *gin.Context) interface{} {
@@ -167,8 +167,8 @@ func benchAddRoute(app *gin.Engine) {
 		logger.Debugf("mode: %s contains dtm: %t", mode, strings.Contains(mode, "dtm"))
 		if strings.Contains(mode, "dtm") {
 			saga := dtmcli.NewSaga(dtmutil.DefaultHTTPServer, fmt.Sprintf("bench-%d", uid)).
-				Add(benchBusi+"/TransOut"+params, benchBusi+"/TransOutCompensate"+params, req).
-				Add(benchBusi+"/TransIn"+params2, benchBusi+"/TransInCompensate"+params2, req)
+				Add(benchBusi+"/TransOut"+params, benchBusi+"/TransOutCom"+params, req).
+				Add(benchBusi+"/TransIn"+params2, benchBusi+"/TransInCom"+params2, req)
 			saga.WaitResult = true
 			err := saga.Submit()
 			dtmimp.E2P(err)

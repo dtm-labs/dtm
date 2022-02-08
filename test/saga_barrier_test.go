@@ -36,6 +36,19 @@ func TestSagaBarrierRollback(t *testing.T) {
 func genSagaBarrier(gid string, outFailed, inFailed bool) *dtmcli.Saga {
 	req := busi.GenTransReq(30, outFailed, inFailed)
 	return dtmcli.NewSaga(DtmServer, gid).
-		Add(Busi+"/SagaBTransOut", Busi+"/SagaBTransOutCompensate", req).
-		Add(Busi+"/SagaBTransIn", Busi+"/SagaBTransInCompensate", req)
+		Add(Busi+"/SagaBTransOut", Busi+"/SagaBTransOutCom", req).
+		Add(Busi+"/SagaBTransIn", Busi+"/SagaBTransInCom", req)
+}
+
+func TestSagaBarrier2Normal(t *testing.T) {
+	req := busi.GenTransReq(30, false, false)
+	gid := dtmimp.GetFuncName()
+	saga := dtmcli.NewSaga(DtmServer, gid).
+		Add(Busi+"/SagaBTransOut", Busi+"/SagaBTransOutCom", req).
+		Add(Busi+"/SagaB2TransIn", Busi+"/SagaB2TransInCom", req)
+	err := saga.Submit()
+	assert.Nil(t, err)
+	waitTransProcessed(saga.Gid)
+	assert.Equal(t, []string{StatusPrepared, StatusSucceed, StatusPrepared, StatusSucceed}, getBranchesStatus(saga.Gid))
+	assert.Equal(t, StatusSucceed, getTransStatus(saga.Gid))
 }

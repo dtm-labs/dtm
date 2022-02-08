@@ -26,8 +26,32 @@ func init() {
 				return SagaAdjustBalance(tx, TransInUID, reqFrom(c).Amount, reqFrom(c).TransInResult)
 			})
 		}))
-		app.POST(BusiAPI+"/SagaBTransInCompensate", dtmutil.WrapHandler2(func(c *gin.Context) interface{} {
+		app.POST(BusiAPI+"/SagaBTransInCom", dtmutil.WrapHandler2(func(c *gin.Context) interface{} {
 			barrier := MustBarrierFromGin(c)
+			return barrier.Call(txGet(), func(tx *sql.Tx) error {
+				return SagaAdjustBalance(tx, TransInUID, -reqFrom(c).Amount, "")
+			})
+		}))
+		app.POST(BusiAPI+"/SagaB2TransIn", dtmutil.WrapHandler2(func(c *gin.Context) interface{} {
+			barrier := MustBarrierFromGin(c)
+			err := barrier.Call(txGet(), func(tx *sql.Tx) error {
+				return SagaAdjustBalance(tx, TransInUID, reqFrom(c).Amount/2, reqFrom(c).TransInResult)
+			})
+			if err != nil {
+				return err
+			}
+			return barrier.Call(txGet(), func(tx *sql.Tx) error {
+				return SagaAdjustBalance(tx, TransInUID, reqFrom(c).Amount/2, reqFrom(c).TransInResult)
+			})
+		}))
+		app.POST(BusiAPI+"/SagaB2TransInCom", dtmutil.WrapHandler2(func(c *gin.Context) interface{} {
+			barrier := MustBarrierFromGin(c)
+			err := barrier.Call(txGet(), func(tx *sql.Tx) error {
+				return SagaAdjustBalance(tx, TransInUID, -reqFrom(c).Amount/2, "")
+			})
+			if err != nil {
+				return err
+			}
 			return barrier.Call(txGet(), func(tx *sql.Tx) error {
 				return SagaAdjustBalance(tx, TransInUID, -reqFrom(c).Amount, "")
 			})
@@ -38,7 +62,7 @@ func init() {
 				return SagaAdjustBalance(tx, TransOutUID, -reqFrom(c).Amount, reqFrom(c).TransOutResult)
 			})
 		}))
-		app.POST(BusiAPI+"/SagaBTransOutCompensate", dtmutil.WrapHandler2(func(c *gin.Context) interface{} {
+		app.POST(BusiAPI+"/SagaBTransOutCom", dtmutil.WrapHandler2(func(c *gin.Context) interface{} {
 			barrier := MustBarrierFromGin(c)
 			return barrier.Call(txGet(), func(tx *sql.Tx) error {
 				return SagaAdjustBalance(tx, TransOutUID, reqFrom(c).Amount, "")

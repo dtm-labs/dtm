@@ -100,10 +100,10 @@ go run main.go
   // DtmServer为DTM服务的地址，是一个url
   DtmServer := "http://localhost:36789/api/dtmsvr"
   saga := dtmcli.NewSaga(DtmServer, dtmcli.MustGenGid(DtmServer)).
-    // 添加一个TransOut的子事务，正向操作为url: qsBusi+"/TransOut"， 补偿操作为url: qsBusi+"/TransOutCompensate"
-    Add(qsBusi+"/TransOut", qsBusi+"/TransOutCompensate", req).
-    // 添加一个TransIn的子事务，正向操作为url: qsBusi+"/TransIn"， 补偿操作为url: qsBusi+"/TransInCompensate"
-    Add(qsBusi+"/TransIn", qsBusi+"/TransInCompensate", req)
+    // 添加一个TransOut的子事务，正向操作为url: qsBusi+"/TransOut"， 补偿操作为url: qsBusi+"/TransOutCom"
+    Add(qsBusi+"/TransOut", qsBusi+"/TransOutCom", req).
+    // 添加一个TransIn的子事务，正向操作为url: qsBusi+"/TransIn"， 补偿操作为url: qsBusi+"/TransInCom"
+    Add(qsBusi+"/TransIn", qsBusi+"/TransInCom", req)
   // 提交saga事务，dtm会完成所有的子事务/回滚所有的子事务
   err := saga.Submit()
 ```
