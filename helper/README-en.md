@@ -71,16 +71,19 @@ If your language stack is Java, you can also choose to access dtm and use sub-tr
 
 # Quick start
 
-### Install
+### run dtm
 
-`git clone https://github.com/dtm-labs/dtm`
-
-### Configure Mysql
-
-`cp conf.sample.yml conf.yml # Modify conf.yml`
+``` bash
+git clone https://github.com/dtm-labs/dtm && cd dtm
+go run main.go
+```
 
 ### Start the example
-`go run app/main.go`
+
+``` bash
+git clone https://github.com/dtm-labs/dtmcli-go-sample && cd dtmcli-go-sample
+go run main.go
+```
 
 # Code
 
@@ -102,7 +105,7 @@ If your language stack is Java, you can also choose to access dtm and use sub-tr
 ```
 ### Complete example
 
-Refer to [examples/quick_start.go](./examples/quick_start.go).
+Refer to [dtm-examples](https://github.com/dtm-labs/dtm-examples).
 
 ### Slack
 
