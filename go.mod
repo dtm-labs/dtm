@@ -5,14 +5,14 @@ go 1.16
 require (
 	bou.ke/monkey v1.0.2
 	github.com/dtm-labs/dtmdriver v0.0.1
-	github.com/dtm-labs/dtmdriver-gozero v0.0.1
+	github.com/dtm-labs/dtmdriver-gozero v0.0.2
 	github.com/dtm-labs/dtmdriver-polaris v0.0.2
 	github.com/dtm-labs/dtmdriver-protocol1 v0.0.1
 	github.com/gin-gonic/gin v1.7.0
 	github.com/go-redis/redis/v8 v8.11.4
 	github.com/go-resty/resty/v2 v2.7.0
 	github.com/go-sql-driver/mysql v1.6.0
-	github.com/lib/pq v1.10.3
+	github.com/lib/pq v1.10.4
 	github.com/lithammer/shortuuid v2.0.3+incompatible
 	github.com/lithammer/shortuuid/v3 v3.0.7
 	github.com/natefinch/lumberjack v2.0.0+incompatible
@@ -26,7 +26,7 @@ require (
 	go.uber.org/multierr v1.7.0 // indirect
 	go.uber.org/zap v1.19.1
 	golang.org/x/crypto v0.0.0-20211108221036-ceb1ce70b4fa // indirect
-	google.golang.org/grpc v1.42.0
+	google.golang.org/grpc v1.43.0
 	google.golang.org/protobuf v1.27.1
 	gopkg.in/yaml.v2 v2.4.0
 	gorm.io/driver/mysql v1.0.3
