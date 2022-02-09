@@ -9,6 +9,8 @@ dist
 default.etcd
 */**/*.bolt
 bench/bench
+helper/bench/bench
+helper/qs/qs
 # Output file of unit test coverage
 coverage.*
 profile.*

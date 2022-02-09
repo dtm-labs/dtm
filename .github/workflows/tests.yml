@@ -49,7 +49,7 @@ jobs:
           go mod download
 
       - name: Run CI lint
-        run: make lint
+        run: sh helper/golint.sh
 
       - name: Run test cover
         run: sh helper/test-cover.sh
