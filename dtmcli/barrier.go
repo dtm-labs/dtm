@@ -8,6 +8,7 @@ package dtmcli
 
 import (
 	"database/sql"
+	"errors"
 	"fmt"
 	"net/url"
 
@@ -80,6 +81,10 @@ func (bb *BranchBarrier) Call(tx *sql.Tx, busiCall BarrierBusiFunc) (rerr error)
 	logger.Debugf("originAffected: %d currentAffected: %d", originAffected, currentAffected)
 	if rerr == nil {
 		rerr = oerr
+	}
+
+	if bb.Op == "msg" && currentAffected == 0 { // for msg's DoAndSubmit, repeated insert should be rejected.
+		return errors.New("unique key conflict")
 	}
 
 	if (ti.Op == BranchCancel || ti.Op == BranchCompensate) && originAffected > 0 || // null compensate
