@@ -14,7 +14,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestMsgPrepareAndSubmit(t *testing.T) {
+func TestMsgDoAndSubmit(t *testing.T) {
 	before := getBeforeBalances("mysql")
 	gid := dtmimp.GetFuncName()
 	req := busi.GenTransReq(30, false, false)
@@ -30,7 +30,7 @@ func TestMsgPrepareAndSubmit(t *testing.T) {
 	assertNotSameBalance(t, before, "mysql")
 }
 
-func TestMsgPrepareAndSubmitBusiFailed(t *testing.T) {
+func TestMsgDoAndSubmitBusiFailed(t *testing.T) {
 	before := getBeforeBalances("mysql")
 	gid := dtmimp.GetFuncName()
 	req := busi.GenTransReq(30, false, false)
@@ -43,7 +43,30 @@ func TestMsgPrepareAndSubmitBusiFailed(t *testing.T) {
 	assertSameBalance(t, before, "mysql")
 }
 
-func TestMsgPrepareAndSubmitPrepareFailed(t *testing.T) {
+func TestMsgDoAndSubmitBusiLater(t *testing.T) {
+	before := getBeforeBalances("mysql")
+	gid := dtmimp.GetFuncName()
+	req := busi.GenTransReq(30, false, false)
+	_, err := dtmcli.GetRestyClient().R().
+		SetQueryParams(map[string]string{
+			"trans_type": "msg",
+			"gid":        gid,
+			"branch_id":  "00",
+			"op":         "msg",
+			"barrier_id": "01",
+		}).
+		SetBody(req).Get(Busi + "/QueryPreparedB")
+	assert.Nil(t, err)
+	msg := dtmcli.NewMsg(DtmServer, gid).
+		Add(busi.Busi+"/SagaBTransIn", req)
+	err = msg.DoAndSubmitDB(Busi+"/QueryPreparedB", dbGet().ToSQLDB(), func(tx *sql.Tx) error {
+		return nil
+	})
+	assert.Error(t, err, dtmcli.ErrDuplicated)
+	assertSameBalance(t, before, "mysql")
+}
+
+func TestMsgDoAndSubmitPrepareFailed(t *testing.T) {
 	before := getBeforeBalances("mysql")
 	gid := dtmimp.GetFuncName()
 	req := busi.GenTransReq(30, false, false)
@@ -56,7 +79,7 @@ func TestMsgPrepareAndSubmitPrepareFailed(t *testing.T) {
 	assertSameBalance(t, before, "mysql")
 }
 
-func TestMsgPrepareAndSubmitCommitFailed(t *testing.T) {
+func TestMsgDoAndSubmitCommitFailed(t *testing.T) {
 	if conf.Store.IsDB() { // cannot patch tx.Commit, because Prepare also do Commit
 		return
 	}
@@ -79,7 +102,7 @@ func TestMsgPrepareAndSubmitCommitFailed(t *testing.T) {
 	assertSameBalance(t, before, "mysql")
 }
 
-func TestMsgPrepareAndSubmitCommitAfterFailed(t *testing.T) {
+func TestMsgDoAndSubmitCommitAfterFailed(t *testing.T) {
 	if conf.Store.IsDB() { // cannot patch tx.Commit, because Prepare also do Commit
 		return
 	}

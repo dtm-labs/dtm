@@ -42,6 +42,31 @@ func TestMsgMongoDoBusiFailed(t *testing.T) {
 	assertSameBalance(t, before, "mongo")
 }
 
+func TestMsgMongoDoBusiLater(t *testing.T) {
+	before := getBeforeBalances("mongo")
+	gid := dtmimp.GetFuncName()
+	req := busi.GenTransReq(30, false, false)
+	_, err := dtmcli.GetRestyClient().R().
+		SetQueryParams(map[string]string{
+			"trans_type": "msg",
+			"gid":        gid,
+			"branch_id":  "00",
+			"op":         "msg",
+			"barrier_id": "01",
+		}).
+		SetBody(req).Get(Busi + "/MongoQueryPrepared")
+	assert.Nil(t, err)
+	msg := dtmcli.NewMsg(DtmServer, gid).
+		Add(busi.Busi+"/SagaMongoTransIn", req)
+	err = msg.DoAndSubmit(Busi+"/MongoQueryPrepared", func(bb *dtmcli.BranchBarrier) error {
+		return bb.MongoCall(busi.MongoGet(), func(sc mongo.SessionContext) error {
+			return busi.SagaMongoAdjustBalance(sc, sc.Client(), busi.TransOutUID, -30, "")
+		})
+	})
+	assert.Error(t, err, dtmcli.ErrDuplicated)
+	assertSameBalance(t, before, "mongo")
+}
+
 func TestMsgMongoDoCommitFailed(t *testing.T) {
 	before := getBeforeBalances("mongo")
 	gid := dtmimp.GetFuncName()
