@@ -28,7 +28,7 @@ DTM是一款变革性的分布式事务框架，提供了傻瓜式的使用方�
 
 ## 亮点
 
-* 极易接入
+* 极易上手
   - 零配置启动服务，提供非常简单的HTTP接口，极大降低上手分布式事务的难度，新手也能快速接入
 * 跨语言
   - 可适合多语言栈的公司使用。方便go、python、php、nodejs、ruby、c# 各类语言使用。
@@ -142,9 +142,6 @@ dtm官方公众号：分布式事务，大量干货分享，以及dtm的最新�
 请加 yedf2008 好友或者扫码加好友，验证回复 dtm 按照指引进群
 
 ![yedf2008](http://service.ivydad.com/cover/dubbingb6b5e2c0-2d2a-cd59-f7c5-c6b90aceb6f1.jpeg)
-
-### github
-作者github: [https://github.com/yedf2](https://github.com/yedf2)
 
 欢迎使用[dtm](https://github.com/dtm-labs/dtm)，或者通过dtm学习实践分布式事务相关知识，欢迎star支持我们
 
