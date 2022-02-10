@@ -27,8 +27,15 @@ type BranchBarrier struct {
 	BarrierID int
 }
 
+const opMsg = "msg"
+
 func (bb *BranchBarrier) String() string {
 	return fmt.Sprintf("transInfo: %s %s %s %s", bb.TransType, bb.Gid, bb.BranchID, bb.Op)
+}
+
+func (bb *BranchBarrier) newBarrierID() string {
+	bb.BarrierID++
+	return fmt.Sprintf("%02d", bb.BarrierID)
 }
 
 // BarrierFromQuery construct transaction info from request
@@ -62,27 +69,30 @@ func insertBarrier(tx DB, transType string, gid string, branchID string, op stri
 // tx: 本地数据库的事务对象，允许子事务屏障进行事务操作
 // busiCall: 业务函数，仅在必要时被调用
 func (bb *BranchBarrier) Call(tx *sql.Tx, busiCall BarrierBusiFunc) (rerr error) {
-	bb.BarrierID = bb.BarrierID + 1
-	bid := fmt.Sprintf("%02d", bb.BarrierID)
+	bid := bb.newBarrierID()
 	defer dtmimp.DeferDo(&rerr, func() error {
 		return tx.Commit()
 	}, func() error {
 		return tx.Rollback()
 	})
-	ti := bb
 	originOp := map[string]string{
 		BranchCancel:     BranchTry,
 		BranchCompensate: BranchAction,
-	}[ti.Op]
+	}[bb.Op]
 
-	originAffected, oerr := insertBarrier(tx, ti.TransType, ti.Gid, ti.BranchID, originOp, bid, ti.Op)
-	currentAffected, rerr := insertBarrier(tx, ti.TransType, ti.Gid, ti.BranchID, ti.Op, bid, ti.Op)
+	originAffected, oerr := insertBarrier(tx, bb.TransType, bb.Gid, bb.BranchID, originOp, bid, bb.Op)
+	currentAffected, rerr := insertBarrier(tx, bb.TransType, bb.Gid, bb.BranchID, bb.Op, bid, bb.Op)
 	logger.Debugf("originAffected: %d currentAffected: %d", originAffected, currentAffected)
+
+	if rerr == nil && bb.Op == opMsg && currentAffected == 0 { // for msg's DoAndSubmit, repeated insert should be rejected.
+		return ErrDuplicated
+	}
+
 	if rerr == nil {
 		rerr = oerr
 	}
 
-	if (ti.Op == BranchCancel || ti.Op == BranchCompensate) && originAffected > 0 || // null compensate
+	if (bb.Op == BranchCancel || bb.Op == BranchCompensate) && originAffected > 0 || // null compensate
 		currentAffected == 0 { // repeated request or dangled request
 		return
 	}

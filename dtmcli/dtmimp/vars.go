@@ -19,6 +19,10 @@ var ErrFailure = errors.New("FAILURE")
 // ErrOngoing error of ONGOING
 var ErrOngoing = errors.New("ONGOING")
 
+// ErrDuplicated error of DUPLICATED for only msg
+// if QueryPrepared executed before call. then DoAndSubmit return this error
+var ErrDuplicated = errors.New("DUPLICATED")
+
 // XaSQLTimeoutMs milliseconds for Xa sql to timeout
 var XaSQLTimeoutMs = 15000
 

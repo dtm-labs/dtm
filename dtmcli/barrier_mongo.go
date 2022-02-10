@@ -2,7 +2,6 @@ package dtmcli
 
 import (
 	"context"
-	"fmt"
 	"strings"
 
 	"github.com/dtm-labs/dtm/dtmcli/dtmimp"
@@ -14,8 +13,7 @@ import (
 // MongoCall sub-trans barrier for mongo. see http://dtm.pub/practice/barrier
 // experimental
 func (bb *BranchBarrier) MongoCall(mc *mongo.Client, busiCall func(mongo.SessionContext) error) (rerr error) {
-	bb.BarrierID = bb.BarrierID + 1
-	bid := fmt.Sprintf("%02d", bb.BarrierID)
+	bid := bb.newBarrierID()
 	return mc.UseSession(context.Background(), func(sc mongo.SessionContext) (rerr error) {
 		rerr = sc.StartTransaction()
 		if rerr != nil {
@@ -34,6 +32,11 @@ func (bb *BranchBarrier) MongoCall(mc *mongo.Client, busiCall func(mongo.Session
 		originAffected, oerr := mongoInsertBarrier(sc, mc, bb.TransType, bb.Gid, bb.BranchID, originOp, bid, bb.Op)
 		currentAffected, rerr := mongoInsertBarrier(sc, mc, bb.TransType, bb.Gid, bb.BranchID, bb.Op, bid, bb.Op)
 		logger.Debugf("originAffected: %d currentAffected: %d", originAffected, currentAffected)
+
+		if rerr == nil && bb.Op == opMsg && currentAffected == 0 { // for msg's DoAndSubmit, repeated insert should be rejected.
+			return ErrDuplicated
+		}
+
 		if rerr == nil {
 			rerr = oerr
 		}

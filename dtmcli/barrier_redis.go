@@ -9,13 +9,13 @@ import (
 
 // RedisCheckAdjustAmount check the value of key is valid and >= amount. then adjust the amount
 func (bb *BranchBarrier) RedisCheckAdjustAmount(rd *redis.Client, key string, amount int, barrierExpire int) error {
-	bb.BarrierID = bb.BarrierID + 1
-	bkey1 := fmt.Sprintf("%s-%s-%s-%02d", bb.Gid, bb.BranchID, bb.Op, bb.BarrierID)
+	bid := bb.newBarrierID()
+	bkey1 := fmt.Sprintf("%s-%s-%s-%s", bb.Gid, bb.BranchID, bb.Op, bid)
 	originOp := map[string]string{
 		BranchCancel:     BranchTry,
 		BranchCompensate: BranchAction,
 	}[bb.Op]
-	bkey2 := fmt.Sprintf("%s-%s-%s-%02d", bb.Gid, bb.BranchID, originOp, bb.BarrierID)
+	bkey2 := fmt.Sprintf("%s-%s-%s-%s", bb.Gid, bb.BranchID, originOp, bid)
 	v, err := rd.Eval(rd.Context(), ` -- RedisCheckAdjustAmount
 local v = redis.call('GET', KEYS[1])
 local e1 = redis.call('GET', KEYS[2])
@@ -25,7 +25,7 @@ if v == false or v + ARGV[1] < 0 then
 end
 
 if e1 ~= false then
-	return
+	return 'DUPLICATE'
 end
 
 redis.call('SET', KEYS[2], 'op', 'EX', ARGV[3])
@@ -42,6 +42,9 @@ redis.call('INCRBY', KEYS[1], ARGV[1])
 	logger.Debugf("lua return v: %v err: %v", v, err)
 	if err == redis.Nil {
 		err = nil
+	}
+	if err == nil && bb.Op == opMsg && v == "DUPLICATE" { // msg DoAndSubmit should be rejected when duplicate
+		return ErrDuplicated
 	}
 	if err == nil && v == ResultFailure {
 		err = ErrFailure

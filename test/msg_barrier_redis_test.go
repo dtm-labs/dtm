@@ -39,6 +39,29 @@ func TestMsgRedisDoBusiFailed(t *testing.T) {
 	assertSameBalance(t, before, "redis")
 }
 
+func TestMsgRedisDoBusiLater(t *testing.T) {
+	before := getBeforeBalances("redis")
+	gid := dtmimp.GetFuncName()
+	req := busi.GenTransReq(30, false, false)
+	_, err := dtmcli.GetRestyClient().R().
+		SetQueryParams(map[string]string{
+			"trans_type": "msg",
+			"gid":        gid,
+			"branch_id":  "00",
+			"op":         "msg",
+			"barrier_id": "01",
+		}).
+		SetBody(req).Get(Busi + "/RedisQueryPrepared")
+	assert.Nil(t, err)
+	msg := dtmcli.NewMsg(DtmServer, gid).
+		Add(busi.Busi+"/SagaRedisTransIn", req)
+	err = msg.DoAndSubmit(Busi+"/RedisQueryPrepared", func(bb *dtmcli.BranchBarrier) error {
+		return bb.RedisCheckAdjustAmount(busi.RedisGet(), busi.GetRedisAccountKey(busi.TransOutUID), -30, 86400)
+	})
+	assert.Error(t, err, dtmcli.ErrDuplicated)
+	assertSameBalance(t, before, "redis")
+}
+
 func TestMsgRedisDoPrepareFailed(t *testing.T) {
 	before := getBeforeBalances("redis")
 	gid := dtmimp.GetFuncName()

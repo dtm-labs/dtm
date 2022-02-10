@@ -61,3 +61,7 @@ var ErrFailure = dtmimp.ErrFailure
 
 // ErrOngoing error for returned ongoing
 var ErrOngoing = dtmimp.ErrOngoing
+
+// ErrDuplicated error of DUPLICATED for only msg
+// if QueryPrepared executed before call. then DoAndSubmit return this error
+var ErrDuplicated = dtmimp.ErrDuplicated
