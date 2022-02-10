@@ -33,7 +33,7 @@ func (bb *BranchBarrier) MongoCall(mc *mongo.Client, busiCall func(mongo.Session
 		currentAffected, rerr := mongoInsertBarrier(sc, mc, bb.TransType, bb.Gid, bb.BranchID, bb.Op, bid, bb.Op)
 		logger.Debugf("originAffected: %d currentAffected: %d", originAffected, currentAffected)
 
-		if rerr == nil && bb.Op == "msg" && currentAffected == 0 { // for msg's DoAndSubmit, repeated insert should be rejected.
+		if rerr == nil && bb.Op == opMsg && currentAffected == 0 { // for msg's DoAndSubmit, repeated insert should be rejected.
 			return ErrDuplicated
 		}
 

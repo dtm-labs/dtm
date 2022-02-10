@@ -27,6 +27,8 @@ type BranchBarrier struct {
 	BarrierID int
 }
 
+const opMsg = "msg"
+
 func (bb *BranchBarrier) String() string {
 	return fmt.Sprintf("transInfo: %s %s %s %s", bb.TransType, bb.Gid, bb.BranchID, bb.Op)
 }
@@ -82,7 +84,7 @@ func (bb *BranchBarrier) Call(tx *sql.Tx, busiCall BarrierBusiFunc) (rerr error)
 	currentAffected, rerr := insertBarrier(tx, bb.TransType, bb.Gid, bb.BranchID, bb.Op, bid, bb.Op)
 	logger.Debugf("originAffected: %d currentAffected: %d", originAffected, currentAffected)
 
-	if rerr == nil && bb.Op == "msg" && currentAffected == 0 { // for msg's DoAndSubmit, repeated insert should be rejected.
+	if rerr == nil && bb.Op == opMsg && currentAffected == 0 { // for msg's DoAndSubmit, repeated insert should be rejected.
 		return ErrDuplicated
 	}
 

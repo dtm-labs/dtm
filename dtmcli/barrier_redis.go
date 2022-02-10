@@ -43,7 +43,7 @@ redis.call('INCRBY', KEYS[1], ARGV[1])
 	if err == redis.Nil {
 		err = nil
 	}
-	if err == nil && bb.Op == "msg" && v == "DUPLICATE" { // msg DoAndSubmit should be rejected when duplicate
+	if err == nil && bb.Op == opMsg && v == "DUPLICATE" { // msg DoAndSubmit should be rejected when duplicate
 		return ErrDuplicated
 	}
 	if err == nil && v == ResultFailure {
