@@ -12,7 +12,7 @@ DTM是一款变革性的分布式事务框架，提供了傻瓜式的使用方�
 - [非单体的订单系统，大幅简化架构](https://dtm.pub/app/order.html)
 - [秒杀系统，做到在Redis中精准扣库存](https://dtm.pub/app/flash.html)
 - [保证缓存与DB的一致性](https://dtm.pub/app/cache.html)
-- 微服务架构中跨服务更新数据保证一致性
+- 微服务架构(已原生支持[go-zero](https://github.com/zeromicro/go-zero)等框架)中跨服务更新数据保证一致性
 
 他优雅的解决了幂等、空补偿、悬挂等分布式事务难题，提供跨语言，跨存储引擎组合事务的强大功能：
 <img src="https://pica.zhimg.com/80/v2-2f66cb3074e68d38c29694318680acac_1440w.png" height=250 />
