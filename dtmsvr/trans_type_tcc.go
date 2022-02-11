@@ -17,7 +17,7 @@ type transTccProcessor struct {
 }
 
 func init() {
-	registorProcessorCreator("tcc", func(trans *TransGlobal) transProcessor { return &transTccProcessor{TransGlobal: trans} })
+	registerProcessorCreator("tcc", func(trans *TransGlobal) transProcessor { return &transTccProcessor{TransGlobal: trans} })
 }
 
 func (t *transTccProcessor) GenBranches() []TransBranch {

@@ -60,7 +60,7 @@ func TransInfo2Ctx(gid, transType, branchID, op, dtm string) context.Context {
 
 // Map2Kvs map to metadata kv
 func Map2Kvs(m map[string]string) []string {
-	kvs := []string{}
+	var kvs []string
 	for k, v := range m {
 		kvs = append(kvs, k, v)
 	}

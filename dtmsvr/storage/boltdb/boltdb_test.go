@@ -28,7 +28,7 @@ func TestInitializeBuckets(t *testing.T) {
 		err = initializeBuckets(db)
 		g.Expect(err).ToNot(HaveOccurred())
 
-		actualBuckets := [][]byte{}
+		var actualBuckets [][]byte
 		err = db.View(func(t *bolt.Tx) error {
 			return t.ForEach(func(name []byte, _ *bolt.Bucket) error {
 				actualBuckets = append(actualBuckets, name)
@@ -100,7 +100,7 @@ func TestCleanupExpiredData(t *testing.T) {
 		err = cleanupExpiredData(time.Minute, db)
 		g.Expect(err).ToNot(HaveOccurred())
 
-		actualGids := []string{}
+		var actualGids []string
 		err = db.View(func(t *bolt.Tx) error {
 			cursor := t.Bucket(bucketGlobal).Cursor()
 			for k, _ := cursor.First(); k != nil; k, _ = cursor.Next() {
@@ -162,7 +162,7 @@ func TestCleanupGlobalWithGids(t *testing.T) {
 		})
 		g.Expect(err).ToNot(HaveOccurred())
 
-		actualGids := []string{}
+		var actualGids []string
 		err = db.View(func(t *bolt.Tx) error {
 			cursor := t.Bucket(bucketGlobal).Cursor()
 			for k, _ := cursor.First(); k != nil; k, _ = cursor.Next() {
@@ -243,7 +243,7 @@ func TestCleanupBranchWithGids(t *testing.T) {
 		})
 		g.Expect(err).ToNot(HaveOccurred())
 
-		actualKeys := []string{}
+		var actualKeys []string
 		err = db.View(func(t *bolt.Tx) error {
 			cursor := t.Bucket(bucketBranches).Cursor()
 			for k, _ := cursor.First(); k != nil; k, _ = cursor.Next() {

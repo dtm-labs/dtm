@@ -48,7 +48,7 @@ func (s *Store) FindTransGlobalStore(gid string) *storage.TransGlobalStore {
 
 // ScanTransGlobalStores lists GlobalTrans data
 func (s *Store) ScanTransGlobalStores(position *string, limit int64) []storage.TransGlobalStore {
-	globals := []storage.TransGlobalStore{}
+	var globals []storage.TransGlobalStore
 	lid := math.MaxInt64
 	if *position != "" {
 		lid = dtmimp.MustAtoi(*position)
@@ -64,7 +64,7 @@ func (s *Store) ScanTransGlobalStores(position *string, limit int64) []storage.T
 
 // FindBranches finds Branch data by gid
 func (s *Store) FindBranches(gid string) []storage.TransBranchStore {
-	branches := []storage.TransBranchStore{}
+	var branches []storage.TransBranchStore
 	dbGet().Must().Where("gid=?", gid).Order("id asc").Find(&branches)
 	return branches
 }

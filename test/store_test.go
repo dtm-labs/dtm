@@ -35,7 +35,7 @@ func TestStoreSave(t *testing.T) {
 	assert.Equal(t, gid, g2.Gid)
 
 	bs2 := s.FindBranches(gid)
-	assert.Equal(t, len(bs2), int(1))
+	assert.Equal(t, len(bs2), 1)
 	assert.Equal(t, "01", bs2[0].BranchID)
 
 	s.LockGlobalSaveBranches(gid, g.Status, []storage.TransBranchStore{bs[1]}, -1)

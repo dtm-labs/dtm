@@ -33,7 +33,7 @@ func waitTransProcessed(gid string) {
 	case id := <-dtmsvr.TransProcessedTestChan:
 		logger.FatalfIf(id != gid, "------- expecting: %s but %s found", gid, id)
 		logger.Debugf("finish for gid %s", gid)
-	case <-time.After(time.Duration(time.Second * 4)):
+	case <-time.After(time.Second * 4):
 		logger.FatalfIf(true, "Wait Trans timeout")
 	}
 }

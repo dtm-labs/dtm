@@ -21,13 +21,13 @@ type transSagaProcessor struct {
 }
 
 func init() {
-	registorProcessorCreator("saga", func(trans *TransGlobal) transProcessor {
+	registerProcessorCreator("saga", func(trans *TransGlobal) transProcessor {
 		return &transSagaProcessor{TransGlobal: trans}
 	})
 }
 
 func (t *transSagaProcessor) GenBranches() []TransBranch {
-	branches := []TransBranch{}
+	var branches []TransBranch
 	for i, step := range t.Steps {
 		branch := fmt.Sprintf("%02d", i+1)
 		for _, op := range []string{dtmcli.BranchCompensate, dtmcli.BranchAction} {
@@ -139,7 +139,7 @@ func (t *transSagaProcessor) ProcessOnce(branches []TransBranch) error {
 		err = t.execBranch(&branches[i], i)
 	}
 	pickToRunActions := func() []int {
-		toRun := []int{}
+		var toRun []int
 		for current := 1; current < n; current += 2 {
 			br := &branchResults[current]
 			if !br.started && br.status == dtmcli.StatusPrepared && shouldRun(current) {
@@ -150,7 +150,7 @@ func (t *transSagaProcessor) ProcessOnce(branches []TransBranch) error {
 		return toRun
 	}
 	pickToRunCompensates := func() []int {
-		toRun := []int{}
+		var toRun []int
 		for current := n - 2; current >= 0; current -= 2 {
 			br := &branchResults[current]
 			if !br.started && br.status == dtmcli.StatusPrepared && shouldRollback(current) {
@@ -188,7 +188,7 @@ func (t *transSagaProcessor) ProcessOnce(branches []TransBranch) error {
 				}
 			}
 			logger.Debugf("branch done: %v", r)
-		case <-time.After(time.Duration(time.Second * 3)):
+		case <-time.After(time.Second * 3):
 			logger.Debugf("wait once for done")
 		}
 	}

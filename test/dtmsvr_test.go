@@ -28,7 +28,7 @@ func getTransStatus(gid string) string {
 
 func getBranchesStatus(gid string) []string {
 	branches := dtmsvr.GetStore().FindBranches(gid)
-	status := []string{}
+	var status []string
 	for _, branch := range branches {
 		status = append(status, branch.Status)
 	}

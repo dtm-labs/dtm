@@ -75,12 +75,12 @@ func PopulateDB(skipDrop bool) {
 
 // UpdateBranchAsyncInterval interval to flush branch
 var UpdateBranchAsyncInterval = 200 * time.Millisecond
-var updateBranchAsyncChan chan branchStatus = make(chan branchStatus, 1000)
+var updateBranchAsyncChan = make(chan branchStatus, 1000)
 
 func updateBranchAsync() {
-	flushBranchs := func() {
+	flushBranches := func() {
 		defer dtmutil.RecoverPanic(nil)
-		updates := []TransBranch{}
+		var updates []TransBranch
 		started := time.Now()
 		checkInterval := 20 * time.Millisecond
 		for time.Since(started) < UpdateBranchAsyncInterval-checkInterval && len(updates) < 20 {
@@ -109,6 +109,6 @@ func updateBranchAsync() {
 
 	}
 	for { // flush branches every 200ms
-		flushBranchs()
+		flushBranches()
 	}
 }

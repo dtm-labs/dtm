@@ -126,7 +126,7 @@ func cleanupBranchWithGids(t *bolt.Tx, gids map[string]struct{}) {
 
 	// It's not safe if we delete the item when use cursor, for more detail see
 	//    https://github.com/etcd-io/bbolt/issues/146
-	branchKeys := []string{}
+	var branchKeys []string
 	for gid := range gids {
 		cursor := bucket.Cursor()
 		for k, v := cursor.Seek([]byte(gid)); k != nil; k, v = cursor.Next() {
@@ -153,7 +153,7 @@ func cleanupIndexWithGids(t *bolt.Tx, gids map[string]struct{}) {
 		return
 	}
 
-	indexKeys := []string{}
+	var indexKeys []string
 	cursor := bucket.Cursor()
 	for k, _ := cursor.First(); k != nil; k, _ = cursor.Next() {
 		ks := strings.Split(string(k), "-")
@@ -193,7 +193,7 @@ func tGetGlobal(t *bolt.Tx, gid string) *storage.TransGlobalStore {
 }
 
 func tGetBranches(t *bolt.Tx, gid string) []storage.TransBranchStore {
-	branches := []storage.TransBranchStore{}
+	var branches []storage.TransBranchStore
 	cursor := t.Bucket(bucketBranches).Cursor()
 	for k, v := cursor.Seek([]byte(gid)); k != nil; k, v = cursor.Next() {
 		b := storage.TransBranchStore{}
@@ -274,7 +274,7 @@ func (s *Store) FindTransGlobalStore(gid string) (trans *storage.TransGlobalStor
 
 // ScanTransGlobalStores lists GlobalTrans data
 func (s *Store) ScanTransGlobalStores(position *string, limit int64) []storage.TransGlobalStore {
-	globals := []storage.TransGlobalStore{}
+	var globals []storage.TransGlobalStore
 	err := s.boltDb.View(func(t *bolt.Tx) error {
 		cursor := t.Bucket(bucketGlobal).Cursor()
 		for k, v := cursor.First(); k != nil; k, v = cursor.Next() {

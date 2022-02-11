@@ -19,13 +19,13 @@ type transMsgProcessor struct {
 }
 
 func init() {
-	registorProcessorCreator("msg", func(trans *TransGlobal) transProcessor { return &transMsgProcessor{TransGlobal: trans} })
+	registerProcessorCreator("msg", func(trans *TransGlobal) transProcessor { return &transMsgProcessor{TransGlobal: trans} })
 }
 
 func (t *transMsgProcessor) GenBranches() []TransBranch {
-	branches := []TransBranch{}
+	var branches []TransBranch
 	for i, step := range t.Steps {
-		b := &TransBranch{
+		b := TransBranch{
 			Gid:      t.Gid,
 			BranchID: fmt.Sprintf("%02d", i+1),
 			BinData:  t.BinPayloads[i],
@@ -33,7 +33,7 @@ func (t *transMsgProcessor) GenBranches() []TransBranch {
 			Op:       dtmcli.BranchAction,
 			Status:   dtmcli.StatusPrepared,
 		}
-		branches = append(branches, *b)
+		branches = append(branches, b)
 	}
 	return branches
 }

@@ -38,7 +38,7 @@ type processorCreator func(*TransGlobal) transProcessor
 
 var processorFac = map[string]processorCreator{}
 
-func registorProcessorCreator(transType string, creator processorCreator) {
+func registerProcessorCreator(transType string, creator processorCreator) {
 	processorFac[transType] = creator
 }
 

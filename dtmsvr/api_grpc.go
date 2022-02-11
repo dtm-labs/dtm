@@ -15,7 +15,7 @@ import (
 	"google.golang.org/protobuf/types/known/emptypb"
 )
 
-// dtmServer is used to implement dtmgimp.DtmServer.
+// dtmServer is used to implement dtmgpb.DtmServer.
 type dtmServer struct {
 	pb.UnimplementedDtmServer
 }

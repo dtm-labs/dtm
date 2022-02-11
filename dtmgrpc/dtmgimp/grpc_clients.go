@@ -35,7 +35,7 @@ func (cb rawCodec) Name() string { return "dtm_raw" }
 var normalClients, rawClients sync.Map
 
 // ClientInterceptors declares grpc.UnaryClientInterceptors slice
-var ClientInterceptors = []grpc.UnaryClientInterceptor{}
+var ClientInterceptors []grpc.UnaryClientInterceptor
 
 // MustGetDtmClient 1
 func MustGetDtmClient(grpcServer string) dtmgpb.DtmClient {

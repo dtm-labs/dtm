@@ -75,7 +75,13 @@ func TestSome(t *testing.T) {
 	os.Setenv("IS_DOCKER", "1")
 	s := MayReplaceLocalhost("http://localhost")
 	assert.Equal(t, "http://host.docker.internal", s)
+
+	s = MayReplaceLocalhost("http://127.0.0.1")
+	assert.Equal(t, "http://host.docker.internal", s)
+
 	os.Setenv("IS_DOCKER", "")
 	s2 := MayReplaceLocalhost("http://localhost")
 	assert.Equal(t, "http://localhost", s2)
+	s2 = MayReplaceLocalhost("http://127.0.0.1")
+	assert.Equal(t, "http://127.0.0.1", s2)
 }
