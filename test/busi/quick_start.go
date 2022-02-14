@@ -15,6 +15,7 @@ const qsBusiPort = 8082
 
 var qsBusi = fmt.Sprintf("http://localhost:%d%s", qsBusiPort, qsBusiAPI)
 
+// QsMain will be call from dtm/qs
 func QsMain() {
 	QsStartSvr()
 	QsFireRequest()
