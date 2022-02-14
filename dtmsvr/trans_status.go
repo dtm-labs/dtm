@@ -148,6 +148,8 @@ func (t *TransGlobal) getNextCronInterval(ctype cronType) int64 {
 		return t.NextCronInterval
 	} else if t.RetryInterval != 0 {
 		return t.RetryInterval
+	} else if t.TimeoutToFail > 0 && t.TimeoutToFail < conf.RetryInterval {
+		return t.TimeoutToFail
 	} else {
 		return conf.RetryInterval
 	}
