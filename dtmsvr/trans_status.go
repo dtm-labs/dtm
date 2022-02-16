@@ -76,39 +76,39 @@ func (t *TransGlobal) getURLResult(url string, branchID, op string, branchPayloa
 	if url == "" { // empty url is success
 		return nil
 	}
-	if t.Protocol == "grpc" {
-		dtmimp.PanicIf(strings.HasPrefix(url, "http"), fmt.Errorf("bad url for grpc: %s", url))
-		server, method, err := dtmdriver.GetDriver().ParseServerMethod(url)
+	if strings.HasPrefix(url, "http://") || strings.HasPrefix(url, "https://") {
+		resp, err := dtmimp.RestyClient.R().SetBody(string(branchPayload)).
+			SetQueryParams(map[string]string{
+				"gid":        t.Gid,
+				"trans_type": t.TransType,
+				"branch_id":  branchID,
+				"op":         op,
+			}).
+			SetHeader("Content-type", "application/json").
+			SetHeaders(t.Ext.Headers).
+			SetHeaders(t.TransOptions.BranchHeaders).
+			Execute(dtmimp.If(branchPayload != nil || t.TransType == "xa", "POST", "GET").(string), url)
 		if err != nil {
 			return err
 		}
-		conn := dtmgimp.MustGetGrpcConn(server, true)
-		ctx := dtmgimp.TransInfo2Ctx(t.Gid, t.TransType, branchID, op, "")
-		kvs := dtmgimp.Map2Kvs(t.Ext.Headers)
-		kvs = append(kvs, dtmgimp.Map2Kvs(t.BranchHeaders)...)
-		ctx = metadata.AppendToOutgoingContext(ctx, kvs...)
-		err = conn.Invoke(ctx, method, branchPayload, &[]byte{})
-		if err == nil {
-			return nil
-		}
-		return dtmgrpc.GrpcError2DtmError(err)
+		return dtmimp.RespAsErrorCompatible(resp)
 	}
-	dtmimp.PanicIf(!strings.HasPrefix(url, "http"), fmt.Errorf("bad url for http: %s", url))
-	resp, err := dtmimp.RestyClient.R().SetBody(string(branchPayload)).
-		SetQueryParams(map[string]string{
-			"gid":        t.Gid,
-			"trans_type": t.TransType,
-			"branch_id":  branchID,
-			"op":         op,
-		}).
-		SetHeader("Content-type", "application/json").
-		SetHeaders(t.Ext.Headers).
-		SetHeaders(t.TransOptions.BranchHeaders).
-		Execute(dtmimp.If(branchPayload != nil || t.TransType == "xa", "POST", "GET").(string), url)
+	dtmimp.PanicIf(t.Protocol == "http", fmt.Errorf("bad url for http: %s", url))
+	// grpc handler
+	server, method, err := dtmdriver.GetDriver().ParseServerMethod(url)
 	if err != nil {
 		return err
 	}
-	return dtmimp.RespAsErrorCompatible(resp)
+	conn := dtmgimp.MustGetGrpcConn(server, true)
+	ctx := dtmgimp.TransInfo2Ctx(t.Gid, t.TransType, branchID, op, "")
+	kvs := dtmgimp.Map2Kvs(t.Ext.Headers)
+	kvs = append(kvs, dtmgimp.Map2Kvs(t.BranchHeaders)...)
+	ctx = metadata.AppendToOutgoingContext(ctx, kvs...)
+	err = conn.Invoke(ctx, method, branchPayload, &[]byte{})
+	if err == nil {
+		return nil
+	}
+	return dtmgrpc.GrpcError2DtmError(err)
 }
 
 func (t *TransGlobal) getBranchResult(branch *TransBranch) (string, error) {
