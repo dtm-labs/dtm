@@ -144,7 +144,9 @@ func GetFuncName() string {
 // MayReplaceLocalhost when run in docker compose, change localhost to host.docker.internal for accessing host network
 func MayReplaceLocalhost(host string) string {
 	if os.Getenv("IS_DOCKER") != "" {
-		return strings.Replace(host, "localhost", "host.docker.internal", 1)
+		return strings.Replace(strings.Replace(host,
+			"localhost", "host.docker.internal", 1),
+			"127.0.0.1", "host.docker.internal", 1)
 	}
 	return host
 }
