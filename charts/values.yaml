@@ -37,13 +37,6 @@ resources:
     cpu: 200m
     memory: 200Mi
 
-autoscaling:
-  enabled: false
-  minReplicas: 1
-  maxReplicas: 10
-  targetCPUUtilizationPercentage: 80
-  targetMemoryUtilizationPercentage: 80
-
 nodeSelector: {}
 
 tolerations: []
@@ -56,8 +49,15 @@ service:
     http: 36789
     grpc: 36790
 
+autoscaling:
+  enabled: false
+  minReplicas: 1
+  maxReplicas: 10
+  targetCPUUtilizationPercentage: 80
+  targetMemoryUtilizationPercentage: 80
+
 ingress:
-  enabled: true
+  enabled: false
   className: "nginx"
   annotations:
     {}
