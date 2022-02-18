@@ -96,6 +96,34 @@ func init() {
 				return tccAdjustTrading(tx, TransInUID, -reqFrom(c).Amount)
 			})
 		}))
+		app.POST(BusiAPI+"/SagaMultiSource", dtmutil.WrapHandler2(func(c *gin.Context) interface{} {
+			barrier := MustBarrierFromGin(c)
+			transOutSource := pdbGet()
+			err := barrier.CallWithDB(transOutSource, func(tx *sql.Tx) error {
+				return SagaAdjustBalance(tx, TransOutUID, -reqFrom(c).Amount, reqFrom(c).TransOutResult)
+			})
+			if err != nil {
+				return err
+			}
+			transInSource := pdbGet()
+			return MustBarrierFromGin(c).CallWithDB(transInSource, func(tx *sql.Tx) error {
+				return SagaAdjustBalance(tx, TransInUID, reqFrom(c).Amount, reqFrom(c).TransInResult)
+			})
+		}))
+		app.POST(BusiAPI+"/SagaMultiSourceRevert", dtmutil.WrapHandler2(func(c *gin.Context) interface{} {
+			barrier := MustBarrierFromGin(c)
+			transOutSource := pdbGet()
+			err := barrier.CallWithDB(transOutSource, func(tx *sql.Tx) error {
+				return SagaAdjustBalance(tx, TransOutUID, +reqFrom(c).Amount, "")
+			})
+			if err != nil {
+				return err
+			}
+			transInSource := pdbGet()
+			return MustBarrierFromGin(c).CallWithDB(transInSource, func(tx *sql.Tx) error {
+				return SagaAdjustBalance(tx, TransInUID, -reqFrom(c).Amount, "")
+			})
+		}))
 		app.POST(BusiAPI+"/SagaRedisTransIn", dtmutil.WrapHandler2(func(c *gin.Context) interface{} {
 			return MustBarrierFromGin(c).RedisCheckAdjustAmount(RedisGet(), GetRedisAccountKey(TransInUID), reqFrom(c).Amount, 7*86400)
 		}))
