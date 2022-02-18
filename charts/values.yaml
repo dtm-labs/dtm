@@ -3,15 +3,10 @@
 # Declare variables to be passed into your templates.
 
 # DTM configuration. Specify content for config.yaml
+# ref: https://github.com/dtm-labs/dtm/blob/main/conf.sample.yml
 configuration: |-
   Store: # specify which engine to store trans status
     Driver: 'boltdb' # default store engine
-#  Store:
-#    Driver: mysql # 此处以 mysql 为例，其他数据库可自行替换
-#    Host: dtm-db  # 此处设置为集群外部的数据库 host，或者集群内部的数据库 svc-dns
-#    Port: 3306
-#    User: root
-#    Password: ''
 
 # replicaCount Number of dtm replicas to deploy
 replicaCount: 1
@@ -26,12 +21,10 @@ imagePullSecrets: []
 nameOverride: ""
 fullnameOverride: ""
 
-podSecurityContext:
-  {}
+podSecurityContext: {}
   # fsGroup: 2000
 
-securityContext:
-  {}
+securityContext: {}
   # capabilities:
   #   drop:
   #   - ALL
@@ -44,13 +37,6 @@ resources:
     cpu: 200m
     memory: 200Mi
 
-autoscaling:
-  enabled: false
-  minReplicas: 1
-  maxReplicas: 100
-  targetCPUUtilizationPercentage: 80
-  # targetMemoryUtilizationPercentage: 80
-
 nodeSelector: {}
 
 tolerations: []
@@ -62,6 +48,13 @@ service:
   ports:
     http: 36789
     grpc: 36790
+
+autoscaling:
+  enabled: false
+  minReplicas: 1
+  maxReplicas: 10
+  targetCPUUtilizationPercentage: 80
+  targetMemoryUtilizationPercentage: 80
 
 ingress:
   enabled: false
