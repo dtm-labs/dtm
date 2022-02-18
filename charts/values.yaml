@@ -26,12 +26,10 @@ imagePullSecrets: []
 nameOverride: ""
 fullnameOverride: ""
 
-podSecurityContext:
-  {}
+podSecurityContext: {}
   # fsGroup: 2000
 
-securityContext:
-  {}
+securityContext: {}
   # capabilities:
   #   drop:
   #   - ALL
@@ -47,9 +45,9 @@ resources:
 autoscaling:
   enabled: false
   minReplicas: 1
-  maxReplicas: 100
+  maxReplicas: 10
   targetCPUUtilizationPercentage: 80
-  # targetMemoryUtilizationPercentage: 80
+  targetMemoryUtilizationPercentage: 80
 
 nodeSelector: {}
 
@@ -64,7 +62,7 @@ service:
     grpc: 36790
 
 ingress:
-  enabled: false
+  enabled: true
   className: "nginx"
   annotations:
     {}
