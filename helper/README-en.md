@@ -5,7 +5,7 @@
 [![Go Reference](https://pkg.go.dev/badge/github.com/dtm-labs/dtm.svg)](https://pkg.go.dev/github.com/dtm-labs/dtm)
 [![Mentioned in Awesome Go](https://awesome.re/mentioned-badge-flat.svg)](https://github.com/avelino/awesome-go#database)
 
-# [中文文档](http://dtm.pub)
+# [中文文档](https://github.com/dtm-labs/dtm/blob/main/helper/README-cn.md)
 
 # A Cross Language Distributed Transaction Manager
 
