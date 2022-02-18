@@ -3,15 +3,10 @@
 # Declare variables to be passed into your templates.
 
 # DTM configuration. Specify content for config.yaml
+# ref: https://github.com/dtm-labs/dtm/blob/main/conf.sample.yml
 configuration: |-
   Store: # specify which engine to store trans status
     Driver: 'boltdb' # default store engine
-#  Store:
-#    Driver: mysql # 此处以 mysql 为例，其他数据库可自行替换
-#    Host: dtm-db  # 此处设置为集群外部的数据库 host，或者集群内部的数据库 svc-dns
-#    Port: 3306
-#    User: root
-#    Password: ''
 
 # replicaCount Number of dtm replicas to deploy
 replicaCount: 1
