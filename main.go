@@ -57,6 +57,7 @@ func main() {
 		version()
 		return
 	}
+	logger.Infof("dtm version is: %s", Version)
 	config.MustLoadConfig(*confFile)
 	conf := &config.Config
 	if *isDebug {
