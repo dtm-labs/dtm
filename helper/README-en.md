@@ -5,11 +5,17 @@
 [![Go Reference](https://pkg.go.dev/badge/github.com/dtm-labs/dtm.svg)](https://pkg.go.dev/github.com/dtm-labs/dtm)
 [![Mentioned in Awesome Go](https://awesome.re/mentioned-badge-flat.svg)](https://github.com/avelino/awesome-go#database)
 
-# [中文文档](https://github.com/dtm-labs/dtm/blob/main/helper/README-cn.md)
+English | [简体中文](https://github.com/dtm-labs/dtm/blob/main/helper/README-cn.md)
 
-# A Cross Language Distributed Transaction Manager
+# Distributed Transactions Manager
 
-## Who's using DTM
+## What is DTM
+
+DTM is a distributed transaction solution which provides cross-service eventually data consistency. It provides saga, tcc, xa, 2-phase message strategies for a variety of application scenarios. It also supports multiple languages and multiple store engine to form up a transaction as following:
+
+![function-picture](https://en.dtm.pub/assets/function.7d5618f8.png)
+
+## Who's using DTM (partial)
 
 [Tencent](https://www.tencent.com/)
 
@@ -17,13 +23,6 @@
 
 [Eglass](https://epeijing.cn)
 
-[Jiou](http://jiou.me)
-
-[GoldenData]()
-
-## What is DTM
-
-DTM is the first distributed transaction management framework in Golang. Unlike other frameworks, DTM provides extremely easy access interfaces of HTTP and gRPC, supports multiple language bindings, and handles tricky problems of unordered sub-transactions at the framework level.
 
 ## Features
 
