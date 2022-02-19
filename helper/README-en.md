@@ -13,7 +13,7 @@ English | [简体中文](https://github.com/dtm-labs/dtm/blob/main/helper/README
 
 DTM is a distributed transaction solution which provides cross-service eventually data consistency. It provides saga, tcc, xa, 2-phase message strategies for a variety of application scenarios. It also supports multiple languages and multiple store engine to form up a transaction as following:
 
-![function-picture](https://en.dtm.pub/assets/function.7d5618f8.png)
+<img alt="function-picture" src="https://en.dtm.pub/assets/function.7d5618f8.png" height=250 />
 
 ## Who's using DTM (partial)
 
