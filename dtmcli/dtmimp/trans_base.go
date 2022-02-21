@@ -44,8 +44,8 @@ func (g *BranchIDGen) CurrentSubBranchID() string {
 type TransOptions struct {
 	WaitResult         bool              `json:"wait_result,omitempty" gorm:"-"`
 	TimeoutToFail      int64             `json:"timeout_to_fail,omitempty" gorm:"-"` // for trans type: xa, tcc
-	RequestTimeout     int64             `json:"requestTimeout" gorm:"-"` // for global trans resets request timeout
-	RetryInterval      int64             `json:"retry_interval,omitempty" gorm:"-"` // for trans type: msg saga xa tcc
+	RequestTimeout     int64             `json:"requestTimeout" gorm:"-"`            // for global trans resets request timeout
+	RetryInterval      int64             `json:"retry_interval,omitempty" gorm:"-"`  // for trans type: msg saga xa tcc
 	PassthroughHeaders []string          `json:"passthrough_headers,omitempty" gorm:"-"`
 	BranchHeaders      map[string]string `json:"branch_headers,omitempty" gorm:"-"`
 }

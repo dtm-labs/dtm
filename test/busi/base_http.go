@@ -153,7 +153,7 @@ func BaseAddRoute(app *gin.Engine) {
 			return SagaAdjustBalance(db, TransOutUID, reqFrom(c).Amount, reqFrom(c).TransOutResult)
 		})
 	}))
-	app.POST(BusiAPI + "/TransOutTimeout", dtmutil.WrapHandler2(func(c *gin.Context) interface{} {
+	app.POST(BusiAPI+"/TransOutTimeout", dtmutil.WrapHandler2(func(c *gin.Context) interface{} {
 		time.Sleep(time.Second * 4)
 		return handleGeneralBusiness(c, MainSwitch.TransOutResult.Fetch(), reqFrom(c).TransOutResult, "TransOut")
 	}))
