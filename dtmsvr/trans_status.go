@@ -9,7 +9,6 @@ package dtmsvr
 import (
 	"errors"
 	"fmt"
-	"github.com/dtm-labs/dtm/dtmutil"
 	"strings"
 	"time"
 
@@ -18,6 +17,7 @@ import (
 	"github.com/dtm-labs/dtm/dtmcli/logger"
 	"github.com/dtm-labs/dtm/dtmgrpc"
 	"github.com/dtm-labs/dtm/dtmgrpc/dtmgimp"
+	"github.com/dtm-labs/dtm/dtmutil"
 	"github.com/dtm-labs/dtmdriver"
 	"google.golang.org/grpc/metadata"
 )

@@ -9,9 +9,9 @@ package dtmsvr
 import (
 	"errors"
 	"fmt"
-	"github.com/dtm-labs/dtm/dtmcli/dtmimp"
 
 	"github.com/dtm-labs/dtm/dtmcli"
+	"github.com/dtm-labs/dtm/dtmcli/dtmimp"
 	"github.com/dtm-labs/dtm/dtmcli/logger"
 )
 

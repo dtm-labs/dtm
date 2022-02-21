@@ -1,15 +1,14 @@
 package test
 
 import (
-	"github.com/dtm-labs/dtm/dtmutil"
 	"testing"
 	"time"
-
-	"github.com/stretchr/testify/assert"
 
 	"github.com/dtm-labs/dtm/dtmcli/dtmimp"
 	"github.com/dtm-labs/dtm/dtmsvr/storage"
 	"github.com/dtm-labs/dtm/dtmsvr/storage/registry"
+	"github.com/dtm-labs/dtm/dtmutil"
+	"github.com/stretchr/testify/assert"
 )
 
 func initTransGlobal(gid string) (*storage.TransGlobalStore, storage.Store) {
