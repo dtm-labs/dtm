@@ -12,6 +12,7 @@ import (
 	"net/http"
 	"net/url"
 	"strings"
+	"time"
 
 	"github.com/go-resty/resty/v2"
 )
@@ -43,7 +44,8 @@ func (g *BranchIDGen) CurrentSubBranchID() string {
 type TransOptions struct {
 	WaitResult         bool              `json:"wait_result,omitempty" gorm:"-"`
 	TimeoutToFail      int64             `json:"timeout_to_fail,omitempty" gorm:"-"` // for trans type: xa, tcc
-	RetryInterval      int64             `json:"retry_interval,omitempty" gorm:"-"`  // for trans type: msg saga xa tcc
+	RequestTimeout     int64             `json:"requestTimeout" gorm:"-"` // for global trans resets request timeout
+	RetryInterval      int64             `json:"retry_interval,omitempty" gorm:"-"` // for trans type: msg saga xa tcc
 	PassthroughHeaders []string          `json:"passthrough_headers,omitempty" gorm:"-"`
 	BranchHeaders      map[string]string `json:"branch_headers,omitempty" gorm:"-"`
 }
@@ -76,6 +78,11 @@ func NewTransBase(gid string, transType string, dtm string, branchID string) *Tr
 	}
 }
 
+// WithGlobalTransRequestTimeout defines global trans request timeout
+func (t *TransBase) WithGlobalTransRequestTimeout(timeout int64) {
+	t.RequestTimeout = timeout
+}
+
 // TransBaseFromQuery construct transaction info from request
 func TransBaseFromQuery(qs url.Values) *TransBase {
 	return NewTransBase(qs.Get("gid"), qs.Get("trans_type"), qs.Get("dtm"), qs.Get("branch_id"))
@@ -83,6 +90,9 @@ func TransBaseFromQuery(qs url.Values) *TransBase {
 
 // TransCallDtm TransBase call dtm
 func TransCallDtm(tb *TransBase, body interface{}, operation string) error {
+	if tb.RequestTimeout != 0 {
+		RestyClient.SetTimeout(time.Duration(tb.RequestTimeout) * time.Second)
+	}
 	resp, err := RestyClient.R().
 		SetBody(body).Post(fmt.Sprintf("%s/%s", tb.Dtm, operation))
 	if err != nil {

@@ -170,6 +170,10 @@ func (t *transSagaProcessor) ProcessOnce(branches []TransBranch) error {
 		}
 	}
 	waitDoneOnce := func() {
+		timeAfter := time.Second * 3
+		if t.RequestTimeout != 0 {
+			timeAfter = time.Duration(t.RequestTimeout) * time.Second
+		}
 		select {
 		case r := <-resultChan:
 			br := &branchResults[r.index]
@@ -188,7 +192,7 @@ func (t *transSagaProcessor) ProcessOnce(branches []TransBranch) error {
 				}
 			}
 			logger.Debugf("branch done: %v", r)
-		case <-time.After(time.Duration(time.Second * 3)):
+		case <-time.After(timeAfter):
 			logger.Debugf("wait once for done")
 		}
 	}

@@ -77,6 +77,9 @@ func (t *TransGlobal) getURLResult(url string, branchID, op string, branchPayloa
 		return nil
 	}
 	if strings.HasPrefix(url, "http://") || strings.HasPrefix(url, "https://") {
+		if t.RequestTimeout != 0 {
+			dtmimp.RestyClient.SetTimeout(time.Duration(t.RequestTimeout) * time.Second)
+		}
 		resp, err := dtmimp.RestyClient.R().SetBody(string(branchPayload)).
 			SetQueryParams(map[string]string{
 				"gid":        t.Gid,

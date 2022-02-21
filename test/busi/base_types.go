@@ -26,6 +26,7 @@ var BusiConf = dtmcli.DBConf{
 	Host:   StoreHost,
 	Port:   3306,
 	User:   "root",
+	Password: "111111",
 }
 
 // UserAccount 1
