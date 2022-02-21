@@ -1,14 +1,15 @@
 package test
 
 import (
+	"testing"
+	"time"
+
 	"github.com/dtm-labs/dtm/dtmcli"
 	"github.com/dtm-labs/dtm/dtmcli/dtmimp"
 	"github.com/dtm-labs/dtm/dtmsvr"
 	"github.com/dtm-labs/dtm/dtmutil"
 	"github.com/dtm-labs/dtm/test/busi"
 	"github.com/stretchr/testify/assert"
-	"testing"
-	"time"
 )
 
 func genMsgDelay(gid string) *dtmcli.Msg {
