@@ -19,11 +19,19 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+type triggerType int
+
+const (
+	triggerManual triggerType = iota //manual trigger
+	triggerCron                      //cron trigger
+)
+
 // TransGlobal global transaction
 type TransGlobal struct {
 	storage.TransGlobalStore
 	lastTouched      time.Time // record the start time of process
 	updateBranchSync bool
+	triggerType      triggerType
 }
 
 // TransBranch branch transaction
@@ -104,7 +112,8 @@ func TransFromDtmRequest(ctx context.Context, c *dtmgpb.DtmRequest) *TransGlobal
 			PassthroughHeaders: o.PassthroughHeaders,
 			BranchHeaders:      o.BranchHeaders,
 		},
-	}}
+	},
+		triggerType: triggerManual}
 	if c.Steps != "" {
 		dtmimp.MustUnmarshalString(c.Steps, &r.Steps)
 	}

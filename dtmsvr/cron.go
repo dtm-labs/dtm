@@ -55,7 +55,7 @@ func lockOneTrans(expireIn time.Duration) *TransGlobal {
 		return nil
 	}
 	logger.Infof("cron job return a trans: %s", global.String())
-	return &TransGlobal{TransGlobalStore: *global}
+	return &TransGlobal{TransGlobalStore: *global, triggerType: triggerCron}
 }
 
 func handlePanic(perr *error) {
