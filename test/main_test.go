@@ -48,7 +48,7 @@ func TestMain(m *testing.M) {
 		conf.Store.Host = "localhost"
 		conf.Store.Port = 3306
 		conf.Store.User = "root"
-		conf.Store.Password = "111111"
+		conf.Store.Password = ""
 	} else {
 		conf.Store.Driver = "redis"
 		conf.Store.Host = "localhost"
