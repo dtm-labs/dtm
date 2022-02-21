@@ -34,4 +34,5 @@ func TestMsgDelayNormal(t *testing.T) {
 	cronTransOnce(t, gid)
 	assert.Equal(t, []string{StatusSucceed, StatusSucceed}, getBranchesStatus(msg.Gid))
 	assert.Equal(t, StatusSucceed, getTransStatus(msg.Gid))
+	dtmsvr.CronForwardDuration = 180 * time.Second
 }
