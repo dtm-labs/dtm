@@ -9,6 +9,7 @@ package dtmsvr
 import (
 	"errors"
 	"fmt"
+	"github.com/dtm-labs/dtm/dtmutil"
 	"strings"
 	"time"
 
@@ -23,7 +24,17 @@ import (
 
 func (t *TransGlobal) touchCronTime(ctype cronType) {
 	t.lastTouched = time.Now()
-	GetStore().TouchCronTime(&t.TransGlobalStore, t.getNextCronInterval(ctype))
+	nextCronInterval := t.getNextCronInterval(ctype)
+	nextCronTime := dtmutil.GetNextTime(nextCronInterval)
+	GetStore().TouchCronTime(&t.TransGlobalStore, nextCronInterval, nextCronTime)
+	logger.Infof("TouchCronTime for: %s", t.TransGlobalStore.String())
+}
+
+func (t *TransGlobal) delayCronTime(delay uint64) {
+	t.lastTouched = time.Now()
+	nextCronInterval := t.getNextCronInterval(cronKeep)
+	nextCronTime := dtmutil.GetNextTime(int64(delay))
+	GetStore().TouchCronTime(&t.TransGlobalStore, nextCronInterval, nextCronTime)
 	logger.Infof("TouchCronTime for: %s", t.TransGlobalStore.String())
 }
 

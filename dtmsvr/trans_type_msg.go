@@ -9,6 +9,7 @@ package dtmsvr
 import (
 	"errors"
 	"fmt"
+	"github.com/dtm-labs/dtm/dtmcli/dtmimp"
 
 	"github.com/dtm-labs/dtm/dtmcli"
 	"github.com/dtm-labs/dtm/dtmcli/logger"
@@ -38,6 +39,10 @@ func (t *transMsgProcessor) GenBranches() []TransBranch {
 	return branches
 }
 
+type cMsgCustom struct {
+	Delay uint64 //delay call branch, unit second
+}
+
 func (t *TransGlobal) mayQueryPrepared() {
 	if !t.needProcess() || t.Status == dtmcli.StatusSubmitted {
 		return
@@ -60,6 +65,17 @@ func (t *transMsgProcessor) ProcessOnce(branches []TransBranch) error {
 	if !t.needProcess() || t.Status == dtmcli.StatusPrepared {
 		return nil
 	}
+
+	cmc := cMsgCustom{Delay: 0}
+	if t.CustomData != "" {
+		dtmimp.MustUnmarshalString(t.CustomData, &cmc)
+	}
+
+	if cmc.Delay > 0 {
+		t.delayCronTime(cmc.Delay)
+		return nil
+	}
+
 	current := 0 // 当前正在处理的步骤
 	for ; current < len(branches); current++ {
 		branch := &branches[current]

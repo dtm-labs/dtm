@@ -16,6 +16,7 @@ import (
 // Msg reliable msg type
 type Msg struct {
 	dtmimp.TransBase
+	delay uint64 // delay call branch, unit second
 }
 
 // NewMsg create new msg
@@ -30,6 +31,12 @@ func (s *Msg) Add(action string, postData interface{}) *Msg {
 	return s
 }
 
+// EnableDelay delay call branch, unit second
+func (s *Msg) EnableDelay(delay uint64) *Msg {
+	s.delay = delay
+	return s
+}
+
 // Prepare prepare the msg, msg will later be submitted
 func (s *Msg) Prepare(queryPrepared string) error {
 	s.QueryPrepared = dtmimp.OrString(queryPrepared, s.QueryPrepared)
@@ -38,6 +45,7 @@ func (s *Msg) Prepare(queryPrepared string) error {
 
 // Submit submit the msg
 func (s *Msg) Submit() error {
+	s.BuildCustomOptions()
 	return dtmimp.TransCallDtm(&s.TransBase, s, "submit")
 }
 
@@ -73,4 +81,11 @@ func (s *Msg) DoAndSubmit(queryPrepared string, busiCall func(bb *BranchBarrier)
 		}
 	}
 	return err
+}
+
+// BuildCustomOptions add custom options to the request context
+func (s *Msg) BuildCustomOptions() {
+	if s.delay > 0 {
+		s.CustomData = dtmimp.MustMarshalString(map[string]interface{}{"delay": s.delay})
+	}
 }
