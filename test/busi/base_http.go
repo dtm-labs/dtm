@@ -10,8 +10,6 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
-	"time"
-
 	"github.com/dtm-labs/dtm/dtmcli"
 	"github.com/dtm-labs/dtm/dtmcli/dtmimp"
 	"github.com/dtm-labs/dtm/dtmcli/logger"
@@ -154,7 +152,6 @@ func BaseAddRoute(app *gin.Engine) {
 		})
 	}))
 	app.POST(BusiAPI+"/TransOutTimeout", dtmutil.WrapHandler2(func(c *gin.Context) interface{} {
-		time.Sleep(time.Second * 4)
 		return handleGeneralBusiness(c, MainSwitch.TransOutResult.Fetch(), reqFrom(c).TransOutResult, "TransOut")
 	}))
 	app.POST(BusiAPI+"/TransInTccNested", dtmutil.WrapHandler2(func(c *gin.Context) interface{} {
