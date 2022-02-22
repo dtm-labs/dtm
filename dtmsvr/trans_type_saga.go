@@ -188,7 +188,7 @@ func (t *transSagaProcessor) ProcessOnce(branches []TransBranch) error {
 				}
 			}
 			logger.Debugf("branch done: %v", r)
-		case <-time.After(time.Duration(time.Second * 3)):
+		case <-time.After(time.Second * 3):
 			logger.Debugf("wait once for done")
 		}
 	}

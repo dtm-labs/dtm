@@ -57,6 +57,17 @@ func TestSagaOptionsTimeout(t *testing.T) {
 	assert.Equal(t, StatusFailed, getTransStatus(saga.Gid))
 }
 
+func TestSagaGlobalTransWithRequestTimeout(t *testing.T) {
+	gid := dtmimp.GetFuncName()
+	saga := dtmcli.NewSaga(dtmutil.DefaultHTTPServer, gid)
+	saga.WaitResult = true
+	saga.Add(busi.Busi+"/TransOutTimeout", "", nil)
+	saga.WithGlobalTransRequestTimeout(6)
+	err := saga.Submit()
+	assert.Nil(t, err)
+	waitTransProcessed(gid)
+}
+
 func TestSagaOptionsNormalWait(t *testing.T) {
 	saga := genSaga(dtmimp.GetFuncName(), false, false)
 	saga.WaitResult = true

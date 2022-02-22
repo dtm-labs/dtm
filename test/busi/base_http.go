@@ -152,7 +152,9 @@ func BaseAddRoute(app *gin.Engine) {
 			return SagaAdjustBalance(db, TransOutUID, reqFrom(c).Amount, reqFrom(c).TransOutResult)
 		})
 	}))
-
+	app.POST(BusiAPI+"/TransOutTimeout", dtmutil.WrapHandler2(func(c *gin.Context) interface{} {
+		return handleGeneralBusiness(c, MainSwitch.TransOutResult.Fetch(), reqFrom(c).TransOutResult, "TransOut")
+	}))
 	app.POST(BusiAPI+"/TransInTccNested", dtmutil.WrapHandler2(func(c *gin.Context) interface{} {
 		tcc, err := dtmcli.TccFromQuery(c.Request.URL.Query())
 		logger.FatalIfError(err)
