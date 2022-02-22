@@ -19,11 +19,12 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+// triggerType trigger transaction type
 type triggerType int
 
 const (
-	triggerManual triggerType = iota //manual trigger
-	triggerCron                      //cron trigger
+	triggerManual triggerType = iota //triggerManual manual trigger
+	triggerCron                      //triggerCron cron trigger
 )
 
 // TransGlobal global transaction
