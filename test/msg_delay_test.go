@@ -14,7 +14,7 @@ func genMsgDelay(gid string) *dtmcli.Msg {
 	req := busi.GenTransReq(30, false, false)
 	msg := dtmcli.NewMsg(dtmutil.DefaultHTTPServer, gid).
 		Add(busi.Busi+"/TransOut", &req).
-		Add(busi.Busi+"/TransIn", &req).EnableDelay(2)
+		Add(busi.Busi+"/TransIn", &req).EnableDelay(10)
 	msg.QueryPrepared = busi.Busi + "/QueryPrepared"
 	return msg
 }
@@ -26,7 +26,9 @@ func TestMsgDelayNormal(t *testing.T) {
 	waitTransProcessed(msg.Gid)
 	assert.Equal(t, []string{StatusPrepared, StatusPrepared}, getBranchesStatus(msg.Gid))
 	assert.Equal(t, StatusSubmitted, getTransStatus(msg.Gid))
-	cronTransOnceForwardNow(t, gid, 2)
+	cronTransOnceForwardCron(t, "", 0)
+	cronTransOnceForwardCron(t, "", 8)
+	cronTransOnceForwardCron(t, gid, 12)
 	assert.Equal(t, []string{StatusSucceed, StatusSucceed}, getBranchesStatus(msg.Gid))
 	assert.Equal(t, StatusSucceed, getTransStatus(msg.Gid))
 }
