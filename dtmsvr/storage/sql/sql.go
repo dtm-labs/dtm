@@ -121,9 +121,9 @@ func (s *Store) ChangeGlobalStatus(global *storage.TransGlobalStore, newStatus s
 }
 
 // TouchCronTime updates cronTime
-func (s *Store) TouchCronTime(global *storage.TransGlobalStore, nextCronInterval int64) {
-	global.NextCronTime = dtmutil.GetNextTime(nextCronInterval)
+func (s *Store) TouchCronTime(global *storage.TransGlobalStore, nextCronInterval int64, nextCronTime *time.Time) {
 	global.UpdateTime = dtmutil.GetNextTime(0)
+	global.NextCronTime = nextCronTime
 	global.NextCronInterval = nextCronInterval
 	dbGet().Must().Model(global).Where("status=? and gid=?", global.Status, global.Gid).
 		Select([]string{"next_cron_time", "update_time", "next_cron_interval"}).Updates(global)
