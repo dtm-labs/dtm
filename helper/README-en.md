@@ -88,7 +88,7 @@ When the above code runs, we can see in the console that services TransOut, Tran
 #### Timing diagram
 A timing diagram for a successfully completed SAGA transaction would be as follows:
 
-<img alt="saga-success" src="https://en.dtm.pub/assets/saga_normal.59a75c01.jpg" height=350/>
+<img alt="saga-success" src="https://en.dtm.pub/assets/saga_normal.59a75c01.jpg" height=450/>
 
 #### Rollback upon failure
 If any forward operation fails, DTM invokes the corresponding compensating operation of each sub-transaction to roll back, after which the transaction is successfully rolled back.
@@ -105,7 +105,7 @@ app.POST(qsBusiAPI+"/TransIn", func(c *gin.Context) {
 
 The timing diagram for the intended failure is as follows:
 
-<img alt="saga-failed" src="https://en.dtm.pub/assets/saga_rollback.7989c866.jpg" height=450>
+<img alt="saga-failed" src="https://en.dtm.pub/assets/saga_rollback.7989c866.jpg" height=600>
 
 ## More examples
 
