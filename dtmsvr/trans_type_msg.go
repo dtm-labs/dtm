@@ -53,10 +53,10 @@ func (t *TransGlobal) mayQueryPrepared() {
 	} else if errors.Is(err, dtmcli.ErrFailure) {
 		t.changeStatus(dtmcli.StatusFailed)
 	} else if errors.Is(err, dtmcli.ErrOngoing) {
-		t.touchCronTime(cronReset)
+		t.touchCronTime(cronReset, 0)
 	} else {
 		logger.Errorf("getting result failed for %s. error: %v", t.QueryPrepared, err)
-		t.touchCronTime(cronBackoff)
+		t.touchCronTime(cronBackoff, 0)
 	}
 }
 
@@ -72,7 +72,7 @@ func (t *transMsgProcessor) ProcessOnce(branches []TransBranch) error {
 	}
 
 	if cmc.Delay > 0 && t.needDelay(cmc.Delay) {
-		t.delayCronTime(cmc.Delay)
+		t.touchCronTime(cronKeep, cmc.Delay)
 		return nil
 	}
 
