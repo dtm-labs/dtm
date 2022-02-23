@@ -105,7 +105,7 @@ app.POST(qsBusiAPI+"/TransIn", func(c *gin.Context) {
 
 The timing diagram for the intended failure is as follows:
 
-<img alt="saga-failed" src="https://en.dtm.pub/assets/saga_rollback.7989c866.jpg" height=600>
+<img alt="saga-failed" src="https://en.dtm.pub/assets/saga_rollback.7989c866.jpg" height=550>
 
 ## More examples
 
