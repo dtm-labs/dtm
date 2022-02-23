@@ -33,9 +33,9 @@ func (s *MsgGrpc) Add(action string, msg proto.Message) *MsgGrpc {
 	return s
 }
 
-// EnableDelay delay call branch, unit second
-func (s *MsgGrpc) EnableDelay(delay uint64) *MsgGrpc {
-	s.Msg.EnableDelay(delay)
+// SetDelay delay call branch, unit second
+func (s *MsgGrpc) SetDelay(delay uint64) *MsgGrpc {
+	s.Msg.SetDelay(delay)
 	return s
 }
 

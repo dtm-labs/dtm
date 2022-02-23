@@ -71,7 +71,7 @@ func (t *transMsgProcessor) ProcessOnce(branches []TransBranch) error {
 		dtmimp.MustUnmarshalString(t.CustomData, &cmc)
 	}
 
-	if cmc.Delay > 0 && t.triggerType == triggerManual {
+	if cmc.Delay > 0 && t.needDelay(cmc.Delay) {
 		t.delayCronTime(cmc.Delay)
 		return nil
 	}

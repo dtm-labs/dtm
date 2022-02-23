@@ -31,8 +31,8 @@ func (s *Msg) Add(action string, postData interface{}) *Msg {
 	return s
 }
 
-// EnableDelay delay call branch, unit second
-func (s *Msg) EnableDelay(delay uint64) *Msg {
+// SetDelay delay call branch, unit second
+func (s *Msg) SetDelay(delay uint64) *Msg {
 	s.delay = delay
 	return s
 }

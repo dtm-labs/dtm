@@ -79,6 +79,10 @@ func (t *TransGlobal) isTimeout() bool {
 	return time.Since(*t.CreateTime)+NowForwardDuration >= time.Duration(timeout)*time.Second
 }
 
+func (t *TransGlobal) needDelay(delay uint64) bool {
+	return time.Since(*t.CreateTime)+CronForwardDuration < time.Duration(delay)*time.Second
+}
+
 func (t *TransGlobal) needProcess() bool {
 	return t.Status == dtmcli.StatusSubmitted || t.Status == dtmcli.StatusAborting || t.Status == dtmcli.StatusPrepared && t.isTimeout()
 }

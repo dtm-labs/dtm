@@ -68,6 +68,13 @@ func cronTransOnceForwardCron(t *testing.T, gid string, seconds int) {
 	dtmsvr.CronForwardDuration = old
 }
 
+func submitForwardCron(seconds int, fn func()) {
+	old := dtmsvr.CronForwardDuration
+	dtmsvr.CronForwardDuration = time.Duration(seconds) * time.Second
+	fn()
+	dtmsvr.CronForwardDuration = old
+}
+
 const (
 	// StatusPrepared status for global/branch trans status.
 	StatusPrepared = dtmcli.StatusPrepared
