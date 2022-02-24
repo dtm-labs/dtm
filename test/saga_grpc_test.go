@@ -110,6 +110,17 @@ func TestSagaGrpcPassthroughHeadersYes(t *testing.T) {
 	waitTransProcessed(gidYes)
 }
 
+func TestSagaGrpcWithGlobalTransRequestTimeout(t *testing.T) {
+	gid := dtmimp.GetFuncName()
+	saga := dtmgrpc.NewSagaGrpc(dtmutil.DefaultGrpcServer, gid)
+	saga.WaitResult = true
+	saga.Add(busi.BusiGrpc+"/busi.Busi/TransOutWithGlobalRequestTimeout", "", nil)
+	saga.WithGlobalTransRequestTimeout(6)
+	err := saga.Submit()
+	assert.Nil(t, err)
+	waitTransProcessed(gid)
+}
+
 func TestSagaGrpcCronPassthroughHeadersYes(t *testing.T) {
 	gidYes := dtmimp.GetFuncName()
 	sagaYes := dtmgrpc.NewSagaGrpc(dtmutil.DefaultGrpcServer, gidYes)
