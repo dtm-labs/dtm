@@ -8,9 +8,6 @@ package dtmgimp
 
 import (
 	context "context"
-	"time"
-
-	"google.golang.org/grpc"
 
 	"github.com/dtm-labs/dtm/dtmcli/dtmimp"
 	"github.com/dtm-labs/dtm/dtmcli/logger"
@@ -29,13 +26,6 @@ func MustProtoMarshal(msg proto.Message) []byte {
 
 // DtmGrpcCall make a convenient call to dtm
 func DtmGrpcCall(s *dtmimp.TransBase, operation string) error {
-	if s.RequestTimeout != 0 {
-		ClientInterceptors = append(ClientInterceptors, func(ctx context.Context, method string, req, reply interface{}, cc *grpc.ClientConn, invoker grpc.UnaryInvoker, opts ...grpc.CallOption) error {
-			ctx2, cancel := context.WithTimeout(ctx, time.Duration(s.RequestTimeout)*time.Second)
-			defer cancel()
-			return invoker(ctx2, method, req, reply, cc, opts...)
-		})
-	}
 	reply := emptypb.Empty{}
 	return MustGetGrpcConn(s.Dtm, false).Invoke(context.Background(), "/dtmgimp.Dtm/"+operation, &dtmgpb.DtmRequest{
 		Gid:       s.Gid,
@@ -110,4 +100,20 @@ func TransBaseFromGrpc(ctx context.Context) *dtmimp.TransBase {
 func GetMetaFromContext(ctx context.Context, name string) string {
 	md, _ := metadata.FromIncomingContext(ctx)
 	return mdGet(md, name)
+}
+
+type requestTimeoutKey struct{}
+
+// RequestTimeoutFromContext returns requestTime of transOption option
+func RequestTimeoutFromContext(ctx context.Context) int64 {
+	if v, ok := ctx.Value(requestTimeoutKey{}).(int64); ok {
+		return v
+	}
+
+	return 0
+}
+
+// RequestTimeoutNewContext sets requestTimeout of transOption option to context
+func RequestTimeoutNewContext(ctx context.Context, requestTimeout int64) context.Context {
+	return context.WithValue(ctx, requestTimeoutKey{}, requestTimeout)
 }

@@ -7,13 +7,10 @@
 package dtmsvr
 
 import (
-	"context"
 	"errors"
 	"fmt"
 	"strings"
 	"time"
-
-	"google.golang.org/grpc"
 
 	"github.com/dtm-labs/dtm/dtmcli"
 	"github.com/dtm-labs/dtm/dtmcli/dtmimp"
@@ -122,20 +119,13 @@ func (t *TransGlobal) getURLResult(url string, branchID, op string, branchPayloa
 	if err != nil {
 		return err
 	}
-	dtmgimp.ClientInterceptors = append(dtmgimp.ClientInterceptors, func(ctx context.Context, method string, req, reply interface{}, cc *grpc.ClientConn, invoker grpc.UnaryInvoker, opts ...grpc.CallOption) error {
-		timeout := conf.RequestTimeout
-		if t.RequestTimeout != 0 {
-			timeout = conf.RequestTimeout
-		}
-		ctx2, cancel := context.WithTimeout(ctx, time.Duration(timeout)*time.Second)
-		defer cancel()
-		return invoker(ctx2, method, req, reply, cc, opts...)
-	})
+
 	conn := dtmgimp.MustGetGrpcConn(server, true)
 	ctx := dtmgimp.TransInfo2Ctx(t.Gid, t.TransType, branchID, op, "")
 	kvs := dtmgimp.Map2Kvs(t.Ext.Headers)
 	kvs = append(kvs, dtmgimp.Map2Kvs(t.BranchHeaders)...)
 	ctx = metadata.AppendToOutgoingContext(ctx, kvs...)
+	ctx = dtmgimp.RequestTimeoutNewContext(ctx, t.RequestTimeout)
 	err = conn.Invoke(ctx, method, branchPayload, &[]byte{})
 	if err == nil {
 		return nil
