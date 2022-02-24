@@ -85,7 +85,8 @@ func TransFromContext(c *gin.Context) *TransGlobal {
 	return &m
 }
 
-func TransFromJsonRpcHttpContext(params interface{}) *TransGlobal {
+// TransFromJSONRPCContext 1
+func TransFromJSONRPCContext(params interface{}) *TransGlobal {
 	jsonStr, _ := json.Marshal(params)
 	m := TransGlobal{}
 	err := json.Unmarshal(jsonStr, &m)

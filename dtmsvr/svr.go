@@ -68,12 +68,12 @@ func StartSvr() {
 	logger.FatalIfError(err)
 
 	// start json-rpc server
-	jsonRpcHttpApp := dtmutil.GetGinApp()
-	jsonRpcHttpApp = httpMetrics(jsonRpcHttpApp)
-	addJsonRpcHttpRouter(jsonRpcHttpApp)
-	logger.Infof("dtmsvr listen at: %d", conf.JsonRpcHttpPort)
+	jsonRPCApp := dtmutil.GetGinApp()
+	jsonRPCApp = httpMetrics(jsonRPCApp)
+	addJSONRPCRouter(jsonRPCApp)
+	logger.Infof("dtmsvr listen at: %d", conf.JSONRPCPort)
 	go func() {
-		err := jsonRpcHttpApp.Run(fmt.Sprintf(":%d", conf.JsonRpcHttpPort))
+		err := jsonRPCApp.Run(fmt.Sprintf(":%d", conf.JSONRPCPort))
 		if err != nil {
 			logger.Errorf("start server err: %v", err)
 		}
