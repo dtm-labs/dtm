@@ -411,15 +411,19 @@ func (s *Store) LockOneGlobalTrans(expireIn time.Duration) *storage.TransGlobalS
 
 // ResetCronTime rest nextCronTime
 // Prevent multiple backoff from causing NextCronTime to be too long
-func (s *Store) ResetCronTime(timeout time.Duration, limit int64) error {
+func (s *Store) ResetCronTime(timeout time.Duration, limit int64) (succeedCount int64, hasRemaining bool, err error) {
 	next := time.Now()
 	var trans *storage.TransGlobalStore
 	min := fmt.Sprintf("%d", time.Now().Add(timeout).Unix())
-	err := s.boltDb.Update(func(t *bolt.Tx) error {
-
+	err = s.boltDb.Update(func(t *bolt.Tx) error {
 		cursor := t.Bucket(bucketIndex).Cursor()
-		i := 0
-		for k, v := cursor.Seek([]byte(min)); k != nil && i < int(limit); k, v = cursor.Next() {
+		succeedCount = 0
+		for k, v := cursor.Seek([]byte(min)); k != nil && succeedCount <= limit; k, v = cursor.Next() {
+			if succeedCount == limit {
+				hasRemaining = true
+				break
+			}
+
 			trans = tGetGlobal(t, string(v))
 			err := t.Bucket(bucketIndex).Delete(k)
 			dtmimp.E2P(err)
@@ -431,9 +435,9 @@ func (s *Store) ResetCronTime(timeout time.Duration, limit int64) error {
 			trans.NextCronTime = &next
 			tPutGlobal(t, trans)
 			tPutIndex(t, next.Unix(), trans.Gid)
-			i++
+			succeedCount++
 		}
 		return nil
 	})
-	return err
+	return
 }

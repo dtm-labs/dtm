@@ -89,5 +89,10 @@ func resetCronTime(c *gin.Context) interface{} {
 	sTimeoutSecond := dtmimp.OrString(c.Query("timeout"), strconv.FormatInt(3*conf.TimeoutToFail, 10))
 	sLimit := dtmimp.OrString(c.Query("limit"), "100")
 	timeout := time.Duration(dtmimp.MustAtoi(sTimeoutSecond)) * time.Second
-	return GetStore().ResetCronTime(timeout, int64(dtmimp.MustAtoi(sLimit)))
+
+	succeedCount, hasRemaining, err := GetStore().ResetCronTime(timeout, int64(dtmimp.MustAtoi(sLimit)))
+	if err != nil {
+		return err
+	}
+	return map[string]interface{}{"has_remaining": hasRemaining, "succeed_count": succeedCount}
 }

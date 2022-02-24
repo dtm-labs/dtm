@@ -82,14 +82,21 @@ func TestDtmMetrics(t *testing.T) {
 }
 
 func TestAPIResetCronTime(t *testing.T) {
-	testStoreResetCronTime(t, dtmimp.GetFuncName(), func(timeout int64, limit int64) error {
+	testStoreResetCronTime(t, dtmimp.GetFuncName(), func(timeout int64, limit int64) (int64, bool, error) {
 		sTimeout := strconv.FormatInt(timeout, 10)
 		sLimit := strconv.FormatInt(limit, 10)
 
-		_, err := dtmimp.RestyClient.R().SetQueryParams(map[string]string{
+		resp, err := dtmimp.RestyClient.R().SetQueryParams(map[string]string{
 			"timeout": sTimeout,
 			"limit":   sLimit,
 		}).Get(dtmutil.DefaultHTTPServer + "/resetCronTime")
-		return err
+
+		m := map[string]interface{}{}
+		dtmimp.MustUnmarshalString(resp.String(), &m)
+		hasRemaining, ok := m["has_remaining"].(bool)
+		assert.Equal(t, ok, true)
+		succeedCount, ok := m["succeed_count"].(float64)
+		assert.Equal(t, ok, true)
+		return int64(succeedCount), hasRemaining, err
 	})
 }

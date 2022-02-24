@@ -158,7 +158,7 @@ func (s *Store) LockOneGlobalTrans(expireIn time.Duration) *storage.TransGlobalS
 
 // ResetCronTime rest nextCronTime
 // Prevent multiple backoff from causing NextCronTime to be too long
-func (s *Store) ResetCronTime(timeout time.Duration, limit int64) error {
+func (s *Store) ResetCronTime(timeout time.Duration, limit int64) (succeedCount int64, hasRemaining bool, err error) {
 	db := dbGet()
 	getTime := func(second int) string {
 		return map[string]string{
@@ -176,7 +176,16 @@ func (s *Store) ResetCronTime(timeout time.Duration, limit int64) error {
 		Updates(&storage.TransGlobalStore{
 			NextCronTime: dtmutil.GetNextTime(0),
 		})
-	return dbr.Error
+	succeedCount = dbr.RowsAffected
+	if succeedCount == limit {
+		var count int64
+		db.Must().Model(global).Where(whereTime + "and status in ('prepared', 'aborting', 'submitted')").Limit(1).Count(&count)
+		if count > 0 {
+			hasRemaining = true
+		}
+	}
+
+	return succeedCount, hasRemaining, dbr.Error
 }
 
 // SetDBConn sets db conn pool
