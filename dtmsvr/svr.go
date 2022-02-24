@@ -38,9 +38,21 @@ func StartSvr() {
 	app := dtmutil.GetGinApp()
 	app = httpMetrics(app)
 	addRoute(app)
-	logger.Infof("dtmsvr listen at: %d", conf.HTTPPort)
+	logger.Infof("dtmsvr http listen at: %d", conf.HTTPPort)
 	go func() {
 		err := app.Run(fmt.Sprintf(":%d", conf.HTTPPort))
+		if err != nil {
+			logger.Errorf("start server err: %v", err)
+		}
+	}()
+
+	// start json-rpc server
+	jrpcApp := dtmutil.GetGinApp()
+	jrpcApp = httpMetrics(jrpcApp)
+	addJrpcRouter(jrpcApp)
+	logger.Infof("dtmsvr json-rpc listen at: %d", conf.JSONRPCPort)
+	go func() {
+		err := jrpcApp.Run(fmt.Sprintf(":%d", conf.JSONRPCPort))
 		if err != nil {
 			logger.Errorf("start server err: %v", err)
 		}
@@ -66,18 +78,6 @@ func StartSvr() {
 	logger.FatalIfError(err)
 	err = dtmdriver.GetDriver().RegisterGrpcService(conf.MicroService.Target, conf.MicroService.EndPoint)
 	logger.FatalIfError(err)
-
-	// start json-rpc server
-	jsonRPCApp := dtmutil.GetGinApp()
-	jsonRPCApp = httpMetrics(jsonRPCApp)
-	addJSONRPCRouter(jsonRPCApp)
-	logger.Infof("dtmsvr listen at: %d", conf.JSONRPCPort)
-	go func() {
-		err := jsonRPCApp.Run(fmt.Sprintf(":%d", conf.JSONRPCPort))
-		if err != nil {
-			logger.Errorf("start server err: %v", err)
-		}
-	}()
 }
 
 // PopulateDB setup mysql data

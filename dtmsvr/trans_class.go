@@ -8,7 +8,6 @@ package dtmsvr
 
 import (
 	"context"
-	"encoding/json"
 	"time"
 
 	"github.com/dtm-labs/dtm/dtmcli"
@@ -81,17 +80,6 @@ func TransFromContext(c *gin.Context) *TransGlobal {
 				m.Ext.Headers[h] = v
 			}
 		}
-	}
-	return &m
-}
-
-// TransFromJSONRPCContext 1
-func TransFromJSONRPCContext(params interface{}) *TransGlobal {
-	jsonStr, _ := json.Marshal(params)
-	m := TransGlobal{}
-	err := json.Unmarshal(jsonStr, &m)
-	if err != nil {
-		return nil
 	}
 	return &m
 }

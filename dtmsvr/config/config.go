@@ -76,7 +76,7 @@ type configType struct {
 	RequestTimeout                int64        `yaml:"RequestTimeout" default:"3"`
 	HTTPPort                      int64        `yaml:"HttpPort" default:"36789"`
 	GrpcPort                      int64        `yaml:"GrpcPort" default:"36790"`
-	JSONRPCPort                   int64        `yaml:"JSONRPCPort" default:"36791"`
+	JSONRPCPort                   int64        `yaml:"JsonRpcPort" default:"36791"`
 	MicroService                  MicroService `yaml:"MicroService"`
 	UpdateBranchSync              int64        `yaml:"UpdateBranchSync"`
 	UpdateBranchAsyncGoroutineNum int64        `yaml:"UpdateBranchAsyncGoroutineNum" default:"1"`
