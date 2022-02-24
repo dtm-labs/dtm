@@ -1,6 +1,6 @@
 name: Release
 on:
-  create:
+  push:
     tags:
       - 'v*.*.*'
 
