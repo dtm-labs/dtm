@@ -8,6 +8,7 @@ package test
 
 import (
 	"fmt"
+	"strconv"
 	"testing"
 
 	"github.com/dtm-labs/dtm/dtmcli/dtmimp"
@@ -78,4 +79,17 @@ func TestDtmMetrics(t *testing.T) {
 	rest, err := dtmimp.RestyClient.R().Get("http://localhost:36789/api/metrics")
 	assert.Nil(t, err)
 	assert.Equal(t, rest.StatusCode(), 200)
+}
+
+func TestAPIResetCronTime(t *testing.T) {
+	testStoreResetCronTime(t, dtmimp.GetFuncName(), func(timeout int64, limit int64) error {
+		sTimeout := strconv.FormatInt(timeout, 10)
+		sLimit := strconv.FormatInt(limit, 10)
+
+		_, err := dtmimp.RestyClient.R().SetQueryParams(map[string]string{
+			"timeout": sTimeout,
+			"limit":   sLimit,
+		}).Get(dtmutil.DefaultHTTPServer + "/resetCronTime")
+		return err
+	})
 }

@@ -11,14 +11,16 @@ import (
 	"strings"
 	"time"
 
-	bolt "go.etcd.io/bbolt"
-
 	"github.com/dtm-labs/dtm/dtmcli"
 	"github.com/dtm-labs/dtm/dtmcli/dtmimp"
 	"github.com/dtm-labs/dtm/dtmcli/logger"
+	"github.com/dtm-labs/dtm/dtmsvr/config"
 	"github.com/dtm-labs/dtm/dtmsvr/storage"
 	"github.com/dtm-labs/dtm/dtmutil"
+	bolt "go.etcd.io/bbolt"
 )
+
+var conf = &config.Config
 
 // Store implements storage.Store, and storage with boltdb
 type Store struct {
@@ -408,4 +410,31 @@ func (s *Store) LockOneGlobalTrans(expireIn time.Duration) *storage.TransGlobalS
 	}
 	dtmimp.E2P(err)
 	return trans
+}
+
+func (s *Store) ResetCronTime(timeout time.Duration, limit int64) error {
+	next := time.Now()
+	var trans *storage.TransGlobalStore
+	min := fmt.Sprintf("%d", time.Now().Add(timeout).Unix())
+	err := s.boltDb.Update(func(t *bolt.Tx) error {
+
+		cursor := t.Bucket(bucketIndex).Cursor()
+		i := 0
+		for k, v := cursor.Seek([]byte(min)); k != nil && i < int(limit); k, v = cursor.Next() {
+			trans = tGetGlobal(t, string(v))
+			err := t.Bucket(bucketIndex).Delete(k)
+			dtmimp.E2P(err)
+
+			if trans.Status == dtmcli.StatusSucceed || trans.Status == dtmcli.StatusFailed {
+				continue
+			}
+
+			trans.NextCronTime = &next
+			tPutGlobal(t, trans)
+			tPutIndex(t, next.Unix(), trans.Gid)
+			i++
+		}
+		return nil
+	})
+	return err
 }

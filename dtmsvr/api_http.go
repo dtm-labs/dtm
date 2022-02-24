@@ -8,6 +8,8 @@ package dtmsvr
 
 import (
 	"errors"
+	"strconv"
+	"time"
 
 	"github.com/dtm-labs/dtm/dtmcli"
 	"github.com/dtm-labs/dtm/dtmcli/dtmimp"
@@ -26,6 +28,7 @@ func addRoute(engine *gin.Engine) {
 	engine.POST("/api/dtmsvr/registerTccBranch", dtmutil.WrapHandler2(registerBranch)) // compatible for old sdk
 	engine.GET("/api/dtmsvr/query", dtmutil.WrapHandler2(query))
 	engine.GET("/api/dtmsvr/all", dtmutil.WrapHandler2(all))
+	engine.GET("/api/dtmsvr/resetCronTime", dtmutil.WrapHandler2(resetCronTime))
 
 	// add prometheus exporter
 	h := promhttp.Handler()
@@ -75,7 +78,14 @@ func query(c *gin.Context) interface{} {
 
 func all(c *gin.Context) interface{} {
 	position := c.Query("position")
-	slimit := dtmimp.OrString(c.Query("limit"), "100")
-	globals := GetStore().ScanTransGlobalStores(&position, int64(dtmimp.MustAtoi(slimit)))
+	sLimit := dtmimp.OrString(c.Query("limit"), "100")
+	globals := GetStore().ScanTransGlobalStores(&position, int64(dtmimp.MustAtoi(sLimit)))
 	return map[string]interface{}{"transactions": globals, "next_position": position}
+}
+
+func resetCronTime(c *gin.Context) interface{} {
+	sTimeoutSecond := dtmimp.OrString(c.Query("timeout"), strconv.FormatInt(3*conf.TimeoutToFail, 10))
+	sLimit := dtmimp.OrString(c.Query("limit"), "100")
+	timeout := time.Duration(dtmimp.MustAtoi(sTimeoutSecond)) * time.Second
+	return GetStore().ResetCronTime(timeout, int64(dtmimp.MustAtoi(sLimit)))
 }

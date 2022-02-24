@@ -260,6 +260,31 @@ return gid
 	}
 }
 
+// ResetCronTime rest nextCronTime
+func (s *Store) ResetCronTime(timeout time.Duration, limit int64) error {
+	next := time.Now().Unix()
+	timeoutTimestamp := time.Now().Add(timeout).Unix()
+	args := newArgList().AppendGid("").AppendRaw(timeoutTimestamp).AppendRaw(next).AppendRaw(limit)
+	lua := `-- ResetCronTime
+local r = redis.call('ZRANGEBYSCORE', KEYS[3], ARGV[3], '+inf', 'WITHSCORES', 'LIMIT', 0, ARGV[5])
+local index = 1
+while(true)
+do
+	local gid = r[index]
+	if gid == nil then
+		break 
+	end
+	redis.call('ZADD', KEYS[3], ARGV[4], gid)
+	index = index + 2
+end
+`
+	_, err := callLua(args, lua)
+	if errors.Is(err, storage.ErrNotFound) {
+		return nil
+	}
+	return err
+}
+
 // TouchCronTime updates cronTime
 func (s *Store) TouchCronTime(global *storage.TransGlobalStore, nextCronInterval int64, nextCronTime *time.Time) {
 	global.UpdateTime = dtmutil.GetNextTime(0)

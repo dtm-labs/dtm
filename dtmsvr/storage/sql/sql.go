@@ -5,14 +5,13 @@ import (
 	"math"
 	"time"
 
-	"github.com/lithammer/shortuuid/v3"
-	"gorm.io/gorm"
-	"gorm.io/gorm/clause"
-
 	"github.com/dtm-labs/dtm/dtmcli/dtmimp"
 	"github.com/dtm-labs/dtm/dtmsvr/config"
 	"github.com/dtm-labs/dtm/dtmsvr/storage"
 	"github.com/dtm-labs/dtm/dtmutil"
+	"github.com/lithammer/shortuuid/v3"
+	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 )
 
 var conf = &config.Config
@@ -155,6 +154,27 @@ func (s *Store) LockOneGlobalTrans(expireIn time.Duration) *storage.TransGlobalS
 	}
 	db.Must().Where("owner=?", owner).First(global)
 	return global
+}
+
+func (s *Store) ResetCronTime(timeout time.Duration, limit int64) error {
+	db := dbGet()
+	getTime := func(second int) string {
+		return map[string]string{
+			"mysql":    fmt.Sprintf("date_add(now(), interval %d second)", second),
+			"postgres": fmt.Sprintf("current_timestamp + interval '%d second'", second),
+		}[conf.Store.Driver]
+	}
+	timeoutSecond := int(timeout / time.Second)
+	whereTime := fmt.Sprintf("next_cron_time > %s", getTime(timeoutSecond))
+	global := &storage.TransGlobalStore{}
+	dbr := db.Must().Model(global).
+		Where(whereTime + "and status in ('prepared', 'aborting', 'submitted')").
+		Limit(int(limit)).
+		Select([]string{"next_cron_time"}).
+		Updates(&storage.TransGlobalStore{
+			NextCronTime: dtmutil.GetNextTime(0),
+		})
+	return dbr.Error
 }
 
 // SetDBConn sets db conn pool
