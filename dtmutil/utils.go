@@ -10,7 +10,6 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
-	"fmt"
 	"io/ioutil"
 	"net/http"
 	"os"
@@ -103,84 +102,6 @@ func WrapHandler2(fn func(*gin.Context) interface{}) gin.HandlerFunc {
 			logger.Errorf("%2dms %d %s %s %s", time.Since(began).Milliseconds(), status, c.Request.Method, c.Request.RequestURI, cont)
 		}
 		c.JSON(status, r)
-	}
-}
-
-const jrpcCodeFailure = -32901
-const jrpcCodeOngoing = -32902
-
-// JrpcReq json-rpc request
-type JrpcReq struct {
-	Method  string      `json:"method"`
-	Jsonrpc string      `json:"jsonrpc"`
-	Params  interface{} `json:"params"`
-	ID      string      `json:"id"`
-}
-
-// WrapJrpcHandler wrap a gin func to be a gin handler func
-func WrapJrpcHandler(fn func(*JrpcReq) interface{}) gin.HandlerFunc {
-	return func(c *gin.Context) {
-		began := time.Now()
-		var err error
-		var req JrpcReq
-		var jerr map[string]interface{}
-		r := func() interface{} {
-			defer dtmimp.P2E(&err)
-			err2 := c.BindJSON(&req)
-			if err2 != nil {
-				jerr = map[string]interface{}{
-					"code":    -32700,
-					"message": fmt.Sprintf("Parse json error: %s", err2.Error()),
-				}
-			} else if req.ID == "" || req.Jsonrpc != "2.0" {
-				jerr = map[string]interface{}{
-					"code":    -32600,
-					"message": fmt.Sprintf("Bad json request: %s", dtmimp.MustMarshalString(req)),
-				}
-			} else {
-				return fn(&req)
-			}
-			return nil
-		}()
-
-		// error maybe returned in r, assign it to err
-		if ne, ok := r.(error); ok && err == nil {
-			err = ne
-		}
-
-		if err != nil {
-			if errors.Is(err, dtmcli.ErrFailure) {
-				jerr = map[string]interface{}{
-					"code":    jrpcCodeFailure,
-					"message": err.Error(),
-				}
-			} else if errors.Is(err, dtmcli.ErrOngoing) {
-				jerr = map[string]interface{}{
-					"code":    jrpcCodeOngoing,
-					"message": err.Error(),
-				}
-			} else if jerr == nil {
-				jerr = map[string]interface{}{
-					"code":    -32603,
-					"message": err.Error(),
-				}
-			}
-		}
-
-		result := map[string]interface{}{
-			"jsonrpc": "2.0",
-			"id":      req.ID,
-			"error":   jerr,
-			"result":  r,
-		}
-		b, _ := json.Marshal(result)
-		cont := string(b)
-		if jerr == nil || jerr["code"] == jrpcCodeOngoing {
-			logger.Infof("%2dms %d %s %s %s", time.Since(began).Milliseconds(), 200, c.Request.Method, c.Request.RequestURI, cont)
-		} else {
-			logger.Errorf("%2dms %d %s %s %s", time.Since(began).Milliseconds(), 200, c.Request.Method, c.Request.RequestURI, cont)
-		}
-		c.JSON(200, result)
 	}
 }
 
