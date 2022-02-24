@@ -260,6 +260,38 @@ return gid
 	}
 }
 
+// ResetCronTime rest nextCronTime
+// Prevent multiple backoff from causing NextCronTime to be too long
+func (s *Store) ResetCronTime(timeout time.Duration, limit int64) (succeedCount int64, hasRemaining bool, err error) {
+	next := time.Now().Unix()
+	timeoutTimestamp := time.Now().Add(timeout).Unix()
+	args := newArgList().AppendGid("").AppendRaw(timeoutTimestamp).AppendRaw(next).AppendRaw(limit)
+	lua := `-- ResetCronTime
+local r = redis.call('ZRANGEBYSCORE', KEYS[3], ARGV[3], '+inf', 'LIMIT', 0, ARGV[5]+1)
+local i = 0
+for score,gid in pairs(r) do
+	if i == tonumber(ARGV[5]) then
+		i = i + 1
+		break
+	end
+	redis.call('ZADD', KEYS[3], ARGV[4], gid)
+	i = i + 1
+end
+return tostring(i)
+`
+	r := ""
+	r, err = callLua(args, lua)
+	if err != nil {
+		return
+	}
+	succeedCount = int64(dtmimp.MustAtoi(r))
+	if succeedCount > limit {
+		hasRemaining = true
+		succeedCount = limit
+	}
+	return
+}
+
 // TouchCronTime updates cronTime
 func (s *Store) TouchCronTime(global *storage.TransGlobalStore, nextCronInterval int64, nextCronTime *time.Time) {
 	global.UpdateTime = dtmutil.GetNextTime(0)

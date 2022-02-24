@@ -1,6 +1,7 @@
 package test
 
 import (
+	"fmt"
 	"testing"
 	"time"
 
@@ -13,6 +14,10 @@ import (
 
 func initTransGlobal(gid string) (*storage.TransGlobalStore, storage.Store) {
 	next := time.Now().Add(10 * time.Second)
+	return initTransGlobalByNextCronTime(gid, next)
+}
+
+func initTransGlobalByNextCronTime(gid string, next time.Time) (*storage.TransGlobalStore, storage.Store) {
 	g := &storage.TransGlobalStore{Gid: gid, Status: "prepared", NextCronTime: &next}
 	bs := []storage.TransBranchStore{
 		{Gid: gid, BranchID: "01"},
@@ -86,6 +91,85 @@ func TestStoreLockTrans(t *testing.T) {
 	s.ChangeGlobalStatus(g, "succeed", []string{}, true)
 	g2 = s.LockOneGlobalTrans(2 * time.Duration(conf.RetryInterval) * time.Second)
 	assert.Nil(t, g2)
+}
+
+func TestStoreResetCronTime(t *testing.T) {
+	s := registry.GetStore()
+	testStoreResetCronTime(t, dtmimp.GetFuncName(), func(timeout int64, limit int64) (int64, bool, error) {
+		return s.ResetCronTime(time.Duration(timeout)*time.Second, limit)
+	})
+}
+
+func testStoreResetCronTime(t *testing.T, funcName string, restCronHandler func(expire int64, limit int64) (int64, bool, error)) {
+	s := registry.GetStore()
+	var restTimeTimeout, lockExpireIn, limit, i int64
+	restTimeTimeout = 100 //The time that will be ResetCronTime
+	lockExpireIn = 2      //The time that will be LockOneGlobalTrans
+	limit = 10            // rest limit
+
+	// Will be reset
+	for i = 0; i < limit; i++ {
+		gid := funcName + fmt.Sprintf("%d", i)
+		_, _ = initTransGlobalByNextCronTime(gid, time.Now().Add(time.Duration(restTimeTimeout+10)*time.Second))
+	}
+
+	// Will not be reset
+	gid := funcName + fmt.Sprintf("%d", 10)
+	_, _ = initTransGlobalByNextCronTime(gid, time.Now().Add(time.Duration(restTimeTimeout-10)*time.Second))
+
+	// Not Fount
+	g := s.LockOneGlobalTrans(time.Duration(lockExpireIn) * time.Second)
+	assert.Nil(t, g)
+
+	// Rest limit-1 count
+	succeedCount, hasRemaining, err := restCronHandler(restTimeTimeout, limit-1)
+	assert.Equal(t, hasRemaining, true)
+	assert.Equal(t, succeedCount, limit-1)
+	assert.Nil(t, err)
+	// Fount limit-1 count
+	for i = 0; i < limit-1; i++ {
+		g = s.LockOneGlobalTrans(time.Duration(lockExpireIn) * time.Second)
+		assert.NotNil(t, g)
+		s.ChangeGlobalStatus(g, "succeed", []string{}, true)
+	}
+
+	// Not Fount
+	g = s.LockOneGlobalTrans(time.Duration(lockExpireIn) * time.Second)
+	assert.Nil(t, g)
+
+	// Rest 1 count
+	succeedCount, hasRemaining, err = restCronHandler(restTimeTimeout, limit)
+	assert.Equal(t, hasRemaining, false)
+	assert.Equal(t, succeedCount, int64(1))
+	assert.Nil(t, err)
+	// Fount 1 count
+	g = s.LockOneGlobalTrans(time.Duration(lockExpireIn) * time.Second)
+	assert.NotNil(t, g)
+	s.ChangeGlobalStatus(g, "succeed", []string{}, true)
+
+	// Not Fount
+	g = s.LockOneGlobalTrans(time.Duration(lockExpireIn) * time.Second)
+	assert.Nil(t, g)
+
+	// reduce the restTimeTimeout, Rest 1 count
+	succeedCount, hasRemaining, err = restCronHandler(restTimeTimeout-12, limit)
+	assert.Equal(t, hasRemaining, false)
+	assert.Equal(t, succeedCount, int64(1))
+	assert.Nil(t, err)
+	// Fount 1 count
+	g = s.LockOneGlobalTrans(time.Duration(lockExpireIn) * time.Second)
+	assert.NotNil(t, g)
+	s.ChangeGlobalStatus(g, "succeed", []string{}, true)
+
+	// Not Fount
+	g = s.LockOneGlobalTrans(time.Duration(lockExpireIn) * time.Second)
+	assert.Nil(t, g)
+
+	// Not Fount
+	succeedCount, hasRemaining, err = restCronHandler(restTimeTimeout-12, limit)
+	assert.Equal(t, hasRemaining, false)
+	assert.Equal(t, succeedCount, int64(0))
+	assert.Nil(t, err)
 }
 
 func TestUpdateBranches(t *testing.T) {
