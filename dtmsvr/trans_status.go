@@ -7,10 +7,13 @@
 package dtmsvr
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"strings"
 	"time"
+
+	"google.golang.org/grpc"
 
 	"github.com/dtm-labs/dtm/dtmcli"
 	"github.com/dtm-labs/dtm/dtmcli/dtmimp"
@@ -101,6 +104,14 @@ func (t *TransGlobal) getURLResult(url string, branchID, op string, branchPayloa
 	server, method, err := dtmdriver.GetDriver().ParseServerMethod(url)
 	if err != nil {
 		return err
+	}
+	if t.RequestTimeout != 0 {
+		// use ClientInterceptors[1:] for remove default request setting
+		dtmgimp.ClientInterceptors = append(dtmgimp.ClientInterceptors[1:], func(ctx context.Context, method string, req, reply interface{}, cc *grpc.ClientConn, invoker grpc.UnaryInvoker, opts ...grpc.CallOption) error {
+			ctx2, cancel := context.WithTimeout(ctx, time.Duration(t.RequestTimeout)*time.Second)
+			defer cancel()
+			return invoker(ctx2, method, req, reply, cc, opts...)
+		})
 	}
 	conn := dtmgimp.MustGetGrpcConn(server, true)
 	ctx := dtmgimp.TransInfo2Ctx(t.Gid, t.TransType, branchID, op, "")

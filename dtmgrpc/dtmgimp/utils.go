@@ -8,6 +8,9 @@ package dtmgimp
 
 import (
 	context "context"
+	"time"
+
+	"google.golang.org/grpc"
 
 	"github.com/dtm-labs/dtm/dtmcli/dtmimp"
 	"github.com/dtm-labs/dtm/dtmcli/logger"
@@ -26,6 +29,13 @@ func MustProtoMarshal(msg proto.Message) []byte {
 
 // DtmGrpcCall make a convenient call to dtm
 func DtmGrpcCall(s *dtmimp.TransBase, operation string) error {
+	if s.RequestTimeout != 0 {
+		ClientInterceptors = append(ClientInterceptors, func(ctx context.Context, method string, req, reply interface{}, cc *grpc.ClientConn, invoker grpc.UnaryInvoker, opts ...grpc.CallOption) error {
+			ctx2, cancel := context.WithTimeout(ctx, time.Duration(s.RequestTimeout)*time.Second)
+			defer cancel()
+			return invoker(ctx2, method, req, reply, cc, opts...)
+		})
+	}
 	reply := emptypb.Empty{}
 	return MustGetGrpcConn(s.Dtm, false).Invoke(context.Background(), "/dtmgimp.Dtm/"+operation, &dtmgpb.DtmRequest{
 		Gid:       s.Gid,
@@ -36,6 +46,7 @@ func DtmGrpcCall(s *dtmimp.TransBase, operation string) error {
 			RetryInterval:      s.RetryInterval,
 			PassthroughHeaders: s.PassthroughHeaders,
 			BranchHeaders:      s.BranchHeaders,
+			RequestTimeout:     s.RequestTimeout,
 		},
 		QueryPrepared: s.QueryPrepared,
 		CustomedData:  s.CustomData,

@@ -103,6 +103,7 @@ func TransFromDtmRequest(ctx context.Context, c *dtmgpb.DtmRequest) *TransGlobal
 			RetryInterval:      o.RetryInterval,
 			PassthroughHeaders: o.PassthroughHeaders,
 			BranchHeaders:      o.BranchHeaders,
+			RequestTimeout:     o.RequestTimeout,
 		},
 	}}
 	if c.Steps != "" {
