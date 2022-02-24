@@ -11,4 +11,6 @@ const (
 	DefaultHTTPServer = "http://localhost:36789/api/dtmsvr"
 	// DefaultGrpcServer default url for grpc server. used by test and examples
 	DefaultGrpcServer = "localhost:36790"
+	// DefaultJrpcServer default url for http json-rpc server. used by test and examples
+	DefaultJrpcServer = "http://localhost:36791"
 )

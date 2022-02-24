@@ -25,11 +25,11 @@ type jrpcReq struct {
 func addJrpcRouter(engine *gin.Engine) {
 	type jrpcFunc = func(interface{}) interface{}
 	handlers := map[string]jrpcFunc{
-		"dtmserver.NewGid":         jrpcNewGid,
-		"dtmserver.Prepare":        jrpcPrepare,
-		"dtmserver.Submit":         jrpcSubmit,
-		"dtmserver.Abort":          jrpcAbort,
-		"dtmserver.RegisterBranch": jrpcRegisterBranch,
+		"dtmserver.newGid":         jrpcNewGid,
+		"dtmserver.prepare":        jrpcPrepare,
+		"dtmserver.submit":         jrpcSubmit,
+		"dtmserver.abort":          jrpcAbort,
+		"dtmserver.registerBranch": jrpcRegisterBranch,
 	}
 	engine.POST("/", func(c *gin.Context) {
 		began := time.Now()
