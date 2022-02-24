@@ -136,7 +136,8 @@ func testStoreResetCronTime(t *testing.T, funcName string, restCronHandler func(
 	assert.Nil(t, g)
 
 	// Rest 1 count
-	err = restCronHandler(restTimeTimeout, limit)
+	err1 := restCronHandler(restTimeTimeout, limit)
+	assert.Nil(t, err1)
 	// Fount 1 count
 	g = s.LockOneGlobalTrans(time.Duration(lockExpireIn) * time.Second)
 	assert.NotNil(t, g)
@@ -146,9 +147,9 @@ func testStoreResetCronTime(t *testing.T, funcName string, restCronHandler func(
 	g = s.LockOneGlobalTrans(time.Duration(lockExpireIn) * time.Second)
 	assert.Nil(t, g)
 
-	// Increase the restTimeTimeout, Rest 1 count
-	err = restCronHandler(restTimeTimeout-12, limit)
-	assert.Nil(t, err)
+	// reduce the restTimeTimeout, Rest 1 count
+	err2 := restCronHandler(restTimeTimeout-12, limit)
+	assert.Nil(t, err2)
 	// Fount 1 count
 	g = s.LockOneGlobalTrans(time.Duration(lockExpireIn) * time.Second)
 	assert.NotNil(t, g)

@@ -14,13 +14,10 @@ import (
 	"github.com/dtm-labs/dtm/dtmcli"
 	"github.com/dtm-labs/dtm/dtmcli/dtmimp"
 	"github.com/dtm-labs/dtm/dtmcli/logger"
-	"github.com/dtm-labs/dtm/dtmsvr/config"
 	"github.com/dtm-labs/dtm/dtmsvr/storage"
 	"github.com/dtm-labs/dtm/dtmutil"
 	bolt "go.etcd.io/bbolt"
 )
-
-var conf = &config.Config
 
 // Store implements storage.Store, and storage with boltdb
 type Store struct {
@@ -412,6 +409,8 @@ func (s *Store) LockOneGlobalTrans(expireIn time.Duration) *storage.TransGlobalS
 	return trans
 }
 
+// ResetCronTime rest nextCronTime
+// Prevent multiple backoff from causing NextCronTime to be too long
 func (s *Store) ResetCronTime(timeout time.Duration, limit int64) error {
 	next := time.Now()
 	var trans *storage.TransGlobalStore

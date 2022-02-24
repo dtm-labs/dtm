@@ -156,6 +156,8 @@ func (s *Store) LockOneGlobalTrans(expireIn time.Duration) *storage.TransGlobalS
 	return global
 }
 
+// ResetCronTime rest nextCronTime
+// Prevent multiple backoff from causing NextCronTime to be too long
 func (s *Store) ResetCronTime(timeout time.Duration, limit int64) error {
 	db := dbGet()
 	getTime := func(second int) string {

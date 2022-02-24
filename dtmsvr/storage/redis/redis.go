@@ -261,6 +261,7 @@ return gid
 }
 
 // ResetCronTime rest nextCronTime
+// Prevent multiple backoff from causing NextCronTime to be too long
 func (s *Store) ResetCronTime(timeout time.Duration, limit int64) error {
 	next := time.Now().Unix()
 	timeoutTimestamp := time.Now().Add(timeout).Unix()
