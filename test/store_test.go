@@ -4,11 +4,11 @@ import (
 	"testing"
 	"time"
 
-	"github.com/stretchr/testify/assert"
-
 	"github.com/dtm-labs/dtm/dtmcli/dtmimp"
 	"github.com/dtm-labs/dtm/dtmsvr/storage"
 	"github.com/dtm-labs/dtm/dtmsvr/storage/registry"
+	"github.com/dtm-labs/dtm/dtmutil"
+	"github.com/stretchr/testify/assert"
 )
 
 func initTransGlobal(gid string) (*storage.TransGlobalStore, storage.Store) {
@@ -74,11 +74,11 @@ func TestStoreLockTrans(t *testing.T) {
 	assert.NotNil(t, g2)
 	assert.Equal(t, gid, g2.Gid)
 
-	s.TouchCronTime(g, 3*conf.RetryInterval)
+	s.TouchCronTime(g, 3*conf.RetryInterval, dtmutil.GetNextTime(3*conf.RetryInterval))
 	g2 = s.LockOneGlobalTrans(2 * time.Duration(conf.RetryInterval) * time.Second)
 	assert.Nil(t, g2)
 
-	s.TouchCronTime(g, 1*conf.RetryInterval)
+	s.TouchCronTime(g, 1*conf.RetryInterval, dtmutil.GetNextTime(1*conf.RetryInterval))
 	g2 = s.LockOneGlobalTrans(2 * time.Duration(conf.RetryInterval) * time.Second)
 	assert.NotNil(t, g2)
 	assert.Equal(t, gid, g2.Gid)

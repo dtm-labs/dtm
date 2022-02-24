@@ -364,10 +364,10 @@ func (s *Store) ChangeGlobalStatus(global *storage.TransGlobalStore, newStatus s
 }
 
 // TouchCronTime updates cronTime
-func (s *Store) TouchCronTime(global *storage.TransGlobalStore, nextCronInterval int64) {
+func (s *Store) TouchCronTime(global *storage.TransGlobalStore, nextCronInterval int64, nextCronTime *time.Time) {
 	oldUnix := global.NextCronTime.Unix()
-	global.NextCronTime = dtmutil.GetNextTime(nextCronInterval)
 	global.UpdateTime = dtmutil.GetNextTime(0)
+	global.NextCronTime = nextCronTime
 	global.NextCronInterval = nextCronInterval
 	err := s.boltDb.Update(func(t *bolt.Tx) error {
 		g := tGetGlobal(t, global.Gid)

@@ -28,6 +28,6 @@ type Store interface {
 	LockGlobalSaveBranches(gid string, status string, branches []TransBranchStore, branchStart int)
 	MaySaveNewTrans(global *TransGlobalStore, branches []TransBranchStore) error
 	ChangeGlobalStatus(global *TransGlobalStore, newStatus string, updates []string, finished bool)
-	TouchCronTime(global *TransGlobalStore, nextCronInterval int64)
+	TouchCronTime(global *TransGlobalStore, nextCronInterval int64, nextCronTime *time.Time)
 	LockOneGlobalTrans(expireIn time.Duration) *TransGlobalStore
 }

@@ -17,13 +17,26 @@ import (
 	"github.com/dtm-labs/dtm/dtmcli/logger"
 	"github.com/dtm-labs/dtm/dtmgrpc"
 	"github.com/dtm-labs/dtm/dtmgrpc/dtmgimp"
+	"github.com/dtm-labs/dtm/dtmutil"
 	"github.com/dtm-labs/dtmdriver"
 	"google.golang.org/grpc/metadata"
 )
 
-func (t *TransGlobal) touchCronTime(ctype cronType) {
+// touchCronTime Based on ctype or delay set nextCronTime
+// delay = 0 ,use ctype set nextCronTime and nextCronInterval
+// delay > 0 ,use delay set nextCronTime ，use ctype set nextCronInterval
+func (t *TransGlobal) touchCronTime(ctype cronType, delay uint64) {
 	t.lastTouched = time.Now()
-	GetStore().TouchCronTime(&t.TransGlobalStore, t.getNextCronInterval(ctype))
+	nextCronInterval := t.getNextCronInterval(ctype)
+
+	var nextCronTime *time.Time
+	if delay > 0 {
+		nextCronTime = dtmutil.GetNextTime(int64(delay))
+	} else {
+		nextCronTime = dtmutil.GetNextTime(nextCronInterval)
+	}
+
+	GetStore().TouchCronTime(&t.TransGlobalStore, nextCronInterval, nextCronTime)
 	logger.Infof("TouchCronTime for: %s", t.TransGlobalStore.String())
 }
 
@@ -66,6 +79,10 @@ func (t *TransGlobal) isTimeout() bool {
 		return false
 	}
 	return time.Since(*t.CreateTime)+NowForwardDuration >= time.Duration(timeout)*time.Second
+}
+
+func (t *TransGlobal) needDelay(delay uint64) bool {
+	return time.Since(*t.CreateTime)+CronForwardDuration < time.Duration(delay)*time.Second
 }
 
 func (t *TransGlobal) needProcess() bool {
@@ -135,11 +152,11 @@ func (t *TransGlobal) execBranch(branch *TransBranch, branchPos int) error {
 	// if time pass 1500ms and NextCronInterval is not default, then reset NextCronInterval
 	if err == nil && time.Since(t.lastTouched)+NowForwardDuration >= 1500*time.Millisecond ||
 		t.NextCronInterval > conf.RetryInterval && t.NextCronInterval > t.RetryInterval {
-		t.touchCronTime(cronReset)
+		t.touchCronTime(cronReset, 0)
 	} else if err == dtmimp.ErrOngoing {
-		t.touchCronTime(cronKeep)
+		t.touchCronTime(cronKeep, 0)
 	} else if err != nil {
-		t.touchCronTime(cronBackoff)
+		t.touchCronTime(cronBackoff, 0)
 	}
 	return err
 }

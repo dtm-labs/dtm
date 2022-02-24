@@ -261,9 +261,9 @@ return gid
 }
 
 // TouchCronTime updates cronTime
-func (s *Store) TouchCronTime(global *storage.TransGlobalStore, nextCronInterval int64) {
-	global.NextCronTime = dtmutil.GetNextTime(nextCronInterval)
+func (s *Store) TouchCronTime(global *storage.TransGlobalStore, nextCronInterval int64, nextCronTime *time.Time) {
 	global.UpdateTime = dtmutil.GetNextTime(0)
+	global.NextCronTime = nextCronTime
 	global.NextCronInterval = nextCronInterval
 	args := newArgList().
 		AppendGid(global.Gid).

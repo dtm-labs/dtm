@@ -11,6 +11,7 @@ import (
 	"fmt"
 
 	"github.com/dtm-labs/dtm/dtmcli"
+	"github.com/dtm-labs/dtm/dtmcli/dtmimp"
 	"github.com/dtm-labs/dtm/dtmcli/logger"
 )
 
@@ -38,6 +39,10 @@ func (t *transMsgProcessor) GenBranches() []TransBranch {
 	return branches
 }
 
+type cMsgCustom struct {
+	Delay uint64 //delay call branch, unit second
+}
+
 func (t *TransGlobal) mayQueryPrepared() {
 	if !t.needProcess() || t.Status == dtmcli.StatusSubmitted {
 		return
@@ -48,10 +53,10 @@ func (t *TransGlobal) mayQueryPrepared() {
 	} else if errors.Is(err, dtmcli.ErrFailure) {
 		t.changeStatus(dtmcli.StatusFailed)
 	} else if errors.Is(err, dtmcli.ErrOngoing) {
-		t.touchCronTime(cronReset)
+		t.touchCronTime(cronReset, 0)
 	} else {
 		logger.Errorf("getting result failed for %s. error: %v", t.QueryPrepared, err)
-		t.touchCronTime(cronBackoff)
+		t.touchCronTime(cronBackoff, 0)
 	}
 }
 
@@ -60,6 +65,17 @@ func (t *transMsgProcessor) ProcessOnce(branches []TransBranch) error {
 	if !t.needProcess() || t.Status == dtmcli.StatusPrepared {
 		return nil
 	}
+
+	cmc := cMsgCustom{Delay: 0}
+	if t.CustomData != "" {
+		dtmimp.MustUnmarshalString(t.CustomData, &cmc)
+	}
+
+	if cmc.Delay > 0 && t.needDelay(cmc.Delay) {
+		t.touchCronTime(cronKeep, cmc.Delay)
+		return nil
+	}
+
 	current := 0 // 当前正在处理的步骤
 	for ; current < len(branches); current++ {
 		branch := &branches[current]
