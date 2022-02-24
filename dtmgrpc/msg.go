@@ -33,6 +33,12 @@ func (s *MsgGrpc) Add(action string, msg proto.Message) *MsgGrpc {
 	return s
 }
 
+// SetDelay delay call branch, unit second
+func (s *MsgGrpc) SetDelay(delay uint64) *MsgGrpc {
+	s.Msg.SetDelay(delay)
+	return s
+}
+
 // Prepare prepare the msg, msg will later be submitted
 func (s *MsgGrpc) Prepare(queryPrepared string) error {
 	s.QueryPrepared = dtmimp.OrString(queryPrepared, s.QueryPrepared)
@@ -41,6 +47,7 @@ func (s *MsgGrpc) Prepare(queryPrepared string) error {
 
 // Submit submit the msg
 func (s *MsgGrpc) Submit() error {
+	s.Msg.BuildCustomOptions()
 	return dtmgimp.DtmGrpcCall(&s.TransBase, "Submit")
 }
 

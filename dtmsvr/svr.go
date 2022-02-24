@@ -66,6 +66,18 @@ func StartSvr() {
 	logger.FatalIfError(err)
 	err = dtmdriver.GetDriver().RegisterGrpcService(conf.MicroService.Target, conf.MicroService.EndPoint)
 	logger.FatalIfError(err)
+
+	// start json-rpc server
+	jsonRPCApp := dtmutil.GetGinApp()
+	jsonRPCApp = httpMetrics(jsonRPCApp)
+	addJSONRPCRouter(jsonRPCApp)
+	logger.Infof("dtmsvr listen at: %d", conf.JSONRPCPort)
+	go func() {
+		err := jsonRPCApp.Run(fmt.Sprintf(":%d", conf.JSONRPCPort))
+		if err != nil {
+			logger.Errorf("start server err: %v", err)
+		}
+	}()
 }
 
 // PopulateDB setup mysql data

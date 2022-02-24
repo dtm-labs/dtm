@@ -18,6 +18,12 @@ type StorageFactory interface {
 	GetStorage() storage.Store
 }
 
+var sqlFac = &SingletonFactory{
+	creatorFunction: func() storage.Store {
+		return &sql.Store{}
+	},
+}
+
 var storeFactorys = map[string]StorageFactory{
 	"boltdb": &SingletonFactory{
 		creatorFunction: func() storage.Store {
@@ -29,16 +35,8 @@ var storeFactorys = map[string]StorageFactory{
 			return &redis.Store{}
 		},
 	},
-	"mysql": &SingletonFactory{
-		creatorFunction: func() storage.Store {
-			return &sql.Store{}
-		},
-	},
-	"postgres": &SingletonFactory{
-		creatorFunction: func() storage.Store {
-			return &sql.Store{}
-		},
-	},
+	"mysql":    sqlFac,
+	"postgres": sqlFac,
 }
 
 // GetStore returns storage.Store
