@@ -71,11 +71,12 @@ func addJrpcRouter(engine *gin.Engine) {
 					"code":    jrpcCodeFailure,
 					"message": err.Error(),
 				}
-			} else if errors.Is(err, dtmcli.ErrOngoing) {
-				jerr = map[string]interface{}{
-					"code":    jrpcCodeOngoing,
-					"message": err.Error(),
-				}
+				//// following is commented for server
+				// } else if errors.Is(err, dtmcli.ErrOngoing) {
+				// 	jerr = map[string]interface{}{
+				// 		"code":    jrpcCodeOngoing,
+				// 		"message": err.Error(),
+				// 	}
 			} else if jerr == nil {
 				jerr = map[string]interface{}{
 					"code":    -32603,

@@ -7,6 +7,8 @@
 package test
 
 import (
+	"database/sql"
+	"errors"
 	"testing"
 
 	"github.com/dtm-labs/dtm/dtmcli"
@@ -25,6 +27,37 @@ func TestMsgJrpcNormal(t *testing.T) {
 	assert.Equal(t, StatusSucceed, getTransStatus(msg.Gid))
 }
 
+func TestMsgJrpcDoAndSubmit(t *testing.T) {
+	before := getBeforeBalances("mysql")
+	gid := dtmimp.GetFuncName()
+	req := busi.GenTransReq(30, false, false)
+	msg := dtmcli.NewMsg(dtmutil.DefaultJrpcServer, gid).
+		Add(busi.Busi+"/SagaBTransIn", req)
+	msg.Protocol = "json-rpc"
+	err := msg.DoAndSubmitDB(Busi+"/QueryPreparedB", dbGet().ToSQLDB(), func(tx *sql.Tx) error {
+		return busi.SagaAdjustBalance(tx, busi.TransOutUID, -req.Amount, "SUCCESS")
+	})
+	assert.Nil(t, err)
+	waitTransProcessed(msg.Gid)
+	assert.Equal(t, []string{StatusSucceed}, getBranchesStatus(msg.Gid))
+	assert.Equal(t, StatusSucceed, getTransStatus(msg.Gid))
+	assertNotSameBalance(t, before, "mysql")
+}
+
+func TestMsgJrpcDoAndSubmitBusiFailed(t *testing.T) {
+	before := getBeforeBalances("mysql")
+	gid := dtmimp.GetFuncName()
+	req := busi.GenTransReq(30, false, false)
+	msg := dtmcli.NewMsg(dtmutil.DefaultJrpcServer, gid).
+		Add(busi.Busi+"/SagaBTransIn", req)
+	msg.Protocol = "json-rpc"
+	err := msg.DoAndSubmitDB(Busi+"/QueryPreparedB", dbGet().ToSQLDB(), func(tx *sql.Tx) error {
+		return errors.New("an error")
+	})
+	assert.Error(t, err)
+	assertSameBalance(t, before, "mysql")
+}
+
 func TestMsgJrpcRepeated(t *testing.T) {
 	msg := genJrpcMsg(dtmimp.GetFuncName())
 	msg.Submit()
@@ -35,11 +68,15 @@ func TestMsgJrpcRepeated(t *testing.T) {
 	err := msg.Submit()
 	assert.Error(t, err)
 }
+
 func TestMsgJprcAbnormal(t *testing.T) {
 	id := "no-use"
 	resp, err := dtmcli.GetRestyClient().R().SetBody("hello").Post(dtmutil.DefaultJrpcServer)
 	assert.Nil(t, err)
 	assert.Contains(t, resp.String(), "-32700")
+
+	resp, err = dtmcli.GetRestyClient().R().SetBody("hello").Post("http://localhost:1001")
+	assert.Error(t, err)
 
 	resp, err = dtmcli.GetRestyClient().R().SetBody(map[string]string{
 		"jsonrpc": "1.0",
@@ -58,6 +95,24 @@ func TestMsgJprcAbnormal(t *testing.T) {
 	}).Post(dtmutil.DefaultJrpcServer)
 	assert.Nil(t, err)
 	assert.Contains(t, resp.String(), "-32601")
+
+	resp, err = dtmcli.GetRestyClient().R().SetBody(map[string]interface{}{
+		"jsonrpc": "2.0",
+		"method":  "registerBranch",
+		"params": map[string]string{
+			"trans_type": "not-exists",
+		},
+		"id": id,
+	}).Post(dtmutil.DefaultJrpcServer)
+	assert.Nil(t, err)
+	assert.Contains(t, resp.String(), "-32603")
+}
+
+func TestMsgJprcAbnormal2(t *testing.T) {
+	tb := dtmimp.NewTransBase(dtmimp.GetFuncName(), "msg", dtmutil.DefaultJrpcServer, "01")
+	tb.Protocol = "json-rpc"
+	err := dtmimp.TransCallDtm(tb, "", "newGid")
+	assert.Nil(t, err)
 }
 
 func genJrpcMsg(gid string) *dtmcli.Msg {
