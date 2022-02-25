@@ -281,9 +281,7 @@ return tostring(i)
 `
 	r := ""
 	r, err = callLua(args, lua)
-	if err != nil {
-		return
-	}
+	dtmimp.E2P(err)
 	succeedCount = int64(dtmimp.MustAtoi(r))
 	if succeedCount > limit {
 		hasRemaining = true
