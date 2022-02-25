@@ -39,7 +39,6 @@ type BusiClient interface {
 	TransOutBSaga(ctx context.Context, in *BusiReq, opts ...grpc.CallOption) (*emptypb.Empty, error)
 	TransInRevertBSaga(ctx context.Context, in *BusiReq, opts ...grpc.CallOption) (*emptypb.Empty, error)
 	TransOutRevertBSaga(ctx context.Context, in *BusiReq, opts ...grpc.CallOption) (*emptypb.Empty, error)
-	TransOutWithGlobalRequestTimeout(ctx context.Context, in *BusiReq, opts ...grpc.CallOption) (*emptypb.Empty, error)
 	TransOutHeaderYes(ctx context.Context, in *BusiReq, opts ...grpc.CallOption) (*emptypb.Empty, error)
 	TransOutHeaderNo(ctx context.Context, in *BusiReq, opts ...grpc.CallOption) (*emptypb.Empty, error)
 	TransInRedis(ctx context.Context, in *BusiReq, opts ...grpc.CallOption) (*emptypb.Empty, error)
@@ -203,15 +202,6 @@ func (c *busiClient) TransOutRevertBSaga(ctx context.Context, in *BusiReq, opts 
 	return out, nil
 }
 
-func (c *busiClient) TransOutWithGlobalRequestTimeout(ctx context.Context, in *BusiReq, opts ...grpc.CallOption) (*emptypb.Empty, error) {
-	out := new(emptypb.Empty)
-	err := c.cc.Invoke(ctx, "/busi.Busi/TransOutWithGlobalRequestTimeout", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
 func (c *busiClient) TransOutHeaderYes(ctx context.Context, in *BusiReq, opts ...grpc.CallOption) (*emptypb.Empty, error) {
 	out := new(emptypb.Empty)
 	err := c.cc.Invoke(ctx, "/busi.Busi/TransOutHeaderYes", in, out, opts...)
@@ -313,7 +303,6 @@ type BusiServer interface {
 	TransOutBSaga(context.Context, *BusiReq) (*emptypb.Empty, error)
 	TransInRevertBSaga(context.Context, *BusiReq) (*emptypb.Empty, error)
 	TransOutRevertBSaga(context.Context, *BusiReq) (*emptypb.Empty, error)
-	TransOutWithGlobalRequestTimeout(context.Context, *BusiReq) (*emptypb.Empty, error)
 	TransOutHeaderYes(context.Context, *BusiReq) (*emptypb.Empty, error)
 	TransOutHeaderNo(context.Context, *BusiReq) (*emptypb.Empty, error)
 	TransInRedis(context.Context, *BusiReq) (*emptypb.Empty, error)
@@ -377,9 +366,6 @@ func (UnimplementedBusiServer) TransInRevertBSaga(context.Context, *BusiReq) (*e
 }
 func (UnimplementedBusiServer) TransOutRevertBSaga(context.Context, *BusiReq) (*emptypb.Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method TransOutRevertBSaga not implemented")
-}
-func (UnimplementedBusiServer) TransOutWithGlobalRequestTimeout(context.Context, *BusiReq) (*emptypb.Empty, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method TransOutWithGlobalRequestTimeout not implemented")
 }
 func (UnimplementedBusiServer) TransOutHeaderYes(context.Context, *BusiReq) (*emptypb.Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method TransOutHeaderYes not implemented")
@@ -709,24 +695,6 @@ func _Busi_TransOutRevertBSaga_Handler(srv interface{}, ctx context.Context, dec
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Busi_TransOutWithGlobalRequestTimeout_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(BusiReq)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(BusiServer).TransOutWithGlobalRequestTimeout(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/busi.Busi/TransOutWithGlobalRequestTimeout",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(BusiServer).TransOutWithGlobalRequestTimeout(ctx, req.(*BusiReq))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
 func _Busi_TransOutHeaderYes_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(BusiReq)
 	if err := dec(in); err != nil {
@@ -959,10 +927,6 @@ var Busi_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "TransOutRevertBSaga",
 			Handler:    _Busi_TransOutRevertBSaga_Handler,
-		},
-		{
-			MethodName: "TransOutWithGlobalRequestTimeout",
-			Handler:    _Busi_TransOutWithGlobalRequestTimeout_Handler,
 		},
 		{
 			MethodName: "TransOutHeaderYes",
