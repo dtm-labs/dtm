@@ -19,4 +19,6 @@ const (
 	DBTypePostgres = "postgres"
 	// DBTypeRedis const for driver redis
 	DBTypeRedis = "redis"
+	// Jrpc const for json-rpc
+	Jrpc = "json-rpc"
 )

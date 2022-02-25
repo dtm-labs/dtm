@@ -94,7 +94,7 @@ func TransCallDtm(tb *TransBase, body interface{}, operation string) error {
 	if tb.RequestTimeout != 0 {
 		RestyClient.SetTimeout(time.Duration(tb.RequestTimeout) * time.Second)
 	}
-	if tb.Protocol == "json-rpc" {
+	if tb.Protocol == Jrpc {
 		var result map[string]interface{}
 		resp, err := RestyClient.R().
 			SetBody(map[string]interface{}{

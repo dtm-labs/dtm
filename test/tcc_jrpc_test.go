@@ -15,7 +15,7 @@ func TestTccJrpcNormal(t *testing.T) {
 	req := busi.GenTransReq(30, false, false)
 	gid := dtmimp.GetFuncName()
 	err := dtmcli.TccGlobalTransaction2(dtmutil.DefaultJrpcServer, gid, func(tcc *dtmcli.Tcc) {
-		tcc.Protocol = "json-rpc"
+		tcc.Protocol = dtmimp.Jrpc
 	}, func(tcc *dtmcli.Tcc) (*resty.Response, error) {
 		_, err := tcc.CallBranch(req, Busi+"/TransOut", Busi+"/TransOutConfirm", Busi+"/TransOutRevert")
 		assert.Nil(t, err)

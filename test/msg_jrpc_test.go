@@ -33,7 +33,7 @@ func TestMsgJrpcDoAndSubmit(t *testing.T) {
 	req := busi.GenTransReq(30, false, false)
 	msg := dtmcli.NewMsg(dtmutil.DefaultJrpcServer, gid).
 		Add(busi.Busi+"/SagaBTransIn", req)
-	msg.Protocol = "json-rpc"
+	msg.Protocol = dtmimp.Jrpc
 	err := msg.DoAndSubmitDB(Busi+"/QueryPreparedB", dbGet().ToSQLDB(), func(tx *sql.Tx) error {
 		return busi.SagaAdjustBalance(tx, busi.TransOutUID, -req.Amount, "SUCCESS")
 	})
@@ -50,7 +50,7 @@ func TestMsgJrpcDoAndSubmitBusiFailed(t *testing.T) {
 	req := busi.GenTransReq(30, false, false)
 	msg := dtmcli.NewMsg(dtmutil.DefaultJrpcServer, gid).
 		Add(busi.Busi+"/SagaBTransIn", req)
-	msg.Protocol = "json-rpc"
+	msg.Protocol = dtmimp.Jrpc
 	err := msg.DoAndSubmitDB(Busi+"/QueryPreparedB", dbGet().ToSQLDB(), func(tx *sql.Tx) error {
 		return errors.New("an error")
 	})
@@ -75,7 +75,7 @@ func TestMsgJprcAbnormal(t *testing.T) {
 	assert.Nil(t, err)
 	assert.Contains(t, resp.String(), "-32700")
 
-	resp, err = dtmcli.GetRestyClient().R().SetBody("hello").Post("http://localhost:1001")
+	_, err = dtmcli.GetRestyClient().R().SetBody("hello").Post("http://localhost:1001")
 	assert.Error(t, err)
 
 	resp, err = dtmcli.GetRestyClient().R().SetBody(map[string]string{
@@ -121,6 +121,6 @@ func genJrpcMsg(gid string) *dtmcli.Msg {
 		Add(busi.Busi+"/TransOut", &req).
 		Add(busi.Busi+"/TransIn", &req)
 	msg.QueryPrepared = busi.Busi + "/QueryPrepared"
-	msg.Protocol = "json-rpc"
+	msg.Protocol = dtmimp.Jrpc
 	return msg
 }
