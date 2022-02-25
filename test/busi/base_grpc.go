@@ -128,10 +128,6 @@ func (s *busiServer) XaNotify(ctx context.Context, in *emptypb.Empty) (*emptypb.
 	return XaGrpcClient.HandleCallback(ctx)
 }
 
-func (s *busiServer) TransOutWithGlobalRequestTimeout(ctx context.Context, in *BusiReq) (*emptypb.Empty, error) {
-	return &emptypb.Empty{}, handleGrpcBusiness(in, MainSwitch.TransOutResult.Fetch(), in.TransOutResult, dtmimp.GetFuncName())
-}
-
 func (s *busiServer) TransOutHeaderYes(ctx context.Context, in *BusiReq) (*emptypb.Empty, error) {
 	meta := dtmgimp.GetMetaFromContext(ctx, "test_header")
 	if meta == "" {
