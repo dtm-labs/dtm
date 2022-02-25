@@ -11,7 +11,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/dtm-labs/dtm/dtmcli"
 	"github.com/dtm-labs/dtm/dtmcli/dtmimp"
 	"github.com/dtm-labs/dtm/dtmcli/logger"
 	"github.com/dtm-labs/dtm/dtmsvr/storage"
@@ -388,7 +387,7 @@ func (s *Store) LockOneGlobalTrans(expireIn time.Duration) *storage.TransGlobalS
 	next := time.Now().Add(time.Duration(s.retryInterval) * time.Second)
 	err := s.boltDb.Update(func(t *bolt.Tx) error {
 		cursor := t.Bucket(bucketIndex).Cursor()
-		for trans == nil || trans.Status == dtmcli.StatusSucceed || trans.Status == dtmcli.StatusFailed {
+		for trans == nil {
 			k, v := cursor.First()
 			if k == nil || string(k) > min {
 				return storage.ErrNotFound
@@ -427,10 +426,6 @@ func (s *Store) ResetCronTime(timeout time.Duration, limit int64) (succeedCount 
 			trans = tGetGlobal(t, string(v))
 			err := t.Bucket(bucketIndex).Delete(k)
 			dtmimp.E2P(err)
-
-			if trans.Status == dtmcli.StatusSucceed || trans.Status == dtmcli.StatusFailed {
-				continue
-			}
 
 			trans.NextCronTime = &next
 			tPutGlobal(t, trans)
