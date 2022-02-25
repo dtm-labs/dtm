@@ -26,6 +26,22 @@ type TransGlobal struct {
 	updateBranchSync bool
 }
 
+func (t *TransGlobal) setupPayloads() {
+	// Payloads will be store in BinPayloads, Payloads is only used to Unmarshal
+	for _, p := range t.Payloads {
+		t.BinPayloads = append(t.BinPayloads, []byte(p))
+	}
+	for _, d := range t.Steps {
+		if d["data"] != "" {
+			t.BinPayloads = append(t.BinPayloads, []byte(d["data"]))
+		}
+	}
+	if t.Protocol == "" {
+		t.Protocol = "http"
+	}
+
+}
+
 // TransBranch branch transaction
 type TransBranch = storage.TransBranchStore
 
@@ -61,17 +77,7 @@ func TransFromContext(c *gin.Context) *TransGlobal {
 	m := TransGlobal{}
 	dtmimp.MustUnmarshal(b, &m)
 	logger.Debugf("creating trans in prepare")
-	// Payloads will be store in BinPayloads, Payloads is only used to Unmarshal
-	for _, p := range m.Payloads {
-		m.BinPayloads = append(m.BinPayloads, []byte(p))
-	}
-	for _, d := range m.Steps {
-		if d["data"] != "" {
-			m.BinPayloads = append(m.BinPayloads, []byte(d["data"]))
-		}
-	}
-	m.Protocol = "http"
-
+	m.setupPayloads()
 	m.Ext.Headers = map[string]string{}
 	if len(m.PassthroughHeaders) > 0 {
 		for _, h := range m.PassthroughHeaders {

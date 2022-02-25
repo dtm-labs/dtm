@@ -25,13 +25,13 @@ type jrpcReq struct {
 func addJrpcRouter(engine *gin.Engine) {
 	type jrpcFunc = func(interface{}) interface{}
 	handlers := map[string]jrpcFunc{
-		"dtmserver.newGid":         jrpcNewGid,
-		"dtmserver.prepare":        jrpcPrepare,
-		"dtmserver.submit":         jrpcSubmit,
-		"dtmserver.abort":          jrpcAbort,
-		"dtmserver.registerBranch": jrpcRegisterBranch,
+		"newGid":         jrpcNewGid,
+		"prepare":        jrpcPrepare,
+		"submit":         jrpcSubmit,
+		"abort":          jrpcAbort,
+		"registerBranch": jrpcRegisterBranch,
 	}
-	engine.POST("/", func(c *gin.Context) {
+	engine.POST("/api/json-rpc", func(c *gin.Context) {
 		began := time.Now()
 		var err error
 		var req jrpcReq
@@ -105,6 +105,7 @@ func addJrpcRouter(engine *gin.Engine) {
 func TransFromJrpcParams(params interface{}) *TransGlobal {
 	t := TransGlobal{}
 	dtmimp.MustRemarshal(params, &t)
+	t.setupPayloads()
 	return &t
 }
 

@@ -65,6 +65,7 @@ type TransBase struct {
 	Op          string              `json:"-"` // used in XA/TCC
 
 	QueryPrepared string `json:"query_prepared,omitempty"` // used in MSG
+	Protocol      string `json:"protocol"`
 }
 
 // NewTransBase new a TransBase
@@ -93,6 +94,25 @@ func TransCallDtm(tb *TransBase, body interface{}, operation string) error {
 	if tb.RequestTimeout != 0 {
 		RestyClient.SetTimeout(time.Duration(tb.RequestTimeout) * time.Second)
 	}
+	if tb.Protocol == "json-rpc" {
+		var result map[string]interface{}
+		resp, err := RestyClient.R().
+			SetBody(map[string]interface{}{
+				"jsonrpc": "2.0",
+				"id":      "no-use",
+				"method":  operation,
+				"params":  body,
+			}).
+			SetResult(&result).
+			Post(tb.Dtm)
+		if err != nil {
+			return err
+		}
+		if resp.StatusCode() != http.StatusOK || result["error"] != nil {
+			return errors.New(resp.String())
+		}
+		return nil
+	}
 	resp, err := RestyClient.R().
 		SetBody(body).Post(fmt.Sprintf("%s/%s", tb.Dtm, operation))
 	if err != nil {
@@ -118,6 +138,9 @@ func TransRegisterBranch(tb *TransBase, added map[string]string, operation strin
 
 // TransRequestBranch TransBase request branch result
 func TransRequestBranch(t *TransBase, method string, body interface{}, branchID string, op string, url string) (*resty.Response, error) {
+	if url == "" {
+		return nil, nil
+	}
 	resp, err := RestyClient.R().
 		SetBody(body).
 		SetQueryParams(map[string]string{
