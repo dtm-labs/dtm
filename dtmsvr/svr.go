@@ -12,9 +12,10 @@ import (
 	"net"
 	"time"
 
+	"github.com/dtm-labs/dtm/dtmgrpc"
+
 	"github.com/dtm-labs/dtm/dtmcli"
 	"github.com/dtm-labs/dtm/dtmcli/logger"
-	"github.com/dtm-labs/dtm/dtmgrpc"
 	"github.com/dtm-labs/dtm/dtmgrpc/dtmgimp"
 	"github.com/dtm-labs/dtm/dtmgrpc/dtmgpb"
 	"github.com/dtm-labs/dtm/dtmutil"
@@ -29,7 +30,11 @@ func StartSvr() {
 
 	dtmcli.GetRestyClient().SetTimeout(time.Duration(conf.RequestTimeout) * time.Second)
 	dtmgrpc.AddUnaryInterceptor(func(ctx context.Context, method string, req, reply interface{}, cc *grpc.ClientConn, invoker grpc.UnaryInvoker, opts ...grpc.CallOption) error {
-		ctx2, cancel := context.WithTimeout(ctx, time.Duration(conf.RequestTimeout)*time.Second)
+		timeout := conf.RequestTimeout
+		if v := dtmgimp.RequestTimeoutFromContext(ctx); v != 0 {
+			timeout = v
+		}
+		ctx2, cancel := context.WithTimeout(ctx, time.Duration(timeout)*time.Second)
 		defer cancel()
 		return invoker(ctx2, method, req, reply, cc, opts...)
 	})

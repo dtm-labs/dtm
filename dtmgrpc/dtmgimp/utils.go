@@ -36,6 +36,7 @@ func DtmGrpcCall(s *dtmimp.TransBase, operation string) error {
 			RetryInterval:      s.RetryInterval,
 			PassthroughHeaders: s.PassthroughHeaders,
 			BranchHeaders:      s.BranchHeaders,
+			RequestTimeout:     s.RequestTimeout,
 		},
 		QueryPrepared: s.QueryPrepared,
 		CustomedData:  s.CustomData,
@@ -99,4 +100,20 @@ func TransBaseFromGrpc(ctx context.Context) *dtmimp.TransBase {
 func GetMetaFromContext(ctx context.Context, name string) string {
 	md, _ := metadata.FromIncomingContext(ctx)
 	return mdGet(md, name)
+}
+
+type requestTimeoutKey struct{}
+
+// RequestTimeoutFromContext returns requestTime of transOption option
+func RequestTimeoutFromContext(ctx context.Context) int64 {
+	if v, ok := ctx.Value(requestTimeoutKey{}).(int64); ok {
+		return v
+	}
+
+	return 0
+}
+
+// RequestTimeoutNewContext sets requestTimeout of transOption option to context
+func RequestTimeoutNewContext(ctx context.Context, requestTimeout int64) context.Context {
+	return context.WithValue(ctx, requestTimeoutKey{}, requestTimeout)
 }

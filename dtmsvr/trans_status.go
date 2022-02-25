@@ -119,11 +119,13 @@ func (t *TransGlobal) getURLResult(url string, branchID, op string, branchPayloa
 	if err != nil {
 		return err
 	}
+
 	conn := dtmgimp.MustGetGrpcConn(server, true)
 	ctx := dtmgimp.TransInfo2Ctx(t.Gid, t.TransType, branchID, op, "")
 	kvs := dtmgimp.Map2Kvs(t.Ext.Headers)
 	kvs = append(kvs, dtmgimp.Map2Kvs(t.BranchHeaders)...)
 	ctx = metadata.AppendToOutgoingContext(ctx, kvs...)
+	ctx = dtmgimp.RequestTimeoutNewContext(ctx, t.RequestTimeout)
 	err = conn.Invoke(ctx, method, branchPayload, &[]byte{})
 	if err == nil {
 		return nil
