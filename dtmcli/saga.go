@@ -13,8 +13,7 @@ import (
 // Saga struct of saga
 type Saga struct {
 	dtmimp.TransBase
-	orders     map[int][]int
-	concurrent bool
+	orders map[int][]int
 }
 
 // NewSaga create a saga
@@ -35,9 +34,9 @@ func (s *Saga) AddBranchOrder(branch int, preBranches []int) *Saga {
 	return s
 }
 
-// EnableConcurrent enable the concurrent exec of sub trans
-func (s *Saga) EnableConcurrent() *Saga {
-	s.concurrent = true
+// SetConcurrent enable the concurrent exec of sub trans
+func (s *Saga) SetConcurrent() *Saga {
+	s.Concurrent = true
 	return s
 }
 
@@ -49,7 +48,7 @@ func (s *Saga) Submit() error {
 
 // BuildCustomOptions add custom options to the request context
 func (s *Saga) BuildCustomOptions() {
-	if s.concurrent {
-		s.CustomData = dtmimp.MustMarshalString(map[string]interface{}{"orders": s.orders, "concurrent": s.concurrent})
+	if s.Concurrent {
+		s.CustomData = dtmimp.MustMarshalString(map[string]interface{}{"orders": s.orders, "concurrent": s.Concurrent})
 	}
 }

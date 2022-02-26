@@ -37,7 +37,7 @@ func (s *SagaGrpc) AddBranchOrder(branch int, preBranches []int) *SagaGrpc {
 
 // EnableConcurrent enable the concurrent exec of sub trans
 func (s *SagaGrpc) EnableConcurrent() *SagaGrpc {
-	s.Saga.EnableConcurrent()
+	s.Saga.SetConcurrent()
 	return s
 }
 

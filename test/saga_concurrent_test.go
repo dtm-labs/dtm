@@ -16,7 +16,7 @@ import (
 )
 
 func genSagaCon(gid string, outFailed bool, inFailed bool) *dtmcli.Saga {
-	return genSaga(gid, outFailed, inFailed).EnableConcurrent()
+	return genSaga(gid, outFailed, inFailed).SetConcurrent()
 }
 
 func TestSagaConNormal(t *testing.T) {

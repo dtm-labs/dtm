@@ -51,3 +51,13 @@ func TestMsgOptionsTimeoutFailed(t *testing.T) {
 	cronTransOnceForwardNow(t, gid, 180)
 	assert.Equal(t, StatusFailed, getTransStatus(msg.Gid))
 }
+
+func TestMsgConcurrent(t *testing.T) {
+	msg := genMsg(dtmimp.GetFuncName())
+	msg.Concurrent = true
+	msg.Submit()
+	assert.Equal(t, StatusSubmitted, getTransStatus(msg.Gid))
+	waitTransProcessed(msg.Gid)
+	assert.Equal(t, []string{StatusSucceed, StatusSucceed}, getBranchesStatus(msg.Gid))
+	assert.Equal(t, StatusSucceed, getTransStatus(msg.Gid))
+}

@@ -48,6 +48,7 @@ type TransOptions struct {
 	RetryInterval      int64             `json:"retry_interval,omitempty" gorm:"-"`  // for trans type: msg saga xa tcc
 	PassthroughHeaders []string          `json:"passthrough_headers,omitempty" gorm:"-"`
 	BranchHeaders      map[string]string `json:"branch_headers,omitempty" gorm:"-"`
+	Concurrent         bool              `json:"concurrent" gorm:"-"` // for trans type: saga msg
 }
 
 // TransBase base for all trans
