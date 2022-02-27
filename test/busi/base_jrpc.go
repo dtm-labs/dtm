@@ -9,7 +9,8 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-var BusiJrpcUrl = fmt.Sprintf("http://localhost:%d/api/json-rpc?method=", BusiPort)
+// BusiJrpcURL url prefix for busi
+var BusiJrpcURL = fmt.Sprintf("http://localhost:%d/api/json-rpc?method=", BusiPort)
 
 func addJrpcRoute(app *gin.Engine) {
 	app.POST("/api/json-rpc", dtmutil.WrapHandler2(func(c *gin.Context) interface{} {

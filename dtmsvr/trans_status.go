@@ -99,7 +99,7 @@ func (t *TransGlobal) getURLResult(uri string, branchID, op string, branchPayloa
 		if t.RequestTimeout != 0 {
 			dtmimp.RestyClient.SetTimeout(time.Duration(t.RequestTimeout) * time.Second)
 		}
-		if t.Protocol == "json-rpc" {
+		if t.Protocol == "json-rpc" && strings.Contains(uri, "method") {
 			var params map[string]interface{}
 			dtmimp.MustUnmarshal(branchPayload, &params)
 			u, err := url.Parse(uri)
