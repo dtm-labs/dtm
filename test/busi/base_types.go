@@ -126,6 +126,9 @@ func (s *AutoEmptyString) SetOnce(v string) {
 func (s *AutoEmptyString) Fetch() string {
 	v := s.value
 	s.value = ""
+	if v != "" {
+		logger.Debugf("fetch obtain not empty value: %s", v)
+	}
 	return v
 }
 
@@ -138,6 +141,7 @@ type mainSwitchType struct {
 	TransOutRevertResult  AutoEmptyString
 	QueryPreparedResult   AutoEmptyString
 	NextResult            AutoEmptyString
+	JrpcResult            AutoEmptyString
 }
 
 // MainSwitch controls busi success or fail

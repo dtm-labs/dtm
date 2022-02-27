@@ -9,6 +9,7 @@ package dtmsvr
 import (
 	"errors"
 	"fmt"
+	"net/url"
 	"strings"
 	"time"
 
@@ -19,6 +20,7 @@ import (
 	"github.com/dtm-labs/dtm/dtmgrpc/dtmgimp"
 	"github.com/dtm-labs/dtm/dtmutil"
 	"github.com/dtm-labs/dtmdriver"
+	"github.com/lithammer/shortuuid/v3"
 	"google.golang.org/grpc/metadata"
 )
 
@@ -89,13 +91,50 @@ func (t *TransGlobal) needProcess() bool {
 	return t.Status == dtmcli.StatusSubmitted || t.Status == dtmcli.StatusAborting || t.Status == dtmcli.StatusPrepared && t.isTimeout()
 }
 
-func (t *TransGlobal) getURLResult(url string, branchID, op string, branchPayload []byte) error {
-	if url == "" { // empty url is success
+func (t *TransGlobal) getURLResult(uri string, branchID, op string, branchPayload []byte) error {
+	if uri == "" { // empty url is success
 		return nil
 	}
-	if strings.HasPrefix(url, "http://") || strings.HasPrefix(url, "https://") {
+	if strings.HasPrefix(uri, "http://") || strings.HasPrefix(uri, "https://") {
 		if t.RequestTimeout != 0 {
 			dtmimp.RestyClient.SetTimeout(time.Duration(t.RequestTimeout) * time.Second)
+		}
+		if t.Protocol == "json-rpc" {
+			var params map[string]interface{}
+			dtmimp.MustUnmarshal(branchPayload, &params)
+			u, err := url.Parse(uri)
+			dtmimp.E2P(err)
+			params["gid"] = t.Gid
+			params["trans_type"] = t.TransType
+			params["branch_id"] = branchID
+			params["op"] = op
+			resp, err := dtmimp.RestyClient.R().SetBody(map[string]interface{}{
+				"params":  params,
+				"jsonrpc": "2.0",
+				"method":  u.Query().Get("method"),
+				"id":      shortuuid.New(),
+			}).
+				SetHeader("Content-type", "application/json").
+				SetHeaders(t.Ext.Headers).
+				SetHeaders(t.TransOptions.BranchHeaders).
+				Post(uri)
+			if err == nil {
+				err = dtmimp.RespAsErrorCompatible(resp)
+			}
+			var result map[string]interface{}
+			if err == nil {
+				dtmimp.MustUnmarshalString(resp.String(), &result)
+				if result["error"] != nil {
+					rerr := result["error"].(map[string]interface{})
+					if rerr["code"] == dtmimp.JrpcCodeFailure {
+						return dtmcli.ErrFailure
+					} else if rerr["code"] == dtmimp.JrpcCodeOngoing {
+						return dtmcli.ErrOngoing
+					}
+					return errors.New(resp.String())
+				}
+			}
+			return err
 		}
 		resp, err := dtmimp.RestyClient.R().SetBody(string(branchPayload)).
 			SetQueryParams(map[string]string{
@@ -107,15 +146,15 @@ func (t *TransGlobal) getURLResult(url string, branchID, op string, branchPayloa
 			SetHeader("Content-type", "application/json").
 			SetHeaders(t.Ext.Headers).
 			SetHeaders(t.TransOptions.BranchHeaders).
-			Execute(dtmimp.If(branchPayload != nil || t.TransType == "xa", "POST", "GET").(string), url)
+			Execute(dtmimp.If(branchPayload != nil || t.TransType == "xa", "POST", "GET").(string), uri)
 		if err != nil {
 			return err
 		}
 		return dtmimp.RespAsErrorCompatible(resp)
 	}
-	dtmimp.PanicIf(t.Protocol == "http", fmt.Errorf("bad url for http: %s", url))
+	dtmimp.PanicIf(t.Protocol == "http", fmt.Errorf("bad url for http: %s", uri))
 	// grpc handler
-	server, method, err := dtmdriver.GetDriver().ParseServerMethod(url)
+	server, method, err := dtmdriver.GetDriver().ParseServerMethod(uri)
 	if err != nil {
 		return err
 	}

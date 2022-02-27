@@ -27,6 +27,25 @@ func TestMsgJrpcNormal(t *testing.T) {
 	assert.Equal(t, StatusSucceed, getTransStatus(msg.Gid))
 }
 
+func TestMsgJrpcResults(t *testing.T) {
+	msg := genJrpcMsg(dtmimp.GetFuncName())
+	busi.MainSwitch.JrpcResult.SetOnce("OTHER")
+	err := msg.Submit()
+	assert.Nil(t, err)
+	waitTransProcessed(msg.Gid)
+	assert.Equal(t, StatusSubmitted, getTransStatus(msg.Gid))
+	busi.MainSwitch.JrpcResult.SetOnce("ONGOING")
+	cronTransOnceForwardNow(t, msg.Gid, 180)
+	assert.Equal(t, StatusSubmitted, getTransStatus(msg.Gid))
+	busi.MainSwitch.JrpcResult.SetOnce("FAILURE")
+	cronTransOnceForwardNow(t, msg.Gid, 180)
+	assert.Equal(t, StatusSubmitted, getTransStatus(msg.Gid))
+
+	cronTransOnceForwardNow(t, msg.Gid, 180)
+	assert.Equal(t, []string{StatusSucceed, StatusSucceed}, getBranchesStatus(msg.Gid))
+	assert.Equal(t, StatusSucceed, getTransStatus(msg.Gid))
+}
+
 func TestMsgJrpcDoAndSubmit(t *testing.T) {
 	before := getBeforeBalances("mysql")
 	gid := dtmimp.GetFuncName()
@@ -119,7 +138,7 @@ func genJrpcMsg(gid string) *dtmcli.Msg {
 	req := busi.GenTransReq(30, false, false)
 	msg := dtmcli.NewMsg(dtmutil.DefaultJrpcServer, gid).
 		Add(busi.Busi+"/TransOut", &req).
-		Add(busi.Busi+"/TransIn", &req)
+		Add(busi.BusiJrpcUrl+"TransIn", &req)
 	msg.QueryPrepared = busi.Busi + "/QueryPrepared"
 	msg.Protocol = dtmimp.Jrpc
 	return msg

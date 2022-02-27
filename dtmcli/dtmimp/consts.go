@@ -21,4 +21,9 @@ const (
 	DBTypeRedis = "redis"
 	// Jrpc const for json-rpc
 	Jrpc = "json-rpc"
+	// JrpcCodeFailure const for json-rpc failure
+	JrpcCodeFailure = -32901
+
+	// JrpcCodeOngoing const for json-rpc ongoing
+	JrpcCodeOngoing = -32902
 )

@@ -72,6 +72,7 @@ func BaseAppStartup() *gin.Engine {
 	logger.FatalIfError(err)
 
 	BaseAddRoute(app)
+	addJrpcRoute(app)
 	for k, v := range setupFuncs {
 		logger.Debugf("initing %s", k)
 		v(app)

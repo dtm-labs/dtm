@@ -12,9 +12,6 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-const jrpcCodeFailure = -32901
-const jrpcCodeOngoing = -32902
-
 type jrpcReq struct {
 	Method  string      `json:"method"`
 	Jsonrpc string      `json:"jsonrpc"`
@@ -68,7 +65,7 @@ func addJrpcRouter(engine *gin.Engine) {
 		if err != nil {
 			if errors.Is(err, dtmcli.ErrFailure) {
 				jerr = map[string]interface{}{
-					"code":    jrpcCodeFailure,
+					"code":    dtmimp.JrpcCodeFailure,
 					"message": err.Error(),
 				}
 				//// following is commented for server
@@ -93,7 +90,7 @@ func addJrpcRouter(engine *gin.Engine) {
 		}
 		b, _ := json.Marshal(result)
 		cont := string(b)
-		if jerr == nil || jerr["code"] == jrpcCodeOngoing {
+		if jerr == nil || jerr["code"] == dtmimp.JrpcCodeOngoing {
 			logger.Infof("%2dms %d %s %s %s", time.Since(began).Milliseconds(), 200, c.Request.Method, c.Request.RequestURI, cont)
 		} else {
 			logger.Errorf("%2dms %d %s %s %s", time.Since(began).Milliseconds(), 200, c.Request.Method, c.Request.RequestURI, cont)
