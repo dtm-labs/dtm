@@ -77,7 +77,7 @@ func (t *transMsgProcessor) ProcessOnce(branches []TransBranch) error {
 	var started int
 	resultsChan := make(chan error, len(branches))
 	var err error
-	for i, _ := range branches {
+	for i := range branches {
 		b := &branches[i]
 		if b.Op != dtmcli.BranchAction || b.Status != dtmcli.StatusPrepared {
 			continue
