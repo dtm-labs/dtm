@@ -65,7 +65,6 @@ func (t *transMsgProcessor) ProcessOnce(branches []TransBranch) error {
 	if !t.needProcess() || t.Status == dtmcli.StatusPrepared {
 		return nil
 	}
-
 	cmc := cMsgCustom{Delay: 0}
 	if t.CustomData != "" {
 		dtmimp.MustUnmarshalString(t.CustomData, &cmc)
@@ -75,22 +74,66 @@ func (t *transMsgProcessor) ProcessOnce(branches []TransBranch) error {
 		t.touchCronTime(cronKeep, cmc.Delay)
 		return nil
 	}
-
-	current := 0 // 当前正在处理的步骤
-	for ; current < len(branches); current++ {
+	execBranch := func(current int) (bool, error) {
 		branch := &branches[current]
 		if branch.Op != dtmcli.BranchAction || branch.Status != dtmcli.StatusPrepared {
-			continue
+			return true, nil
 		}
 		err := t.execBranch(branch, current)
 		if err != nil {
-			return err
+			if !errors.Is(err, dtmcli.ErrOngoing) {
+				logger.Errorf("exec branch error: %v", err)
+			}
+			return false, err
 		}
 		if branch.Status != dtmcli.StatusSucceed {
-			break
+			return false, nil
+		}
+		return true, nil
+	}
+	type branchResult struct {
+		success bool
+		err     error
+	}
+	waitChan := make(chan branchResult, len(branches))
+	consumeWork := func(i int) error {
+		success, err := execBranch(i)
+		waitChan <- branchResult{
+			success: success,
+			err:     err,
+		}
+		return err
+	}
+	produceWork := func() {
+		for i := 0; i < len(branches); i++ {
+			if t.Concurrent {
+				go func(i int) {
+					_ = consumeWork(i)
+				}(i)
+				continue
+			}
+			err := consumeWork(i)
+			if err != nil {
+				return
+			}
 		}
 	}
-	if current == len(branches) { // msg 事务完成
+	go produceWork()
+	successCnt := 0
+	var err error
+	for i := 0; i < len(branches); i++ {
+		result := <-waitChan
+		if result.err != nil {
+			err = result.err
+			if !t.Concurrent {
+				return err
+			}
+		}
+		if result.success {
+			successCnt++
+		}
+	}
+	if successCnt == len(branches) { // msg 事务完成
 		t.changeStatus(dtmcli.StatusSucceed)
 		return nil
 	}
