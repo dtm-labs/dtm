@@ -11,7 +11,7 @@ create table if not exists dtm_busi.user_account(
   update_time datetime DEFAULT now(),
   key(create_time),
   key(update_time)
-);
+) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4;
 insert into dtm_busi.user_account (user_id, balance)
 values (1, 10000),
   (2, 10000) on DUPLICATE KEY
