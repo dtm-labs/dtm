@@ -22,7 +22,7 @@ type Msg struct {
 
 // NewMsg create new msg
 func NewMsg(server string, gid string) *Msg {
-	return &Msg{TransBase: *dtmimp.NewTransBase(gid, dtmutil.BarrierOpMsg, server, "")}
+	return &Msg{TransBase: *dtmimp.NewTransBase(gid, "msg", server, "")}
 }
 
 // Add add a new step
