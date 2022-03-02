@@ -11,7 +11,7 @@ English | [简体中文](https://github.com/dtm-labs/dtm/blob/main/helper/README
 
 ## What is DTM
 
-DTM is a distributed transaction framework which provides cross-service eventually data consistency. It provides saga, tcc, xa, 2-phase message strategies for a variety of application scenarios. It also supports multiple languages and multiple store engine to form up a transaction as following:
+DTM is a distributed transaction framework which provides cross-service eventual data consistency. It provides saga, tcc, xa, 2-phase message strategies for a variety of application scenarios. It also supports multiple languages and multiple store engine to form up a transaction as following:
 
 <img alt="function-picture" src="https://en.dtm.pub/assets/function.7d5618f8.png" height=250 />
 
