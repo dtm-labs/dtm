@@ -15,4 +15,4 @@ create table if not exists dtm_barrier.barrier(
   key(create_time),
   key(update_time),
   UNIQUE key(gid, branch_id, op, barrier_id)
-);
+) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4;
