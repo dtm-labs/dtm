@@ -14,10 +14,3 @@ const (
 	// DefaultGrpcServer default url for grpc server. used by test and examples
 	DefaultGrpcServer = "localhost:36790"
 )
-
-// barrier
-const (
-	BranchId00   = "00"
-	BranchId01   = "01"
-	BarrierOpMsg = "msg"
-)

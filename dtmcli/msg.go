@@ -11,7 +11,6 @@ import (
 	"errors"
 
 	"github.com/dtm-labs/dtm/dtmcli/dtmimp"
-	"github.com/dtm-labs/dtm/dtmutil"
 )
 
 // Msg reliable msg type
@@ -62,7 +61,7 @@ func (s *Msg) DoAndSubmitDB(queryPrepared string, db *sql.DB, busiCall BarrierBu
 // if busiCall return ErrFailure, then abort is called directly
 // if busiCall return not nil error other than ErrFailure, then DoAndSubmit will call queryPrepared to get the result
 func (s *Msg) DoAndSubmit(queryPrepared string, busiCall func(bb *BranchBarrier) error) error {
-	bb, err := BarrierFrom(s.TransType, s.Gid, dtmutil.BranchId00, dtmutil.BarrierOpMsg) // a special barrier for msg QueryPrepared
+	bb, err := BarrierFrom(s.TransType, s.Gid, dtmimp.BranchId00, dtmimp.BarrierOpMsg) // a special barrier for msg QueryPrepared
 	if err == nil {
 		err = s.Prepare(queryPrepared)
 	}

@@ -13,7 +13,6 @@ import (
 	"github.com/dtm-labs/dtm/dtmcli"
 	"github.com/dtm-labs/dtm/dtmcli/dtmimp"
 	"github.com/dtm-labs/dtm/dtmgrpc/dtmgimp"
-	"github.com/dtm-labs/dtm/dtmutil"
 	"google.golang.org/protobuf/proto"
 )
 
@@ -64,7 +63,7 @@ func (s *MsgGrpc) DoAndSubmitDB(queryPrepared string, db *sql.DB, busiCall dtmcl
 // if busiCall return ErrFailure, then abort is called directly
 // if busiCall return not nil error other than ErrFailure, then DoAndSubmit will call queryPrepared to get the result
 func (s *MsgGrpc) DoAndSubmit(queryPrepared string, busiCall func(bb *dtmcli.BranchBarrier) error) error {
-	bb, err := dtmcli.BarrierFrom(s.TransType, s.Gid, dtmutil.BranchId00, dtmutil.BarrierOpMsg) // a special barrier for msg QueryPrepared
+	bb, err := dtmcli.BarrierFrom(s.TransType, s.Gid, dtmimp.BranchId00, dtmimp.BarrierOpMsg) // a special barrier for msg QueryPrepared
 	if err == nil {
 		err = s.Prepare(queryPrepared)
 	}
