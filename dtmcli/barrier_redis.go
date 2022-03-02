@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/dtm-labs/dtm/dtmcli/logger"
+	"github.com/dtm-labs/dtm/dtmutil"
 	"github.com/go-redis/redis/v8"
 )
 
@@ -43,7 +44,7 @@ redis.call('INCRBY', KEYS[1], ARGV[1])
 	if err == redis.Nil {
 		err = nil
 	}
-	if err == nil && bb.Op == opMsg && v == "DUPLICATE" { // msg DoAndSubmit should be rejected when duplicate
+	if err == nil && bb.Op == dtmutil.BarrierOpMsg && v == "DUPLICATE" { // msg DoAndSubmit should be rejected when duplicate
 		return ErrDuplicated
 	}
 	if err == nil && v == ResultFailure {
@@ -54,7 +55,7 @@ redis.call('INCRBY', KEYS[1], ARGV[1])
 
 // RedisQueryPrepared query prepared for redis
 func (bb *BranchBarrier) RedisQueryPrepared(rd *redis.Client, barrierExpire int) error {
-	bkey1 := fmt.Sprintf("%s-%s-%s-%s", bb.Gid, "00", "msg", "01")
+	bkey1 := fmt.Sprintf("%s-%s-%s-%s", bb.Gid, dtmutil.BranchId00, dtmutil.BarrierOpMsg, dtmutil.BranchId01)
 	v, err := rd.Eval(rd.Context(), ` -- RedisQueryPrepared
 local v = redis.call('GET', KEYS[1])
 if v == false then

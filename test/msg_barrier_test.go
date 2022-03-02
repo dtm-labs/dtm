@@ -10,6 +10,7 @@ import (
 	"github.com/dtm-labs/dtm/dtmcli"
 	"github.com/dtm-labs/dtm/dtmcli/dtmimp"
 	"github.com/dtm-labs/dtm/dtmcli/logger"
+	"github.com/dtm-labs/dtm/dtmutil"
 	"github.com/dtm-labs/dtm/test/busi"
 	"github.com/stretchr/testify/assert"
 )
@@ -49,11 +50,11 @@ func TestMsgDoAndSubmitBusiLater(t *testing.T) {
 	req := busi.GenTransReq(30, false, false)
 	_, err := dtmcli.GetRestyClient().R().
 		SetQueryParams(map[string]string{
-			"trans_type": "msg",
+			"trans_type": dtmutil.BarrierOpMsg,
 			"gid":        gid,
-			"branch_id":  "00",
-			"op":         "msg",
-			"barrier_id": "01",
+			"branch_id":  dtmutil.BranchId00,
+			"op":         dtmutil.BarrierOpMsg,
+			"barrier_id": dtmutil.BranchId01,
 		}).
 		SetBody(req).Get(Busi + "/QueryPreparedB")
 	assert.Nil(t, err)
