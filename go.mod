@@ -6,7 +6,7 @@ require (
 	bou.ke/monkey v1.0.2
 	github.com/dtm-labs/dtmdriver v0.0.1
 	github.com/dtm-labs/dtmdriver-gozero v0.0.2
-	github.com/dtm-labs/dtmdriver-polaris v0.0.2
+	github.com/dtm-labs/dtmdriver-polaris v0.0.3
 	github.com/dtm-labs/dtmdriver-protocol1 v0.0.1
 	github.com/gin-gonic/gin v1.7.0
 	github.com/go-redis/redis/v8 v8.11.4
@@ -26,7 +26,7 @@ require (
 	go.uber.org/multierr v1.7.0 // indirect
 	go.uber.org/zap v1.19.1
 	golang.org/x/crypto v0.0.0-20211108221036-ceb1ce70b4fa // indirect
-	google.golang.org/grpc v1.43.0
+	google.golang.org/grpc v1.44.0
 	google.golang.org/protobuf v1.27.1
 	gopkg.in/yaml.v2 v2.4.0
 	gorm.io/driver/mysql v1.0.3
@@ -34,5 +34,3 @@ require (
 	gorm.io/gorm v1.22.2
 // gotest.tools v2.2.0+incompatible
 )
-
-replace google.golang.org/grpc => google.golang.org/grpc v1.38.0
