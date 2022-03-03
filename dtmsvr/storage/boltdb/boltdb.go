@@ -11,6 +11,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/dtm-labs/dtm/dtmcli"
 	"github.com/dtm-labs/dtm/dtmcli/dtmimp"
 	"github.com/dtm-labs/dtm/dtmcli/logger"
 	"github.com/dtm-labs/dtm/dtmsvr/storage"
@@ -387,12 +388,16 @@ func (s *Store) LockOneGlobalTrans(expireIn time.Duration) *storage.TransGlobalS
 	next := time.Now().Add(time.Duration(s.retryInterval) * time.Second)
 	err := s.boltDb.Update(func(t *bolt.Tx) error {
 		cursor := t.Bucket(bucketIndex).Cursor()
-		for trans == nil {
+		toDelete := [][]byte{}
+		for trans == nil || trans.Status == dtmcli.StatusSucceed || trans.Status == dtmcli.StatusFailed {
 			k, v := cursor.First()
 			if k == nil || string(k) > min {
 				return storage.ErrNotFound
 			}
 			trans = tGetGlobal(t, string(v))
+			toDelete = append(toDelete, k)
+		}
+		for _, k := range toDelete {
 			err := t.Bucket(bucketIndex).Delete(k)
 			dtmimp.E2P(err)
 		}
