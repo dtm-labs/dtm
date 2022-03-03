@@ -51,9 +51,9 @@ func TestMsgDoAndSubmitBusiLater(t *testing.T) {
 		SetQueryParams(map[string]string{
 			"trans_type": "msg",
 			"gid":        gid,
-			"branch_id":  dtmimp.BranchId00,
-			"op":         dtmimp.BarrierOpMsg,
-			"barrier_id": dtmimp.BarrierID01,
+			"branch_id":  dtmimp.MsgDoBranch0,
+			"op":         dtmimp.MsgDoOp,
+			"barrier_id": dtmimp.MsgDoBarrier1,
 		}).
 		SetBody(req).Get(Busi + "/QueryPreparedB")
 	assert.Nil(t, err)

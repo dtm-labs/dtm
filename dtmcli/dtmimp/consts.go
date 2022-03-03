@@ -27,9 +27,10 @@ const (
 	// JrpcCodeOngoing const for json-rpc ongoing
 	JrpcCodeOngoing = -32902
 
-	BranchId00 = "00"
-
-	BarrierID01 = "01"
-
-	BarrierOpMsg = "msg"
+	// MsgDoBranch0 const for DoAndSubmit barrier branch
+	MsgDoBranch0 = "00"
+	// MsgDoBarrier1 const for DoAndSubmit barrier barrierID
+	MsgDoBarrier1 = "01"
+	// MsgDoOp const for DoAndSubmit barrier op
+	MsgDoOp = "msg"
 )

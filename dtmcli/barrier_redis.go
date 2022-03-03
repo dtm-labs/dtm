@@ -44,7 +44,7 @@ redis.call('INCRBY', KEYS[1], ARGV[1])
 	if err == redis.Nil {
 		err = nil
 	}
-	if err == nil && bb.Op == dtmimp.BarrierOpMsg && v == "DUPLICATE" { // msg DoAndSubmit should be rejected when duplicate
+	if err == nil && bb.Op == dtmimp.MsgDoOp && v == "DUPLICATE" { // msg DoAndSubmit should be rejected when duplicate
 		return ErrDuplicated
 	}
 	if err == nil && v == ResultFailure {
@@ -55,7 +55,7 @@ redis.call('INCRBY', KEYS[1], ARGV[1])
 
 // RedisQueryPrepared query prepared for redis
 func (bb *BranchBarrier) RedisQueryPrepared(rd *redis.Client, barrierExpire int) error {
-	bkey1 := fmt.Sprintf("%s-%s-%s-%s", bb.Gid, dtmimp.BranchId00, dtmimp.BarrierOpMsg, dtmimp.BarrierID01)
+	bkey1 := fmt.Sprintf("%s-%s-%s-%s", bb.Gid, dtmimp.MsgDoBranch0, dtmimp.MsgDoOp, dtmimp.MsgDoBarrier1)
 	v, err := rd.Eval(rd.Context(), ` -- RedisQueryPrepared
 local v = redis.call('GET', KEYS[1])
 if v == false then
