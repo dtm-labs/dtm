@@ -23,26 +23,6 @@ DTM is a distributed transaction framework which provides cross-service eventual
 
 [Eglass](https://epeijing.cn)
 
-
-## Features
-
-* Language-agnostic
-  - Suit for companies with multiple-language stacks.
-    Easy to write bindings for Go, Python, PHP, Node.js, Ruby, and other languages.
-
-* Support for multiple distributed transaction solutions
-  - TCC, SAGA, XA, 2-phases message.
-
-* Extremely easy to adapt
-  - Support HTTP and gRPC, provide easy-to-use programming interfaces, lower substantially the barrier of getting started with distributed transactions. Newcomers can adapt quickly.
-
-* Easy to use
-  - Relieving developers from worrying about suspension, null compensation, idempotent transaction, and other tricky problems, the framework layer handles them all.
-
-* Easy to deploy, easy to extend
-  - DTM depends only on MySQL/Redis, easy to deploy, cluster, and scale horizontally.
-
-
 ## [Cook Book](https://en.dtm.pub)
 
 ## Quick start
@@ -109,7 +89,7 @@ The timing diagram for the intended failure is as follows:
 
 ## More examples
 
-Refer to [dtm-examples](https://github.com/dtm-labs/dtm-examples).
+Refer to [dtm-examples](https://github.com/dtm-labs/dtm-examples) for more examples.
 
 ## Slack
 
@@ -117,4 +97,4 @@ You can join the [DTM slack channel here](https://join.slack.com/t/dtm-w6k9662/s
 
 ## Give a star! ⭐
 
-If you think this project is good, or helpful to you, please give a star!
+If you think this project is interesting, or helpful to you, please give a star!
