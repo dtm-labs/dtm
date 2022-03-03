@@ -33,7 +33,7 @@ func (bb *BranchBarrier) MongoCall(mc *mongo.Client, busiCall func(mongo.Session
 		currentAffected, rerr := mongoInsertBarrier(sc, mc, bb.TransType, bb.Gid, bb.BranchID, bb.Op, bid, bb.Op)
 		logger.Debugf("originAffected: %d currentAffected: %d", originAffected, currentAffected)
 
-		if rerr == nil && bb.Op == opMsg && currentAffected == 0 { // for msg's DoAndSubmit, repeated insert should be rejected.
+		if rerr == nil && bb.Op == dtmimp.BarrierOpMsg && currentAffected == 0 { // for msg's DoAndSubmit, repeated insert should be rejected.
 			return ErrDuplicated
 		}
 
@@ -54,16 +54,16 @@ func (bb *BranchBarrier) MongoCall(mc *mongo.Client, busiCall func(mongo.Session
 // MongoQueryPrepared query prepared for redis
 // experimental
 func (bb *BranchBarrier) MongoQueryPrepared(mc *mongo.Client) error {
-	_, err := mongoInsertBarrier(context.Background(), mc, bb.TransType, bb.Gid, "00", "msg", "01", "rollback")
+	_, err := mongoInsertBarrier(context.Background(), mc, bb.TransType, bb.Gid, dtmimp.BranchId00, dtmimp.BarrierOpMsg, dtmimp.BarrierID01, "rollback")
 	var result bson.M
 	if err == nil {
 		fs := strings.Split(dtmimp.BarrierTableName, ".")
 		barrier := mc.Database(fs[0]).Collection(fs[1])
 		err = barrier.FindOne(context.Background(), bson.D{
 			{Key: "gid", Value: bb.Gid},
-			{Key: "branch_id", Value: "00"},
-			{Key: "op", Value: "msg"},
-			{Key: "barrier_id", Value: "01"},
+			{Key: "branch_id", Value: dtmimp.BranchId00},
+			{Key: "op", Value: dtmimp.BarrierOpMsg},
+			{Key: "barrier_id", Value: dtmimp.BarrierID01},
 		}).Decode(&result)
 	}
 	var reason string

@@ -47,9 +47,9 @@ func TestMsgRedisDoBusiLater(t *testing.T) {
 		SetQueryParams(map[string]string{
 			"trans_type": "msg",
 			"gid":        gid,
-			"branch_id":  "00",
-			"op":         "msg",
-			"barrier_id": "01",
+			"branch_id":  dtmimp.BranchId00,
+			"op":         dtmimp.BarrierOpMsg,
+			"barrier_id": dtmimp.BarrierID01,
 		}).
 		SetBody(req).Get(Busi + "/RedisQueryPrepared")
 	assert.Nil(t, err)
