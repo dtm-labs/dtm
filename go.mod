@@ -4,9 +4,10 @@ go 1.16
 
 require (
 	bou.ke/monkey v1.0.2
+	github.com/BurntSushi/toml v0.4.1 // indirect
 	github.com/dtm-labs/dtmdriver v0.0.1
 	github.com/dtm-labs/dtmdriver-gozero v0.0.2
-	github.com/dtm-labs/dtmdriver-polaris v0.0.3
+	github.com/dtm-labs/dtmdriver-polaris v0.0.4
 	github.com/dtm-labs/dtmdriver-protocol1 v0.0.1
 	github.com/gin-gonic/gin v1.7.0
 	github.com/go-redis/redis/v8 v8.11.4
