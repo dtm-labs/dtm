@@ -8,10 +8,10 @@ package dtmimp
 
 const (
 	// ResultFailure for result of a trans/trans branch
-	// Same as HTTP status 200 and GRPC code 0
+	// Same as HTTP status 409 and GRPC code 10
 	ResultFailure = "FAILURE"
 	// ResultSuccess for result of a trans/trans branch
-	// Same as HTTP status 409 and GRPC code 10
+	// Same as HTTP status 200 and GRPC code 0
 	ResultSuccess = "SUCCESS"
 	// ResultOngoing for result of a trans/trans branch
 	// Same as HTTP status 425 and GRPC code 9

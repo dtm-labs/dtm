@@ -43,20 +43,20 @@ func (g *BranchIDGen) CurrentSubBranchID() string {
 // TransOptions transaction options
 type TransOptions struct {
 	WaitResult         bool              `json:"wait_result,omitempty" gorm:"-"`
-	TimeoutToFail      int64             `json:"timeout_to_fail,omitempty" gorm:"-"` // for trans type: xa, tcc, unit: second
-	RequestTimeout     int64             `json:"requestTimeout" gorm:"-"`            // for global trans resets request timeout, unit: second
-	RetryInterval      int64             `json:"retry_interval,omitempty" gorm:"-"`  // for trans type: msg saga xa tcc, unit: second
-	PassthroughHeaders []string          `json:"passthrough_headers,omitempty" gorm:"-"`
-	BranchHeaders      map[string]string `json:"branch_headers,omitempty" gorm:"-"` // custom branch headers,  dtm server => service api
-	Concurrent         bool              `json:"concurrent" gorm:"-"`               // for trans type: saga msg
+	TimeoutToFail      int64             `json:"timeout_to_fail,omitempty" gorm:"-"`     // for trans type: xa, tcc, unit: second
+	RequestTimeout     int64             `json:"requestTimeout" gorm:"-"`                // for global trans resets request timeout, unit: second
+	RetryInterval      int64             `json:"retry_interval,omitempty" gorm:"-"`      // for trans type: msg saga xa tcc, unit: second
+	PassthroughHeaders []string          `json:"passthrough_headers,omitempty" gorm:"-"` // for inherit the specified gin context headers
+	BranchHeaders      map[string]string `json:"branch_headers,omitempty" gorm:"-"`      // custom branch headers,  dtm server => service api
+	Concurrent         bool              `json:"concurrent" gorm:"-"`                    // for trans type: saga msg
 }
 
 // TransBase base for all trans
 type TransBase struct {
-	Gid        string `json:"gid"`
+	Gid        string `json:"gid"` //  NOTE: unique in storage, can customize the generation rules instead of using server-side generation, it will help with the tracking
 	TransType  string `json:"trans_type"`
 	Dtm        string `json:"-"`
-	CustomData string `json:"custom_data,omitempty"`
+	CustomData string `json:"custom_data,omitempty"` // nosql data persistence
 	TransOptions
 
 	Steps       []map[string]string `json:"steps,omitempty"`    // use in MSG/SAGA
