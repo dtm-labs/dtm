@@ -37,6 +37,7 @@ func addRoute(engine *gin.Engine) {
 	})
 }
 
+//  NOTE: unique in storage, can customize the generation rules instead of using server-side generation, it will help with the tracking
 func newGid(c *gin.Context) interface{} {
 	return map[string]interface{}{"gid": GenGid(), "dtm_result": dtmcli.ResultSuccess}
 }
