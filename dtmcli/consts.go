@@ -18,6 +18,7 @@ const (
 	// StatusSucceed status for global/branch trans status.
 	StatusSucceed = "succeed"
 	// StatusFailed status for global/branch trans status.
+	// NOTE: change global status to failed can stop trigger (Not recommended in production env)
 	StatusFailed = "failed"
 	// StatusAborting status for global trans status.
 	StatusAborting = "aborting"
