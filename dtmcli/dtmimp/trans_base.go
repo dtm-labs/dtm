@@ -62,7 +62,7 @@ type TransBase struct {
 	Steps       []map[string]string `json:"steps,omitempty"`    // use in MSG/SAGA
 	Payloads    []string            `json:"payloads,omitempty"` // used in MSG/SAGA
 	BinPayloads [][]byte            `json:"-"`
-	BranchIDGen `json:"-"`                     // used in XA/TCC
+	BranchIDGen `json:"-"`          // used in XA/TCC
 	Op          string              `json:"-"` // used in XA/TCC
 
 	QueryPrepared string `json:"query_prepared,omitempty"` // used in MSG
