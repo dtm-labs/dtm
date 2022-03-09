@@ -62,6 +62,7 @@ func (t *TransGlobal) changeStatus(status string) {
 type ExtDataType string
 
 const (
+	// ExtDataTypeForceStop Type of user forced stop global gid
 	ExtDataTypeForceStop ExtDataType = "forceStop"
 )
 
