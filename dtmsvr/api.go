@@ -71,6 +71,7 @@ func svcForceStop(t *TransGlobal) interface{} {
 	if err != nil {
 		return err
 	}
+	t.ForceStopReason = ""
 	dbt.statusFailed(string(extData))
 	branches := GetStore().FindBranches(t.Gid)
 	return dbt.Process(branches)

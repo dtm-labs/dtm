@@ -232,6 +232,7 @@ end
 	dtmimp.E2P(err)
 }
 
+// StatusFailed change global trans status to failed with reason
 func (s *Store) StatusFailed(global *storage.TransGlobalStore, updates []string) {
 	old := global.Status
 	global.Status = dtmcli.StatusFailed

@@ -58,13 +58,14 @@ func (t *TransGlobal) changeStatus(status string) {
 	t.Status = status
 }
 
+// ExtDataType case extData type
 type ExtDataType string
 
 const (
-	ExtDataTypeDefault   ExtDataType = ""
 	ExtDataTypeForceStop ExtDataType = "forceStop"
 )
 
+// ExtData custom extData struct
 type ExtData struct {
 	Type ExtDataType `json:"type"`
 	Msg  string      `json:"msg"`
