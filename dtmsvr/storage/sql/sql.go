@@ -8,10 +8,10 @@ package sql
 
 import (
 	"fmt"
-	"github.com/dtm-labs/dtm/dtmcli"
 	"math"
 	"time"
 
+	"github.com/dtm-labs/dtm/dtmcli"
 	"github.com/dtm-labs/dtm/dtmcli/dtmimp"
 	"github.com/dtm-labs/dtm/dtmsvr/config"
 	"github.com/dtm-labs/dtm/dtmsvr/storage"

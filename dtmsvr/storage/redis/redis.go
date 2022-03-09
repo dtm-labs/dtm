@@ -4,12 +4,12 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/dtm-labs/dtm/dtmcli"
 	"sync"
 	"time"
 
 	"github.com/go-redis/redis/v8"
 
+	"github.com/dtm-labs/dtm/dtmcli"
 	"github.com/dtm-labs/dtm/dtmcli/dtmimp"
 	"github.com/dtm-labs/dtm/dtmcli/logger"
 	"github.com/dtm-labs/dtm/dtmsvr/config"
