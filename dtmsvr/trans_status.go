@@ -77,8 +77,9 @@ func (t *TransGlobal) statusFailed(extData string) {
 	now := time.Now()
 	t.UpdateTime = &now
 	t.ExtData = extData
-	GetStore().StatusFailed(&t.TransGlobalStore, updates)
+	GetStore().ChangeGlobalStatus(&t.TransGlobalStore, dtmcli.StatusFailed, updates, false)
 	logger.Infof("StatusFailed to %s ok for %s", dtmcli.StatusFailed, t.TransGlobalStore.String())
+	t.Status = dtmcli.StatusFailed
 }
 
 func (t *TransGlobal) changeBranchStatus(b *TransBranch, status string, branchPos int) {

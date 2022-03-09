@@ -11,7 +11,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/dtm-labs/dtm/dtmcli"
 	"github.com/dtm-labs/dtm/dtmcli/dtmimp"
 	"github.com/dtm-labs/dtm/dtmcli/logger"
 	"github.com/dtm-labs/dtm/dtmsvr/storage"
@@ -357,21 +356,6 @@ func (s *Store) ChangeGlobalStatus(global *storage.TransGlobalStore, newStatus s
 		}
 		if finished {
 			tDelIndex(t, g.NextCronTime.Unix(), g.Gid)
-		}
-		tPutGlobal(t, global)
-		return nil
-	})
-	dtmimp.E2P(err)
-}
-
-// StatusFailed change global trans status to failed with reason
-func (s *Store) StatusFailed(global *storage.TransGlobalStore, updates []string) {
-	old := global.Status
-	global.Status = dtmcli.StatusFailed
-	err := s.boltDb.Update(func(t *bolt.Tx) error {
-		g := tGetGlobal(t, global.Gid)
-		if g == nil || g.Status != old {
-			return storage.ErrNotFound
 		}
 		tPutGlobal(t, global)
 		return nil

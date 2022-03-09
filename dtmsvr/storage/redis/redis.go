@@ -9,7 +9,6 @@ import (
 
 	"github.com/go-redis/redis/v8"
 
-	"github.com/dtm-labs/dtm/dtmcli"
 	"github.com/dtm-labs/dtm/dtmcli/dtmimp"
 	"github.com/dtm-labs/dtm/dtmcli/logger"
 	"github.com/dtm-labs/dtm/dtmsvr/config"
@@ -218,31 +217,6 @@ func (s *Store) ChangeGlobalStatus(global *storage.TransGlobalStore, newStatus s
 		AppendRaw(finished).
 		AppendRaw(global.Gid).
 		AppendRaw(newStatus)
-	_, err := callLua(args, `-- ChangeGlobalStatus
-local old = redis.call('GET', KEYS[4])
-if old ~= ARGV[4] then
-  return 'NOT_FOUND'
-end
-redis.call('SET', KEYS[1],  ARGV[3], 'EX', ARGV[2])
-redis.call('SET', KEYS[4],  ARGV[7], 'EX', ARGV[2])
-if ARGV[5] == '1' then
-	redis.call('ZREM', KEYS[3], ARGV[6])
-end
-`)
-	dtmimp.E2P(err)
-}
-
-// StatusFailed change global trans status to failed with reason
-func (s *Store) StatusFailed(global *storage.TransGlobalStore, updates []string) {
-	old := global.Status
-	global.Status = dtmcli.StatusFailed
-	args := newArgList().
-		AppendGid(global.Gid).
-		AppendObject(global).
-		AppendRaw(old).
-		AppendRaw(false).
-		AppendRaw(global.Gid).
-		AppendRaw(dtmcli.StatusFailed)
 	_, err := callLua(args, `-- ChangeGlobalStatus
 local old = redis.call('GET', KEYS[4])
 if old ~= ARGV[4] then

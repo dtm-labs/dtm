@@ -11,7 +11,6 @@ import (
 	"math"
 	"time"
 
-	"github.com/dtm-labs/dtm/dtmcli"
 	"github.com/dtm-labs/dtm/dtmcli/dtmimp"
 	"github.com/dtm-labs/dtm/dtmsvr/config"
 	"github.com/dtm-labs/dtm/dtmsvr/storage"
@@ -122,16 +121,6 @@ func (s *Store) MaySaveNewTrans(global *storage.TransGlobalStore, branches []sto
 func (s *Store) ChangeGlobalStatus(global *storage.TransGlobalStore, newStatus string, updates []string, finished bool) {
 	old := global.Status
 	global.Status = newStatus
-	dbr := dbGet().Must().Model(global).Where("status=? and gid=?", old, global.Gid).Select(updates).Updates(global)
-	if dbr.RowsAffected == 0 {
-		dtmimp.E2P(storage.ErrNotFound)
-	}
-}
-
-// StatusFailed change global trans status to failed with reason
-func (s *Store) StatusFailed(global *storage.TransGlobalStore, updates []string) {
-	old := global.Status
-	global.Status = dtmcli.StatusFailed
 	dbr := dbGet().Must().Model(global).Where("status=? and gid=?", old, global.Gid).Select(updates).Updates(global)
 	if dbr.RowsAffected == 0 {
 		dtmimp.E2P(storage.ErrNotFound)

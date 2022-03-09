@@ -40,7 +40,7 @@ type TransGlobalStore struct {
 	Owner            string              `json:"owner,omitempty"`
 	Ext              TransGlobalExt      `json:"-" gorm:"-"`
 	ForceStopReason  string              `json:"force_stop_reason,omitempty" gorm:"-"` // only for request
-	ExtData          string              `json:"ext_data,omitempty"` // storage of ext. a db field to store many values. like Options
+	ExtData          string              `json:"ext_data,omitempty"`                   // storage of ext. a db field to store many values. like Options
 	dtmcli.TransOptions
 }
 
