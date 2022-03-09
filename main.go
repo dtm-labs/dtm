@@ -44,7 +44,7 @@ func usage() {
 
 var isVersion = flag.Bool("v", false, "Show the version of dtm.")
 var isDebug = flag.Bool("d", false, "Set log level to debug.")
-var isHelp = flag.Bool("h", false, "Show the help information about etcd.")
+var isHelp = flag.Bool("h", false, "Show the help information about dtm.")
 var isReset = flag.Bool("r", false, "Reset dtm server data.")
 var confFile = flag.String("c", "", "Path to the server configuration file.")
 
