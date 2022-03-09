@@ -8,6 +8,7 @@ package sql
 
 import (
 	"fmt"
+	"github.com/dtm-labs/dtm/dtmcli"
 	"math"
 	"time"
 
@@ -25,6 +26,8 @@ var conf = &config.Config
 // Store implements storage.Store, and storage with db
 type Store struct {
 }
+
+var _ storage.Store = &Store{}
 
 // Ping execs ping cmd to db
 func (s *Store) Ping() error {
@@ -119,6 +122,16 @@ func (s *Store) MaySaveNewTrans(global *storage.TransGlobalStore, branches []sto
 func (s *Store) ChangeGlobalStatus(global *storage.TransGlobalStore, newStatus string, updates []string, finished bool) {
 	old := global.Status
 	global.Status = newStatus
+	dbr := dbGet().Must().Model(global).Where("status=? and gid=?", old, global.Gid).Select(updates).Updates(global)
+	if dbr.RowsAffected == 0 {
+		dtmimp.E2P(storage.ErrNotFound)
+	}
+}
+
+// StatusFailed changes global trans status to failed
+func (s *Store) StatusFailed(global *storage.TransGlobalStore, updates []string) {
+	old := global.Status
+	global.Status = dtmcli.StatusFailed
 	dbr := dbGet().Must().Model(global).Where("status=? and gid=?", old, global.Gid).Select(updates).Updates(global)
 	if dbr.RowsAffected == 0 {
 		dtmimp.E2P(storage.ErrNotFound)

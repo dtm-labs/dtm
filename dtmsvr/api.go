@@ -7,6 +7,7 @@
 package dtmsvr
 
 import (
+	"encoding/json"
 	"fmt"
 
 	"github.com/dtm-labs/dtm/dtmcli"
@@ -54,6 +55,23 @@ func svcAbort(t *TransGlobal) interface{} {
 		return fmt.Errorf("trans type: '%s' current status '%s', cannot abort. %w", dbt.TransType, dbt.Status, dtmcli.ErrFailure)
 	}
 	dbt.changeStatus(dtmcli.StatusAborting)
+	branches := GetStore().FindBranches(t.Gid)
+	return dbt.Process(branches)
+}
+
+func svcForceStop(t *TransGlobal) interface{} {
+	dbt := GetTransGlobal(t.Gid)
+	if dbt.Status == dtmcli.StatusSucceed || dbt.Status == dtmcli.StatusFailed {
+		return nil
+	}
+	extData, err := json.Marshal(&ExtData{
+		Type: ExtDataTypeForceStop,
+		Msg:  t.ForceStopReason,
+	})
+	if err != nil {
+		return err
+	}
+	dbt.statusFailed(string(extData))
 	branches := GetStore().FindBranches(t.Gid)
 	return dbt.Process(branches)
 }

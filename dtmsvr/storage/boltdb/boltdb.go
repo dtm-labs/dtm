@@ -8,6 +8,7 @@ package boltdb
 
 import (
 	"fmt"
+	"github.com/dtm-labs/dtm/dtmcli"
 	"strings"
 	"time"
 
@@ -25,6 +26,8 @@ type Store struct {
 	dataExpire    int64
 	retryInterval int64
 }
+
+var _ storage.Store = &Store{}
 
 // NewStore will return the boltdb implement
 // TODO: change to options
@@ -354,6 +357,20 @@ func (s *Store) ChangeGlobalStatus(global *storage.TransGlobalStore, newStatus s
 		}
 		if finished {
 			tDelIndex(t, g.NextCronTime.Unix(), g.Gid)
+		}
+		tPutGlobal(t, global)
+		return nil
+	})
+	dtmimp.E2P(err)
+}
+
+func (s *Store) StatusFailed(global *storage.TransGlobalStore, updates []string) {
+	old := global.Status
+	global.Status = dtmcli.StatusFailed
+	err := s.boltDb.Update(func(t *bolt.Tx) error {
+		g := tGetGlobal(t, global.Gid)
+		if g == nil || g.Status != old {
+			return storage.ErrNotFound
 		}
 		tPutGlobal(t, global)
 		return nil

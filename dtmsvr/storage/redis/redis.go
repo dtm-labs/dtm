@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"github.com/dtm-labs/dtm/dtmcli"
 	"sync"
 	"time"
 
@@ -25,6 +26,8 @@ var ctx = context.Background()
 // Store is the storage with redis, all transaction information will bachend with redis
 type Store struct {
 }
+
+var _ storage.Store = &Store{}
 
 // Ping execs ping cmd to redis
 func (s *Store) Ping() error {
@@ -215,6 +218,30 @@ func (s *Store) ChangeGlobalStatus(global *storage.TransGlobalStore, newStatus s
 		AppendRaw(finished).
 		AppendRaw(global.Gid).
 		AppendRaw(newStatus)
+	_, err := callLua(args, `-- ChangeGlobalStatus
+local old = redis.call('GET', KEYS[4])
+if old ~= ARGV[4] then
+  return 'NOT_FOUND'
+end
+redis.call('SET', KEYS[1],  ARGV[3], 'EX', ARGV[2])
+redis.call('SET', KEYS[4],  ARGV[7], 'EX', ARGV[2])
+if ARGV[5] == '1' then
+	redis.call('ZREM', KEYS[3], ARGV[6])
+end
+`)
+	dtmimp.E2P(err)
+}
+
+func (s *Store) StatusFailed(global *storage.TransGlobalStore, updates []string) {
+	old := global.Status
+	global.Status = dtmcli.StatusFailed
+	args := newArgList().
+		AppendGid(global.Gid).
+		AppendObject(global).
+		AppendRaw(old).
+		AppendRaw(false).
+		AppendRaw(global.Gid).
+		AppendRaw(dtmcli.StatusFailed)
 	_, err := callLua(args, `-- ChangeGlobalStatus
 local old = redis.call('GET', KEYS[4])
 if old ~= ARGV[4] then
