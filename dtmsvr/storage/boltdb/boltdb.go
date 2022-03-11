@@ -26,6 +26,8 @@ type Store struct {
 	retryInterval int64
 }
 
+var _ storage.Store = &Store{}
+
 // NewStore will return the boltdb implement
 // TODO: change to options
 func NewStore(dataExpire int64, retryInterval int64) *Store {

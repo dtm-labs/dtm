@@ -26,6 +26,8 @@ var ctx = context.Background()
 type Store struct {
 }
 
+var _ storage.Store = &Store{}
+
 // Ping execs ping cmd to redis
 func (s *Store) Ping() error {
 	_, err := redisGet().Ping(ctx).Result()

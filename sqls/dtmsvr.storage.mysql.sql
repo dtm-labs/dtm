@@ -15,7 +15,7 @@ CREATE TABLE if not EXISTS dtm.trans_global (
   `finish_time` datetime DEFAULT NULL,
   `rollback_time` datetime DEFAULT NULL,
   `options` varchar(1024) DEFAULT '',
-  `custom_data` varchar(256) DEFAULT '',
+  `custom_data` varchar(256) DEFAULT '' COMMENT 'nosql json存储，用于记录一些策略',
   `next_cron_interval` int(11) default null comment '下次定时处理的间隔',
   `next_cron_time` datetime default null comment '下次定时处理的时间',
   `owner` varchar(128) not null default '' comment '正在处理全局事务的锁定者',

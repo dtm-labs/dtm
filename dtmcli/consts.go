@@ -12,6 +12,7 @@ import (
 
 const (
 	// StatusPrepared status for global/branch trans status.
+	// first step, tx preparation period
 	StatusPrepared = "prepared"
 	// StatusSubmitted status for global trans status.
 	StatusSubmitted = "submitted"

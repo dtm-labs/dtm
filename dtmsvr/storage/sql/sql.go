@@ -26,6 +26,8 @@ var conf = &config.Config
 type Store struct {
 }
 
+var _ storage.Store = &Store{}
+
 // Ping execs ping cmd to db
 func (s *Store) Ping() error {
 	db, err := dtmimp.StandaloneDB(conf.Store.GetDBConf())

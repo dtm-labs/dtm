@@ -58,6 +58,16 @@ func svcAbort(t *TransGlobal) interface{} {
 	return dbt.Process(branches)
 }
 
+func svcForceStop(t *TransGlobal) interface{} {
+	dbt := GetTransGlobal(t.Gid)
+	if dbt.Status == dtmcli.StatusSucceed || dbt.Status == dtmcli.StatusFailed {
+		return nil
+	}
+	dbt.statusFailed()
+	branches := GetStore().FindBranches(t.Gid)
+	return dbt.Process(branches)
+}
+
 func svcRegisterBranch(transType string, branch *TransBranch, data map[string]string) error {
 	branches := []TransBranch{*branch, *branch}
 	if transType == "tcc" {
