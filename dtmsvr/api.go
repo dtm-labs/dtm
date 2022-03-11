@@ -7,7 +7,6 @@
 package dtmsvr
 
 import (
-	"encoding/json"
 	"fmt"
 
 	"github.com/dtm-labs/dtm/dtmcli"
@@ -64,15 +63,7 @@ func svcForceStop(t *TransGlobal) interface{} {
 	if dbt.Status == dtmcli.StatusSucceed || dbt.Status == dtmcli.StatusFailed {
 		return nil
 	}
-	extData, err := json.Marshal(&ExtData{
-		Type: ExtDataTypeForceStop,
-		Msg:  t.ForceStopReason,
-	})
-	if err != nil {
-		return err
-	}
-	t.ForceStopReason = ""
-	dbt.statusFailed(string(extData))
+	dbt.statusFailed()
 	branches := GetStore().FindBranches(t.Gid)
 	return dbt.Process(branches)
 }

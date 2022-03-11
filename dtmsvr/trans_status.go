@@ -58,25 +58,10 @@ func (t *TransGlobal) changeStatus(status string) {
 	t.Status = status
 }
 
-// ExtDataType case extData type
-type ExtDataType string
-
-const (
-	// ExtDataTypeForceStop Type of user forced stop global gid
-	ExtDataTypeForceStop ExtDataType = "forceStop"
-)
-
-// ExtData custom extData struct
-type ExtData struct {
-	Type ExtDataType `json:"type"`
-	Msg  string      `json:"msg"`
-}
-
-func (t *TransGlobal) statusFailed(extData string) {
-	updates := []string{"status", "update_time", "ext_data"}
+func (t *TransGlobal) statusFailed() {
+	updates := []string{"status", "update_time"}
 	now := time.Now()
 	t.UpdateTime = &now
-	t.ExtData = extData
 	GetStore().ChangeGlobalStatus(&t.TransGlobalStore, dtmcli.StatusFailed, updates, false)
 	logger.Infof("StatusFailed to %s ok for %s", dtmcli.StatusFailed, t.TransGlobalStore.String())
 	t.Status = dtmcli.StatusFailed
