@@ -1,5 +1,5 @@
 # dev env https://www.dtm.pub/other/develop.html
-all: fmt lint test_all cover_test
+all: fmt lint test_redis
 .PHONY: all
 
 fmt:
@@ -11,6 +11,9 @@ lint:
 .PHONY: test
 test:
 	@go test ./...
+
+test_redis:
+	TEST_STORE=redis go test ./...
 
 test_all:
 	TEST_STORE=redis go test ./...
