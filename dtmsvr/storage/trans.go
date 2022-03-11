@@ -39,7 +39,7 @@ type TransGlobalStore struct {
 	NextCronTime     *time.Time          `json:"next_cron_time,omitempty"`
 	Owner            string              `json:"owner,omitempty"`
 	Ext              TransGlobalExt      `json:"-" gorm:"-"`
-	ExtData          string              `json:"ext_data,omitempty"`                   // storage of ext. a db field to store many values. like Options
+	ExtData          string              `json:"ext_data,omitempty"` // storage of ext. a db field to store many values. like Options
 	dtmcli.TransOptions
 }
 
