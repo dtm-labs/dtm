@@ -8,11 +8,13 @@ package test
 
 import (
 	"fmt"
+	"net/http"
 	"strconv"
 	"testing"
 
 	"github.com/dtm-labs/dtm/dtmcli/dtmimp"
 	"github.com/dtm-labs/dtm/dtmutil"
+	"github.com/dtm-labs/dtm/test/busi"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -99,4 +101,33 @@ func TestAPIResetCronTime(t *testing.T) {
 		assert.Equal(t, ok, true)
 		return int64(succeedCount), hasRemaining, err
 	})
+}
+
+func TestAPIForceStoppedNormal(t *testing.T) {
+	saga := genSaga(dtmimp.GetFuncName(), false, false)
+	busi.MainSwitch.TransOutResult.SetOnce("ONGOING")
+	saga.Submit()
+	waitTransProcessed(saga.Gid)
+	assert.Equal(t, StatusSubmitted, getTransStatus(saga.Gid))
+
+	resp, err := dtmimp.RestyClient.R().SetBody(map[string]string{
+		"gid": saga.Gid,
+	}).Post(dtmutil.DefaultHTTPServer + "/forceStop")
+	assert.Nil(t, err)
+	assert.Equal(t, resp.StatusCode(), http.StatusOK)
+	assert.Equal(t, StatusFailed, getTransStatus(saga.Gid))
+}
+
+func TestAPIForceStoppedAbnormal(t *testing.T) {
+	saga := genSaga(dtmimp.GetFuncName(), false, false)
+	saga.Submit()
+	waitTransProcessed(saga.Gid)
+	assert.Equal(t, []string{StatusPrepared, StatusSucceed, StatusPrepared, StatusSucceed}, getBranchesStatus(saga.Gid))
+	assert.Equal(t, StatusSucceed, getTransStatus(saga.Gid))
+
+	resp, err := dtmimp.RestyClient.R().SetBody(map[string]string{
+		"gid": saga.Gid,
+	}).Post(dtmutil.DefaultHTTPServer + "/forceStop")
+	assert.Nil(t, err)
+	assert.Equal(t, resp.StatusCode(), http.StatusConflict)
 }

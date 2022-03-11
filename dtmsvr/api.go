@@ -61,11 +61,10 @@ func svcAbort(t *TransGlobal) interface{} {
 func svcForceStop(t *TransGlobal) interface{} {
 	dbt := GetTransGlobal(t.Gid)
 	if dbt.Status == dtmcli.StatusSucceed || dbt.Status == dtmcli.StatusFailed {
-		return nil
+		return fmt.Errorf("global transaction force stop error. status: %s. error: %w", dbt.Status, dtmcli.ErrFailure)
 	}
-	dbt.statusFailed()
-	branches := GetStore().FindBranches(t.Gid)
-	return dbt.Process(branches)
+	dbt.changeStatus(dtmcli.StatusFailed)
+	return nil
 }
 
 func svcRegisterBranch(transType string, branch *TransBranch, data map[string]string) error {

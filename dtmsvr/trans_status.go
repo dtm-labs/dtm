@@ -58,15 +58,6 @@ func (t *TransGlobal) changeStatus(status string) {
 	t.Status = status
 }
 
-func (t *TransGlobal) statusFailed() {
-	updates := []string{"status", "update_time"}
-	now := time.Now()
-	t.UpdateTime = &now
-	GetStore().ChangeGlobalStatus(&t.TransGlobalStore, dtmcli.StatusFailed, updates, false)
-	logger.Infof("StatusFailed to %s ok for %s", dtmcli.StatusFailed, t.TransGlobalStore.String())
-	t.Status = dtmcli.StatusFailed
-}
-
 func (t *TransGlobal) changeBranchStatus(b *TransBranch, status string, branchPos int) {
 	now := time.Now()
 	b.Status = status
