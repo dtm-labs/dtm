@@ -76,6 +76,8 @@ func TransFromContext(c *gin.Context) *TransGlobal {
 	e2p(err)
 	m := TransGlobal{}
 	dtmimp.MustUnmarshal(b, &m)
+	m.Status = dtmimp.Escape(m.Status)
+	m.Gid = dtmimp.Escape(m.Gid)
 	logger.Debugf("creating trans in prepare")
 	m.setupPayloads()
 	m.Ext.Headers = map[string]string{}

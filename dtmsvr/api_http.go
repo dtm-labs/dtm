@@ -64,7 +64,7 @@ func registerBranch(c *gin.Context) interface{} {
 	err := c.BindJSON(&data)
 	e2p(err)
 	branch := TransBranch{
-		Gid:      data["gid"],
+		Gid:      dtmimp.Escape(data["gid"]),
 		BranchID: data["branch_id"],
 		Status:   dtmcli.StatusPrepared,
 		BinData:  []byte(data["data"]),
