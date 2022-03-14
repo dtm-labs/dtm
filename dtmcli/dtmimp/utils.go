@@ -239,8 +239,10 @@ func DeferDo(rerr *error, success func() error, fail func() error) {
 
 // Escape solve CodeQL reported problem
 func Escape(input string) string {
-	replacer := strings.NewReplacer("'", "", "\n", "", "\r", "", " ", "")
-	return replacer.Replace(input)
+	v := strings.Replace(input, "\n", "", -1)
+	v = strings.Replace(v, "\r", "", -1)
+	v = strings.Replace(v, ";", "", -1)
+	return strings.Replace(v, "'", "", -1)
 }
 
 // EscapeGet escape get
