@@ -63,9 +63,9 @@ func insertBarrier(tx DB, transType string, gid string, branchID string, op stri
 	return dtmimp.DBExec(tx, sql, transType, gid, branchID, op, barrierID, reason)
 }
 
-// Call 子事务屏障，详细介绍见 https://zhuanlan.zhihu.com/p/388444465
-// tx: 本地数据库的事务对象，允许子事务屏障进行事务操作
-// busiCall: 业务函数，仅在必要时被调用
+// Call see detail description in https://en.dtm.pub/practice/barrier.html
+// tx: local transaction connection
+// busiCall: busi func
 func (bb *BranchBarrier) Call(tx *sql.Tx, busiCall BarrierBusiFunc) (rerr error) {
 	bid := bb.newBarrierID()
 	defer dtmimp.DeferDo(&rerr, func() error {

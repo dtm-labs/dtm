@@ -47,8 +47,8 @@ func main() {
 	} else {
 		hintAndExit()
 	}
-	dtmsvr.StartSvr()              // 启动dtmsvr的api服务
-	go dtmsvr.CronExpiredTrans(-1) // 启动dtmsvr的定时过期查询
-	svr.StartSvr()                 // 启动bench服务
+	dtmsvr.StartSvr()
+	go dtmsvr.CronExpiredTrans(-1)
+	svr.StartSvr()
 	select {}
 }

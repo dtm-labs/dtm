@@ -78,7 +78,7 @@ func (op *tracePlugin) Initialize(db *gorm.DB) (err error) {
 	afterName := "cb_after"
 
 	logger.Debugf("installing db plugin: %s", op.Name())
-	// 开始前
+	// before
 	_ = db.Callback().Create().Before("gorm:before_create").Register(beforeName, before)
 	_ = db.Callback().Query().Before("gorm:query").Register(beforeName, before)
 	_ = db.Callback().Delete().Before("gorm:before_delete").Register(beforeName, before)
@@ -86,7 +86,7 @@ func (op *tracePlugin) Initialize(db *gorm.DB) (err error) {
 	_ = db.Callback().Row().Before("gorm:row").Register(beforeName, before)
 	_ = db.Callback().Raw().Before("gorm:raw").Register(beforeName, before)
 
-	// 结束后
+	// after
 	_ = db.Callback().Create().After("gorm:after_create").Register(afterName, after)
 	_ = db.Callback().Query().After("gorm:after_query").Register(afterName, after)
 	_ = db.Callback().Delete().After("gorm:after_delete").Register(afterName, after)

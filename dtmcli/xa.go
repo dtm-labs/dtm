@@ -58,7 +58,7 @@ func NewXaClient(server string, mysqlConf DBConf, notifyURL string, register XaR
 	return xa, nil
 }
 
-// HandleCallback 处理commit/rollback的回调
+// HandleCallback handle commit/rollback callback
 func (xc *XaClient) HandleCallback(gid string, branchID string, action string) interface{} {
 	return xc.XaClientBase.HandleCallback(gid, branchID, action)
 }

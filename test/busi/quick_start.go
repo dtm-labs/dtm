@@ -9,7 +9,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// 事务参与者的服务地址
+// busi address
 const qsBusiAPI = "/api/busi_start"
 const qsBusiPort = 8082
 
@@ -57,14 +57,14 @@ const dtmServer = "http://localhost:36789/api/dtmsvr"
 
 // QsFireRequest quick start: fire request
 func QsFireRequest() string {
-	req := &gin.H{"amount": 30} // 微服务的载荷
-	// DtmServer为DTM服务的地址
+	req := &gin.H{"amount": 30} // load of micro-service
+	// DtmServer is the url of dtm
 	saga := dtmcli.NewSaga(dtmServer, dtmcli.MustGenGid(dtmServer)).
-		// 添加一个TransOut的子事务，正向操作为url: qsBusi+"/TransOut"， 逆向操作为url: qsBusi+"/TransOutCompensate"
+		// add a TransOut subtraction，forward operation with url: qsBusi+"/TransOut", reverse compensation operation with url: qsBusi+"/TransOutCompensate"
 		Add(qsBusi+"/TransOut", qsBusi+"/TransOutCompensate", req).
-		// 添加一个TransIn的子事务，正向操作为url: qsBusi+"/TransOut"， 逆向操作为url: qsBusi+"/TransInCompensate"
+		// add a TransIn subtraction, forward operation with url: qsBusi+"/TransIn", reverse compensation operation with url: qsBusi+"/TransInCompensate"
 		Add(qsBusi+"/TransIn", qsBusi+"/TransInCompensate", req)
-	// 提交saga事务，dtm会完成所有的子事务/回滚所有的子事务
+	// submit the created saga transaction，dtm ensures all subtractions either complete or get revoked
 	err := saga.Submit()
 
 	if err != nil {

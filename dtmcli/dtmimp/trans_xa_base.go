@@ -61,13 +61,12 @@ func (xc *XaClientBase) HandleLocalTrans(xa *TransBase, cb func(*sql.DB) error) 
 	return
 }
 
-// HandleGlobalTrans http/grpc GlobalTransaction的公共方法
+// HandleGlobalTrans http/grpc GlobalTransaction shared func
 func (xc *XaClientBase) HandleGlobalTrans(xa *TransBase, callDtm func(string) error, callBusi func() error) (rerr error) {
 	rerr = callDtm("prepare")
 	if rerr != nil {
 		return
 	}
-	// 小概率情况下，prepare成功了，但是由于网络状况导致上面Failure，那么不执行下面defer的内容，等待超时后再回滚标记事务失败，也没有问题
 	defer DeferDo(&rerr, func() error {
 		return callDtm("submit")
 	}, func() error {

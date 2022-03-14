@@ -1,2 +1,2 @@
-## 注意
-此包带imp后缀，主要被dtm内部使用，相关接口可能会发生变更，请勿使用这里的接口
+## Notice
+Please donot use this package, and this package should only be used in dtm internally. The interfaces are not stable, and package name has postfix "imp"

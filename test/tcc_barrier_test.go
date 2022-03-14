@@ -74,7 +74,7 @@ func runTestTccBarrierDisorder(t *testing.T, store string) {
 		tryURL := Busi + "/TccBTransOutTry"
 		confirmURL := Busi + "/TccBTransOutConfirm"
 		cancelURL := Busi + "/TccBSleepCancel"
-		// 请参见子事务屏障里的时序图，这里为了模拟该时序图，手动拆解了callbranch
+		// refer to time diagram for barrier, here we simulate it
 		branchID := tcc.NewSubBranchID()
 		busi.SetSleepCancelHandler(func(c *gin.Context) interface{} {
 			res := busi.TccBarrierTransOutCancel(c)
@@ -85,7 +85,7 @@ func runTestTccBarrierDisorder(t *testing.T, store string) {
 			logger.Debugf("disorderHandler after cancel return read")
 			return res
 		})
-		// 注册子事务
+		// register tcc branch
 		resp, err := dtmimp.RestyClient.R().
 			SetBody(map[string]interface{}{
 				"gid":                tcc.Gid,
@@ -124,7 +124,7 @@ func runTestTccBarrierDisorder(t *testing.T, store string) {
 				"op":         dtmcli.BranchTry,
 			}).
 			Post(tryURL)
-		assert.True(t, strings.Contains(r.String(), dtmcli.ResultSuccess)) // 这个是悬挂操作，为了简单起见，依旧让他返回成功
+		assert.True(t, strings.Contains(r.String(), dtmcli.ResultSuccess)) // dangle op, return success
 		logger.Debugf("cronFinished read")
 		<-cronFinished
 		<-cronFinished

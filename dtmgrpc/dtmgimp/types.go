@@ -19,7 +19,7 @@ import (
 	"google.golang.org/protobuf/proto"
 )
 
-// GrpcServerLog 打印grpc服务端的日志
+// GrpcServerLog middleware to print server-side grpc log
 func GrpcServerLog(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (interface{}, error) {
 	began := time.Now()
 	logger.Debugf("grpc server handling: %s %s", info.FullMethod, dtmimp.MustMarshalString(req))
@@ -35,7 +35,7 @@ func GrpcServerLog(ctx context.Context, req interface{}, info *grpc.UnaryServerI
 	return m, err
 }
 
-// GrpcClientLog 打印grpc调用的日志
+// GrpcClientLog middleware to print client-side grpc log
 func GrpcClientLog(ctx context.Context, method string, req, reply interface{}, cc *grpc.ClientConn, invoker grpc.UnaryInvoker, opts ...grpc.CallOption) error {
 	logger.Debugf("grpc client calling: %s%s %v", cc.Target(), method, dtmimp.MustMarshalString(req))
 	LogDtmCtx(ctx)

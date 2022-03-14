@@ -57,7 +57,7 @@ func NewXaGrpcClient(server string, mysqlConf dtmcli.DBConf, notifyURL string) *
 	return xa
 }
 
-// HandleCallback 处理commit/rollback的回调
+// HandleCallback handle commit/rollback callback
 func (xc *XaGrpcClient) HandleCallback(ctx context.Context) (*emptypb.Empty, error) {
 	tb := dtmgimp.TransBaseFromGrpc(ctx)
 	return &emptypb.Empty{}, xc.XaClientBase.HandleCallback(tb.Gid, tb.BranchID, tb.Op)

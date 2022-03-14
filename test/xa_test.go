@@ -49,7 +49,7 @@ func TestXaDuplicate(t *testing.T) {
 			_, err = dtmimp.DBExec(sdb, "xa recover")
 			assert.Nil(t, err)
 		}
-		_, err = dtmimp.DBExec(sdb, dtmimp.GetDBSpecial().GetXaSQL("commit", gid+"-01")) // 先把某一个事务提交，模拟重复请求
+		_, err = dtmimp.DBExec(sdb, dtmimp.GetDBSpecial().GetXaSQL("commit", gid+"-01")) // simulate repeated request
 		assert.Nil(t, err)
 		return xa.CallBranch(req, busi.Busi+"/TransInXa")
 	})

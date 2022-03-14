@@ -69,7 +69,7 @@ func main() {
 	}
 	_, _ = maxprocs.Set(maxprocs.Logger(logger.Infof))
 	registry.WaitStoreUp()
-	dtmsvr.StartSvr()              // 启动dtmsvr的api服务
-	go dtmsvr.CronExpiredTrans(-1) // 启动dtmsvr的定时过期查询
+	dtmsvr.StartSvr()              // start dtmsvr api
+	go dtmsvr.CronExpiredTrans(-1) // start dtmsvr cron job
 	select {}
 }

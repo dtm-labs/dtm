@@ -112,7 +112,7 @@ func MustGetwd() string {
 	return wd
 }
 
-// GetSQLDir 获取调用该函数的caller源代码的目录，主要用于测试时，查找相关文件
+// GetSQLDir get sql scripts dir, used in test
 func GetSQLDir() string {
 	wd := MustGetwd()
 	if filepath.Base(wd) == "test" {

@@ -84,7 +84,7 @@ type configType struct {
 	Log                           Log          `yaml:"Log"`
 }
 
-// Config 配置
+// Config config
 var Config = configType{}
 
 // MustLoadConfig load config from env and file
