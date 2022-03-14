@@ -38,7 +38,7 @@ func (bb *BranchBarrier) newBarrierID() string {
 
 // BarrierFromQuery construct transaction info from request
 func BarrierFromQuery(qs url.Values) (*BranchBarrier, error) {
-	return BarrierFrom(qs.Get("trans_type"), qs.Get("gid"), qs.Get("branch_id"), qs.Get("op"))
+	return BarrierFrom(dtmimp.EscapeGet(qs, "trans_type"), dtmimp.EscapeGet(qs, "gid"), dtmimp.EscapeGet(qs, "branch_id"), dtmimp.EscapeGet(qs, "op"))
 }
 
 // BarrierFrom construct transaction info from request

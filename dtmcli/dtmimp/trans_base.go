@@ -87,7 +87,7 @@ func (t *TransBase) WithGlobalTransRequestTimeout(timeout int64) {
 
 // TransBaseFromQuery construct transaction info from request
 func TransBaseFromQuery(qs url.Values) *TransBase {
-	return NewTransBase(qs.Get("gid"), qs.Get("trans_type"), qs.Get("dtm"), qs.Get("branch_id"))
+	return NewTransBase(EscapeGet(qs, "gid"), EscapeGet(qs, "trans_type"), EscapeGet(qs, "dtm"), EscapeGet(qs, "branch_id"))
 }
 
 // TransCallDtm TransBase call dtm

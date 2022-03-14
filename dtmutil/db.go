@@ -3,7 +3,6 @@ package dtmutil
 import (
 	"database/sql"
 	"fmt"
-	"strings"
 	"sync"
 	"time"
 
@@ -101,7 +100,7 @@ func DbGet(conf dtmcli.DBConf, ops ...func(*gorm.DB)) *DB {
 	dsn := dtmimp.GetDsn(conf)
 	db, ok := dbs.Load(dsn)
 	if !ok {
-		logger.Debugf("connecting %s", strings.Replace(dsn, conf.Password, "****", 1))
+		logger.Infof("connecting '%s' '%s' '%s' '%d'", conf.Driver, conf.Host, conf.User, conf.Port)
 		db1, err := gorm.Open(getGormDialetor(conf.Driver, dsn), &gorm.Config{
 			SkipDefaultTransaction: true,
 		})

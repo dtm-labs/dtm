@@ -12,6 +12,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"net/url"
 	"os"
 	"runtime"
 	"strconv"
@@ -234,4 +235,15 @@ func DeferDo(rerr *error, success func() error, fail func() error) {
 			*rerr = success()
 		}
 	}()
+}
+
+// Escape solve CodeQL reported problem
+func Escape(input string) string {
+	replacer := strings.NewReplacer("'", "", "\n", "", "\r", "", " ", "")
+	return replacer.Replace(input)
+}
+
+// EscapeGet escape get
+func EscapeGet(qs url.Values, key string) string {
+	return Escape(qs.Get(key))
 }
