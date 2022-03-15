@@ -33,6 +33,10 @@ func (xc *XaClientBase) HandleCallback(gid string, branchID string, action strin
 		(strings.Contains(err.Error(), "XAER_NOTA") || strings.Contains(err.Error(), "does not exist")) { // Repeat commit/rollback with the same id, report this error, ignore
 		err = nil
 	}
+	if action == OpRollback && err == nil {
+		// rollback insert a row after prepare. no-error means prepare has finished.
+		_, err = InsertBarrier(db, "xa", gid, branchID, OpAction, XaBarrier1, action)
+	}
 	return err
 }
 
@@ -57,7 +61,11 @@ func (xc *XaClientBase) HandleLocalTrans(xa *TransBase, cb func(*sql.DB) error) 
 	defer func() {
 		_, _ = DBExec(db, GetDBSpecial().GetXaSQL("end", xaBranch))
 	}()
-	rerr = cb(db)
+	// prepare and rollback both insert a row
+	_, rerr = InsertBarrier(db, xa.TransType, xa.Gid, xa.BranchID, OpAction, XaBarrier1, OpAction)
+	if rerr == nil {
+		rerr = cb(db)
+	}
 	return
 }
 

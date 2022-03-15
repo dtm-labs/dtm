@@ -30,7 +30,7 @@ func (t *transSagaProcessor) GenBranches() []TransBranch {
 	branches := []TransBranch{}
 	for i, step := range t.Steps {
 		branch := fmt.Sprintf("%02d", i+1)
-		for _, op := range []string{dtmcli.BranchCompensate, dtmcli.BranchAction} {
+		for _, op := range []string{dtmimp.OpCompensate, dtmimp.OpAction} {
 			branches = append(branches, TransBranch{
 				Gid:      t.Gid,
 				BranchID: branch,
@@ -82,7 +82,7 @@ func (t *transSagaProcessor) ProcessOnce(branches []TransBranch) error {
 	branchResults := make([]branchResult, n) // save the branch result
 	for i := 0; i < n; i++ {
 		b := branches[i]
-		if b.Op == dtmcli.BranchAction {
+		if b.Op == dtmimp.OpAction {
 			if b.Status == dtmcli.StatusPrepared {
 				rsAToStart++
 			} else if b.Status == dtmcli.StatusFailed {
@@ -163,7 +163,7 @@ func (t *transSagaProcessor) ProcessOnce(branches []TransBranch) error {
 	runBranches := func(toRun []int) {
 		for _, b := range toRun {
 			branchResults[b].started = true
-			if branchResults[b].op == dtmcli.BranchAction {
+			if branchResults[b].op == dtmimp.OpAction {
 				rsAStarted++
 			}
 			go asyncExecBranch(b)
@@ -174,7 +174,7 @@ func (t *transSagaProcessor) ProcessOnce(branches []TransBranch) error {
 		case r := <-resultChan:
 			br := &branchResults[r.index]
 			br.status = r.status
-			if r.op == dtmcli.BranchAction {
+			if r.op == dtmimp.OpAction {
 				rsADone++
 				if r.status == dtmcli.StatusFailed {
 					rsAFailed++
@@ -202,7 +202,7 @@ func (t *transSagaProcessor) ProcessOnce(branches []TransBranch) error {
 			}
 		}
 		for i, b := range branchResults {
-			if b.op == dtmcli.BranchCompensate && b.status != dtmcli.StatusSucceed &&
+			if b.op == dtmimp.OpCompensate && b.status != dtmcli.StatusSucceed &&
 				branchResults[i+1].status != dtmcli.StatusPrepared {
 				rsCToStart++
 			}

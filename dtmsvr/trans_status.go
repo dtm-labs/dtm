@@ -176,7 +176,7 @@ func (t *TransGlobal) getBranchResult(branch *TransBranch) (string, error) {
 	err := t.getURLResult(branch.URL, branch.BranchID, branch.Op, branch.BinData)
 	if err == nil {
 		return dtmcli.StatusSucceed, nil
-	} else if t.TransType == "saga" && branch.Op == dtmcli.BranchAction && errors.Is(err, dtmcli.ErrFailure) {
+	} else if t.TransType == "saga" && branch.Op == dtmimp.OpAction && errors.Is(err, dtmcli.ErrFailure) {
 		return dtmcli.StatusFailed, nil
 	} else if errors.Is(err, dtmcli.ErrOngoing) {
 		return "", dtmcli.ErrOngoing

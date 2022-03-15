@@ -16,6 +16,22 @@ const (
 	// ResultOngoing for result of a trans/trans branch
 	// Same as HTTP status 425 and GRPC code 9
 	ResultOngoing = "ONGOING"
+
+	// OpTry branch type for TCC
+	OpTry = "try"
+	// OpConfirm branch type for TCC
+	OpConfirm = "confirm"
+	// OpCancel branch type for TCC
+	OpCancel = "cancel"
+	// OpAction branch type for message, SAGA, XA
+	OpAction = "action"
+	// OpCompensate branch type for SAGA
+	OpCompensate = "compensate"
+	// OpCommit branch type for XA
+	OpCommit = "commit"
+	// OpRollback branch type for XA
+	OpRollback = "rollback"
+
 	// DBTypeMysql const for driver mysql
 	DBTypeMysql = "mysql"
 	// DBTypePostgres const for driver postgres
@@ -36,4 +52,7 @@ const (
 	MsgDoBarrier1 = "01"
 	// MsgDoOp const for DoAndSubmit barrier op
 	MsgDoOp = "msg"
+
+	// XaBarrier1 const for xa barrier id
+	XaBarrier1 = "01"
 )

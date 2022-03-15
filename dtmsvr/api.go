@@ -70,14 +70,14 @@ func svcForceStop(t *TransGlobal) interface{} {
 func svcRegisterBranch(transType string, branch *TransBranch, data map[string]string) error {
 	branches := []TransBranch{*branch, *branch}
 	if transType == "tcc" {
-		for i, b := range []string{dtmcli.BranchCancel, dtmcli.BranchConfirm} {
+		for i, b := range []string{dtmimp.OpCancel, dtmimp.OpConfirm} {
 			branches[i].Op = b
 			branches[i].URL = data[b]
 		}
 	} else if transType == "xa" {
-		branches[0].Op = dtmcli.BranchRollback
+		branches[0].Op = dtmimp.OpRollback
 		branches[0].URL = data["url"]
-		branches[1].Op = dtmcli.BranchCommit
+		branches[1].Op = dtmimp.OpCommit
 		branches[1].URL = data["url"]
 	} else {
 		return fmt.Errorf("unknow trans type: %s", transType)

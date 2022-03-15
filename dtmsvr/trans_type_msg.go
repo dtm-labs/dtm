@@ -30,8 +30,8 @@ func (t *transMsgProcessor) GenBranches() []TransBranch {
 			Gid:      t.Gid,
 			BranchID: fmt.Sprintf("%02d", i+1),
 			BinData:  t.BinPayloads[i],
-			URL:      step[dtmcli.BranchAction],
-			Op:       dtmcli.BranchAction,
+			URL:      step[dtmimp.OpAction],
+			Op:       dtmimp.OpAction,
 			Status:   dtmcli.StatusPrepared,
 		}
 		branches = append(branches, *b)
@@ -79,7 +79,7 @@ func (t *transMsgProcessor) ProcessOnce(branches []TransBranch) error {
 	var err error
 	for i := range branches {
 		b := &branches[i]
-		if b.Op != dtmcli.BranchAction || b.Status != dtmcli.StatusPrepared {
+		if b.Op != dtmimp.OpAction || b.Status != dtmcli.StatusPrepared {
 			continue
 		}
 		if t.Concurrent {

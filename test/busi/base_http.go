@@ -194,7 +194,7 @@ func BaseAddRoute(app *gin.Engine) {
 		}
 		return nil
 	}))
-	app.POST(BusiAPI+"/TccBSleepCancel", dtmutil.WrapHandler2(func(c *gin.Context) interface{} {
+	app.POST(BusiAPI+"/SleepCancel", dtmutil.WrapHandler2(func(c *gin.Context) interface{} {
 		return sleepCancelHandler(c)
 	}))
 	app.POST(BusiAPI+"/TransOutHeaderYes", dtmutil.WrapHandler2(func(c *gin.Context) interface{} {

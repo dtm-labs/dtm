@@ -73,7 +73,7 @@ func runTestTccBarrierDisorder(t *testing.T, store string) {
 		body := &busi.TransReq{Amount: 30, Store: store}
 		tryURL := Busi + "/TccBTransOutTry"
 		confirmURL := Busi + "/TccBTransOutConfirm"
-		cancelURL := Busi + "/TccBSleepCancel"
+		cancelURL := Busi + "/SleepCancel"
 		// refer to time diagram for barrier, here we simulate it
 		branchID := tcc.NewSubBranchID()
 		busi.SetSleepCancelHandler(func(c *gin.Context) interface{} {
@@ -88,13 +88,13 @@ func runTestTccBarrierDisorder(t *testing.T, store string) {
 		// register tcc branch
 		resp, err := dtmimp.RestyClient.R().
 			SetBody(map[string]interface{}{
-				"gid":                tcc.Gid,
-				"branch_id":          branchID,
-				"trans_type":         "tcc",
-				"status":             StatusPrepared,
-				"data":               string(dtmimp.MustMarshal(body)),
-				dtmcli.BranchConfirm: confirmURL,
-				dtmcli.BranchCancel:  cancelURL,
+				"gid":            tcc.Gid,
+				"branch_id":      branchID,
+				"trans_type":     "tcc",
+				"status":         StatusPrepared,
+				"data":           string(dtmimp.MustMarshal(body)),
+				dtmimp.OpConfirm: confirmURL,
+				dtmimp.OpCancel:  cancelURL,
 			}).Post(fmt.Sprintf("%s/%s", tcc.Dtm, "registerBranch"))
 		assert.Nil(t, err)
 		assert.Contains(t, resp.String(), dtmcli.ResultSuccess)
@@ -121,7 +121,7 @@ func runTestTccBarrierDisorder(t *testing.T, store string) {
 				"gid":        tcc.Gid,
 				"branch_id":  branchID,
 				"trans_type": "tcc",
-				"op":         dtmcli.BranchTry,
+				"op":         dtmimp.OpTry,
 			}).
 			Post(tryURL)
 		assert.True(t, strings.Contains(r.String(), dtmcli.ResultSuccess)) // dangle op, return success

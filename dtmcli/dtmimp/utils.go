@@ -242,10 +242,20 @@ func Escape(input string) string {
 	v := strings.Replace(input, "\n", "", -1)
 	v = strings.Replace(v, "\r", "", -1)
 	v = strings.Replace(v, ";", "", -1)
-	return strings.Replace(v, "'", "", -1)
+	// v = strings.Replace(v, "'", "", -1)
+	return v
 }
 
 // EscapeGet escape get
 func EscapeGet(qs url.Values, key string) string {
 	return Escape(qs.Get(key))
+}
+
+// InsertBarrier insert a record to barrier
+func InsertBarrier(tx DB, transType string, gid string, branchID string, op string, barrierID string, reason string) (int64, error) {
+	if op == "" {
+		return 0, nil
+	}
+	sql := GetDBSpecial().GetInsertIgnoreTemplate(BarrierTableName+"(trans_type, gid, branch_id, op, barrier_id, reason) values(?,?,?,?,?,?)", "uniq_barrier")
+	return DBExec(tx, sql, transType, gid, branchID, op, barrierID, reason)
 }
