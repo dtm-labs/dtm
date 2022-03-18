@@ -7,7 +7,7 @@ require (
 	github.com/BurntSushi/toml v0.4.1 // indirect
 	github.com/dtm-labs/dtmdriver v0.0.1
 	github.com/dtm-labs/dtmdriver-gozero v0.0.2
-	github.com/dtm-labs/dtmdriver-kratos v0.0.0-00010101000000-000000000000
+	github.com/dtm-labs/dtmdriver-kratos v0.0.0-20220318113458-787275b94ed2
 	github.com/dtm-labs/dtmdriver-polaris v0.0.4
 	github.com/dtm-labs/dtmdriver-protocol1 v0.0.1
 	github.com/gin-gonic/gin v1.7.7
@@ -34,5 +34,3 @@ require (
 	gorm.io/gorm v1.22.2
 // gotest.tools v2.2.0+incompatible
 )
-
-replace github.com/dtm-labs/dtmdriver-kratos => /Users/liulei/Lessons/gopkg-src/dtmdriver-kratos
