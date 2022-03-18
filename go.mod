@@ -7,6 +7,7 @@ require (
 	github.com/BurntSushi/toml v0.4.1 // indirect
 	github.com/dtm-labs/dtmdriver v0.0.1
 	github.com/dtm-labs/dtmdriver-gozero v0.0.2
+	github.com/dtm-labs/dtmdriver-kratos v0.0.0-20220318113458-787275b94ed2
 	github.com/dtm-labs/dtmdriver-polaris v0.0.4
 	github.com/dtm-labs/dtmdriver-protocol1 v0.0.1
 	github.com/gin-gonic/gin v1.7.7
@@ -22,10 +23,8 @@ require (
 	github.com/stretchr/testify v1.7.0
 	go.etcd.io/bbolt v1.3.6
 	go.mongodb.org/mongo-driver v1.8.3
-	go.uber.org/atomic v1.9.0 // indirect
 	go.uber.org/automaxprocs v1.4.1-0.20210525221652-0180b04c18a7
-	go.uber.org/multierr v1.7.0 // indirect
-	go.uber.org/zap v1.19.1
+	go.uber.org/zap v1.21.0
 	golang.org/x/crypto v0.0.0-20211108221036-ceb1ce70b4fa // indirect
 	google.golang.org/grpc v1.44.0
 	google.golang.org/protobuf v1.27.1
