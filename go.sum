@@ -113,6 +113,8 @@ github.com/dtm-labs/dtmdriver-kratos v0.0.1 h1:JP3qnY9b+jE0RJ1ax20tKBJHwZrhrqYg0
 github.com/dtm-labs/dtmdriver-kratos v0.0.1/go.mod h1:MjrFIa2A191ATVb/xy2vnA2ZKqMK9zC/1m3pjxXwkac=
 github.com/dtm-labs/dtmdriver-kratos v0.0.2 h1:/Tw1X9lvGOVXjc+cY6omMoODr16b4V5cim+w19ZeGAA=
 github.com/dtm-labs/dtmdriver-kratos v0.0.2/go.mod h1:MjrFIa2A191ATVb/xy2vnA2ZKqMK9zC/1m3pjxXwkac=
+github.com/dtm-labs/dtmdriver-kratos v0.0.3 h1:a09mvcGEqXf0DzjHOVR/UJnOGAMAwjfJ3LMG6z9092Q=
+github.com/dtm-labs/dtmdriver-kratos v0.0.3/go.mod h1:MjrFIa2A191ATVb/xy2vnA2ZKqMK9zC/1m3pjxXwkac=
 github.com/dtm-labs/dtmdriver-polaris v0.0.4 h1:yli0YmAsEgl47ymJHTxIzULeNe5dnmfN2ixLJRWm2Ok=
 github.com/dtm-labs/dtmdriver-polaris v0.0.4/go.mod h1:zwNFE3z0B7Ky35W2Ks9LkpMGiuIt9YFuocy4qaedCLE=
 github.com/dtm-labs/dtmdriver-protocol1 v0.0.1 h1:nwGpGWi7XlUAcDhEw1qZ3TheBskqCvfE96n1uVjmDf4=
