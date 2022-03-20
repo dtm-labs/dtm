@@ -69,6 +69,7 @@ DTM是一款变革性的分布式事务框架，提供了傻瓜式的使用方�
 
 ## 微服务框架支持
 - [go-zero](https://github.com/zeromicro/go-zero)：一开源就非常火爆的微服务框架，首家接入dtm的微服务框架。感谢go-zero作者[kevwan](https://github.com/kevwan)的大力支持
+- [kratos](https://github.com/go-kratos/kratos)：这是bilibili开源的一个微服务框架。感谢[lei liu](https://github.com/Leizhengzi)的贡献
 - [polaris](https://github.com/polarismesh/polaris): 腾讯开源的注册发现组件，以及在其上构建的微服务框架。感谢腾讯同学[ychensha](https://github.com/ychensha)的PR
 - 其他：看用户需求量，择机接入，参见[微服务支持](https://dtm.pub/ref/proto.html)
 
