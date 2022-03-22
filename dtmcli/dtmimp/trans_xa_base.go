@@ -20,13 +20,10 @@ type XaClientBase struct {
 
 // HandleCallback Handle the callback of commit/rollback
 func (xc *XaClientBase) HandleCallback(gid string, branchID string, action string) error {
-	db, err := StandaloneDB(xc.Conf)
+	db, err := PooledDB(xc.Conf)
 	if err != nil {
 		return err
 	}
-	defer func() {
-		_ = db.Close()
-	}()
 	xaID := gid + "-" + branchID
 	_, err = DBExec(db, GetDBSpecial().GetXaSQL(action, xaID))
 	if err != nil &&
