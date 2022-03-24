@@ -102,6 +102,11 @@ func GetMetaFromContext(ctx context.Context, name string) string {
 	return mdGet(md, name)
 }
 
+func GetDtmMetaFromContext(ctx context.Context, name string) string {
+	md, _ := metadata.FromIncomingContext(ctx)
+	return dtmGet(md, name)
+}
+
 type requestTimeoutKey struct{}
 
 // RequestTimeoutFromContext returns requestTime of transOption option

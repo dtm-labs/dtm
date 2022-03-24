@@ -23,8 +23,3 @@ func TestQuery(t *testing.T) {
 	_, err = BarrierFromQuery(qs)
 	assert.Error(t, err)
 }
-
-func TestXa(t *testing.T) {
-	_, err := NewXaClient("http://localhost:36789", DBConf{}, ":::::", nil)
-	assert.Error(t, err)
-}

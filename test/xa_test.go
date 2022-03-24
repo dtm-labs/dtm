@@ -12,18 +12,15 @@ import (
 
 	"github.com/dtm-labs/dtm/dtmcli"
 	"github.com/dtm-labs/dtm/dtmcli/dtmimp"
+	"github.com/dtm-labs/dtm/dtmutil"
 	"github.com/dtm-labs/dtm/test/busi"
 	"github.com/go-resty/resty/v2"
 	"github.com/stretchr/testify/assert"
 )
 
-func getXc() *dtmcli.XaClient {
-	return busi.XaClient
-}
-
 func TestXaNormal(t *testing.T) {
 	gid := dtmimp.GetFuncName()
-	err := getXc().XaGlobalTransaction(gid, func(xa *dtmcli.Xa) (*resty.Response, error) {
+	err := dtmcli.XaGlobalTransaction(dtmutil.DefaultHTTPServer, gid, func(xa *dtmcli.Xa) (*resty.Response, error) {
 		req := busi.GenTransReq(30, false, false)
 		resp, err := xa.CallBranch(req, busi.Busi+"/TransOutXa")
 		if err != nil {
@@ -39,7 +36,7 @@ func TestXaNormal(t *testing.T) {
 
 func TestXaDuplicate(t *testing.T) {
 	gid := dtmimp.GetFuncName()
-	err := getXc().XaGlobalTransaction(gid, func(xa *dtmcli.Xa) (*resty.Response, error) {
+	err := dtmcli.XaGlobalTransaction(DtmServer, gid, func(xa *dtmcli.Xa) (*resty.Response, error) {
 		req := busi.GenTransReq(30, false, false)
 		_, err := xa.CallBranch(req, busi.Busi+"/TransOutXa")
 		assert.Nil(t, err)
@@ -61,7 +58,7 @@ func TestXaDuplicate(t *testing.T) {
 
 func TestXaRollback(t *testing.T) {
 	gid := dtmimp.GetFuncName()
-	err := getXc().XaGlobalTransaction(gid, func(xa *dtmcli.Xa) (*resty.Response, error) {
+	err := dtmcli.XaGlobalTransaction(DtmServer, gid, func(xa *dtmcli.Xa) (*resty.Response, error) {
 		req := busi.GenTransReq(30, false, true)
 		resp, err := xa.CallBranch(req, busi.Busi+"/TransOutXa")
 		if err != nil {
@@ -77,7 +74,7 @@ func TestXaRollback(t *testing.T) {
 
 func TestXaLocalError(t *testing.T) {
 	gid := dtmimp.GetFuncName()
-	err := getXc().XaGlobalTransaction(gid, func(xa *dtmcli.Xa) (*resty.Response, error) {
+	err := dtmcli.XaGlobalTransaction(DtmServer, gid, func(xa *dtmcli.Xa) (*resty.Response, error) {
 		return nil, fmt.Errorf("an error")
 	})
 	assert.Error(t, err, fmt.Errorf("an error"))
@@ -87,7 +84,7 @@ func TestXaLocalError(t *testing.T) {
 func TestXaTimeout(t *testing.T) {
 	gid := dtmimp.GetFuncName()
 	timeoutChan := make(chan int, 1)
-	err := getXc().XaGlobalTransaction(gid, func(xa *dtmcli.Xa) (*resty.Response, error) {
+	err := dtmcli.XaGlobalTransaction(DtmServer, gid, func(xa *dtmcli.Xa) (*resty.Response, error) {
 		go func() {
 			cronTransOnceForwardNow(t, gid, 300)
 			timeoutChan <- 0
@@ -103,7 +100,7 @@ func TestXaTimeout(t *testing.T) {
 func TestXaNotTimeout(t *testing.T) {
 	gid := dtmimp.GetFuncName()
 	timeoutChan := make(chan int, 1)
-	err := getXc().XaGlobalTransaction(gid, func(xa *dtmcli.Xa) (*resty.Response, error) {
+	err := dtmcli.XaGlobalTransaction(DtmServer, gid, func(xa *dtmcli.Xa) (*resty.Response, error) {
 		go func() {
 			cronTransOnceForwardNow(t, gid, 0) // not timeout,
 			timeoutChan <- 0

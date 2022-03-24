@@ -18,7 +18,6 @@ import (
 	"github.com/dtm-labs/dtm/dtmcli/logger"
 	"github.com/dtm-labs/dtm/dtmgrpc"
 	"github.com/dtm-labs/dtm/dtmutil"
-	"github.com/gin-gonic/gin"
 
 	"github.com/dtm-labs/dtm/dtmgrpc/dtmgimp"
 	"github.com/dtm-labs/dtm/dtmgrpc/dtmgpb"
@@ -32,15 +31,6 @@ var BusiGrpc = fmt.Sprintf("localhost:%d", BusiGrpcPort)
 
 // DtmClient grpc client for dtm
 var DtmClient dtmgpb.DtmClient
-
-// XaGrpcClient XA client connection
-var XaGrpcClient *dtmgrpc.XaGrpcClient
-
-func init() {
-	setupFuncs["XaGrpcSetup"] = func(app *gin.Engine) {
-		XaGrpcClient = dtmgrpc.NewXaGrpcClient(dtmutil.DefaultGrpcServer, BusiConf, BusiGrpc+"/busi.Busi/XaNotify")
-	}
-}
 
 // GrpcStartup for grpc
 func GrpcStartup() {
@@ -105,13 +95,13 @@ func (s *busiServer) TransOutTcc(ctx context.Context, in *BusiReq) (*emptypb.Emp
 }
 
 func (s *busiServer) TransInXa(ctx context.Context, in *BusiReq) (*emptypb.Empty, error) {
-	return &emptypb.Empty{}, XaGrpcClient.XaLocalTransaction(ctx, in, func(db *sql.DB, xa *dtmgrpc.XaGrpc) error {
+	return &emptypb.Empty{}, dtmgrpc.XaLocalTransaction(ctx, BusiConf, func(db *sql.DB, xa *dtmgrpc.XaGrpc) error {
 		return sagaGrpcAdjustBalance(db, TransInUID, in.Amount, in.TransInResult)
 	})
 }
 
 func (s *busiServer) TransOutXa(ctx context.Context, in *BusiReq) (*emptypb.Empty, error) {
-	return &emptypb.Empty{}, XaGrpcClient.XaLocalTransaction(ctx, in, func(db *sql.DB, xa *dtmgrpc.XaGrpc) error {
+	return &emptypb.Empty{}, dtmgrpc.XaLocalTransaction(ctx, BusiConf, func(db *sql.DB, xa *dtmgrpc.XaGrpc) error {
 		return sagaGrpcAdjustBalance(db, TransOutUID, in.Amount, in.TransOutResult)
 	})
 }
@@ -123,10 +113,6 @@ func (s *busiServer) TransInTccNested(ctx context.Context, in *BusiReq) (*emptyp
 	err = tcc.CallBranch(in, BusiGrpc+"/busi.Busi/TransIn", BusiGrpc+"/busi.Busi/TransInConfirm", BusiGrpc+"/busi.Busi/TransInRevert", r)
 	logger.FatalIfError(err)
 	return r, handleGrpcBusiness(in, MainSwitch.TransInResult.Fetch(), in.TransInResult, dtmimp.GetFuncName())
-}
-
-func (s *busiServer) XaNotify(ctx context.Context, in *emptypb.Empty) (*emptypb.Empty, error) {
-	return XaGrpcClient.HandleCallback(ctx)
 }
 
 func (s *busiServer) TransOutHeaderYes(ctx context.Context, in *BusiReq) (*emptypb.Empty, error) {

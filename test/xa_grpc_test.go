@@ -18,12 +18,9 @@ import (
 	"google.golang.org/protobuf/types/known/emptypb"
 )
 
-func getXcg() *dtmgrpc.XaGrpcClient {
-	return busi.XaGrpcClient
-}
 func TestXaGrpcNormal(t *testing.T) {
 	gid := dtmimp.GetFuncName()
-	err := getXcg().XaGlobalTransaction(gid, func(xa *dtmgrpc.XaGrpc) error {
+	err := dtmgrpc.XaGlobalTransaction(DtmGrpcServer, gid, func(xa *dtmgrpc.XaGrpc) error {
 		req := busi.GenBusiReq(30, false, false)
 		r := &emptypb.Empty{}
 		err := xa.CallBranch(req, busi.BusiGrpc+"/busi.Busi/TransOutXa", r)
@@ -40,7 +37,7 @@ func TestXaGrpcNormal(t *testing.T) {
 
 func TestXaGrpcRollback(t *testing.T) {
 	gid := dtmimp.GetFuncName()
-	err := getXcg().XaGlobalTransaction(gid, func(xa *dtmgrpc.XaGrpc) error {
+	err := dtmgrpc.XaGlobalTransaction(DtmGrpcServer, gid, func(xa *dtmgrpc.XaGrpc) error {
 		req := busi.GenBusiReq(30, false, true)
 		r := &emptypb.Empty{}
 		err := xa.CallBranch(req, busi.BusiGrpc+"/busi.Busi/TransOutXa", r)
@@ -60,11 +57,11 @@ func TestXaGrpcType(t *testing.T) {
 	_, err := dtmgrpc.XaGrpcFromRequest(context.Background())
 	assert.Error(t, err)
 
-	err = busi.XaGrpcClient.XaLocalTransaction(context.Background(), nil, nil)
+	err = dtmgrpc.XaLocalTransaction(context.Background(), busi.BusiConf, nil)
 	assert.Error(t, err)
 
 	err = dtmimp.CatchP(func() {
-		busi.XaGrpcClient.XaGlobalTransaction(gid, func(xa *dtmgrpc.XaGrpc) error { panic(fmt.Errorf("hello")) })
+		dtmgrpc.XaGlobalTransaction(DtmGrpcServer, gid, func(xa *dtmgrpc.XaGrpc) error { panic(fmt.Errorf("hello")) })
 	})
 	assert.Error(t, err)
 	waitTransProcessed(gid)
@@ -72,8 +69,7 @@ func TestXaGrpcType(t *testing.T) {
 
 func TestXaGrpcLocalError(t *testing.T) {
 	gid := dtmimp.GetFuncName()
-	xc := busi.XaGrpcClient
-	err := xc.XaGlobalTransaction(gid, func(xa *dtmgrpc.XaGrpc) error {
+	err := dtmgrpc.XaGlobalTransaction(DtmGrpcServer, gid, func(xa *dtmgrpc.XaGrpc) error {
 		return fmt.Errorf("an error")
 	})
 	assert.Error(t, err, fmt.Errorf("an error"))

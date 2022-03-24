@@ -142,15 +142,19 @@ func TransRequestBranch(t *TransBase, method string, body interface{}, branchID 
 	if url == "" {
 		return nil, nil
 	}
+	query := map[string]string{
+		"dtm":        t.Dtm,
+		"gid":        t.Gid,
+		"branch_id":  branchID,
+		"trans_type": t.TransType,
+		"op":         op,
+	}
+	if t.TransType == "xa" { // xa trans will add notify_url
+		query["phase2_url"] = url
+	}
 	resp, err := RestyClient.R().
 		SetBody(body).
-		SetQueryParams(map[string]string{
-			"dtm":        t.Dtm,
-			"gid":        t.Gid,
-			"branch_id":  branchID,
-			"trans_type": t.TransType,
-			"op":         op,
-		}).
+		SetQueryParams(query).
 		SetHeaders(t.BranchHeaders).
 		Execute(method, url)
 	if err == nil {

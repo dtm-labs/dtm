@@ -11,36 +11,29 @@ import (
 	"strings"
 )
 
-// XaClientBase XaClient/XaGrpcClient base. shared by http and grpc
-type XaClientBase struct {
-	Server    string
-	Conf      DBConf
-	NotifyURL string
-}
-
-// HandleCallback Handle the callback of commit/rollback
-func (xc *XaClientBase) HandleCallback(gid string, branchID string, action string) error {
-	db, err := PooledDB(xc.Conf)
+// XaHandlePhase2 Handle the callback of commit/rollback
+func XaHandlePhase2(gid string, dbConf DBConf, branchID string, op string) error {
+	db, err := PooledDB(dbConf)
 	if err != nil {
 		return err
 	}
 	xaID := gid + "-" + branchID
-	_, err = DBExec(db, GetDBSpecial().GetXaSQL(action, xaID))
+	_, err = DBExec(db, GetDBSpecial().GetXaSQL(op, xaID))
 	if err != nil &&
 		(strings.Contains(err.Error(), "XAER_NOTA") || strings.Contains(err.Error(), "does not exist")) { // Repeat commit/rollback with the same id, report this error, ignore
 		err = nil
 	}
-	if action == OpRollback && err == nil {
+	if op == OpRollback && err == nil {
 		// rollback insert a row after prepare. no-error means prepare has finished.
-		_, err = InsertBarrier(db, "xa", gid, branchID, OpAction, XaBarrier1, action)
+		_, err = InsertBarrier(db, "xa", gid, branchID, OpAction, XaBarrier1, op)
 	}
 	return err
 }
 
-// HandleLocalTrans public handler of LocalTransaction via http/grpc
-func (xc *XaClientBase) HandleLocalTrans(xa *TransBase, cb func(*sql.DB) error) (rerr error) {
+// XaHandleLocalTrans public handler of LocalTransaction via http/grpc
+func XaHandleLocalTrans(xa *TransBase, dbConf DBConf, cb func(*sql.DB) error) (rerr error) {
 	xaBranch := xa.Gid + "-" + xa.BranchID
-	db, rerr := StandaloneDB(xc.Conf)
+	db, rerr := StandaloneDB(dbConf)
 	if rerr != nil {
 		return
 	}
@@ -66,8 +59,8 @@ func (xc *XaClientBase) HandleLocalTrans(xa *TransBase, cb func(*sql.DB) error) 
 	return
 }
 
-// HandleGlobalTrans http/grpc GlobalTransaction shared func
-func (xc *XaClientBase) HandleGlobalTrans(xa *TransBase, callDtm func(string) error, callBusi func() error) (rerr error) {
+// XaHandleGlobalTrans http/grpc GlobalTransaction shared func
+func XaHandleGlobalTrans(xa *TransBase, callDtm func(string) error, callBusi func() error) (rerr error) {
 	rerr = callDtm("prepare")
 	if rerr != nil {
 		return
