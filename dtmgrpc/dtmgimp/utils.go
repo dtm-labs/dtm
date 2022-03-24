@@ -102,6 +102,7 @@ func GetMetaFromContext(ctx context.Context, name string) string {
 	return mdGet(md, name)
 }
 
+// GetDtmMetaFromContext get dtm header from context
 func GetDtmMetaFromContext(ctx context.Context, name string) string {
 	md, _ := metadata.FromIncomingContext(ctx)
 	return dtmGet(md, name)

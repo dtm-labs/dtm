@@ -58,7 +58,7 @@ func InvokeBranch(t *dtmimp.TransBase, isRaw bool, msg proto.Message, url string
 	}
 	ctx := TransInfo2Ctx(t.Gid, t.TransType, branchID, op, t.Dtm)
 	ctx = metadata.AppendToOutgoingContext(ctx, Map2Kvs(t.BranchHeaders)...)
-	if t.TransType == "xa" { // xa branch need addtional phase2_url
+	if t.TransType == "xa" { // xa branch need additional phase2_url
 		ctx = metadata.AppendToOutgoingContext(ctx, Map2Kvs(map[string]string{dtmpre + "phase2_url": url})...)
 	}
 	return MustGetGrpcConn(server, isRaw).Invoke(ctx, method, msg, reply)
