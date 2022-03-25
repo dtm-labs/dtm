@@ -99,8 +99,8 @@ func (s *Store) UpdateBranches(branches []storage.TransBranchStore, updates []st
 }
 
 type argList struct {
-	Keys []string
-	List []interface{}
+	Keys []string      // 1 global trans, 2 branches, 3 indices, 4 status
+	List []interface{} // 1 redis prefix, 2 data expire
 }
 
 func newArgList() *argList {
@@ -214,7 +214,8 @@ func (s *Store) ChangeGlobalStatus(global *storage.TransGlobalStore, newStatus s
 		AppendRaw(old).
 		AppendRaw(finished).
 		AppendRaw(global.Gid).
-		AppendRaw(newStatus)
+		AppendRaw(newStatus).
+		AppendObject(conf.Store.SuccessDataExpire)
 	_, err := callLua(args, `-- ChangeGlobalStatus
 local old = redis.call('GET', KEYS[4])
 if old ~= ARGV[4] then
@@ -224,6 +225,9 @@ redis.call('SET', KEYS[1],  ARGV[3], 'EX', ARGV[2])
 redis.call('SET', KEYS[4],  ARGV[7], 'EX', ARGV[2])
 if ARGV[5] == '1' then
 	redis.call('ZREM', KEYS[3], ARGV[6])
+	redis.call('EXPIRE', KEYS[1], ARGV[8])
+	redis.call('EXPIRE', KEYS[2], ARGV[8])
+	redis.call('EXPIRE', KEYS[4], ARGV[8])
 end
 `)
 	dtmimp.E2P(err)
