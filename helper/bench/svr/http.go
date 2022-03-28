@@ -96,7 +96,7 @@ func PrepareBenchDB() {
 func StartSvr() {
 	app := dtmutil.GetGinApp()
 	benchAddRoute(app)
-	logger.Debugf("bench listening at %d", benchPort)
+	logger.Infof("bench listening at %s", benchPort)
 	go func() {
 		_ = app.Run(fmt.Sprintf(":%s", benchPort))
 	}()
