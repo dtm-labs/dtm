@@ -35,7 +35,7 @@
 
 ### flollowing config is only for some Driver
 #   DataExpire: 604800 # Trans data will expire in 7 days. only for redis/boltdb.
-#   SuccessDataExpire: 86400 # successful Trans data will expire in 1 days. only for redis.
+#   FinishedDataExpire: 86400 # finished Trans data will expire in 1 days. only for redis.
 #   RedisPrefix: '{a}' # default value is '{a}'. Redis storage prefix. store data to only one slot in cluster
 
 # MicroService:

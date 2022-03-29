@@ -221,7 +221,7 @@ func (s *Store) ChangeGlobalStatus(global *storage.TransGlobalStore, newStatus s
 		AppendRaw(finished).
 		AppendRaw(global.Gid).
 		AppendRaw(newStatus).
-		AppendObject(conf.Store.SuccessDataExpire)
+		AppendObject(conf.Store.FinishedDataExpire)
 	_, err := callLua(args, `-- ChangeGlobalStatus
 local old = redis.call('GET', KEYS[4])
 if old ~= ARGV[4] then
