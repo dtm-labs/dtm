@@ -22,6 +22,8 @@ func PopulateDB(skipDrop bool) {
 	dtmutil.RunSQLScript(BusiConf, file, skipDrop)
 	file = fmt.Sprintf("%s/dtmcli.barrier.%s.sql", dtmutil.GetSQLDir(), BusiConf.Driver)
 	dtmutil.RunSQLScript(BusiConf, file, skipDrop)
+	file = fmt.Sprintf("%s/dtmsvr.storage.%s.sql", dtmutil.GetSQLDir(), BusiConf.Driver)
+	dtmutil.RunSQLScript(BusiConf, file, skipDrop)
 	_, err := RedisGet().FlushAll(context.Background()).Result() // redis barrier need clear
 	dtmimp.E2P(err)
 	SetRedisBothAccount(10000, 10000)
