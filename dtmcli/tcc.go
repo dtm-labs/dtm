@@ -25,7 +25,7 @@ type TccGlobalFunc func(tcc *Tcc) (*resty.Response, error)
 // TccGlobalTransaction begin a tcc global transaction
 // dtm dtm server address
 // gid global transaction ID
-// tccFunc tcc事务函数，里面会定义全局事务的分支
+// tccFunc define the detail tcc busi
 func TccGlobalTransaction(dtm string, gid string, tccFunc TccGlobalFunc) (rerr error) {
 	return TccGlobalTransaction2(dtm, gid, func(t *Tcc) {}, tccFunc)
 }
@@ -38,7 +38,6 @@ func TccGlobalTransaction2(dtm string, gid string, custom func(*Tcc), tccFunc Tc
 	if rerr != nil {
 		return rerr
 	}
-	// 小概率情况下，prepare成功了，但是由于网络状况导致上面Failure，那么不执行下面defer的内容，等待超时后再回滚标记事务失败，也没有问题
 	defer dtmimp.DeferDo(&rerr, func() error {
 		return dtmimp.TransCallDtm(&tcc.TransBase, tcc, "submit")
 	}, func() error {
@@ -61,13 +60,13 @@ func TccFromQuery(qs url.Values) (*Tcc, error) {
 func (t *Tcc) CallBranch(body interface{}, tryURL string, confirmURL string, cancelURL string) (*resty.Response, error) {
 	branchID := t.NewSubBranchID()
 	err := dtmimp.TransRegisterBranch(&t.TransBase, map[string]string{
-		"data":        dtmimp.MustMarshalString(body),
-		"branch_id":   branchID,
-		BranchConfirm: confirmURL,
-		BranchCancel:  cancelURL,
+		"data":           dtmimp.MustMarshalString(body),
+		"branch_id":      branchID,
+		dtmimp.OpConfirm: confirmURL,
+		dtmimp.OpCancel:  cancelURL,
 	}, "registerBranch")
 	if err != nil {
 		return nil, err
 	}
-	return dtmimp.TransRequestBranch(&t.TransBase, "POST", body, branchID, BranchTry, tryURL)
+	return dtmimp.TransRequestBranch(&t.TransBase, "POST", body, branchID, dtmimp.OpTry, tryURL)
 }

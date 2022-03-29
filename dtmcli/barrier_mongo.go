@@ -25,8 +25,8 @@ func (bb *BranchBarrier) MongoCall(mc *mongo.Client, busiCall func(mongo.Session
 			return sc.AbortTransaction(sc)
 		})
 		originOp := map[string]string{
-			BranchCancel:     BranchTry,
-			BranchCompensate: BranchAction,
+			dtmimp.OpCancel:     dtmimp.OpTry,
+			dtmimp.OpCompensate: dtmimp.OpAction,
 		}[bb.Op]
 
 		originAffected, oerr := mongoInsertBarrier(sc, mc, bb.TransType, bb.Gid, bb.BranchID, originOp, bid, bb.Op)
@@ -40,7 +40,7 @@ func (bb *BranchBarrier) MongoCall(mc *mongo.Client, busiCall func(mongo.Session
 		if rerr == nil {
 			rerr = oerr
 		}
-		if (bb.Op == BranchCancel || bb.Op == BranchCompensate) && originAffected > 0 || // null compensate
+		if (bb.Op == dtmimp.OpCancel || bb.Op == dtmimp.OpCompensate) && originAffected > 0 || // null compensate
 			currentAffected == 0 { // repeated request or dangled request
 			return
 		}
@@ -54,7 +54,7 @@ func (bb *BranchBarrier) MongoCall(mc *mongo.Client, busiCall func(mongo.Session
 // MongoQueryPrepared query prepared for redis
 // experimental
 func (bb *BranchBarrier) MongoQueryPrepared(mc *mongo.Client) error {
-	_, err := mongoInsertBarrier(context.Background(), mc, bb.TransType, bb.Gid, dtmimp.MsgDoBranch0, dtmimp.MsgDoOp, dtmimp.MsgDoBarrier1, "rollback")
+	_, err := mongoInsertBarrier(context.Background(), mc, bb.TransType, bb.Gid, dtmimp.MsgDoBranch0, dtmimp.MsgDoOp, dtmimp.MsgDoBarrier1, dtmimp.OpRollback)
 	var result bson.M
 	if err == nil {
 		fs := strings.Split(dtmimp.BarrierTableName, ".")
@@ -70,7 +70,7 @@ func (bb *BranchBarrier) MongoQueryPrepared(mc *mongo.Client) error {
 	if err == nil {
 		reason, _ = result["reason"].(string)
 	}
-	if err == nil && reason == "rollback" {
+	if err == nil && reason == dtmimp.OpRollback {
 		return ErrFailure
 	}
 	return err

@@ -100,7 +100,7 @@ func oldWrapHandler(fn func(*gin.Context) (interface{}, error)) gin.HandlerFunc 
 			return fn(c)
 		}()
 		var b = []byte{}
-		if resp, ok := r.(*resty.Response); ok { // 如果是response，则取出body直接处理
+		if resp, ok := r.(*resty.Response); ok { // if it is a response，the get the body
 			b = resp.Body()
 		} else if err == nil {
 			b, err = json.Marshal(r)

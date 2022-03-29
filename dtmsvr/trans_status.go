@@ -67,7 +67,7 @@ func (t *TransGlobal) changeBranchStatus(b *TransBranch, status string, branchPo
 		GetStore().LockGlobalSaveBranches(t.Gid, t.Status, []TransBranch{*b}, branchPos)
 		logger.Infof("LockGlobalSaveBranches ok: gid: %s old status: %s branches: %s",
 			b.Gid, dtmcli.StatusPrepared, b.String())
-	} else { // 为了性能优化，把branch的status更新异步化
+	} else { // for better performance, batch the updates of branch status
 		updateBranchAsyncChan <- branchStatus{id: b.ID, gid: t.Gid, status: status, finishTime: &now}
 	}
 }
@@ -176,7 +176,7 @@ func (t *TransGlobal) getBranchResult(branch *TransBranch) (string, error) {
 	err := t.getURLResult(branch.URL, branch.BranchID, branch.Op, branch.BinData)
 	if err == nil {
 		return dtmcli.StatusSucceed, nil
-	} else if t.TransType == "saga" && branch.Op == dtmcli.BranchAction && errors.Is(err, dtmcli.ErrFailure) {
+	} else if t.TransType == "saga" && branch.Op == dtmimp.OpAction && errors.Is(err, dtmcli.ErrFailure) {
 		return dtmcli.StatusFailed, nil
 	} else if errors.Is(err, dtmcli.ErrOngoing) {
 		return "", dtmcli.ErrOngoing

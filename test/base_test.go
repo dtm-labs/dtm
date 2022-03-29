@@ -35,7 +35,7 @@ func TestBaseSqlDB(t *testing.T) {
 		TransType: "saga",
 		Gid:       "gid2",
 		BranchID:  "branch_id2",
-		Op:        dtmcli.BranchAction,
+		Op:        dtmimp.OpAction,
 		BarrierID: 1,
 	}
 	db.Must().Exec("insert into dtm_barrier.barrier(trans_type, gid, branch_id, op, barrier_id, reason) values('saga', 'gid1', 'branch_id1', 'action', '01', 'saga')")

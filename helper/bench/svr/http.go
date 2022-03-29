@@ -73,7 +73,9 @@ var sqls = 1
 // PrepareBenchDB prepares db data for bench
 func PrepareBenchDB() {
 	db := pdbGet()
-	_, err := dtmimp.DBExec(db, "drop table if exists dtm_busi.user_account_log")
+	_, err := dtmimp.DBExec(db, "CREATE DATABASE if not exists dtm_busi")
+	logger.FatalIfError(err)
+	_, err = dtmimp.DBExec(db, "drop table if exists dtm_busi.user_account_log")
 	logger.FatalIfError(err)
 	_, err = dtmimp.DBExec(db, `create table if not exists dtm_busi.user_account_log (
 	id      INT(11) AUTO_INCREMENT PRIMARY KEY,
@@ -96,7 +98,7 @@ func PrepareBenchDB() {
 func StartSvr() {
 	app := dtmutil.GetGinApp()
 	benchAddRoute(app)
-	logger.Debugf("bench listening at %d", benchPort)
+	logger.Infof("bench listening at %s", benchPort)
 	go func() {
 		_ = app.Run(fmt.Sprintf(":%s", benchPort))
 	}()

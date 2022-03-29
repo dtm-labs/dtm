@@ -1,6 +1,7 @@
 # All targets.
 default: bench
 
+# configure these paths according to you system
 bench: /usr/local/bin/go /etc/redis/redis.conf /usr/local/bin/docker-compose main.go
 	rm -f ../conf.sample.yml
 	go build -o bench

@@ -38,7 +38,7 @@ func (bb *BranchBarrier) newBarrierID() string {
 
 // BarrierFromQuery construct transaction info from request
 func BarrierFromQuery(qs url.Values) (*BranchBarrier, error) {
-	return BarrierFrom(qs.Get("trans_type"), qs.Get("gid"), qs.Get("branch_id"), qs.Get("op"))
+	return BarrierFrom(dtmimp.EscapeGet(qs, "trans_type"), dtmimp.EscapeGet(qs, "gid"), dtmimp.EscapeGet(qs, "branch_id"), dtmimp.EscapeGet(qs, "op"))
 }
 
 // BarrierFrom construct transaction info from request
@@ -55,17 +55,9 @@ func BarrierFrom(transType, gid, branchID, op string) (*BranchBarrier, error) {
 	return ti, nil
 }
 
-func insertBarrier(tx DB, transType string, gid string, branchID string, op string, barrierID string, reason string) (int64, error) {
-	if op == "" {
-		return 0, nil
-	}
-	sql := dtmimp.GetDBSpecial().GetInsertIgnoreTemplate(dtmimp.BarrierTableName+"(trans_type, gid, branch_id, op, barrier_id, reason) values(?,?,?,?,?,?)", "uniq_barrier")
-	return dtmimp.DBExec(tx, sql, transType, gid, branchID, op, barrierID, reason)
-}
-
-// Call 子事务屏障，详细介绍见 https://zhuanlan.zhihu.com/p/388444465
-// tx: 本地数据库的事务对象，允许子事务屏障进行事务操作
-// busiCall: 业务函数，仅在必要时被调用
+// Call see detail description in https://en.dtm.pub/practice/barrier.html
+// tx: local transaction connection
+// busiCall: busi func
 func (bb *BranchBarrier) Call(tx *sql.Tx, busiCall BarrierBusiFunc) (rerr error) {
 	bid := bb.newBarrierID()
 	defer dtmimp.DeferDo(&rerr, func() error {
@@ -74,12 +66,12 @@ func (bb *BranchBarrier) Call(tx *sql.Tx, busiCall BarrierBusiFunc) (rerr error)
 		return tx.Rollback()
 	})
 	originOp := map[string]string{
-		BranchCancel:     BranchTry,
-		BranchCompensate: BranchAction,
+		dtmimp.OpCancel:     dtmimp.OpTry,
+		dtmimp.OpCompensate: dtmimp.OpAction,
 	}[bb.Op]
 
-	originAffected, oerr := insertBarrier(tx, bb.TransType, bb.Gid, bb.BranchID, originOp, bid, bb.Op)
-	currentAffected, rerr := insertBarrier(tx, bb.TransType, bb.Gid, bb.BranchID, bb.Op, bid, bb.Op)
+	originAffected, oerr := dtmimp.InsertBarrier(tx, bb.TransType, bb.Gid, bb.BranchID, originOp, bid, bb.Op)
+	currentAffected, rerr := dtmimp.InsertBarrier(tx, bb.TransType, bb.Gid, bb.BranchID, bb.Op, bid, bb.Op)
 	logger.Debugf("originAffected: %d currentAffected: %d", originAffected, currentAffected)
 
 	if rerr == nil && bb.Op == dtmimp.MsgDoOp && currentAffected == 0 { // for msg's DoAndSubmit, repeated insert should be rejected.
@@ -90,7 +82,7 @@ func (bb *BranchBarrier) Call(tx *sql.Tx, busiCall BarrierBusiFunc) (rerr error)
 		rerr = oerr
 	}
 
-	if (bb.Op == BranchCancel || bb.Op == BranchCompensate) && originAffected > 0 || // null compensate
+	if (bb.Op == dtmimp.OpCancel || bb.Op == dtmimp.OpCompensate) && originAffected > 0 || // null compensate
 		currentAffected == 0 { // repeated request or dangled request
 		return
 	}
@@ -111,13 +103,13 @@ func (bb *BranchBarrier) CallWithDB(db *sql.DB, busiCall BarrierBusiFunc) error 
 
 // QueryPrepared queries prepared data
 func (bb *BranchBarrier) QueryPrepared(db *sql.DB) error {
-	_, err := insertBarrier(db, bb.TransType, bb.Gid, dtmimp.MsgDoBranch0, dtmimp.MsgDoOp, dtmimp.MsgDoBarrier1, "rollback")
+	_, err := dtmimp.InsertBarrier(db, bb.TransType, bb.Gid, dtmimp.MsgDoBranch0, dtmimp.MsgDoOp, dtmimp.MsgDoBarrier1, dtmimp.OpRollback)
 	var reason string
 	if err == nil {
 		sql := fmt.Sprintf("select reason from %s where gid=? and branch_id=? and op=? and barrier_id=?", dtmimp.BarrierTableName)
 		err = db.QueryRow(sql, bb.Gid, dtmimp.MsgDoBranch0, dtmimp.MsgDoOp, dtmimp.MsgDoBarrier1).Scan(&reason)
 	}
-	if reason == "rollback" {
+	if reason == dtmimp.OpRollback {
 		return ErrFailure
 	}
 	return err

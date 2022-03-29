@@ -23,6 +23,7 @@ func addRoute(engine *gin.Engine) {
 	engine.POST("/api/dtmsvr/prepare", dtmutil.WrapHandler2(prepare))
 	engine.POST("/api/dtmsvr/submit", dtmutil.WrapHandler2(submit))
 	engine.POST("/api/dtmsvr/abort", dtmutil.WrapHandler2(abort))
+	engine.POST("/api/dtmsvr/forceStop", dtmutil.WrapHandler2(forceStop)) // change global status to failed can stop trigger (Use with caution in production environment)
 	engine.POST("/api/dtmsvr/registerBranch", dtmutil.WrapHandler2(registerBranch))
 	engine.POST("/api/dtmsvr/registerXaBranch", dtmutil.WrapHandler2(registerBranch))  // compatible for old sdk
 	engine.POST("/api/dtmsvr/registerTccBranch", dtmutil.WrapHandler2(registerBranch)) // compatible for old sdk
@@ -37,6 +38,7 @@ func addRoute(engine *gin.Engine) {
 	})
 }
 
+//  NOTE: unique in storage, can customize the generation rules instead of using server-side generation, it will help with the tracking
 func newGid(c *gin.Context) interface{} {
 	return map[string]interface{}{"gid": GenGid(), "dtm_result": dtmcli.ResultSuccess}
 }
@@ -53,12 +55,16 @@ func abort(c *gin.Context) interface{} {
 	return svcAbort(TransFromContext(c))
 }
 
+func forceStop(c *gin.Context) interface{} {
+	return svcForceStop(TransFromContext(c))
+}
+
 func registerBranch(c *gin.Context) interface{} {
 	data := map[string]string{}
 	err := c.BindJSON(&data)
 	e2p(err)
 	branch := TransBranch{
-		Gid:      data["gid"],
+		Gid:      dtmimp.Escape(data["gid"]),
 		BranchID: data["branch_id"],
 		Status:   dtmcli.StatusPrepared,
 		BinData:  []byte(data["data"]),

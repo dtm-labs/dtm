@@ -31,7 +31,7 @@ func (t *transTccProcessor) ProcessOnce(branches []TransBranch) error {
 	if t.Status == dtmcli.StatusPrepared && t.isTimeout() {
 		t.changeStatus(dtmcli.StatusAborting)
 	}
-	op := dtmimp.If(t.Status == dtmcli.StatusSubmitted, dtmcli.BranchConfirm, dtmcli.BranchCancel).(string)
+	op := dtmimp.If(t.Status == dtmcli.StatusSubmitted, dtmimp.OpConfirm, dtmimp.OpCancel).(string)
 	for current := len(branches) - 1; current >= 0; current-- {
 		if branches[current].Op == op && branches[current].Status == dtmcli.StatusPrepared {
 			logger.Debugf("branch info: current: %d ID: %d", current, branches[current].ID)

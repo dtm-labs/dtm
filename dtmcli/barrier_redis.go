@@ -13,8 +13,8 @@ func (bb *BranchBarrier) RedisCheckAdjustAmount(rd *redis.Client, key string, am
 	bid := bb.newBarrierID()
 	bkey1 := fmt.Sprintf("%s-%s-%s-%s", bb.Gid, bb.BranchID, bb.Op, bid)
 	originOp := map[string]string{
-		BranchCancel:     BranchTry,
-		BranchCompensate: BranchAction,
+		dtmimp.OpCancel:     dtmimp.OpTry,
+		dtmimp.OpCompensate: dtmimp.OpAction,
 	}[bb.Op]
 	bkey2 := fmt.Sprintf("%s-%s-%s-%s", bb.Gid, bb.BranchID, originOp, bid)
 	v, err := rd.Eval(rd.Context(), ` -- RedisCheckAdjustAmount

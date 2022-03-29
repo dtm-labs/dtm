@@ -103,7 +103,7 @@ func (s *Store) MaySaveNewTrans(global *storage.TransGlobalStore, branches []sto
 		dbr := db.Must().Clauses(clause.OnConflict{
 			DoNothing: true,
 		}).Create(global)
-		if dbr.RowsAffected <= 0 { // 如果这个不是新事务，返回错误
+		if dbr.RowsAffected <= 0 { // not a new trans, return
 			return storage.ErrUniqueConflict
 		}
 		if len(branches) > 0 {
