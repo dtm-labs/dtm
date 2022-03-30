@@ -19,9 +19,9 @@ DTM is a distributed transaction framework which provides cross-service eventual
 
 [Tencent](https://www.tencent.com/)
 
-[Ivydad](https://ivydad.com)
+[Bytedance](https://www.bytedance.com/)
 
-[Eglass](https://epeijing.cn)
+[Ivydad](https://ivydad.com)
 
 ## [Cook Book](https://en.dtm.pub)
 

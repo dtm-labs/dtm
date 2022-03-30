@@ -21,11 +21,9 @@ DTM是一款变革性的分布式事务框架，提供了傻瓜式的使用方�
 ## 谁在使用DTM(仅列出部分)
 [Tencent 腾讯](https://dtm.pub/other/using.html#tencent)
 
+[Bytedance 字节](https://dtm.pub/other/using.html#bytedance)
+
 [Ivydad 常青藤爸爸](https://dtm.pub/other/using.html#ivydad)
-
-[Eglass 视咖镜小二](https://dtm.pub/other/using.html)
-
-[极欧科技](https://dtm.pub/other/using.html)
 
 ## 亮点
 
@@ -135,7 +133,7 @@ go run main.go
 在转入操作失败的情况下，TransIn和TransOut的补偿操作被执行，保证了最终的余额和转账前是一样的。
 
 ### 更多示例
-参考[dtm-labs/dtm-examples](https://github.com/dtm-labs/dtm-examples)
+上述示例主要演示了分布式事务的流程，更多的内容，包括如何与实际的数据库对接，如何做补偿，如何做回滚等实际的例子，请参考[dtm-labs/dtm-examples](https://github.com/dtm-labs/dtm-examples)
 
 ## 联系我们
 ### 公众号
