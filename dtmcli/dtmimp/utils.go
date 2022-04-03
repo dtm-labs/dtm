@@ -176,6 +176,16 @@ func StandaloneDB(conf DBConf) (*sql.DB, error) {
 	return sql.Open(conf.Driver, dsn)
 }
 
+// XaDB return a standalone db instance for xa
+func XaDB(conf DBConf) (*sql.DB, error) {
+	dsn := GetDsn(conf)
+	if conf.Driver == DBTypeMysql {
+		dsn += "&autocommit=0"
+	}
+	logger.Infof("opening standalone %s: %s", conf.Driver, strings.Replace(dsn, conf.Password, "****", 1))
+	return sql.Open(conf.Driver, dsn)
+}
+
 // DBExec use raw db to exec
 func DBExec(db DB, sql string, values ...interface{}) (affected int64, rerr error) {
 	if sql == "" {

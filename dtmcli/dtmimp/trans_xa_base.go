@@ -33,7 +33,7 @@ func XaHandlePhase2(gid string, dbConf DBConf, branchID string, op string) error
 // XaHandleLocalTrans public handler of LocalTransaction via http/grpc
 func XaHandleLocalTrans(xa *TransBase, dbConf DBConf, cb func(*sql.DB) error) (rerr error) {
 	xaBranch := xa.Gid + "-" + xa.BranchID
-	db, rerr := StandaloneDB(dbConf)
+	db, rerr := XaDB(dbConf)
 	if rerr != nil {
 		return
 	}
