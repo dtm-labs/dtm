@@ -24,9 +24,10 @@ const (
 
 // MicroService config type for micro service
 type MicroService struct {
-	Driver   string `yaml:"Driver" default:"default"`
-	Target   string `yaml:"Target"`
-	EndPoint string `yaml:"EndPoint"`
+	Driver      string `yaml:"Driver" default:"dtm-driver-nacos"`
+	Target      string `yaml:"Target"`
+	EndPoint    string `yaml:"EndPoint"`
+	OptionsJson string `yaml:"OptionsJson"`
 }
 
 // Log config customize log

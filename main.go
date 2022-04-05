@@ -24,6 +24,7 @@ import (
 	_ "github.com/dtm-labs/dtmdriver-kratos"
 	_ "github.com/dtm-labs/dtmdriver-polaris"
 	_ "github.com/dtm-labs/dtmdriver-protocol1"
+	_ "github.com/horseLk/dtmdriver-nacos"
 )
 
 // Version declares version info
@@ -59,6 +60,7 @@ func main() {
 		return
 	}
 	logger.Infof("dtm version is: %s", Version)
+	*confFile = "conf.sample.yml"
 	config.MustLoadConfig(*confFile)
 	conf := &config.Config
 	if *isDebug {

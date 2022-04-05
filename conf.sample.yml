@@ -5,7 +5,12 @@
 ### MicroService.EndPoint => MICRO_SERVICE_END_POINT
 #####################################################################
 
-# Store: # specify which engine to store trans status
+Store: # specify which engine to store trans status
+  Driver: 'mysql'
+  Host: 'localhost'
+  User: 'root'
+  Password: '123456'
+  Port: 3306
 #   Driver: 'boltdb' # default store engine
 
 #   Driver: 'redis'
@@ -13,12 +18,6 @@
 #   User: ''
 #   Password: ''
 #   Port: 6379
-
-#   Driver: 'mysql'
-#   Host: 'localhost'
-#   User: 'root'
-#   Password: ''
-#   Port: 3306
 
 #   Driver: 'postgres'
 #   Host: 'localhost'
@@ -38,10 +37,11 @@
 #   SuccessDataExpire: 86400 # successful Trans data will expire in 1 days. only for redis.
 #   RedisPrefix: '{a}' # default value is '{a}'. Redis storage prefix. store data to only one slot in cluster
 
-# MicroService:
-#   Driver: 'dtm-driver-gozero' # name of the driver to handle register/discover
-#   Target: 'etcd://localhost:2379/dtmservice' # register dtm server to this url
-#   EndPoint: 'localhost:36790'
+MicroService:
+   Driver: 'dtm-driver-nacos' # name of the driver to handle register/discover
+   Target: '121.4.131.37:8848' # register dtm server to this url
+   EndPoint: '192.168.101.9:26789'
+   OptionsJson: '{"username": "nacos", "password": "nacos", "namespaceId": "8c8d6e54-33dd-4d76-b69b-3f477d6ebf59"}' # micro service other config message, example: '{"username": "nacos", "password": "nacos"}'
 
 ### the unit of following configurations is second
 # TransCronInterval: 3 # the interval to poll unfinished global transaction for every dtm process
@@ -49,15 +49,15 @@
 # RetryInterval: 10 # the subtrans branch will be retried after this interval
 # RequestTimeout: 3 # the timeout of HTTP/gRPC request in dtm
 
-# LogLevel: 'info'              # default: info. can be debug|info|warn|error
-# Log:
-#   Outputs: 'stderr'           # default: stderr, split by ",", you can append files to Outputs if need. example:'stderr,/tmp/test.log'
-#   RotationEnable: 0           # default: 0
-#   RotationConfigJSON: '{}'    # example: '{"maxsize": 100, "maxage": 0, "maxbackups": 0, "localtime": false, "compress": false}'
+LogLevel: 'info'              # default: info. can be debug|info|warn|error
+Log:
+   Outputs: 'stderr'           # default: stderr, split by ",", you can append files to Outputs if need. example:'stderr,/tmp/test.log'
+   RotationEnable: 0           # default: 0
+   RotationConfigJSON: '{}'    # example: '{"maxsize": 100, "maxage": 0, "maxbackups": 0, "localtime": false, "compress": false}'
 
-# HttpPort: 36789
-# GrpcPort: 36790
-# JsonRpcPort: 36791
+HttpPort: 36789
+GrpcPort: 36790
+JsonRpcPort: 36791
 
 ### advanced options
 # UpdateBranchAsyncGoroutineNum: 1 # num of async goroutine to update branch status

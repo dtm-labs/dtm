@@ -14,6 +14,7 @@ require (
 	github.com/go-redis/redis/v8 v8.11.4
 	github.com/go-resty/resty/v2 v2.7.0
 	github.com/go-sql-driver/mysql v1.6.0
+	github.com/horseLk/dtmdriver-nacos v1.0.4
 	github.com/lib/pq v1.10.4
 	github.com/lithammer/shortuuid v2.0.3+incompatible
 	github.com/lithammer/shortuuid/v3 v3.0.7
