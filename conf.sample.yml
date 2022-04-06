@@ -39,9 +39,9 @@ Store: # specify which engine to store trans status
 
 MicroService:
    Driver: 'dtm-driver-nacos' # name of the driver to handle register/discover
-   Target: '121.4.131.37:8848' # register dtm server to this url
-   EndPoint: '192.168.101.9:26789'
-   OptionsJson: '{"username": "nacos", "password": "nacos", "namespaceId": "8c8d6e54-33dd-4d76-b69b-3f477d6ebf59"}' # micro service other config message, example: '{"username": "nacos", "password": "nacos"}'
+   Target: '1.14.127.29:8848' # register dtm server to this url
+   EndPoint: '192.168.101.9:36789'
+   OptionsJson: '{"username": "nacos", "password": "nacos", "namespaceId": "c3dc917d-906a-429d-90a9-85012b41014e"}' # micro service other config message, example: '{"username": "nacos", "password": "nacos"}'
 
 ### the unit of following configurations is second
 # TransCronInterval: 3 # the interval to poll unfinished global transaction for every dtm process
