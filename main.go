@@ -60,7 +60,6 @@ func main() {
 		return
 	}
 	logger.Infof("dtm version is: %s", Version)
-	*confFile = "conf.sample.yml"
 	config.MustLoadConfig(*confFile)
 	conf := &config.Config
 	if *isDebug {
