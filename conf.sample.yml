@@ -29,7 +29,7 @@
 ### following config is for only Driver postgres/mysql
 #   MaxOpenConns: 500
 #   MaxIdleConns: 500
-#   ConnMaxLifeTime 5 # default value is 5 (minutes)
+#   ConnMaxLifeTime: 5 # default value is 5 (minutes)
 #   TransGlobalTable: 'dtm.trans_global'
 #   TransBranchOpTable: 'dtm.trans_branch_op'
 
