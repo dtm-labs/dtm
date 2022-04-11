@@ -9,6 +9,7 @@ package dtmsvr
 import (
 	"errors"
 	"fmt"
+	"github.com/horseLk/dtmdriver-nacos/httpdriver"
 	"net/url"
 	"strings"
 	"time"
@@ -173,7 +174,17 @@ func (t *TransGlobal) getURLResult(uri string, branchID, op string, branchPayloa
 }
 
 func (t *TransGlobal) getBranchResult(branch *TransBranch) (string, error) {
-	err := t.getURLResult(branch.URL, branch.BranchID, branch.Op, branch.BinData)
+	branchUrl := branch.URL
+	// means use http driver, must resolve url
+	if strings.HasPrefix(branchUrl, dtmdriver.GetDriver().GetName()) {
+		curDriver := dtmdriver.GetDriver().(httpdriver.HttpDriver)
+		realUrl, err := curDriver.ResolveHttpService(branchUrl)
+		if err != nil {
+			return dtmcli.StatusFailed, err
+		}
+		branchUrl = realUrl
+	}
+	err := t.getURLResult(branchUrl, branch.BranchID, branch.Op, branch.BinData)
 	if err == nil {
 		return dtmcli.StatusSucceed, nil
 	} else if t.TransType == "saga" && branch.Op == dtmimp.OpAction && errors.Is(err, dtmcli.ErrFailure) {

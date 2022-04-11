@@ -88,7 +88,7 @@ func StartSvr() {
 		for _, routeInfo := range routesInfo {
 			paths = append(paths, routeInfo.Path)
 		}
-		err = v.RegisterHttpService(conf.MicroService.Target, conf.MicroService.EndPoint, options, paths)
+		err = v.RegisterHttpService(conf.MicroService.Target, conf.MicroService.EndPoint, options)
 	} else {
 		logger.Infof("RegisterGrpcService: %s", conf.MicroService.Driver)
 		err = dtmdriver.GetDriver().RegisterGrpcService(conf.MicroService.Target, conf.MicroService.EndPoint)
