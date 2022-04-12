@@ -1,7 +1,7 @@
 package microservices
 
-// load the microserver driver
 import (
+	// load the microserver drivers
 	_ "github.com/dtm-labs/dtmdriver-gozero"
 	_ "github.com/dtm-labs/dtmdriver-kratos"
 	_ "github.com/dtm-labs/dtmdriver-polaris"

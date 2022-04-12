@@ -7,7 +7,7 @@ const setAlias = (alias: [string, string][]) => alias.map((v) => {
     return { find: v[0], replacement: path.resolve(__dirname, v[1]) };
 });
 
-export default ({}: ConfigEnv): UserConfigExport => {
+export default ({ }: ConfigEnv): UserConfigExport => {
     return {
         resolve: {
             alias: setAlias([['/@', 'src']]),
@@ -19,6 +19,15 @@ export default ({}: ConfigEnv): UserConfigExport => {
                 symbolId: 'icon-[dir]-[name]'
             })
         ],
+        server: {
+            port: 5000,
+            base: 'dashboard',
+            proxy: {
+                '/api': {
+                    target: 'http://localhost:36789',
+                },
+            }
+        },
         css: {
             postcss: {
                 plugins: [

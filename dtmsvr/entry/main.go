@@ -10,6 +10,7 @@ import (
 	"github.com/dtm-labs/dtm/dtmsvr"
 	"github.com/dtm-labs/dtm/dtmsvr/config"
 	"github.com/dtm-labs/dtm/dtmsvr/storage/registry"
+	"github.com/gin-gonic/gin"
 	"go.uber.org/automaxprocs/maxprocs"
 )
 
@@ -33,14 +34,15 @@ var isHelp = flag.Bool("h", false, "Show the help information about dtm.")
 var isReset = flag.Bool("r", false, "Reset dtm server data.")
 var confFile = flag.String("c", "", "Path to the server configuration file.")
 
-func Main(version *string) {
+// Main is the entry point of dtm server.
+func Main(version *string) *gin.Engine {
 	flag.Parse()
 	if flag.NArg() > 0 || *isHelp {
 		usage()
-		return
+		return nil
 	} else if *isVersion {
 		ver(version)
-		return
+		return nil
 	}
 	logger.Infof("dtm version is: %s", *version)
 	config.MustLoadConfig(*confFile)
@@ -54,7 +56,7 @@ func Main(version *string) {
 	}
 	_, _ = maxprocs.Set(maxprocs.Logger(logger.Infof))
 	registry.WaitStoreUp()
-	dtmsvr.StartSvr()              // start dtmsvr api
+	app := dtmsvr.StartSvr()       // start dtmsvr api
 	go dtmsvr.CronExpiredTrans(-1) // start dtmsvr cron job
-	select {}
+	return app
 }

@@ -15,5 +15,8 @@ import (
 var Version string
 
 func main() {
-	entry.Main(&Version)
+	app := entry.Main(&Version)
+	if app != nil {
+		select {}
+	}
 }
