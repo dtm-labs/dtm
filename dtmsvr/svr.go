@@ -13,6 +13,7 @@ import (
 	"time"
 
 	"github.com/dtm-labs/dtm/dtmgrpc"
+	"github.com/gin-gonic/gin"
 
 	"github.com/dtm-labs/dtm/dtmcli"
 	"github.com/dtm-labs/dtm/dtmcli/logger"
@@ -24,7 +25,7 @@ import (
 )
 
 // StartSvr StartSvr
-func StartSvr() {
+func StartSvr() *gin.Engine {
 	logger.Infof("start dtmsvr")
 	setServerInfoMetrics()
 
@@ -73,6 +74,7 @@ func StartSvr() {
 	logger.Infof("RegisterGrpcService: %s", conf.MicroService.Driver)
 	err = dtmdriver.GetDriver().RegisterGrpcService(conf.MicroService.Target, conf.MicroService.EndPoint)
 	logger.FatalIfError(err)
+	return app
 }
 
 // PopulateDB setup mysql data
