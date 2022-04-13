@@ -11,89 +11,39 @@ export const allowRouter: Array<IMenubarList> = [
     {
     name: 'Dashboard',
     path: '/',
-    redirect: '/dashboard/sub1/1',
+    redirect: '/dashboard/nodes/living',
     component: Components['LayoutHeader'],
-    meta: { title: '首页', activeMenu: '/dashboard' },
+    meta: { title: 'Dashboard', activeMenu: '/dashboard' },
     children: [
       {
-        name: 'SubNav1',
-        path: '/dashboard/sub1',
+        name: 'Nodes',
+        path: '/dashboard/nodes',
         component: Components['LayoutMain'],
-        meta: { title: '子导航1' },
+        meta: { title: 'Nodes' },
         children: [
             {
-                name: 'Page1',
-                path: '/dashboard/sub1/1',
-                component: Components['DashboardPage1'],
-                meta: { title: '子页面1' },
-            },  {
-                name: 'Page2',
-                path: '/dashboard/sub1/2',
-                component: Components['DashboardPage2'],
-                meta: { title: '子页面2' },
+                name: 'LivingNodes',
+                path: '/dashboard/nodes/living',
+                component: Components['LivingNodes'],
+                meta: { title: 'Living Nodes' },
             }
         ]
       }, {
-        name: 'SubNav2',
-        path: '/dashboard/sub2',
+        name: 'GlobalTransactions',
+        path: '/dashboard/global-transactions',
         component: Components['LayoutMain'],
-        meta: { title: '子导航2' },
+        meta: { title: 'Global Transactions' },
         children: [
             {
-                name: 'Page21',
-                path: '/dashboard/sub2/1',
-                component: Components['DashboardPage1'],
-                meta: { title: '子页面21' },
+                name: 'AllTransactions',
+                path: '/dashboard/global-transactions/all',
+                component: Components['AllTransactions'],
+                meta: { title: 'All Transactions' },
             },  {
-                name: 'Page22',
-                path: '/dashboard/sub2/2',
-                component: Components['DashboardPage2'],
-                meta: { title: '子页面22' },
-            }
-        ]
-      }
-    ]
-  },   {
-    name: 'Nav2',
-    path: '/nav2',
-    redirect: '/nav2/sub2/1',
-    component: Components['LayoutHeader'],
-    meta: { title: '导航2', activeMenu: '/nav2' },
-    children: [
-      {
-        name: 'Nav2Sub1',
-        path: '/nav2/sub1',
-        component: Components['LayoutMain'],
-        meta: { title: '子导航1' },
-        children: [
-            {
-                name: 'Nav2Page1',
-                path: '/nav2/sub1/1',
-                component: Components['DashboardPage1'],
-                meta: { title: '子页面1' },
-            },  {
-                name: 'Nav2Page2',
-                path: '/nav2/sub1/2',
-                component: Components['DashboardPage2'],
-                meta: { title: '子页面2' },
-            }
-        ]
-      }, {
-        name: 'Nav2Sub2',
-        path: '/nav2/sub2',
-        component: Components['LayoutMain'],
-        meta: { title: '子导航2' },
-        children: [
-            {
-                name: 'Nav2Page21',
-                path: '/nav2/sub2/1',
-                component: Components['DashboardPage1'],
-                meta: { title: '子页面21' },
-            },  {
-                name: 'Nav2Page22',
-                path: '/nav2/sub2/2',
-                component: Components['DashboardPage2'],
-                meta: { title: '子页面22' },
+                name: 'UnfinishedTransactions',
+                path: '/dashboard/global-transactions/unfinished',
+                component: Components['UnfinishedTransactions'],
+                meta: { title: 'Unfinished Transactions' },
             }
         ]
       }
