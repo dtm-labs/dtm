@@ -7,6 +7,7 @@
 package dtmimp
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"net/http"
@@ -49,6 +50,7 @@ type TransOptions struct {
 	PassthroughHeaders []string          `json:"passthrough_headers,omitempty" gorm:"-"` // for inherit the specified gin context headers
 	BranchHeaders      map[string]string `json:"branch_headers,omitempty" gorm:"-"`      // custom branch headers,  dtm server => service api
 	Concurrent         bool              `json:"concurrent" gorm:"-"`                    // for trans type: saga msg
+	Ctx                context.Context   `json:"-" gorm:"-"`
 }
 
 // TransBase base for all trans
@@ -76,7 +78,7 @@ func NewTransBase(gid string, transType string, dtm string, branchID string) *Tr
 		TransType:    transType,
 		BranchIDGen:  BranchIDGen{BranchID: branchID},
 		Dtm:          dtm,
-		TransOptions: TransOptions{PassthroughHeaders: PassthroughHeaders},
+		TransOptions: TransOptions{PassthroughHeaders: PassthroughHeaders,Ctx: context.Background()},
 	}
 }
 
