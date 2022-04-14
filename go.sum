@@ -297,8 +297,8 @@ github.com/hashicorp/go-uuid v1.0.2/go.mod h1:6SBZvOh/SIDV7/2o3Jml5SYk/TvGqwFJ/b
 github.com/hashicorp/golang-lru v0.5.0/go.mod h1:/m3WP610KZHVQ1SGc6re/UDhFvYD7pJ4Ao+sR/qLZy8=
 github.com/hashicorp/golang-lru v0.5.1 h1:0hERBMJE1eitiLkihrMvRVBYAkpHzc/J3QdDN+dAcgU=
 github.com/hashicorp/golang-lru v0.5.1/go.mod h1:/m3WP610KZHVQ1SGc6re/UDhFvYD7pJ4Ao+sR/qLZy8=
-github.com/horseLk/dtmdriver-nacos v1.0.8 h1:/H0KVGBQlrHa0wzhuLfw7hMKf1+/WtMuhJ9JtUC5NPc=
-github.com/horseLk/dtmdriver-nacos v1.0.8/go.mod h1:uJ6ZMW2tuRtbvNSJdG7ewsuoy9SEPHWkCH085igFtO8=
+github.com/horseLk/dtmdriver-nacos v1.1.0 h1:cIY7m8x/f/PR/Cc4fbLUMAvZjiibz36KbXn10Eax9WA=
+github.com/horseLk/dtmdriver-nacos v1.1.0/go.mod h1:I1r1wXt+WsbtiMKZR1SbX9qLQzL3Sli9Gp3zAZBrAnA=
 github.com/hpcloud/tail v1.0.0/go.mod h1:ab1qPbhIpdTxEkNHXyeSf5vhxWSCs/tWer42PpOxQnU=
 github.com/ianlancetaylor/demangle v0.0.0-20181102032728-5e5cf60278f6/go.mod h1:aSSvb/t6k1mPoxDqO4vJh6VOCGPwU4O0C2/Eqndh1Sc=
 github.com/imdario/mergo v0.3.5/go.mod h1:2EnlNZ0deacrJVfApfmtdGgDfMuh/nq6Ok1EcJh5FfA=
