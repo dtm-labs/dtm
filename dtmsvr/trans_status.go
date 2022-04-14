@@ -174,17 +174,12 @@ func (t *TransGlobal) getURLResult(uri string, branchID, op string, branchPayloa
 }
 
 func (t *TransGlobal) getBranchResult(branch *TransBranch) (string, error) {
-	branchUrl := branch.URL
-	// means use http driver, must resolve url
-	if strings.HasPrefix(branchUrl, dtmdriver.GetDriver().GetName()) {
-		curDriver := dtmdriver.GetDriver().(httpdriver.HttpDriver)
-		realUrl, err := curDriver.ResolveHttpService(branchUrl)
-		if err != nil {
-			return dtmcli.StatusFailed, err
-		}
-		branchUrl = realUrl
+	realUrl := branch.URL
+	// resolver http url.
+	if v, ok := dtmdriver.GetDriver().(httpdriver.HttpDriver); ok {
+		realUrl = v.ResolveHttpService(branch.URL)
 	}
-	err := t.getURLResult(branchUrl, branch.BranchID, branch.Op, branch.BinData)
+	err := t.getURLResult(realUrl, branch.BranchID, branch.Op, branch.BinData)
 	if err == nil {
 		return dtmcli.StatusSucceed, nil
 	} else if t.TransType == "saga" && branch.Op == dtmimp.OpAction && errors.Is(err, dtmcli.ErrFailure) {
