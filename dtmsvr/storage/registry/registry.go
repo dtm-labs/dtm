@@ -49,7 +49,7 @@ func GetStore() storage.Store {
 // WaitStoreUp wait for db to go up
 func WaitStoreUp() {
 	for err := GetStore().Ping(); err != nil; err = GetStore().Ping() {
-		time.Sleep(3 * time.Second)
 		logger.Infof("wait store up")
+		time.Sleep(3 * time.Second)
 	}
 }
