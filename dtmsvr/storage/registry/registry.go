@@ -3,6 +3,8 @@ package registry
 import (
 	"time"
 
+	"github.com/dtm-labs/dtm/dtmcli/logger"
+
 	"github.com/dtm-labs/dtm/dtmsvr/config"
 	"github.com/dtm-labs/dtm/dtmsvr/storage"
 	"github.com/dtm-labs/dtm/dtmsvr/storage/boltdb"
@@ -48,5 +50,6 @@ func GetStore() storage.Store {
 func WaitStoreUp() {
 	for err := GetStore().Ping(); err != nil; err = GetStore().Ping() {
 		time.Sleep(3 * time.Second)
+		logger.Infof("wait store up")
 	}
 }
