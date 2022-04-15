@@ -42,7 +42,7 @@ HttpMicroService:
   RegistryType: 'nacos'
   RegistryAddress: '127.0.0.1:8848,127.0.0.1:8848'
   RegistryOptions: '{"UserName":"nacos","Password":"nacos","NotLoadCacheAtStart":true}'
-  Target: '{"ServiceName":"dtm","Enable":true,"Healthy":true,"Weight":10}'
+  Target: '{"ServiceName":"dtmService","Enable":true,"Healthy":true,"Weight":10}'
   EndPoint: '127.0.0.1:36789'
 ### the unit of following configurations is second
 # TransCronInterval: 3 # the interval to poll unfinished global transaction for every dtm process
