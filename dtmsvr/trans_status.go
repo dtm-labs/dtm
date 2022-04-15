@@ -167,8 +167,7 @@ func (t *TransGlobal) getURLResult(uri string, branchID, op string, branchPayloa
 }
 
 func (t *TransGlobal) getBranchResult(branch *TransBranch) (string, error) {
-	realUrl := branch.URL
-	err := t.getURLResult(realUrl, branch.BranchID, branch.Op, branch.BinData)
+	err := t.getURLResult(branch.URL, branch.BranchID, branch.Op, branch.BinData)
 	if err == nil {
 		return dtmcli.StatusSucceed, nil
 	} else if t.TransType == "saga" && branch.Op == dtmimp.OpAction && errors.Is(err, dtmcli.ErrFailure) {

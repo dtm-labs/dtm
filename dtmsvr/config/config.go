@@ -22,14 +22,14 @@ const (
 	Postgres = "postgres"
 )
 
-// MicroService config type for micro service
+// MicroService config type for microservice based grpc
 type MicroService struct {
-	Driver      string `yaml:"Driver" default:"default"`
-	Target      string `yaml:"Target"`
-	EndPoint    string `yaml:"EndPoint"`
-	OptionsJson string `yaml:"OptionsJson"`
+	Driver   string `yaml:"Driver" default:"default"`
+	Target   string `yaml:"Target"`
+	EndPoint string `yaml:"EndPoint"`
 }
 
+// HTTPMicroService is the config type for microservice based on http, like springcloud
 type HTTPMicroService struct {
 	Driver          string `yaml:"Driver" default:"default"`
 	RegistryType    string `yaml:"RegistryType" default:""`
