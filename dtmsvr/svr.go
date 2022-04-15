@@ -8,9 +8,7 @@ package dtmsvr
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
-	"github.com/horseLk/dtmdriver-nacos/httpdriver"
 	"net"
 	"time"
 
@@ -72,27 +70,17 @@ func StartSvr() {
 	time.Sleep(100 * time.Millisecond)
 	err = dtmdriver.Use(conf.MicroService.Driver)
 	logger.FatalIfError(err)
+	logger.Infof("RegisterGrpcService: %s", conf.MicroService.Driver)
+	err = dtmdriver.GetDriver().RegisterGrpcService(conf.MicroService.Target, conf.MicroService.EndPoint)
+	logger.FatalIfError(err)
 
-	if v, ok := dtmdriver.GetDriver().(httpdriver.HttpDriver); ok {
-		logger.Infof("RegisterHttpSerrvice: %s", v)
-		options := make(map[string]string)
-		if conf.MicroService.OptionsJson == "" {
-			conf.MicroService.OptionsJson = "{}"
-		}
-		err = json.Unmarshal([]byte(conf.MicroService.OptionsJson), &options)
-		if err != nil {
-			logger.FatalIfError(err)
-		}
-		routesInfo := app.Routes()
-		paths := make([]string, 0)
-		for _, routeInfo := range routesInfo {
-			paths = append(paths, routeInfo.Path)
-		}
-		err = v.RegisterHttpService(conf.MicroService.Target, conf.MicroService.EndPoint, options)
-	} else {
-		logger.Infof("RegisterGrpcService: %s", conf.MicroService.Driver)
-		err = dtmdriver.GetDriver().RegisterGrpcService(conf.MicroService.Target, conf.MicroService.EndPoint)
-	}
+	err = dtmdriver.UseHTTP(conf.HTTPMicroService.Driver)
+	logger.FatalIfError(err)
+	c := &conf.HTTPMicroService
+	logger.Infof("RegisterHTTPService: %s", conf.HTTPMicroService.Driver)
+	err = dtmdriver.GetHTTPDriver().Init(c.RegistryType, c.RegistryAddress, c.RegistryOptions)
+	logger.FatalIfError(err)
+	err = dtmdriver.GetHTTPDriver().RegisterService(c.Target, c.EndPoint)
 	logger.FatalIfError(err)
 }
 

@@ -35,3 +35,7 @@ require (
 	gorm.io/gorm v1.22.2
 // gotest.tools v2.2.0+incompatible
 )
+
+replace github.com/dtm-labs/dtmdriver v0.0.1 => /Users/wangxi/dtm/dtmdriver
+
+replace github.com/horseLk/dtmdriver-nacos v1.1.0 => /Users/wangxi/dtm/dtmdriver-http-nacos

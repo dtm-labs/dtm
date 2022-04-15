@@ -30,6 +30,15 @@ type MicroService struct {
 	OptionsJson string `yaml:"OptionsJson"`
 }
 
+type HTTPMicroService struct {
+	Driver          string `yaml:"Driver" default:"default"`
+	RegistryType    string `yaml:"RegistryType" default:""`
+	RegistryAddress string `yaml:"RegistryAddress" default:""`
+	RegistryOptions string `yaml:"RegistryOptions" default:"{}"`
+	Target          string `yaml:"Target"`
+	EndPoint        string `yaml:"EndPoint"`
+}
+
 // Log config customize log
 type Log struct {
 	Outputs            string `yaml:"Outputs" default:"stderr"`
@@ -71,19 +80,20 @@ func (s *Store) GetDBConf() dtmcli.DBConf {
 }
 
 type configType struct {
-	Store                         Store        `yaml:"Store"`
-	TransCronInterval             int64        `yaml:"TransCronInterval" default:"3"`
-	TimeoutToFail                 int64        `yaml:"TimeoutToFail" default:"35"`
-	RetryInterval                 int64        `yaml:"RetryInterval" default:"10"`
-	RequestTimeout                int64        `yaml:"RequestTimeout" default:"3"`
-	HTTPPort                      int64        `yaml:"HttpPort" default:"36789"`
-	GrpcPort                      int64        `yaml:"GrpcPort" default:"36790"`
-	JSONRPCPort                   int64        `yaml:"JsonRpcPort" default:"36791"`
-	MicroService                  MicroService `yaml:"MicroService"`
-	UpdateBranchSync              int64        `yaml:"UpdateBranchSync"`
-	UpdateBranchAsyncGoroutineNum int64        `yaml:"UpdateBranchAsyncGoroutineNum" default:"1"`
-	LogLevel                      string       `yaml:"LogLevel" default:"info"`
-	Log                           Log          `yaml:"Log"`
+	Store                         Store            `yaml:"Store"`
+	TransCronInterval             int64            `yaml:"TransCronInterval" default:"3"`
+	TimeoutToFail                 int64            `yaml:"TimeoutToFail" default:"35"`
+	RetryInterval                 int64            `yaml:"RetryInterval" default:"10"`
+	RequestTimeout                int64            `yaml:"RequestTimeout" default:"3"`
+	HTTPPort                      int64            `yaml:"HttpPort" default:"36789"`
+	GrpcPort                      int64            `yaml:"GrpcPort" default:"36790"`
+	JSONRPCPort                   int64            `yaml:"JsonRpcPort" default:"36791"`
+	MicroService                  MicroService     `yaml:"MicroService"`
+	HTTPMicroService              HTTPMicroService `yaml:"HttpMicroService"`
+	UpdateBranchSync              int64            `yaml:"UpdateBranchSync"`
+	UpdateBranchAsyncGoroutineNum int64            `yaml:"UpdateBranchAsyncGoroutineNum" default:"1"`
+	LogLevel                      string           `yaml:"LogLevel" default:"info"`
+	Log                           Log              `yaml:"Log"`
 }
 
 // Config config
