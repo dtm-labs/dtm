@@ -111,6 +111,8 @@ github.com/dtm-labs/dtmdriver v0.0.1 h1:dHUZQ6g2ZN6eRUqds9kKq/3K7u9bcUGatUlbthD9
 github.com/dtm-labs/dtmdriver v0.0.1/go.mod h1:fLiEeD2BPwM9Yq96TfcP9KpbTwFsn5nTxa/PP0jmFuk=
 github.com/dtm-labs/dtmdriver v0.0.2 h1:h2lbxPiUe2T3RwkbO108khgUXIwZpxMw/4a2u4Df+z8=
 github.com/dtm-labs/dtmdriver v0.0.2/go.mod h1:fLiEeD2BPwM9Yq96TfcP9KpbTwFsn5nTxa/PP0jmFuk=
+github.com/dtm-labs/dtmdriver v0.0.3-0.20220415122659-a3e28fe58a49 h1:s05hCToDnEXoSpheFJ6FbabzZUPVKSG7BXq5S22eeM4=
+github.com/dtm-labs/dtmdriver v0.0.3-0.20220415122659-a3e28fe58a49/go.mod h1:fLiEeD2BPwM9Yq96TfcP9KpbTwFsn5nTxa/PP0jmFuk=
 github.com/dtm-labs/dtmdriver-gozero v0.0.2 h1:T+JH9kwVNMmISPU1BNviiTrvPdMA7UMFD+nfTqGPSyA=
 github.com/dtm-labs/dtmdriver-gozero v0.0.2/go.mod h1:5AAKwYok5f56e0kATOXvc+DAsfu4elISDuCV+G3+fYE=
 github.com/dtm-labs/dtmdriver-http v1.2.0 h1:9v1od77rSrJUuiBnZ/o6Ic4jRJpToxjP2nUOnx9CIas=
