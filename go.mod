@@ -5,7 +5,7 @@ go 1.16
 require (
 	bou.ke/monkey v1.0.2
 	github.com/BurntSushi/toml v0.4.1 // indirect
-	github.com/dtm-labs/dtmdriver v0.0.3-0.20220415123548-ab919250c8c4
+	github.com/dtm-labs/dtmdriver v0.0.3
 	github.com/dtm-labs/dtmdriver-gozero v0.0.2
 	github.com/dtm-labs/dtmdriver-http v1.2.0
 	github.com/dtm-labs/dtmdriver-kratos v0.0.4
