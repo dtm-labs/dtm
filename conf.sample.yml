@@ -37,13 +37,19 @@
 #   SuccessDataExpire: 86400 # successful Trans data will expire in 1 days. only for redis.
 #   RedisPrefix: '{a}' # default value is '{a}'. Redis storage prefix. store data to only one slot in cluster
 
-HttpMicroService:
-  Driver: 'dtm-driver-http'
-  RegistryType: 'nacos'
-  RegistryAddress: '127.0.0.1:8848,127.0.0.1:8848'
-  RegistryOptions: '{"UserName":"nacos","Password":"nacos","NotLoadCacheAtStart":true}'
-  Target: '{"ServiceName":"dtmService","Enable":true,"Healthy":true,"Weight":10}'
-  EndPoint: '127.0.0.1:36789'
+# MicroService: # grpc based microservice config
+#   Driver: 'dtm-driver-gozero' # name of the driver to handle register/discover
+#   Target: 'etcd://localhost:2379/dtmservice' # register dtm server to this url
+#   EndPoint: 'localhost:36790'
+
+# HttpMicroService: # http based microservice config
+#   Driver: 'dtm-driver-http' # name of the driver to handle register/discover
+#   RegistryType: 'nacos'
+#   RegistryAddress: '127.0.0.1:8848,127.0.0.1:8848'
+#   RegistryOptions: '{"UserName":"nacos","Password":"nacos","NotLoadCacheAtStart":true}'
+#   Target: '{"ServiceName":"dtmService","Enable":true,"Healthy":true,"Weight":10}' # target and options
+#   EndPoint: '127.0.0.1:36789'
+
 ### the unit of following configurations is second
 # TransCronInterval: 3 # the interval to poll unfinished global transaction for every dtm process
 # TimeoutToFail: 35 # timeout for XA, TCC to fail. saga's timeout default to infinite, which can be overwritten in saga options

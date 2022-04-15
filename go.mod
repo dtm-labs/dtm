@@ -5,8 +5,9 @@ go 1.16
 require (
 	bou.ke/monkey v1.0.2
 	github.com/BurntSushi/toml v0.4.1 // indirect
-	github.com/dtm-labs/dtmdriver v0.0.1
+	github.com/dtm-labs/dtmdriver v0.0.2
 	github.com/dtm-labs/dtmdriver-gozero v0.0.2
+	github.com/dtm-labs/dtmdriver-http v1.2.0
 	github.com/dtm-labs/dtmdriver-kratos v0.0.4
 	github.com/dtm-labs/dtmdriver-polaris v0.0.4
 	github.com/dtm-labs/dtmdriver-protocol1 v0.0.1
@@ -14,7 +15,6 @@ require (
 	github.com/go-redis/redis/v8 v8.11.4
 	github.com/go-resty/resty/v2 v2.7.0
 	github.com/go-sql-driver/mysql v1.6.0
-	github.com/horseLk/dtmdriver-nacos v1.1.0
 	github.com/lib/pq v1.10.4
 	github.com/lithammer/shortuuid v2.0.3+incompatible
 	github.com/lithammer/shortuuid/v3 v3.0.7
@@ -36,6 +36,6 @@ require (
 // gotest.tools v2.2.0+incompatible
 )
 
-replace github.com/dtm-labs/dtmdriver v0.0.1 => /Users/wangxi/dtm/dtmdriver
+// replace github.com/dtm-labs/dtmdriver v0.0.1 => /Users/wangxi/dtm/dtmdriver
 
-replace github.com/horseLk/dtmdriver-nacos v1.1.0 => /Users/wangxi/dtm/dtmdriver-http-nacos
+// replace github.com/horseLk/dtmdriver-nacos v1.1.0 => /Users/wangxi/dtm/dtmdriver-http-nacos
