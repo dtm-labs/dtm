@@ -2,6 +2,8 @@ import { ConfigEnv, UserConfigExport } from 'vite';
 import path from 'path';
 import vue from '@vitejs/plugin-vue';
 import viteSvgIcons from 'vite-plugin-svg-icons';
+import Components from 'unplugin-vue-components/vite';
+import { AntDesignVueResolver } from 'unplugin-vue-components/resolvers'
 
 const setAlias = (alias: [string, string][]) => alias.map((v) => {
     return { find: v[0], replacement: path.resolve(__dirname, v[1]) };
@@ -17,6 +19,12 @@ export default ({ }: ConfigEnv): UserConfigExport => {
             viteSvgIcons({
                 iconDirs: [path.resolve(process.cwd(), 'src/icons')],
                 symbolId: 'icon-[dir]-[name]'
+            }),
+            Components({
+                dts: 'src/components.d.ts',
+                resolvers: [
+                    AntDesignVueResolver()
+                ]
             })
         ],
         server: {
