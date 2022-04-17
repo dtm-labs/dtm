@@ -8,7 +8,7 @@ require (
 	github.com/dtm-labs/dtmdriver v0.0.3
 	github.com/dtm-labs/dtmdriver-gozero v0.0.2
 	github.com/dtm-labs/dtmdriver-http v1.2.2
-	github.com/dtm-labs/dtmdriver-kratos v0.0.4
+	github.com/dtm-labs/dtmdriver-kratos v0.0.8
 	github.com/dtm-labs/dtmdriver-polaris v0.0.4
 	github.com/dtm-labs/dtmdriver-protocol1 v0.0.1
 	github.com/gin-gonic/gin v1.7.7
