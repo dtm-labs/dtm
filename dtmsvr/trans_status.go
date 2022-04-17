@@ -89,7 +89,7 @@ func (t *TransGlobal) getURLResult(uri string, branchID, op string, branchPayloa
 	if uri == "" { // empty url is success
 		return nil
 	}
-	if t.Protocol == "http" || strings.HasPrefix(uri, "http://") || strings.HasPrefix(uri, "https://") {
+	if t.Protocol == dtmimp.ProtocolHTTP || strings.HasPrefix(uri, "http://") || strings.HasPrefix(uri, "https://") {
 		if t.RequestTimeout != 0 {
 			dtmimp.RestyClient.SetTimeout(time.Duration(t.RequestTimeout) * time.Second)
 		}
@@ -146,7 +146,7 @@ func (t *TransGlobal) getURLResult(uri string, branchID, op string, branchPayloa
 		}
 		return dtmimp.RespAsErrorCompatible(resp)
 	}
-	dtmimp.PanicIf(t.Protocol == "http", fmt.Errorf("bad url for http: %s", uri))
+	dtmimp.PanicIf(t.Protocol == dtmimp.ProtocolHTTP, fmt.Errorf("bad url for http: %s", uri))
 	// grpc handler
 	server, method, err := dtmdriver.GetDriver().ParseServerMethod(uri)
 	if err != nil {

@@ -55,4 +55,9 @@ const (
 
 	// XaBarrier1 const for xa barrier id
 	XaBarrier1 = "01"
+
+	// ProtocolGRPC const for protocol grpc
+	ProtocolGRPC = "grpc"
+	// ProtocolHTTP const for protocol http
+	ProtocolHTTP = "http"
 )
