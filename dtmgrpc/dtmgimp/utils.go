@@ -27,7 +27,7 @@ func MustProtoMarshal(msg proto.Message) []byte {
 // DtmGrpcCall make a convenient call to dtm
 func DtmGrpcCall(s *dtmimp.TransBase, operation string) error {
 	reply := emptypb.Empty{}
-	return MustGetGrpcConn(s.Dtm, false).Invoke(s.Ctx, "/dtmgimp.Dtm/"+operation, &dtmgpb.DtmRequest{
+	return MustGetGrpcConn(s.Dtm, false).Invoke(s.Context, "/dtmgimp.Dtm/"+operation, &dtmgpb.DtmRequest{
 		Gid:       s.Gid,
 		TransType: s.TransType,
 		TransOptions: &dtmgpb.DtmTransOptions{
