@@ -31,7 +31,7 @@ func (t *TransGlobal) setupPayloads() {
 		}
 	}
 	if t.Protocol == "" {
-		t.Protocol = "http"
+		t.Protocol = dtmimp.ProtocolHTTP
 	}
 
 }
