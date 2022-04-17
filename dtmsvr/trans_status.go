@@ -89,7 +89,7 @@ func (t *TransGlobal) getURLResult(uri string, branchID, op string, branchPayloa
 	if uri == "" { // empty url is success
 		return nil
 	}
-	if strings.HasPrefix(uri, "http://") || strings.HasPrefix(uri, "https://") {
+	if t.Protocol == "http" || strings.HasPrefix(uri, "http://") || strings.HasPrefix(uri, "https://") {
 		if t.RequestTimeout != 0 {
 			dtmimp.RestyClient.SetTimeout(time.Duration(t.RequestTimeout) * time.Second)
 		}
