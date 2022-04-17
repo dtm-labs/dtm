@@ -56,7 +56,11 @@ func TransInfo2Ctx(ctx context.Context, gid, transType, branchID, op, dtm string
 		dtmpre+"op", op,
 		dtmpre+"dtm", dtm,
 	)
-	return metadata.NewOutgoingContext(ctx, md)
+	nctx := ctx
+	if ctx == nil {
+		nctx = context.Background()
+	}
+	return metadata.NewOutgoingContext(nctx, md)
 }
 
 // Map2Kvs map to metadata kv

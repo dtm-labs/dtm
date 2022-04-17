@@ -50,7 +50,6 @@ type TransOptions struct {
 	PassthroughHeaders []string          `json:"passthrough_headers,omitempty" gorm:"-"` // for inherit the specified gin context headers
 	BranchHeaders      map[string]string `json:"branch_headers,omitempty" gorm:"-"`      // custom branch headers,  dtm server => service api
 	Concurrent         bool              `json:"concurrent" gorm:"-"`                    // for trans type: saga msg
-	Ctx                context.Context   `json:"-" gorm:"-"`
 }
 
 // TransBase base for all trans
@@ -60,6 +59,7 @@ type TransBase struct {
 	Dtm        string `json:"-"`
 	CustomData string `json:"custom_data,omitempty"` // nosql data persistence
 	TransOptions
+	Ctx context.Context `json:"-" gorm:"-"`
 
 	Steps       []map[string]string `json:"steps,omitempty"`    // use in MSG/SAGA
 	Payloads    []string            `json:"payloads,omitempty"` // used in MSG/SAGA
@@ -78,7 +78,8 @@ func NewTransBase(gid string, transType string, dtm string, branchID string) *Tr
 		TransType:    transType,
 		BranchIDGen:  BranchIDGen{BranchID: branchID},
 		Dtm:          dtm,
-		TransOptions: TransOptions{PassthroughHeaders: PassthroughHeaders,Ctx: context.Background()},
+		TransOptions: TransOptions{PassthroughHeaders: PassthroughHeaders},
+		Ctx:          context.Background(),
 	}
 }
 

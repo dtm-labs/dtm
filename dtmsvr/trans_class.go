@@ -16,6 +16,7 @@ import (
 // TransGlobal global transaction
 type TransGlobal struct {
 	storage.TransGlobalStore
+	Ctx              context.Context
 	lastTouched      time.Time // record the start time of process
 	updateBranchSync bool
 }
