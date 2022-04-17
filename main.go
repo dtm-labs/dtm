@@ -8,7 +8,6 @@ package main
 
 import (
 	"fmt"
-	"log"
 	"net/http"
 	"net/http/httputil"
 	"net/url"
@@ -46,7 +45,7 @@ func proxyDashboard(c *gin.Context) {
 	proxy := httputil.NewSingleHostReverseProxy(u)
 
 	proxy.ErrorHandler = func(rw http.ResponseWriter, req *http.Request, err error) {
-		log.Printf("http: proxy error: %v", err)
+		logger.Warnf("http: proxy error: %v", err)
 		ret := fmt.Sprintf("http proxy error %v", err)
 		_, _ = rw.Write([]byte(ret))
 	}
