@@ -54,11 +54,11 @@ DTM是一款变革性的分布式事务框架，提供了傻瓜式的使用方�
 |[AT事务](https://dtm.pub/other/opensource.html#at)|<span style="color:orange">建议使用XA</span>|<span style="color:green">✓</span>|AT与XA类似，但有脏回滚|
 |[单服务多数据源](https://dtm.pub/other/opensource.html#multidb)|<span style="color:green">✓</span>|<span style="color:red">✗</span>||
 |[通信协议](https://dtm.pub/other/opensource.html#protocol)|HTTP、gRPC、go-zero|dubbo等协议|dtm对云原生更加友好|
-|[star数量](https://dtm.pub/other/opensource.html#star)|<img src="https://img.shields.io/github/stars/dtm-labs/dtm.svg?style=social" alt="github stars"/>|<img src="https://img.shields.io/github/stars/seata/seata.svg?style=social" alt="github stars"/>|dtm从20210604发布0.1，发展快|
 
 从上面对比的特性来看，dtm在许多方面都具备很大的优势。如果考虑多语言支持、多存储引擎支持，那么dtm毫无疑问是您的首选
 
 详细的对比可以点击特性中的链接，跳到相关文档
+
 ## [性能测试报告](https://dtm.pub/other/performance.html)
 
 ## [教程与文档](https://dtm.pub)
@@ -72,8 +72,9 @@ DTM是一款变革性的分布式事务框架，提供了傻瓜式的使用方�
 - 其他：看用户需求量，择机接入，参见[微服务支持](https://dtm.pub/ref/proto.html)
 
 ## 快速开始
-
 如果您不是Go语言，可以跳转[各语言客户端及示例](https://dtm.pub/ref/sdk.html#go)，里面有相关的快速开始示例
+
+喜欢视频教程的朋友，可以访问[分布式事务教程-快速开始](https://www.bilibili.com/video/BV1m3411T7b4)
 
 ### 运行dtm
 
