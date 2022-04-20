@@ -74,7 +74,7 @@ DTM是一款变革性的分布式事务框架，提供了傻瓜式的使用方�
 ## 快速开始
 如果您不是Go语言，可以跳转[各语言客户端及示例](https://dtm.pub/ref/sdk.html#go)，里面有相关的快速开始示例
 
-; 喜欢视频教程的朋友，可以访问[分布式事务教程-快速开始](https://www.bilibili.com/video/BV1m3411T7b4)
+<!-- 喜欢视频教程的朋友，可以访问[分布式事务教程-快速开始](https://www.bilibili.com/video/BV1m3411T7b4) -->
 
 ### 运行dtm
 
