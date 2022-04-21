@@ -187,7 +187,10 @@ func (t *transSagaProcessor) ProcessOnce(branches []TransBranch) error {
 		}
 	}
 	prepareToCompensate := func() {
-		_ = pickToRunActions() // flag started
+		toRun := pickToRunActions()
+		for _, b := range toRun { // flag started
+			branchResults[b].started = true
+		}
 		for i := 1; i < len(branchResults); i += 2 {
 			// these branches may have run. so flag them to status succeed, then run the corresponding
 			// compensate
