@@ -40,6 +40,7 @@ export default ({ }: ConfigEnv): UserConfigExport => {
             postcss: {
                 plugins: [
                     require('autoprefixer'),
+                    require('tailwindcss'),
                     require('postcss-simple-vars'),
                     require('postcss-import')
                 ]
