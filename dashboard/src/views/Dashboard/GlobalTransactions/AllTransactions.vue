@@ -67,7 +67,7 @@ const queryData = (params: IListAllTransactions) => {
 const { data, run, current, loading, pageSize } = usePagination(queryData, {
     defaultParams: [
         {
-            limit: 10,
+            limit: 100,
         }
     ],
     pagination: {
