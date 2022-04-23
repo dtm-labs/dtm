@@ -7,6 +7,7 @@
 package dtmimp
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"net/http"
@@ -58,6 +59,7 @@ type TransBase struct {
 	Dtm        string `json:"-"`
 	CustomData string `json:"custom_data,omitempty"` // nosql data persistence
 	TransOptions
+	Context context.Context `json:"-" gorm:"-"`
 
 	Steps       []map[string]string `json:"steps,omitempty"`    // use in MSG/SAGA
 	Payloads    []string            `json:"payloads,omitempty"` // used in MSG/SAGA
@@ -77,6 +79,7 @@ func NewTransBase(gid string, transType string, dtm string, branchID string) *Tr
 		BranchIDGen:  BranchIDGen{BranchID: branchID},
 		Dtm:          dtm,
 		TransOptions: TransOptions{PassthroughHeaders: PassthroughHeaders},
+		Context:      context.Background(),
 	}
 }
 

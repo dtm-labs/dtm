@@ -53,7 +53,7 @@ func GetBalanceByUID(uid int, store string) int {
 		var result bson.M
 		err := account.FindOne(context.Background(), bson.D{{Key: "user_id", Value: uid}}).Decode(&result)
 		dtmimp.E2P(err)
-		return int(result["balance"].(int32))
+		return int(result["balance"].(float64))
 	}
 	ua := UserAccount{}
 	_ = dbGet().Must().Model(&ua).Where("user_id=?", uid).First(&ua)

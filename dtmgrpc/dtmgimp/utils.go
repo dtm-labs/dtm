@@ -27,7 +27,7 @@ func MustProtoMarshal(msg proto.Message) []byte {
 // DtmGrpcCall make a convenient call to dtm
 func DtmGrpcCall(s *dtmimp.TransBase, operation string) error {
 	reply := emptypb.Empty{}
-	return MustGetGrpcConn(s.Dtm, false).Invoke(context.Background(), "/dtmgimp.Dtm/"+operation, &dtmgpb.DtmRequest{
+	return MustGetGrpcConn(s.Dtm, false).Invoke(s.Context, "/dtmgimp.Dtm/"+operation, &dtmgpb.DtmRequest{
 		Gid:       s.Gid,
 		TransType: s.TransType,
 		TransOptions: &dtmgpb.DtmTransOptions{
@@ -48,7 +48,7 @@ func DtmGrpcCall(s *dtmimp.TransBase, operation string) error {
 const dtmpre string = "dtm-"
 
 // TransInfo2Ctx add trans info to grpc context
-func TransInfo2Ctx(gid, transType, branchID, op, dtm string) context.Context {
+func TransInfo2Ctx(ctx context.Context, gid, transType, branchID, op, dtm string) context.Context {
 	md := metadata.Pairs(
 		dtmpre+"gid", gid,
 		dtmpre+"trans_type", transType,
@@ -56,7 +56,11 @@ func TransInfo2Ctx(gid, transType, branchID, op, dtm string) context.Context {
 		dtmpre+"op", op,
 		dtmpre+"dtm", dtm,
 	)
-	return metadata.NewOutgoingContext(context.Background(), md)
+	nctx := ctx
+	if ctx == nil {
+		nctx = context.Background()
+	}
+	return metadata.NewOutgoingContext(nctx, md)
 }
 
 // Map2Kvs map to metadata kv

@@ -46,9 +46,8 @@ func init() {
 	RestyClient.OnBeforeRequest(func(c *resty.Client, r *resty.Request) error {
 		r.URL = MayReplaceLocalhost(r.URL)
 		u, err := dtmdriver.GetHTTPDriver().ResolveURL(r.URL)
-		logger.Debugf("requesting: %s %s %s", r.Method, r.URL, MustMarshalString(r.Body))
+		logger.Debugf("requesting: %s %s %s resolved: %s", r.Method, r.URL, MustMarshalString(r.Body), u)
 		r.URL = u
-		logger.Debugf("resolved: %s err: %v", r.URL, err)
 		return err
 	})
 	RestyClient.OnAfterResponse(func(c *resty.Client, resp *resty.Response) error {

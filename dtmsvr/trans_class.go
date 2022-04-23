@@ -16,6 +16,7 @@ import (
 // TransGlobal global transaction
 type TransGlobal struct {
 	storage.TransGlobalStore
+	Context          context.Context
 	lastTouched      time.Time // record the start time of process
 	updateBranchSync bool
 }
@@ -31,7 +32,7 @@ func (t *TransGlobal) setupPayloads() {
 		}
 	}
 	if t.Protocol == "" {
-		t.Protocol = "http"
+		t.Protocol = dtmimp.ProtocolHTTP
 	}
 
 }

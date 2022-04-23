@@ -55,6 +55,7 @@ func TestSagaOptionsTimeout(t *testing.T) {
 	assert.Equal(t, StatusSubmitted, getTransStatus(saga.Gid))
 	cronTransOnceForwardNow(t, gid, 3600)
 	assert.Equal(t, StatusFailed, getTransStatus(saga.Gid))
+	assert.Equal(t, []string{StatusSucceed, StatusPrepared, StatusPrepared, StatusPrepared}, getBranchesStatus(saga.Gid))
 }
 
 func TestSagaGlobalTransWithRequestTimeout(t *testing.T) {

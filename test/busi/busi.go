@@ -88,7 +88,21 @@ func SagaMongoAdjustBalance(ctx context.Context, mc *mongo.Client, uid int, amou
 		bson.D{{Key: "user_id", Value: uid}},
 		bson.D{{Key: "$inc", Value: bson.D{{Key: "balance", Value: amount}}}})
 	logger.Debugf("dtm_busi.user_account $inc balance of %d by %d err: %v", uid, amount, err)
-	return err
+	if err != nil {
+		return err
+	}
+	var res bson.M
+	err = mc.Database("dtm_busi").Collection("user_account").FindOne(ctx,
+		bson.D{{Key: "user_id", Value: uid}}).Decode(&res)
+	if err != nil {
+		return err
+	}
+	balance := res["balance"].(float64)
+	if balance < 0 {
+		return fmt.Errorf("balance not enough %w", dtmcli.ErrFailure)
+	}
+	return nil
+
 }
 
 func tccAdjustTrading(db dtmcli.DB, uid int, amount int) error {

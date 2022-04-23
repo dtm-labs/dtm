@@ -89,7 +89,7 @@ func (t *TransGlobal) getURLResult(uri string, branchID, op string, branchPayloa
 	if uri == "" { // empty url is success
 		return nil
 	}
-	if strings.HasPrefix(uri, "http://") || strings.HasPrefix(uri, "https://") {
+	if t.Protocol == dtmimp.ProtocolHTTP || strings.HasPrefix(uri, "http://") || strings.HasPrefix(uri, "https://") {
 		if t.RequestTimeout != 0 {
 			dtmimp.RestyClient.SetTimeout(time.Duration(t.RequestTimeout) * time.Second)
 		}
@@ -146,7 +146,7 @@ func (t *TransGlobal) getURLResult(uri string, branchID, op string, branchPayloa
 		}
 		return dtmimp.RespAsErrorCompatible(resp)
 	}
-	dtmimp.PanicIf(t.Protocol == "http", fmt.Errorf("bad url for http: %s", uri))
+	dtmimp.PanicIf(t.Protocol == dtmimp.ProtocolHTTP, fmt.Errorf("bad url for http: %s", uri))
 	// grpc handler
 	server, method, err := dtmdriver.GetDriver().ParseServerMethod(uri)
 	if err != nil {
@@ -154,7 +154,7 @@ func (t *TransGlobal) getURLResult(uri string, branchID, op string, branchPayloa
 	}
 
 	conn := dtmgimp.MustGetGrpcConn(server, true)
-	ctx := dtmgimp.TransInfo2Ctx(t.Gid, t.TransType, branchID, op, "")
+	ctx := dtmgimp.TransInfo2Ctx(t.Context, t.Gid, t.TransType, branchID, op, "")
 	kvs := dtmgimp.Map2Kvs(t.Ext.Headers)
 	kvs = append(kvs, dtmgimp.Map2Kvs(t.BranchHeaders)...)
 	ctx = metadata.AppendToOutgoingContext(ctx, kvs...)
