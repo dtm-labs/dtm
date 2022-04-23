@@ -1,5 +1,5 @@
 <template>
-    <a-layout style="height: 730px">
+    <a-layout>
         <a-layout-sider width="200" style="background: #fff">
             <Sidebar />
         </a-layout-sider>
@@ -61,3 +61,9 @@ const page = computed(() => {
     return page
 })
 </script>
+
+<style lang="postcss" scoped>
+.ant-layout.ant-layout-has-sider {
+    min-height: calc(100vh - 64px);
+}
+</style>
