@@ -91,9 +91,9 @@ The timing diagram for the intended failure is as follows:
 
 The above example mainly demonstrates the flow of a distributed transaction. More on this, including practical examples of how to interface with an actual database, how to do compensation, how to do rollback, etc. please refer to [dtm-examples](https://github.com/dtm-labs/dtm-examples) for more examples.
 
-## Slack
+## Chat Group
 
-You can join the [DTM slack channel here](https://join.slack.com/t/dtm-w6k9662/shared_invite/zt-vkrph4k1-eFqEFnMkbmlXqfUo5GWHWw).
+Join the chat via [https://discord.gg/dV9jS5Rb33](https://discord.gg/dV9jS5Rb33).
 
 ## Give a star! ⭐
 
