@@ -7,7 +7,7 @@ CREATE TABLE if not EXISTS dtm.trans_global (
   `gid` varchar(128) NOT NULL COMMENT 'global transaction id',
   `trans_type` varchar(45) not null COMMENT 'transaction type: saga | xa | tcc | msg',
   `status` varchar(12) NOT NULL COMMENT 'tranaction status: prepared | submitted | aborting | finished | rollbacked',
-  `query_prepared` varchar(128) NOT NULL COMMENT 'url to check for 2-phase message',
+  `query_prepared` varchar(1024) NOT NULL COMMENT 'url to check for 2-phase message',
   `protocol` varchar(45) not null comment 'protocol: http | grpc | json-rpc',
   `create_time` datetime DEFAULT NULL,
   `update_time` datetime DEFAULT NULL,
@@ -29,7 +29,7 @@ drop table IF EXISTS dtm.trans_branch_op;
 CREATE TABLE IF NOT EXISTS dtm.trans_branch_op (
   `id` bigint(22) NOT NULL AUTO_INCREMENT,
   `gid` varchar(128) NOT NULL COMMENT 'global transaction id',
-  `url` varchar(128) NOT NULL COMMENT 'the url of this op',
+  `url` varchar(1024) NOT NULL COMMENT 'the url of this op',
   `data` TEXT COMMENT 'request body, depreceated',
   `bin_data` BLOB COMMENT 'request body',
   `branch_id` VARCHAR(128) NOT NULL COMMENT 'transaction branch ID',

@@ -9,7 +9,7 @@ CREATE TABLE if not EXISTS dtm.trans_global (
   gid varchar(128) NOT NULL,
   trans_type varchar(45) not null,
   status varchar(45) NOT NULL,
-  query_prepared varchar(128) NOT NULL,
+  query_prepared varchar(1024) NOT NULL,
   protocol varchar(45) not null,
   create_time timestamp(0) with time zone DEFAULT NULL,
   update_time timestamp(0) with time zone DEFAULT NULL,
@@ -32,7 +32,7 @@ CREATE SEQUENCE if not EXISTS dtm.trans_branch_op_seq;
 CREATE TABLE IF NOT EXISTS dtm.trans_branch_op (
   id bigint NOT NULL DEFAULT NEXTVAL ('dtm.trans_branch_op_seq'),
   gid varchar(128) NOT NULL,
-  url varchar(128) NOT NULL,
+  url varchar(1024) NOT NULL,
   data TEXT,
   bin_data bytea,
   branch_id VARCHAR(128) NOT NULL,
