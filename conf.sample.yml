@@ -9,8 +9,9 @@
 #   Driver: 'mysql'
 #   Host: 'localhost'
 #   User: 'root'
-#   Password: '123456'
+#   Password: ''
 #   Port: 3306
+
 #   Driver: 'boltdb' # default store engine
 
 #   Driver: 'redis'
