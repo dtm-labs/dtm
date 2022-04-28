@@ -107,6 +107,8 @@ func updateBranchAsync() {
 				updates = append(updates, TransBranch{
 					ModelBase:  dtmutil.ModelBase{ID: updateBranch.id},
 					Gid:        updateBranch.gid,
+					BranchID:   updateBranch.branchID,
+					Op:         updateBranch.op,
 					Status:     updateBranch.status,
 					FinishTime: updateBranch.finishTime,
 				})

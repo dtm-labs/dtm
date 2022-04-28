@@ -62,7 +62,7 @@ func (t *TransGlobal) changeBranchStatus(b *TransBranch, status string, branchPo
 		logger.Infof("LockGlobalSaveBranches ok: gid: %s old status: %s branches: %s",
 			b.Gid, dtmcli.StatusPrepared, b.String())
 	} else { // for better performance, batch the updates of branch status
-		updateBranchAsyncChan <- branchStatus{id: b.ID, gid: t.Gid, status: status, finishTime: &now}
+		updateBranchAsyncChan <- branchStatus{id: b.ID, gid: t.Gid, branchID: b.BranchID, op: b.Op, status: status, finishTime: &now}
 	}
 }
 
