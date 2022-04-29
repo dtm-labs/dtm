@@ -13,7 +13,7 @@ import (
 var BusiJrpcURL = fmt.Sprintf("http://localhost:%d/api/json-rpc?method=", BusiPort)
 
 func addJrpcRoute(app *gin.Engine) {
-	app.POST("/api/json-rpc", dtmutil.WrapHandler2(func(c *gin.Context) interface{} {
+	app.POST("/api/json-rpc", dtmutil.WrapHandler(func(c *gin.Context) interface{} {
 		var data map[string]interface{}
 		err := c.BindJSON(&data)
 		dtmimp.E2P(err)

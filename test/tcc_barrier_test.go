@@ -10,7 +10,6 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
-	"strings"
 	"testing"
 
 	"github.com/dtm-labs/dtm/dtmcli"
@@ -124,7 +123,7 @@ func runTestTccBarrierDisorder(t *testing.T, store string) {
 				"op":         dtmimp.OpTry,
 			}).
 			Post(tryURL)
-		assert.True(t, strings.Contains(r.String(), dtmcli.ResultSuccess)) // dangle op, return success
+		assert.Equal(t, r.StatusCode(), 200) // dangle op, return success
 		logger.Debugf("cronFinished read")
 		<-cronFinished
 		<-cronFinished
