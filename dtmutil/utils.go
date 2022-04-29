@@ -47,7 +47,25 @@ func GetGinApp() *gin.Engine {
 	return app
 }
 
+// WrapHandler used by examples. much more simpler than WrapHandler2
+func WrapHandler(fn func(*gin.Context) interface{}) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		began := time.Now()
+		ret := fn(c)
+		status := dtmcli.Result2HttpCode(ret)
+
+		b, _ := json.Marshal(ret)
+		if status == http.StatusOK || status == http.StatusTooEarly {
+			logger.Infof("%2dms %d %s %s %s", time.Since(began).Milliseconds(), status, c.Request.Method, c.Request.RequestURI, string(b))
+		} else {
+			logger.Errorf("%2dms %d %s %s %s", time.Since(began).Milliseconds(), status, c.Request.Method, c.Request.RequestURI, string(b))
+		}
+		c.JSON(status, ret)
+	}
+}
+
 // WrapHandler2 wrap a function te bo the handler of gin request
+// used by dtmsvr
 func WrapHandler2(fn func(*gin.Context) interface{}) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		began := time.Now()

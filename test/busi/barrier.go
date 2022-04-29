@@ -20,19 +20,19 @@ import (
 
 func init() {
 	setupFuncs["BarrierSetup"] = func(app *gin.Engine) {
-		app.POST(BusiAPI+"/SagaBTransIn", dtmutil.WrapHandler2(func(c *gin.Context) interface{} {
+		app.POST(BusiAPI+"/SagaBTransIn", dtmutil.WrapHandler(func(c *gin.Context) interface{} {
 			barrier := MustBarrierFromGin(c)
 			return barrier.Call(txGet(), func(tx *sql.Tx) error {
 				return SagaAdjustBalance(tx, TransInUID, reqFrom(c).Amount, reqFrom(c).TransInResult)
 			})
 		}))
-		app.POST(BusiAPI+"/SagaBTransInCom", dtmutil.WrapHandler2(func(c *gin.Context) interface{} {
+		app.POST(BusiAPI+"/SagaBTransInCom", dtmutil.WrapHandler(func(c *gin.Context) interface{} {
 			barrier := MustBarrierFromGin(c)
 			return barrier.Call(txGet(), func(tx *sql.Tx) error {
 				return SagaAdjustBalance(tx, TransInUID, -reqFrom(c).Amount, "")
 			})
 		}))
-		app.POST(BusiAPI+"/SagaB2TransIn", dtmutil.WrapHandler2(func(c *gin.Context) interface{} {
+		app.POST(BusiAPI+"/SagaB2TransIn", dtmutil.WrapHandler(func(c *gin.Context) interface{} {
 			barrier := MustBarrierFromGin(c)
 			err := barrier.Call(txGet(), func(tx *sql.Tx) error {
 				return SagaAdjustBalance(tx, TransInUID, reqFrom(c).Amount/2, reqFrom(c).TransInResult)
@@ -44,7 +44,7 @@ func init() {
 				return SagaAdjustBalance(tx, TransInUID, reqFrom(c).Amount/2, reqFrom(c).TransInResult)
 			})
 		}))
-		app.POST(BusiAPI+"/SagaB2TransInCom", dtmutil.WrapHandler2(func(c *gin.Context) interface{} {
+		app.POST(BusiAPI+"/SagaB2TransInCom", dtmutil.WrapHandler(func(c *gin.Context) interface{} {
 			barrier := MustBarrierFromGin(c)
 			err := barrier.Call(txGet(), func(tx *sql.Tx) error {
 				return SagaAdjustBalance(tx, TransInUID, -reqFrom(c).Amount/2, "")
@@ -56,19 +56,19 @@ func init() {
 				return SagaAdjustBalance(tx, TransInUID, -reqFrom(c).Amount, "")
 			})
 		}))
-		app.POST(BusiAPI+"/SagaBTransOut", dtmutil.WrapHandler2(func(c *gin.Context) interface{} {
+		app.POST(BusiAPI+"/SagaBTransOut", dtmutil.WrapHandler(func(c *gin.Context) interface{} {
 			barrier := MustBarrierFromGin(c)
 			return barrier.Call(txGet(), func(tx *sql.Tx) error {
 				return SagaAdjustBalance(tx, TransOutUID, -reqFrom(c).Amount, reqFrom(c).TransOutResult)
 			})
 		}))
-		app.POST(BusiAPI+"/SagaBTransOutCom", dtmutil.WrapHandler2(func(c *gin.Context) interface{} {
+		app.POST(BusiAPI+"/SagaBTransOutCom", dtmutil.WrapHandler(func(c *gin.Context) interface{} {
 			barrier := MustBarrierFromGin(c)
 			return barrier.Call(txGet(), func(tx *sql.Tx) error {
 				return SagaAdjustBalance(tx, TransOutUID, reqFrom(c).Amount, "")
 			})
 		}))
-		app.POST(BusiAPI+"/SagaBTransOutGorm", dtmutil.WrapHandler2(func(c *gin.Context) interface{} {
+		app.POST(BusiAPI+"/SagaBTransOutGorm", dtmutil.WrapHandler(func(c *gin.Context) interface{} {
 			req := reqFrom(c)
 			barrier := MustBarrierFromGin(c)
 			tx := dbGet().DB.Begin()
@@ -77,7 +77,7 @@ func init() {
 			})
 		}))
 
-		app.POST(BusiAPI+"/TccBTransInTry", dtmutil.WrapHandler2(func(c *gin.Context) interface{} {
+		app.POST(BusiAPI+"/TccBTransInTry", dtmutil.WrapHandler(func(c *gin.Context) interface{} {
 			req := reqFrom(c)
 			if req.TransInResult != "" {
 				return dtmcli.String2DtmError(req.TransInResult)
@@ -86,17 +86,17 @@ func init() {
 				return tccAdjustTrading(tx, TransInUID, req.Amount)
 			})
 		}))
-		app.POST(BusiAPI+"/TccBTransInConfirm", dtmutil.WrapHandler2(func(c *gin.Context) interface{} {
+		app.POST(BusiAPI+"/TccBTransInConfirm", dtmutil.WrapHandler(func(c *gin.Context) interface{} {
 			return MustBarrierFromGin(c).Call(txGet(), func(tx *sql.Tx) error {
 				return tccAdjustBalance(tx, TransInUID, reqFrom(c).Amount)
 			})
 		}))
-		app.POST(BusiAPI+"/TccBTransInCancel", dtmutil.WrapHandler2(func(c *gin.Context) interface{} {
+		app.POST(BusiAPI+"/TccBTransInCancel", dtmutil.WrapHandler(func(c *gin.Context) interface{} {
 			return MustBarrierFromGin(c).Call(txGet(), func(tx *sql.Tx) error {
 				return tccAdjustTrading(tx, TransInUID, -reqFrom(c).Amount)
 			})
 		}))
-		app.POST(BusiAPI+"/SagaMultiSource", dtmutil.WrapHandler2(func(c *gin.Context) interface{} {
+		app.POST(BusiAPI+"/SagaMultiSource", dtmutil.WrapHandler(func(c *gin.Context) interface{} {
 			barrier := MustBarrierFromGin(c)
 			transOutSource := pdbGet()
 			err := barrier.CallWithDB(transOutSource, func(tx *sql.Tx) error {
@@ -110,7 +110,7 @@ func init() {
 				return SagaAdjustBalance(tx, TransInUID, reqFrom(c).Amount, reqFrom(c).TransInResult)
 			})
 		}))
-		app.POST(BusiAPI+"/SagaMultiSourceRevert", dtmutil.WrapHandler2(func(c *gin.Context) interface{} {
+		app.POST(BusiAPI+"/SagaMultiSourceRevert", dtmutil.WrapHandler(func(c *gin.Context) interface{} {
 			barrier := MustBarrierFromGin(c)
 			transOutSource := pdbGet()
 			err := barrier.CallWithDB(transOutSource, func(tx *sql.Tx) error {
@@ -124,39 +124,39 @@ func init() {
 				return SagaAdjustBalance(tx, TransInUID, -reqFrom(c).Amount, "")
 			})
 		}))
-		app.POST(BusiAPI+"/SagaRedisTransIn", dtmutil.WrapHandler2(func(c *gin.Context) interface{} {
+		app.POST(BusiAPI+"/SagaRedisTransIn", dtmutil.WrapHandler(func(c *gin.Context) interface{} {
 			return MustBarrierFromGin(c).RedisCheckAdjustAmount(RedisGet(), GetRedisAccountKey(TransInUID), reqFrom(c).Amount, 7*86400)
 		}))
-		app.POST(BusiAPI+"/SagaRedisTransInCom", dtmutil.WrapHandler2(func(c *gin.Context) interface{} {
+		app.POST(BusiAPI+"/SagaRedisTransInCom", dtmutil.WrapHandler(func(c *gin.Context) interface{} {
 			return MustBarrierFromGin(c).RedisCheckAdjustAmount(RedisGet(), GetRedisAccountKey(TransInUID), -reqFrom(c).Amount, 7*86400)
 		}))
-		app.POST(BusiAPI+"/SagaRedisTransOut", dtmutil.WrapHandler2(func(c *gin.Context) interface{} {
+		app.POST(BusiAPI+"/SagaRedisTransOut", dtmutil.WrapHandler(func(c *gin.Context) interface{} {
 			return MustBarrierFromGin(c).RedisCheckAdjustAmount(RedisGet(), GetRedisAccountKey(TransOutUID), -reqFrom(c).Amount, 7*86400)
 		}))
-		app.POST(BusiAPI+"/SagaRedisTransOutCom", dtmutil.WrapHandler2(func(c *gin.Context) interface{} {
+		app.POST(BusiAPI+"/SagaRedisTransOutCom", dtmutil.WrapHandler(func(c *gin.Context) interface{} {
 			return MustBarrierFromGin(c).RedisCheckAdjustAmount(RedisGet(), GetRedisAccountKey(TransOutUID), reqFrom(c).Amount, 7*86400)
 		}))
-		app.POST(BusiAPI+"/SagaMongoTransIn", dtmutil.WrapHandler2(func(c *gin.Context) interface{} {
+		app.POST(BusiAPI+"/SagaMongoTransIn", dtmutil.WrapHandler(func(c *gin.Context) interface{} {
 			return MustBarrierFromGin(c).MongoCall(MongoGet(), func(sc mongo.SessionContext) error {
 				return SagaMongoAdjustBalance(sc, sc.Client(), TransInUID, reqFrom(c).Amount, reqFrom(c).TransInResult)
 			})
 		}))
-		app.POST(BusiAPI+"/SagaMongoTransInCom", dtmutil.WrapHandler2(func(c *gin.Context) interface{} {
+		app.POST(BusiAPI+"/SagaMongoTransInCom", dtmutil.WrapHandler(func(c *gin.Context) interface{} {
 			return MustBarrierFromGin(c).MongoCall(MongoGet(), func(sc mongo.SessionContext) error {
 				return SagaMongoAdjustBalance(sc, sc.Client(), TransInUID, -reqFrom(c).Amount, "")
 			})
 		}))
-		app.POST(BusiAPI+"/SagaMongoTransOut", dtmutil.WrapHandler2(func(c *gin.Context) interface{} {
+		app.POST(BusiAPI+"/SagaMongoTransOut", dtmutil.WrapHandler(func(c *gin.Context) interface{} {
 			return MustBarrierFromGin(c).MongoCall(MongoGet(), func(sc mongo.SessionContext) error {
 				return SagaMongoAdjustBalance(sc, sc.Client(), TransOutUID, -reqFrom(c).Amount, reqFrom(c).TransOutResult)
 			})
 		}))
-		app.POST(BusiAPI+"/SagaMongoTransOutCom", dtmutil.WrapHandler2(func(c *gin.Context) interface{} {
+		app.POST(BusiAPI+"/SagaMongoTransOutCom", dtmutil.WrapHandler(func(c *gin.Context) interface{} {
 			return MustBarrierFromGin(c).MongoCall(MongoGet(), func(sc mongo.SessionContext) error {
 				return SagaMongoAdjustBalance(sc, sc.Client(), TransOutUID, reqFrom(c).Amount, "")
 			})
 		}))
-		app.POST(BusiAPI+"/TccBTransOutTry", dtmutil.WrapHandler2(func(c *gin.Context) interface{} {
+		app.POST(BusiAPI+"/TccBTransOutTry", dtmutil.WrapHandler(func(c *gin.Context) interface{} {
 			req := reqFrom(c)
 			if req.TransOutResult != "" {
 				return dtmcli.String2DtmError(req.TransOutResult)
@@ -174,7 +174,7 @@ func init() {
 				return tccAdjustTrading(tx, TransOutUID, -req.Amount)
 			})
 		}))
-		app.POST(BusiAPI+"/TccBTransOutConfirm", dtmutil.WrapHandler2(func(c *gin.Context) interface{} {
+		app.POST(BusiAPI+"/TccBTransOutConfirm", dtmutil.WrapHandler(func(c *gin.Context) interface{} {
 			if reqFrom(c).Store == Redis || reqFrom(c).Store == Mongo {
 				return nil
 			}
@@ -182,7 +182,7 @@ func init() {
 				return tccAdjustBalance(tx, TransOutUID, -reqFrom(c).Amount)
 			})
 		}))
-		app.POST(BusiAPI+"/TccBTransOutCancel", dtmutil.WrapHandler2(TccBarrierTransOutCancel))
+		app.POST(BusiAPI+"/TccBTransOutCancel", dtmutil.WrapHandler(TccBarrierTransOutCancel))
 	}
 }
 

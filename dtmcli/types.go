@@ -7,7 +7,9 @@
 package dtmcli
 
 import (
+	"errors"
 	"fmt"
+	"net/http"
 
 	"github.com/dtm-labs/dtm/dtmcli/dtmimp"
 	"github.com/go-resty/resty/v2"
@@ -78,4 +80,18 @@ func GetRestyClient() *resty.Client {
 // and then passthrough them to sub-trans
 func SetPassthroughHeaders(headers []string) {
 	dtmimp.PassthroughHeaders = headers
+}
+
+// Result2HttpCode return the http code for the result
+// if result is error, the return proper code, else return StatusOK
+func Result2HttpCode(result interface{}) int {
+	err, _ := result.(error)
+	if errors.Is(err, ErrFailure) {
+		return http.StatusConflict
+	} else if errors.Is(err, ErrOngoing) {
+		return http.StatusTooEarly
+	} else if err != nil {
+		return http.StatusInternalServerError
+	}
+	return http.StatusOK
 }
