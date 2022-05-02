@@ -93,7 +93,7 @@ func PopulateDB(skipDrop bool) {
 
 // UpdateBranchAsyncInterval interval to flush branch
 var UpdateBranchAsyncInterval = 200 * time.Millisecond
-var updateBranchAsyncChan chan branchStatus = make(chan branchStatus, 1000)
+var updateBranchAsyncChan = make(chan branchStatus, 1000)
 
 func updateBranchAsync() {
 	flushBranchs := func() {
