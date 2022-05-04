@@ -52,7 +52,7 @@ func WrapHandler(fn func(*gin.Context) interface{}) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		began := time.Now()
 		ret := fn(c)
-		status, res := dtmcli.Result2HttpJson(ret)
+		status, res := dtmcli.Result2HttpJSON(ret)
 
 		b, _ := json.Marshal(res)
 		if status == http.StatusOK || status == http.StatusTooEarly {

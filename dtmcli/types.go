@@ -82,9 +82,9 @@ func SetPassthroughHeaders(headers []string) {
 	dtmimp.PassthroughHeaders = headers
 }
 
-// Result2HttpJson return the http code and json result
+// Result2HttpJSON return the http code and json result
 // if result is error, the return proper code, else return StatusOK
-func Result2HttpJson(result interface{}) (code int, res interface{}) {
+func Result2HttpJSON(result interface{}) (code int, res interface{}) {
 	err, _ := result.(error)
 	if err == nil {
 		code = http.StatusOK
