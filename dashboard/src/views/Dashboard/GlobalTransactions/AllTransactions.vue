@@ -1,6 +1,6 @@
 <template>
     <div>
-        <a-table :columns="columns" :data-source="dataSource" :pagination="false" :loading="loading" @change="handleTableChange">
+        <a-table :columns="columns" :data-source="dataSource" :loading="loading" :pagination="false">
             <template #bodyCell="{column, record}">
                 <template v-if="column.key === 'status'">
                     <span>
@@ -15,6 +15,10 @@
                 </template>
             </template>
         </a-table>
+        <div class="flex justify-center mt-2 text-lg pager" v-if="canPrev || canNext">
+            <a-button type="text" :disabled="!canPrev" @click="handlePrevPage">Previous</a-button>
+            <a-button type="text" :disabled="!canNext" @click="handleNextPage">Next</a-button>
+        </div>
     </div>
 </template>
 <script setup lang="ts">
@@ -49,6 +53,21 @@ const columns = [
     }
 ]
 
+const pager = ref([""])
+const currentState = ref(1)
+
+const canPrev = computed(() => {
+    if (currentState.value === 1) {
+        return false;
+    }
+
+    return true;
+})
+
+const canNext = computed(() => {
+    return data.value?.data.next_position !== ""
+})
+
 type Data = {
     transactions: {
         gid: string
@@ -76,29 +95,39 @@ const { data, run, current, loading, pageSize } = usePagination(queryData, {
 })
 
 const dataSource = computed(() => data.value?.data.transactions || [])
-const pagination = computed(() => ({
-    current: 1,
-    pageSize: pageSize.value,
-    showSizeChanger: true,
 
-}))
-
-const handleTableChange = (pag: {current:number, pageSize: number}) => {
-    if (pag.pageSize !== pageSize.value) {
-        run({
-            limit: pag.pageSize
-        })
-    } else {
-        run({
-            position: data.value?.data.next_position,
-            limit: pag.pageSize
-        })
+const handlePrevPage = () => {
+    currentState.value -= 1;
+    const params = {
+        limit: 100
     }
+    if (pager.value[currentState.value - 1]) {
+        params.position = pager.value[currentState.value - 1]
+    }
+    run(params)
+}
+
+const handleNextPage = () => {
+    currentState.value += 1;
+    if (currentState.value >= 2) {
+        pager.value[currentState.value - 1] = data.value?.data.next_position
+    }
+
+    run({
+        position: data.value?.data.next_position,
+        limit: 5
+    })
 }
 </script>
 
 <style lang="postcss" scoped>
 ::v-deep .ant-pagination-item {
     display: none;
+}
+.pager .ant-btn-text {
+    font-weight: 500;
+}1
+.pager .ant-btn {
+    padding: 6px;
 }
 </style>
