@@ -6,6 +6,7 @@ import (
 	"log"
 	"net/url"
 	"os"
+	"runtime/debug"
 	"strings"
 
 	"github.com/natefinch/lumberjack"
@@ -124,6 +125,7 @@ func FatalfIf(cond bool, fmt string, args ...interface{}) {
 	if !cond {
 		return
 	}
+	debug.PrintStack()
 	log.Fatalf(fmt, args...)
 }
 
