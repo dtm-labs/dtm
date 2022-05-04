@@ -82,16 +82,24 @@ func SetPassthroughHeaders(headers []string) {
 	dtmimp.PassthroughHeaders = headers
 }
 
-// Result2HttpCode return the http code for the result
+// Result2HttpJSON return the http code and json result
 // if result is error, the return proper code, else return StatusOK
-func Result2HttpCode(result interface{}) int {
+func Result2HttpJSON(result interface{}) (code int, res interface{}) {
 	err, _ := result.(error)
-	if errors.Is(err, ErrFailure) {
-		return http.StatusConflict
-	} else if errors.Is(err, ErrOngoing) {
-		return http.StatusTooEarly
-	} else if err != nil {
-		return http.StatusInternalServerError
+	if err == nil {
+		code = http.StatusOK
+		res = result
+	} else {
+		res = map[string]string{
+			"error": err.Error(),
+		}
+		if errors.Is(err, ErrFailure) {
+			code = http.StatusConflict
+		} else if errors.Is(err, ErrOngoing) {
+			code = http.StatusTooEarly
+		} else if err != nil {
+			code = http.StatusInternalServerError
+		}
 	}
-	return http.StatusOK
+	return
 }
