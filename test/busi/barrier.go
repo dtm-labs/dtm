@@ -106,7 +106,7 @@ func init() {
 				return err
 			}
 			transInSource := pdbGet()
-			return MustBarrierFromGin(c).CallWithDB(transInSource, func(tx *sql.Tx) error {
+			return barrier.CallWithDB(transInSource, func(tx *sql.Tx) error {
 				return SagaAdjustBalance(tx, TransInUID, reqFrom(c).Amount, reqFrom(c).TransInResult)
 			})
 		}))
@@ -120,7 +120,7 @@ func init() {
 				return err
 			}
 			transInSource := pdbGet()
-			return MustBarrierFromGin(c).CallWithDB(transInSource, func(tx *sql.Tx) error {
+			return barrier.CallWithDB(transInSource, func(tx *sql.Tx) error {
 				return SagaAdjustBalance(tx, TransInUID, -reqFrom(c).Amount, "")
 			})
 		}))
