@@ -21,4 +21,5 @@ type DBConf struct {
 	Port     int64  `yaml:"Port"`
 	User     string `yaml:"User"`
 	Password string `yaml:"Password"`
+	Db       string `yaml:"Db"`
 }
