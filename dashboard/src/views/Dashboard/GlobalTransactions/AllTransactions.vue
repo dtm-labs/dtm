@@ -22,7 +22,7 @@
     </div>
 </template>
 <script setup lang="ts">
-import { IListAllTransactions, listAllTransactions } from '/@/api/dtm'
+import { IListAllTransactions, listAllTransactions } from '/@/api/api_dtm'
 import { ref, onMounted, reactive, computed } from 'vue-demi'
 import { usePagination } from 'vue-request'
 import { TableProps } from 'ant-design-vue/es/vc-table/Table'

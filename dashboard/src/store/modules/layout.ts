@@ -1,7 +1,6 @@
 import { defineStore } from 'pinia';
 import { allowRouter } from '/@/router';
 import { ILayout, IMenubar, IMenubarList, IStatus } from '/@/type/store/layout';
-import { findCurrentMenubar } from '/@/utils/util';
 
 export const useLayoutStore = defineStore({
     id: 'layout',
