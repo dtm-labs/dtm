@@ -16,7 +16,7 @@ import (
 
 func ver(version *string) {
 	if *version == "" {
-		*version = "0.0.0-dev"
+		*version = "v0.0.0-dev"
 	}
 	fmt.Printf("dtm version: %s\n", *version)
 }

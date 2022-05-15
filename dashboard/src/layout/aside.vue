@@ -4,6 +4,7 @@
             <Sidebar />
         </a-layout-sider>
         <a-layout style="padding: 0 24px 24px">
+            <!-- <div style="color:#f00"> !!! local start mode, dashboard is served from en.dtm.pub. version may not match your dtm </div> -->
             <a-breadcrumb style="margin: 16px 0">
                 <a-breadcrumb-item>{{ mainNav }}</a-breadcrumb-item>
                 <a-breadcrumb-item>{{ subNav }}</a-breadcrumb-item>
@@ -56,7 +57,7 @@ const page = computed(() => {
                 page = vv.meta.title
             }
         })
-    })   
+    })
 
     return page
 })
