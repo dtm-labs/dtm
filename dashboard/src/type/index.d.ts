@@ -7,6 +7,7 @@ declare global {
     VITE_APP_TITLE: string
     VITE_PORT: number
     VITE_PROXY: string
+    VITE_DASHBOARD_VERSION: string
   }
   interface ITable<T = any> {
       data: Array<T>
