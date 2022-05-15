@@ -14,13 +14,6 @@ import (
 	"go.uber.org/automaxprocs/maxprocs"
 )
 
-func ver(version *string) {
-	if *version == "" {
-		*version = "v0.0.0-dev"
-	}
-	fmt.Printf("dtm version: %s\n", *version)
-}
-
 func usage() {
 	cmd := filepath.Base(os.Args[0])
 	s := "Usage: %s [options]\n\n"
@@ -37,11 +30,15 @@ var confFile = flag.String("c", "", "Path to the server configuration file.")
 // Main is the entry point of dtm server.
 func Main(version *string) *gin.Engine {
 	flag.Parse()
+	if *version == "" {
+		*version = "v0.0.0-dev"
+	}
+	dtmsvr.Version = *version
 	if flag.NArg() > 0 || *isHelp {
 		usage()
 		return nil
 	} else if *isVersion {
-		ver(version)
+		fmt.Printf("dtm version: %s\n", *version)
 		return nil
 	}
 	logger.Infof("dtm version is: %s", *version)

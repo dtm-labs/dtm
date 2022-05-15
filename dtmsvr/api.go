@@ -15,6 +15,8 @@ import (
 	"github.com/dtm-labs/dtm/dtmsvr/storage"
 )
 
+var Version = ""
+
 func svcSubmit(t *TransGlobal) interface{} {
 	t.Status = dtmcli.StatusSubmitted
 	branches, err := t.saveNew()

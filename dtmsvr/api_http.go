@@ -19,6 +19,9 @@ import (
 )
 
 func addRoute(engine *gin.Engine) {
+	engine.GET("/api/dtmsvr/version", dtmutil.WrapHandler2(func(c *gin.Context) interface{} {
+		return gin.H{"version": Version}
+	}))
 	engine.GET("/api/dtmsvr/newGid", dtmutil.WrapHandler2(newGid))
 	engine.POST("/api/dtmsvr/prepare", dtmutil.WrapHandler2(prepare))
 	engine.POST("/api/dtmsvr/submit", dtmutil.WrapHandler2(submit))

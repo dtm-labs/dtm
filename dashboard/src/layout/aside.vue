@@ -4,7 +4,7 @@
             <Sidebar />
         </a-layout-sider>
         <a-layout style="padding: 0 24px 24px">
-            <!-- <div style="color:#f00"> !!! local start mode, dashboard is served from en.dtm.pub. version may not match your dtm </div> -->
+            <div v-if="layout.dtmVersion && layout.dtmVersion != dashVer" style="color:#f00"> !!! dashboard version: {{dashVer}} != dtm version: {{layout.dtmVersion}}. </div>
             <a-breadcrumb style="margin: 16px 0">
                 <a-breadcrumb-item>{{ mainNav }}</a-breadcrumb-item>
                 <a-breadcrumb-item>{{ subNav }}</a-breadcrumb-item>
@@ -27,18 +27,21 @@ import { useLayoutStore } from '../store/modules/layout'
 import { IMenubarList } from '../type/store/layout'
 import { findCurrentMenubar } from '../utils/util'
 import { computed, onMounted, ref } from 'vue'
+import { getDtmVersion } from '../api/api_dtm'
 
+
+const dashVer = import.meta.env.VITE_DASHBOARD_VERSION
 const route = useRoute()
-const { getMenubar } = useLayoutStore()
+const layout = useLayoutStore()
 
 const mainNav = computed(() => {
-    const currentMenubar = findCurrentMenubar(getMenubar.menuList, true)
+    const currentMenubar = findCurrentMenubar(layout.getMenubar.menuList, true)
     return currentMenubar?.meta.title
 })
 
 const subNav = computed(() => {
     let subNav = ''
-    const currentMenubar = findCurrentMenubar(getMenubar.menuList, true)
+    const currentMenubar = findCurrentMenubar(layout.getMenubar.menuList, true)
     currentMenubar.children?.forEach(v => {
         if (route.path.indexOf(v.path) !== -1) {
             subNav = v.meta.title
@@ -50,7 +53,7 @@ const subNav = computed(() => {
 
 const page = computed(() => {
     let page = ''
-    const currentMenubar = findCurrentMenubar(getMenubar.menuList, true)
+    const currentMenubar = findCurrentMenubar(layout.getMenubar.menuList, true)
     currentMenubar.children?.forEach(v => {
         v.children?.forEach(vv => {
             if (route.path == vv.path) {
@@ -61,6 +64,11 @@ const page = computed(() => {
 
     return page
 })
+
+onMounted(() => {
+    layout.loadDtmVersion()
+})
+
 </script>
 
 <style lang="postcss" scoped>
