@@ -58,7 +58,7 @@ func toUnderscoreUpper(key string) string {
 	return strings.ToUpper(s2)
 }
 
-func checkConfig(conf *configType) error {
+func checkConfig(conf *ConfigType) error {
 	if conf.RetryInterval < 10 {
 		return errors.New("RetryInterval should not be less than 10")
 	}

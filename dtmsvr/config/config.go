@@ -79,7 +79,7 @@ func (s *Store) GetDBConf() dtmcli.DBConf {
 	}
 }
 
-type configType struct {
+type ConfigType struct {
 	Store                         Store            `yaml:"Store"`
 	TransCronInterval             int64            `yaml:"TransCronInterval" default:"3"`
 	TimeoutToFail                 int64            `yaml:"TimeoutToFail" default:"35"`
@@ -97,7 +97,7 @@ type configType struct {
 }
 
 // Config config
-var Config = configType{}
+var Config = ConfigType{}
 
 // MustLoadConfig load config from env and file
 func MustLoadConfig(confFile string) {

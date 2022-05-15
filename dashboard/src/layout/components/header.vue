@@ -3,7 +3,7 @@
         <a-layout-header class="header flex">
             <div class="flex items-center logo h-16">
                 <svg-icon style="width: 36px; height: 36px; margin-right: 84px;" icon-class="svg-logo" />
-                <span class="text-gray-400 text-lg">DTM dashbaord {{ version }}</span>
+                <span class="text-gray-400 text-lg">DTM dashboard {{ version }}</span>
             </div>
             <a-menu
             v-model:selectedKeys="activeMenu"

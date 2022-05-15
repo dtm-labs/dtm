@@ -8,10 +8,10 @@ const Components: IObject<() => Promise<typeof import('*.vue')>> = Object.assign
 })
 
 export const allowRouter: Array<IMenubarList> = [
-    {
+  {
     name: 'Dashboard',
     path: '/',
-    redirect: '/dashboard/nodes/living',
+    redirect: '/dashboard/global-transactions/all',
     component: Components['LayoutHeader'],
     meta: { title: 'Dashboard', activeMenu: '/dashboard' },
     children: [
@@ -21,12 +21,12 @@ export const allowRouter: Array<IMenubarList> = [
         component: Components['LayoutMain'],
         meta: { title: 'Nodes' },
         children: [
-            {
-                name: 'LivingNodes',
-                path: '/dashboard/nodes/living',
-                component: Components['LivingNodes'],
-                meta: { title: 'Living Nodes' },
-            }
+          {
+            name: 'LivingNodes',
+            path: '/dashboard/nodes/living',
+            component: Components['LivingNodes'],
+            meta: { title: 'Living Nodes' },
+          }
         ]
       }, {
         name: 'GlobalTransactions',
@@ -34,17 +34,17 @@ export const allowRouter: Array<IMenubarList> = [
         component: Components['LayoutMain'],
         meta: { title: 'Global Transactions' },
         children: [
-            {
-                name: 'AllTransactions',
-                path: '/dashboard/global-transactions/all',
-                component: Components['AllTransactions'],
-                meta: { title: 'All Transactions' },
-            },  {
-                name: 'UnfinishedTransactions',
-                path: '/dashboard/global-transactions/unfinished',
-                component: Components['UnfinishedTransactions'],
-                meta: { title: 'Unfinished Transactions' },
-            }
+          {
+            name: 'AllTransactions',
+            path: '/dashboard/global-transactions/all',
+            component: Components['AllTransactions'],
+            meta: { title: 'All Transactions' },
+          }, {
+            name: 'UnfinishedTransactions',
+            path: '/dashboard/global-transactions/unfinished',
+            component: Components['UnfinishedTransactions'],
+            meta: { title: 'Unfinished Transactions' },
+          }
         ]
       }
     ]

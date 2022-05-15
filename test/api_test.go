@@ -18,6 +18,12 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+func TestAPIVersion(t *testing.T) {
+	resp, err := dtmimp.RestyClient.R().Get(dtmutil.DefaultHTTPServer + "/query")
+	assert.Nil(t, err)
+	assert.Equal(t, 200, resp.StatusCode())
+}
+
 func TestAPIQuery(t *testing.T) {
 	gid := dtmimp.GetFuncName()
 	err := genMsg(gid).Submit()

@@ -8,7 +8,7 @@ export interface IListAllTransactionsReq {
 
 export function listAllTransactions<T>(payload: IListAllTransactionsReq): Promise<AxiosResponse<T>> {
     return request({
-        url: '/dtmsvr/all',
+        url: '/api/dtmsvr/all',
         method: 'get',
         params: payload
     })
@@ -16,7 +16,7 @@ export function listAllTransactions<T>(payload: IListAllTransactionsReq): Promis
 
 export function getDtmVersion(): Promise<AxiosResponse<any>> {
     return request({
-        url: '/dtmsvr/version',
+        url: '/api/dtmsvr/version',
         method: 'get',
     })
 }
