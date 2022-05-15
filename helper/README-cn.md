@@ -9,14 +9,7 @@
 
 # 跨语言分布式事务管理器
 
-DTM是一款变革性的分布式事务框架，提供了傻瓜式的使用方式，极大的降低了分布式事务的使用门槛，改变了“能不用分布式事务就不用”的行业现状。 dtm 的应用范围非常广，可以应用于以下常见的领域：
-- [秒杀系统，保证Redis中精准的库存，和最终创建的订单完全一致，无需手动调整](https://dtm.pub/app/flash.html)
-- [保证缓存与DB的一致性](https://dtm.pub/app/cache.html)
-- [非单体的订单系统，大幅简化架构](https://dtm.pub/app/order.html)
-- 微服务架构(已原生支持[go-zero](https://github.com/zeromicro/go-zero)等框架)中跨服务更新数据保证一致性
-
-他优雅的解决了幂等、空补偿、悬挂等分布式事务难题，提供跨语言，跨存储引擎组合事务的强大功能：
-<img src="https://pica.zhimg.com/80/v2-2f66cb3074e68d38c29694318680acac_1440w.png" height=250 />
+DTM是一款变革性的分布式事务框架，提供了傻瓜式的使用方式，极大的降低了分布式事务的使用门槛，改变了“能不用分布式事务就不用”的行业现状，优雅的解决了服务间的数据一致性问题。
 
 ## 谁在使用DTM(仅列出部分)
 [Tencent 腾讯](https://dtm.pub/other/using.html#tencent)
@@ -25,27 +18,28 @@ DTM是一款变革性的分布式事务框架，提供了傻瓜式的使用方�
 
 [Ivydad 常青藤爸爸](https://dtm.pub/other/using.html#ivydad)
 
-## 亮点
+[更多](https://dtm.pub/other/using.html)
 
-* 极易上手
-  - 零配置启动服务，提供非常简单的HTTP接口，极大降低上手分布式事务的难度，新手也能快速接入
-* 跨语言
-  - 可适合多语言栈的公司使用。方便go、python、php、nodejs、ruby、c# 各类语言使用。
-* 使用简单
-  - 开发者不再担心悬挂、空补偿、幂等各类问题，首创子事务屏障技术代为处理
-* 易部署、易扩展
-  - 依赖mysql/redis，部署简单，易集群化，易水平扩展
-* 多种分布式事务协议支持
-  - TCC、SAGA、XA、二阶段消息，一站式解决所有分布式事务问题
+## 特性
+* 支持多种语言：支持Go、Java、PHP、C#、Python、Nodejs 各种语言的SDK
+* 支持多种事务模式：SAGA、TCC、XA、二阶段消息（本地消息表，事务消息）
+* 支持多种数据库事务：Mysql、Redis、MongoDB、Postgres、TDSQL等
+* 支持多种存储引擎：Mysql（常用）、Redis（高性能）、MongoDB（规划中）
+* 支持多种微服务架构：[go-zero](https://github.com/zeromicro/go-zero)、go-kratos/kratos、polarismesh/polaris
+* 支持高可用，易水平扩展
 
-## 与其他框架对比
+## 应用场景：
+DTM 可以应用于大量的场景下的数据一致性问题，以下是几个常见场景
+* [缓存管理](https://dtm.pub/app/cache.html)：彻底保证缓存最终一致及强一致
+* [秒杀扣库存](https://dtm.pub/app/flash.html)：极端情况下，也能保证Redis中精准的库存，和最终创建的订单完全一致，无需手动调整
+* [非单体的订单系统](https://dtm.pub/app/order.html)： 大幅简化架构
+* [事件发布/订阅](https://dtm.pub/practice/msg.html)：更好的发件箱模式
 
-非Java语言类的，暂未看到除dtm之外的成熟框架，因此这里将DTM和Java中最成熟的Seata对比：
+## 与Seata对比
 
 |  特性| DTM | SEATA |备注|
 |:-----:|:----:|:----:|:----:|
 |[支持语言](https://dtm.pub/other/opensource.html#lang) |<span style="color:green">Go、c#、Java、python、php...</span>|<span style="color:orange">Java</span>|dtm可轻松接入一门新语言|
-|[存储引擎](https://dtm.pub/other/opensource.html#store) |<span style="color:green">支持数据库、Redis、Mongo等</span>|<span style="color:orange">数据库</span>||
 |[异常处理](https://dtm.pub/other/opensource.html#exception)| <span style="color:green"> 子事务屏障自动处理 </span>|<span style="color:orange">手动处理</span> |dtm解决了幂等、悬挂、空补偿|
 |[SAGA事务](https://dtm.pub/other/opensource.html#saga) |<span style="color:green">极简易用</span> |<span style="color:orange">复杂状态机</span> ||
 |[二阶段消息](https://dtm.pub/other/opensource.html#msg)|<span style="color:green">✓</span>|<span style="color:red">✗</span>|最简消息最终一致性架构|
@@ -53,23 +47,14 @@ DTM是一款变革性的分布式事务框架，提供了傻瓜式的使用方�
 |[XA事务](https://dtm.pub/other/opensource.html#xa)|<span style="color:green">✓</span>|<span style="color:green">✓</span>||
 |[AT事务](https://dtm.pub/other/opensource.html#at)|<span style="color:orange">建议使用XA</span>|<span style="color:green">✓</span>|AT与XA类似，但有脏回滚|
 |[单服务多数据源](https://dtm.pub/other/opensource.html#multidb)|<span style="color:green">✓</span>|<span style="color:red">✗</span>||
-|[通信协议](https://dtm.pub/other/opensource.html#protocol)|HTTP、gRPC、go-zero|dubbo等协议|dtm对云原生更加友好|
 
-从上面对比的特性来看，dtm在许多方面都具备很大的优势。如果考虑多语言支持、多存储引擎支持，那么dtm毫无疑问是您的首选
-
-详细的对比可以点击特性中的链接，跳到相关文档
+从上面对比的各项特性来看，dtm在具备很多优势。详细的对比可以点击特性中的链接，跳到相关文档
 
 ## [性能测试报告](https://dtm.pub/other/performance.html)
 
 ## [教程与文档](https://dtm.pub)
 
 ## [各语言客户端及示例](https://dtm.pub/ref/sdk.html#go)
-
-## 微服务框架支持
-- [go-zero](https://github.com/zeromicro/go-zero)：一开源就非常火爆的微服务框架，首家接入dtm的微服务框架。感谢go-zero作者[kevwan](https://github.com/kevwan)的大力支持
-- [kratos](https://github.com/go-kratos/kratos)：这是bilibili开源的一个微服务框架。感谢[lei liu](https://github.com/Leizhengzi)的贡献
-- [polaris](https://github.com/polarismesh/polaris): 腾讯开源的注册发现组件，以及在其上构建的微服务框架。感谢腾讯同学[ychensha](https://github.com/ychensha)的PR
-- 其他：看用户需求量，择机接入，参见[微服务支持](https://dtm.pub/ref/proto.html)
 
 ## 快速开始
 如果您不是Go语言，可以跳转[各语言客户端及示例](https://dtm.pub/ref/sdk.html#go)，里面有相关的快速开始示例
@@ -137,10 +122,11 @@ go run main.go
 上述示例主要演示了分布式事务的流程，更多的内容，包括如何与实际的数据库对接，如何做补偿，如何做回滚等实际的例子，请参考[dtm-labs/dtm-examples](https://github.com/dtm-labs/dtm-examples)
 
 ## 联系我们
-### 公众号
-dtm官方公众号：分布式事务，大量干货分享，以及dtm的最新消息
-### 交流群
-请加 yedf2008 好友或者扫码加好友，验证回复 dtm 按照指引进群
+### 微信交流群
+
+如果您希望更快的获得反馈，或者更多的了解其他用户在使用过程中的各种反馈，欢迎加入我们的微信交流群
+
+请加作者的微信 yedf2008 好友或者扫码加好友，备注 `dtm` 按照指引进群
 
 ![yedf2008](http://service.ivydad.com/cover/dubbingb6b5e2c0-2d2a-cd59-f7c5-c6b90aceb6f1.jpeg)
 
