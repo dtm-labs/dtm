@@ -14,9 +14,18 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version: 14
-      - run: cd admin
-      - run: yarn
-      - run: VITE_ADMIN_VERSION=${GITHUB_REF#refs/*/} yarn build
+        env:
+          host: 'ubuntu@en.dtm.pub'
+          dest: '/data/dtm-admin/'
+      - run: |
+        cd admin && yarn
+        VITE_ADMIN_VERSION=${GITHUB_REF#refs/*/} yarn build
+        echo "${{secrets.DEPLOY_KEY}}" > deploy_key
+        chmod 600 ./deploy_key
+        tar -cvzf dist.tar.gz dist
+        scp -i ../../deploy_key -o StrictHostKeyChecking=no dist.tar.gz ${{env.host}}:${{env.dest}}
+        ssh -i ../../deploy_key -o StrictHostKeyChecking=no ${{env.host}} 'cd ${{env.dest}} && tar -zvxf dist.tar.gz'
+        cd ..
 
       - name: Validates GO releaser config
         uses: docker://goreleaser/goreleaser:v1.7.0
