@@ -29,8 +29,8 @@ jobs:
           echo "${{secrets.DEPLOY_KEY}}" > deploy_key
           chmod 600 ./deploy_key
           tar -cvzf dist.tar.gz dist
-          scp -i ../../deploy_key -o StrictHostKeyChecking=no dist.tar.gz ${{env.host}}:${{env.dest}}
-          ssh -i ../../deploy_key -o StrictHostKeyChecking=no ${{env.host}} 'cd ${{env.dest}} && tar -zvxf dist.tar.gz'
+          scp -i deploy_key -o StrictHostKeyChecking=no dist.tar.gz ${{env.host}}:${{env.dest}}
+          ssh -i deploy_key -o StrictHostKeyChecking=no ${{env.host}} 'cd ${{env.dest}} && tar -zvxf dist.tar.gz'
           cd ..
 
       - name: Validates GO releaser config
