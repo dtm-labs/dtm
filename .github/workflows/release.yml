@@ -18,7 +18,8 @@ jobs:
           host: 'ubuntu@en.dtm.pub'
           dest: '/data/dtm-admin/'
       - run: |
-        cd admin && yarn
+        cd admin
+        yarn
         VITE_ADMIN_VERSION=${GITHUB_REF#refs/*/} yarn build
         echo "${{secrets.DEPLOY_KEY}}" > deploy_key
         chmod 600 ./deploy_key
