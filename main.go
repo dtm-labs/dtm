@@ -43,15 +43,15 @@ func getSub(f1 fs.FS, sub string) fs.FS {
 	logger.FatalIfError(err)
 	return f2
 }
-func addAdmin(app *gin.Engine, conf *config.ConfigType) {
+func addAdmin(app *gin.Engine, conf *config.Type) {
 	// for released dtm, serve admin from local files because the build output has been embed
 	// for testing users, proxy admin to target because the build output has not been embed
 	dist := getSub(admin, "admin/dist")
 	index, err := dist.Open("index.html")
 	if err == nil {
-		defer index.Close()
 		cont, err := ioutil.ReadAll(index)
 		logger.FatalIfError(err)
+		_ = index.Close()
 		sfile := string(cont)
 		renderIndex := func(c *gin.Context) {
 			c.Header("content-type", "text/html;charset=utf-8")

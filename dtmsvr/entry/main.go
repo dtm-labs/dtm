@@ -28,7 +28,7 @@ var isReset = flag.Bool("r", false, "Reset dtm server data.")
 var confFile = flag.String("c", "", "Path to the server configuration file.")
 
 // Main is the entry point of dtm server.
-func Main(version *string) (*gin.Engine, *config.ConfigType) {
+func Main(version *string) (*gin.Engine, *config.Type) {
 	flag.Parse()
 	if *version == "" {
 		*version = "v0.0.0-dev"
