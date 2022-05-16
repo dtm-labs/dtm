@@ -11,7 +11,11 @@ jobs:
     steps:
       - name: Check out code
         uses: actions/checkout@v3
+
+      - name: Setup node
         uses: actions/setup-node@v3
+
+      - name: Build admin
         with:
           node-version: 14
         env:
