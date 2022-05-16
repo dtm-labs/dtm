@@ -19,7 +19,7 @@ import (
 )
 
 func TestAPIVersion(t *testing.T) {
-	resp, err := dtmimp.RestyClient.R().Get(dtmutil.DefaultHTTPServer + "/query")
+	resp, err := dtmimp.RestyClient.R().Get(dtmutil.DefaultHTTPServer + "/version")
 	assert.Nil(t, err)
 	assert.Equal(t, 200, resp.StatusCode())
 }
