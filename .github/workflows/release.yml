@@ -14,10 +14,10 @@ jobs:
 
       - name: Setup node
         uses: actions/setup-node@v3
-
-      - name: Build admin
         with:
           node-version: 14
+
+      - name: Build admin
         env:
           host: 'ubuntu@en.dtm.pub'
           dest: '/data/dtm-admin/'
