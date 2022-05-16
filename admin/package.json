@@ -4,7 +4,7 @@
   "version": "0.0.0",
   "scripts": {
     "dev": "vite",
-    "build": "vite build",
+    "build": "vite build && echo > dist/placeholder",
     "preview": "vite preview"
   },
   "dependencies": {
