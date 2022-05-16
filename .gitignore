@@ -1,7 +1,7 @@
 conf.yml
 *.out
 *.log
-dist
+# dist
 .idea/**
 .vscode
 default.etcd

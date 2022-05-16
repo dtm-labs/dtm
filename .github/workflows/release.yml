@@ -10,7 +10,13 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Check out code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
+        uses: actions/setup-node@v3
+        with:
+          node-version: 14
+      - run: cd admin
+      - run: yarn
+      - run: VITE_ADMIN_VERSION=${GITHUB_REF#refs/*/} yarn build
 
       - name: Validates GO releaser config
         uses: docker://goreleaser/goreleaser:v1.7.0

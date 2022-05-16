@@ -10,6 +10,7 @@ import (
 	"embed"
 	"fmt"
 	"io/fs"
+	"io/ioutil"
 	"net/http"
 	"net/http/httputil"
 	"net/url"
@@ -35,10 +36,7 @@ func main() {
 //go:embed admin/dist
 var admin embed.FS
 
-//go:embed admin/dist/index.html
-var indexFile string
-
-var target = ""
+var target = "admin.dtm.pub"
 
 func getSub(f1 fs.FS, sub string) fs.FS {
 	f2, err := fs.Sub(f1, sub)
@@ -46,14 +44,22 @@ func getSub(f1 fs.FS, sub string) fs.FS {
 	return f2
 }
 func addAdmin(app *gin.Engine, conf *config.ConfigType) {
+	// for released dtm, serve admin from local files because the build output has been embed
+	// for testing users, proxy admin to target because the build output has not been embed
 	dist := getSub(admin, "admin/dist")
-	_, err := dist.Open("index.html")
+	index, err := dist.Open("index.html")
 	if err == nil {
-		app.StaticFS("/assets", http.FS(getSub(dist, "assets")))
-		app.GET("/admin/*name", func(c *gin.Context) {
+		defer index.Close()
+		cont, err := ioutil.ReadAll(index)
+		logger.FatalIfError(err)
+		sfile := string(cont)
+		renderIndex := func(c *gin.Context) {
 			c.Header("content-type", "text/html;charset=utf-8")
-			c.String(200, indexFile)
-		})
+			c.String(200, sfile)
+		}
+		app.StaticFS("/assets", http.FS(getSub(dist, "assets")))
+		app.GET("/admin/*name", renderIndex)
+		app.GET("/", renderIndex)
 		logger.Infof("admin is served from dir 'admin/dist/'")
 	} else {
 		app.GET("/", proxyAdmin)
