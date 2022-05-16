@@ -5,130 +5,96 @@
 [![Go Reference](https://pkg.go.dev/badge/github.com/dtm-labs/dtm.svg)](https://pkg.go.dev/github.com/dtm-labs/dtm)
 [![Mentioned in Awesome Go](https://awesome.re/mentioned-badge-flat.svg)](https://github.com/avelino/awesome-go#database)
 
-简体中文 | [English](https://github.com/dtm-labs/dtm/blob/main/helper/README-en.md)
+English | [简体中文](https://github.com/dtm-labs/dtm/blob/main/helper/README-cn.md)
 
-# 跨语言分布式事务管理器
+# Distributed Transactions Manager
 
-DTM是一款变革性的分布式事务框架，提供了傻瓜式的使用方式，极大的降低了分布式事务的使用门槛，改变了“能不用分布式事务就不用”的行业现状，优雅的解决了服务间的数据一致性问题。
+## What is DTM
 
-## 谁在使用DTM(仅列出部分)
-[Tencent 腾讯](https://dtm.pub/other/using.html#tencent)
+DTM is a distributed transaction framework which provides cross-service eventual data consistency. It provides saga, tcc, xa, 2-phase message, outbox patterns for a variety of application scenarios. It also supports multiple languages and multiple store engine to form up a transaction as following:
 
-[Bytedance 字节](https://dtm.pub/other/using.html#bytedance)
+<img alt="function-picture" src="https://en.dtm.pub/assets/function.7d5618f8.png" height=250 />
 
-[Ivydad 常青藤爸爸](https://dtm.pub/other/using.html#ivydad)
+## Who's using DTM (partial)
 
-[更多](https://dtm.pub/other/using.html)
+[Tencent](https://www.tencent.com/)
 
-## 特性
-* 支持多种语言：支持Go、Java、PHP、C#、Python、Nodejs 各种语言的SDK
-* 支持多种事务模式：SAGA、TCC、XA、二阶段消息（本地消息表，事务消息）
-* 支持多种数据库事务：Mysql、Redis、MongoDB、Postgres、TDSQL等
-* 支持多种存储引擎：Mysql（常用）、Redis（高性能）、MongoDB（规划中）
-* 支持多种微服务架构：[go-zero](https://github.com/zeromicro/go-zero)、go-kratos/kratos、polarismesh/polaris
-* 支持高可用，易水平扩展
+[Bytedance](https://www.bytedance.com/)
 
-## 应用场景：
-DTM 可以应用于大量的场景下的数据一致性问题，以下是几个常见场景
-* [缓存管理](https://dtm.pub/app/cache.html)：彻底保证缓存最终一致及强一致
-* [秒杀扣库存](https://dtm.pub/app/flash.html)：极端情况下，也能保证Redis中精准的库存，和最终创建的订单完全一致，无需手动调整
-* [非单体的订单系统](https://dtm.pub/app/order.html)： 大幅简化架构
-* [事件发布/订阅](https://dtm.pub/practice/msg.html)：更好的发件箱模式
+[Ivydad](https://ivydad.com)
 
-## 与Seata对比
+## [Cook Book](https://en.dtm.pub)
 
-|  特性| DTM | SEATA |备注|
-|:-----:|:----:|:----:|:----:|
-|[支持语言](https://dtm.pub/other/opensource.html#lang) |<span style="color:green">Go、c#、Java、python、php...</span>|<span style="color:orange">Java</span>|dtm可轻松接入一门新语言|
-|[异常处理](https://dtm.pub/other/opensource.html#exception)| <span style="color:green"> 子事务屏障自动处理 </span>|<span style="color:orange">手动处理</span> |dtm解决了幂等、悬挂、空补偿|
-|[SAGA事务](https://dtm.pub/other/opensource.html#saga) |<span style="color:green">极简易用</span> |<span style="color:orange">复杂状态机</span> ||
-|[二阶段消息](https://dtm.pub/other/opensource.html#msg)|<span style="color:green">✓</span>|<span style="color:red">✗</span>|最简消息最终一致性架构|
-|[TCC事务](https://dtm.pub/other/opensource.html#tcc)| <span style="color:green">✓</span>|<span style="color:green">✓</span>||
-|[XA事务](https://dtm.pub/other/opensource.html#xa)|<span style="color:green">✓</span>|<span style="color:green">✓</span>||
-|[AT事务](https://dtm.pub/other/opensource.html#at)|<span style="color:orange">建议使用XA</span>|<span style="color:green">✓</span>|AT与XA类似，但有脏回滚|
-|[单服务多数据源](https://dtm.pub/other/opensource.html#multidb)|<span style="color:green">✓</span>|<span style="color:red">✗</span>||
+## Quick start
 
-从上面对比的各项特性来看，dtm在具备很多优势。详细的对比可以点击特性中的链接，跳到相关文档
-
-## [性能测试报告](https://dtm.pub/other/performance.html)
-
-## [教程与文档](https://dtm.pub)
-
-## [各语言客户端及示例](https://dtm.pub/ref/sdk.html#go)
-
-## 快速开始
-如果您不是Go语言，可以跳转[各语言客户端及示例](https://dtm.pub/ref/sdk.html#go)，里面有相关的快速开始示例
-
-喜欢视频教程的朋友，可以访问[分布式事务教程-快速开始](https://www.bilibili.com/video/BV1fS4y1h7Tj/)
-
-### 运行dtm
+### run dtm
 
 ``` bash
 git clone https://github.com/dtm-labs/dtm && cd dtm
 go run main.go
 ```
 
-### 启动并运行一个saga示例
-下面运行一个类似跨行转账的示例，包括两个事务分支：资金转出（TransOut)、资金转入（TransIn)。DTM保证TransIn和TransOut要么全部成功，要么全部回滚，保证最终金额的正确性。
+### Start an example
+Suppose we want to perform an inter-bank transfer. The operations of transfer out (TransOut) and transfer in (TransIn) are coded in separate micro-services.
+
+Here is an example to illustrate a solution of dtm to this problem:
 
 ``` bash
 git clone https://github.com/dtm-labs/dtmcli-go-sample && cd dtmcli-go-sample
 go run main.go
 ```
 
-## 接入详解
+## Code
 
-### 接入代码
-``` GO
-  // 具体业务微服务地址
+### Use
+``` go
+  // business micro-service address
   const qsBusi = "http://localhost:8081/api/busi_saga"
-  req := &gin.H{"amount": 30} // 微服务的载荷
-  // DtmServer为DTM服务的地址，是一个url
+  // The address where DtmServer serves DTM, which is a url
   DtmServer := "http://localhost:36789/api/dtmsvr"
-  saga := dtmcli.NewSaga(DtmServer, dtmcli.MustGenGid(DtmServer)).
-    // 添加一个TransOut的子事务，正向操作为url: qsBusi+"/TransOut"， 补偿操作为url: qsBusi+"/TransOutCom"
-    Add(qsBusi+"/TransOut", qsBusi+"/TransOutCom", req).
-    // 添加一个TransIn的子事务，正向操作为url: qsBusi+"/TransIn"， 补偿操作为url: qsBusi+"/TransInCom"
-    Add(qsBusi+"/TransIn", qsBusi+"/TransInCom", req)
-  // 提交saga事务，dtm会完成所有的子事务/回滚所有的子事务
-  err := saga.Submit()
+  req := &gin.H{"amount": 30} // micro-service payload
+	// DtmServer is the address of DTM micro-service
+	saga := dtmcli.NewSaga(DtmServer, dtmcli.MustGenGid(DtmServer)).
+		// add a TransOut subtraction，forward operation with url: qsBusi+"/TransOut", reverse compensation operation with url: qsBusi+"/TransOutCom"
+		Add(qsBusi+"/TransOut", qsBusi+"/TransOutCom", req).
+		// add a TransIn subtraction, forward operation with url: qsBusi+"/TransIn", reverse compensation operation with url: qsBusi+"/TransInCom"
+		Add(qsBusi+"/TransIn", qsBusi+"/TransInCom", req)
+	// submit the created saga transaction，dtm ensures all subtractions either complete or get revoked
+	err := saga.Submit()
 ```
 
-成功运行后，可以看到TransOut、TransIn依次被调用，完成了整个分布式事务
+When the above code runs, we can see in the console that services TransOut, TransIn has been called.
 
-### 时序图
+#### Timing diagram
+A timing diagram for a successfully completed SAGA transaction would be as follows:
 
-上述saga分布式事务的时序图如下：
+<img alt="saga-success" src="https://en.dtm.pub/assets/saga_normal.59a75c01.jpg" height=450/>
 
-<img src="https://pic3.zhimg.com/80/v2-b7d98659093c399e182a0173a8e549ca_1440w.jpg" height=428 />
+#### Rollback upon failure
+If any forward operation fails, DTM invokes the corresponding compensating operation of each sub-transaction to roll back, after which the transaction is successfully rolled back.
 
-### 失败情况
-在实际的业务中，子事务可能出现失败，例如转入的子账号被冻结导致转账失败。我们对业务代码进行修改，让TransIn的正向操作失败，然后看看结果
+Let's purposely fail the forward operation of the second sub-transaction and watch what happens
 
 ``` go
-	app.POST(qsBusiAPI+"/TransIn", func(c *gin.Context) {
-		logger.Infof("TransIn")
-		c.JSON(409, "") // Status 409 表示失败，不再重试，直接回滚
-	})
+app.POST(qsBusiAPI+"/TransIn", func(c *gin.Context) {
+  log.Printf("TransIn")
+  // c.JSON(200, "")
+  c.JSON(409, "") // Status 409 for Failure. Won't be retried
+})
 ```
 
-再运行这个例子，整个事务最终失败，时序图如下：
+The timing diagram for the intended failure is as follows:
 
-<img src="https://pic3.zhimg.com/80/v2-8d8f1476be8a1e2e09ce97a89b4116c2_1440w.jpg"  height=528 />
+<img alt="saga-failed" src="https://en.dtm.pub/assets/saga_rollback.7989c866.jpg" height=550>
 
-在转入操作失败的情况下，TransIn和TransOut的补偿操作被执行，保证了最终的余额和转账前是一样的。
+## More examples
 
-### 更多示例
-上述示例主要演示了分布式事务的流程，更多的内容，包括如何与实际的数据库对接，如何做补偿，如何做回滚等实际的例子，请参考[dtm-labs/dtm-examples](https://github.com/dtm-labs/dtm-examples)
+The above example mainly demonstrates the flow of a distributed transaction. More on this, including practical examples of how to interface with an actual database, how to do compensation, how to do rollback, etc. please refer to [dtm-examples](https://github.com/dtm-labs/dtm-examples) for more examples.
 
-## 联系我们
-### 微信交流群
+## Chat Group
 
-如果您希望更快的获得反馈，或者更多的了解其他用户在使用过程中的各种反馈，欢迎加入我们的微信交流群
+Join the chat via [https://discord.gg/dV9jS5Rb33](https://discord.gg/dV9jS5Rb33).
 
-请加作者的微信 yedf2008 好友或者扫码加好友，备注 `dtm` 按照指引进群
+## Give a star! ⭐
 
-![yedf2008](http://service.ivydad.com/cover/dubbingb6b5e2c0-2d2a-cd59-f7c5-c6b90aceb6f1.jpeg)
-
-欢迎使用[dtm](https://github.com/dtm-labs/dtm)，或者通过dtm学习实践分布式事务相关知识，欢迎star支持我们
-
+If you think this project is interesting, or helpful to you, please give a star!
