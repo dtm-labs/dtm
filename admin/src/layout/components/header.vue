@@ -3,7 +3,7 @@
         <a-layout-header class="header flex">
             <div class="flex items-center logo h-16">
                 <svg-icon style="width: 36px; height: 36px; margin-right: 84px;" icon-class="svg-logo" />
-                <span class="text-gray-400 text-lg">DTM dashbaord {{ version }}</span>
+                <span class="text-gray-400 text-lg">DTM admin {{ version }}</span>
             </div>
             <a-menu
             v-model:selectedKeys="activeMenu"
@@ -25,8 +25,8 @@ import { useLayoutStore } from '/@/store/modules/layout'
 const route = useRoute()
 const router = useRouter()
 const { getMenubar, getCurrentVersion } = useLayoutStore()
-const firstRedirectPath = '/dashboard'
-const version = import.meta.env.VITE_DASHBOARD_VERSION
+const firstRedirectPath = '/admin'
+const version = import.meta.env.VITE_ADMIN_VERSION
 
 const activeMenu = ref([route.meta.activeMenu !== firstRedirectPath ? route.meta.activeMenu : '/'])
 

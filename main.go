@@ -7,12 +7,16 @@
 package main
 
 import (
+	"embed"
 	"fmt"
+	"io/fs"
+	"io/ioutil"
 	"net/http"
 	"net/http/httputil"
 	"net/url"
 
 	"github.com/dtm-labs/dtm/dtmcli/logger"
+	"github.com/dtm-labs/dtm/dtmsvr/config"
 	"github.com/dtm-labs/dtm/dtmsvr/entry"
 	_ "github.com/dtm-labs/dtm/dtmsvr/microservices"
 	"github.com/gin-gonic/gin"
@@ -22,23 +26,51 @@ import (
 var Version string
 
 func main() {
-	app := entry.Main(&Version)
+	app, conf := entry.Main(&Version)
 	if app != nil {
-		addDashboard(app)
+		addAdmin(app, conf)
 		select {}
 	}
 }
-func addDashboard(app *gin.Engine) {
-	app.GET("/dashboard/*name", proxyDashboard)
-	app.GET("/@vite/*name", proxyDashboard)
-	app.GET("/node_modules/*name", proxyDashboard)
-	app.GET("/src/*name", proxyDashboard)
-	app.GET("/@id/*name", proxyDashboard)
+
+//go:embed admin/dist
+var admin embed.FS
+
+var target = "admin.dtm.pub"
+
+func getSub(f1 fs.FS, sub string) fs.FS {
+	f2, err := fs.Sub(f1, sub)
+	logger.FatalIfError(err)
+	return f2
+}
+func addAdmin(app *gin.Engine, conf *config.Type) {
+	// for released dtm, serve admin from local files because the build output has been embed
+	// for testing users, proxy admin to target because the build output has not been embed
+	dist := getSub(admin, "admin/dist")
+	index, err := dist.Open("index.html")
+	if err == nil {
+		cont, err := ioutil.ReadAll(index)
+		logger.FatalIfError(err)
+		_ = index.Close()
+		sfile := string(cont)
+		renderIndex := func(c *gin.Context) {
+			c.Header("content-type", "text/html;charset=utf-8")
+			c.String(200, sfile)
+		}
+		app.StaticFS("/assets", http.FS(getSub(dist, "assets")))
+		app.GET("/admin/*name", renderIndex)
+		app.GET("/", renderIndex)
+		logger.Infof("admin is served from dir 'admin/dist/'")
+	} else {
+		app.GET("/", proxyAdmin)
+		app.GET("/admin/*name", proxyAdmin)
+		logger.Infof("admin is proxied to %s", target)
+	}
+	logger.Infof("admin is running at: http://localhost:%d", conf.HTTPPort)
 }
 
-func proxyDashboard(c *gin.Context) {
+func proxyAdmin(c *gin.Context) {
 
-	target := "127.0.0.1:5000"
 	u := &url.URL{}
 	u.Scheme = "http"
 	u.Host = target
@@ -49,7 +81,7 @@ func proxyDashboard(c *gin.Context) {
 		ret := fmt.Sprintf("http proxy error %v", err)
 		_, _ = rw.Write([]byte(ret))
 	}
-	logger.Debugf("proxy dashboard to %s", target)
+	logger.Debugf("proxy admin to %s", target)
 	proxy.ServeHTTP(c.Writer, c.Request)
 
 }

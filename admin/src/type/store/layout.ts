@@ -1,14 +1,15 @@
 export interface IMenubar {
-    menuList: Array<IMenubarList>
+  menuList: Array<IMenubarList>
 }
 
 export interface ILayout {
-    menubar: IMenubar
-    status: IStatus
+  menubar: IMenubar
+  status: IStatus
+  dtmVersion: string
 }
 
 export interface IStatus {
-    isLoading: boolean
+  isLoading: boolean
 }
 
 export interface IMenubarList {
@@ -16,7 +17,7 @@ export interface IMenubarList {
   id?: number | string
   name: string
   path: string
-  redirect?: string 
+  redirect?: string
   meta: {
     icon?: string
     title: string

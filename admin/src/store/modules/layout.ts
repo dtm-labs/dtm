@@ -1,16 +1,18 @@
 import { defineStore } from 'pinia';
 import { allowRouter } from '/@/router';
 import { ILayout, IMenubar, IMenubarList, IStatus } from '/@/type/store/layout';
+import { getDtmVersion } from '/@/api/api_dtm';
 
 export const useLayoutStore = defineStore({
     id: 'layout',
-    state: ():ILayout => ({
+    state: (): ILayout => ({
         menubar: {
             menuList: []
         },
         status: {
             isLoading: false
         },
+        dtmVersion: "",
     }),
     getters: {
         getMenubar(): IMenubar {
@@ -27,5 +29,10 @@ export const useLayoutStore = defineStore({
         concatAllowRoutes(): void {
             allowRouter.reverse().forEach(v => this.menubar.menuList.unshift(v))
         },
+        async loadDtmVersion(): Promise<void> {
+            const { data: { version } } = await getDtmVersion()
+            this.dtmVersion = version
+            console.log("dtm version: ", this.dtmVersion)
+        }
     }
 })
