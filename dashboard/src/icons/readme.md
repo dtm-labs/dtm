@@ -1,1 +1,0 @@
-# ICon Component
