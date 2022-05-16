@@ -27,47 +27,43 @@ var Version string
 func main() {
 	app, conf := entry.Main(&Version)
 	if app != nil {
-		addDashboard(app, conf)
+		addAdmin(app, conf)
 		select {}
 	}
 }
 
-//go:embed dashboard/dist
-var dashboard embed.FS
+//go:embed admin/dist
+var admin embed.FS
 
-//go:embed dashboard/dist/index.html
+//go:embed admin/dist/index.html
 var indexFile string
 
-var target = "127.0.0.1:5000"
+var target = ""
 
 func getSub(f1 fs.FS, sub string) fs.FS {
 	f2, err := fs.Sub(f1, sub)
 	logger.FatalIfError(err)
 	return f2
 }
-func addDashboard(app *gin.Engine, conf *config.ConfigType) {
-	dist := getSub(dashboard, "dashboard/dist")
+func addAdmin(app *gin.Engine, conf *config.ConfigType) {
+	dist := getSub(admin, "admin/dist")
 	_, err := dist.Open("index.html")
 	if err == nil {
 		app.StaticFS("/assets", http.FS(getSub(dist, "assets")))
-		app.GET("/dashboard/*name", func(c *gin.Context) {
+		app.GET("/admin/*name", func(c *gin.Context) {
 			c.Header("content-type", "text/html;charset=utf-8")
 			c.String(200, indexFile)
 		})
-		logger.Infof("dashboard is served from dir 'dashboard/dist/'")
+		logger.Infof("admin is served from dir 'admin/dist/'")
 	} else {
-		app.GET("/", proxyDashboard)
-		app.GET("/dashboard/*name", proxyDashboard)
-		app.GET("/@vite/*name", proxyDashboard)
-		app.GET("/node_modules/*name", proxyDashboard)
-		app.GET("/src/*name", proxyDashboard)
-		app.GET("/@id/*name", proxyDashboard)
-		logger.Infof("dashboard is proxied to %s", target)
+		app.GET("/", proxyAdmin)
+		app.GET("/admin/*name", proxyAdmin)
+		logger.Infof("admin is proxied to %s", target)
 	}
-	logger.Infof("Dashboard is running at: http://localhost:%d", conf.HTTPPort)
+	logger.Infof("admin is running at: http://localhost:%d", conf.HTTPPort)
 }
 
-func proxyDashboard(c *gin.Context) {
+func proxyAdmin(c *gin.Context) {
 
 	u := &url.URL{}
 	u.Scheme = "http"
@@ -79,7 +75,7 @@ func proxyDashboard(c *gin.Context) {
 		ret := fmt.Sprintf("http proxy error %v", err)
 		_, _ = rw.Write([]byte(ret))
 	}
-	logger.Debugf("proxy dashboard to %s", target)
+	logger.Debugf("proxy admin to %s", target)
 	proxy.ServeHTTP(c.Writer, c.Request)
 
 }

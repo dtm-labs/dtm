@@ -9,39 +9,39 @@ const Components: IObject<() => Promise<typeof import('*.vue')>> = Object.assign
 
 export const allowRouter: Array<IMenubarList> = [
   {
-    name: 'Dashboard',
+    name: 'Admin',
     path: '/',
-    redirect: '/dashboard/global-transactions/all',
+    redirect: '/admin/global-transactions/all',
     component: Components['LayoutHeader'],
-    meta: { title: 'Dashboard', activeMenu: '/dashboard' },
+    meta: { title: 'Admin', activeMenu: '/admin' },
     children: [
       {
         name: 'Nodes',
-        path: '/dashboard/nodes',
+        path: '/admin/nodes',
         component: Components['LayoutMain'],
         meta: { title: 'Nodes' },
         children: [
           {
             name: 'LivingNodes',
-            path: '/dashboard/nodes/living',
+            path: '/admin/nodes/living',
             component: Components['LivingNodes'],
             meta: { title: 'Living Nodes' },
           }
         ]
       }, {
         name: 'GlobalTransactions',
-        path: '/dashboard/global-transactions',
+        path: '/admin/global-transactions',
         component: Components['LayoutMain'],
         meta: { title: 'Global Transactions' },
         children: [
           {
             name: 'AllTransactions',
-            path: '/dashboard/global-transactions/all',
+            path: '/admin/global-transactions/all',
             component: Components['AllTransactions'],
             meta: { title: 'All Transactions' },
           }, {
             name: 'UnfinishedTransactions',
-            path: '/dashboard/global-transactions/unfinished',
+            path: '/admin/global-transactions/unfinished',
             component: Components['UnfinishedTransactions'],
             meta: { title: 'Unfinished Transactions' },
           }

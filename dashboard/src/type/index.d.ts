@@ -1,4 +1,4 @@
-export {}
+export { }
 declare global {
   interface IObject<T> {
     [index: string]: T
@@ -7,11 +7,11 @@ declare global {
     VITE_APP_TITLE: string
     VITE_PORT: number
     VITE_PROXY: string
-    VITE_DASHBOARD_VERSION: string
+    VITE_ADMIN_VERSION: string
   }
   interface ITable<T = any> {
-      data: Array<T>
-      next_position: number,
-      size: number
+    data: Array<T>
+    next_position: number,
+    size: number
   }
 }

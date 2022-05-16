@@ -29,7 +29,7 @@ export default ({ }: ConfigEnv): UserConfigExport => {
         ],
         server: {
             port: 5000,
-            base: 'dashboard',
+            base: 'admin',
             proxy: {
                 '/api': {
                     target: 'http://localhost:36789',
