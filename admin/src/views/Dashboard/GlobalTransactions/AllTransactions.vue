@@ -53,15 +53,11 @@ const columns = [
     }
 ]
 
-const pager = ref([""])
-const currentState = ref(1)
+const pages = ref([''])
+const curPage = ref(1)
 
 const canPrev = computed(() => {
-    if (currentState.value === 1) {
-        return false;
-    }
-
-    return true;
+    return curPage.value > 1
 })
 
 const canNext = computed(() => {
@@ -83,10 +79,11 @@ const queryData = (params: IListAllTransactions) => {
     return listAllTransactions<Data>(params)
 }
 
+
 const { data, run, current, loading, pageSize } = usePagination(queryData, {
     defaultParams: [
         {
-            limit: 100,
+            limit: 10,
         }
     ],
     pagination: {
@@ -97,25 +94,21 @@ const { data, run, current, loading, pageSize } = usePagination(queryData, {
 const dataSource = computed(() => data.value?.data.transactions || [])
 
 const handlePrevPage = () => {
-    currentState.value -= 1;
+    curPage.value -= 1;
     const params = {
-        limit: 100
-    }
-    if (pager.value[currentState.value - 1]) {
-        params.position = pager.value[currentState.value - 1]
+        limit: pageSize.value,
+        position: pages.value[curPage.value]
     }
     run(params)
 }
 
 const handleNextPage = () => {
-    currentState.value += 1;
-    if (currentState.value >= 2) {
-        pager.value[currentState.value - 1] = data.value?.data.next_position
-    }
+    curPage.value += 1;
+    pages.value[curPage.value] = data.value?.data.next_position
 
     run({
         position: data.value?.data.next_position,
-        limit: 5
+        limit: pageSize.value,
     })
 }
 </script>
