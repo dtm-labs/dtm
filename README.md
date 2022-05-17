@@ -17,11 +17,13 @@ DTM is a distributed transaction framework which provides cross-service eventual
 
 ## Who's using DTM (partial)
 
-[Tencent](https://www.tencent.com/)
+[Tencent](https://en.dtm.pub/other/using.html#tencent)
 
-[Bytedance](https://www.bytedance.com/)
+[Bytedance](https://en.dtm.pub/other/using.html#bytedance)
 
-[Ivydad](https://ivydad.com)
+[Ivydad](https://en.dtm.pub/other/using.html#ivydad)
+
+[More](https://en.dtm.pub/other/using.html)
 
 ## [Cook Book](https://en.dtm.pub)
 
