@@ -32,7 +32,7 @@ jobs:
           scp -i deploy_key -o StrictHostKeyChecking=no dist.tar.gz ${{env.host}}:${{env.dest}}
           ssh -i deploy_key -o StrictHostKeyChecking=no ${{env.host}} 'cd ${{env.dest}} && tar -zvxf dist.tar.gz'
           rm deploy_key dist.tar.gz
-          git checkout -f dist
+          echo > dist/placeholder
           cd ..
 
       - name: Validates GO releaser config
