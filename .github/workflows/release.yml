@@ -18,20 +18,25 @@ jobs:
       - name: Check out code
         uses: actions/checkout@v3
 
-      # - name: Setup node
-      #   uses: actions/setup-node@v3
-      #   with:
-      #     node-version: 14
+      - name: Setup node
+        uses: actions/setup-node@v3
+        with:
+          node-version: 14
 
-      # - name: Build admin
+      - name: Build admin
+        run: |
+          cd admin
+          npm install -g yarn
+          yarn
+          VITE_ADMIN_VERSION=${{ env.RELEASE_VERSION }} yarn build
+          cd ..
+
+      # - name: Scp admin
       #   env:
       #     host: 'ubuntu@en.dtm.pub'
       #     dest: '/data/dtm-admin/'
       #   run: |
       #     cd admin
-      #     npm install -g yarn
-      #     yarn
-      #     VITE_ADMIN_VERSION=${{ env.RELEASE_VERSION }} yarn build
       #     echo "${{secrets.DEPLOY_KEY}}" > deploy_key
       #     chmod 600 ./deploy_key
       #     tar -cvzf dist.tar.gz dist
