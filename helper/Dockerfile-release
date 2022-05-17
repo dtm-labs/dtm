@@ -1,12 +1,11 @@
 # syntax=docker/dockerfile:1
-FROM node:14.5.0-alpine as bulder1
+FROM node:14.5.0-alpine as builder1
 ARG RELEASE_VERSION
 WORKDIR /app/dtm
 COPY . .
-RUN cd admin && yarn
-RUN VITE_ADMIN_VERSION=$RELEASE_VERSION yarn build
+RUN cd admin && yarn && VITE_ADMIN_VERSION=$RELEASE_VERSION yarn build
 
-FROM --platform=$TARGETPLATFORM golang:1.16-alpine as builder
+FROM --platform=$TARGETPLATFORM golang:1.16-alpine as builder2
 ARG TARGETARCH
 ARG TARGETOS
 ARG RELEASE_VERSION
@@ -14,10 +13,10 @@ WORKDIR /app/dtm
 # RUN go env -w GOPROXY=https://mirrors.aliyun.com/goproxy/,direct
 EXPOSE 8080
 COPY . .
-COPY --from=bulder1 /app/dtm/admin/dist /app/dtm/admin
+COPY --from=builder1 /app/dtm/admin/dist /app/dtm/admin
 RUN CGO_ENABLED=0 GOOS=$TARGETOS GOARCH=$TARGETARCH go build -ldflags="-s -w -X main.Version=$RELEASE_VERSION"
 
 FROM --platform=$TARGETPLATFORM alpine
-COPY --from=builder /app/dtm/dtm /app/dtm/
+COPY --from=builder2 /app/dtm/dtm /app/dtm/
 WORKDIR /app/dtm
 ENTRYPOINT ["/app/dtm/dtm"]
