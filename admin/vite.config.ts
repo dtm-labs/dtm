@@ -28,7 +28,7 @@ export default ({ }: ConfigEnv): UserConfigExport => {
             })
         ],
         server: {
-            port: 5000,
+            port: 6789,
             base: 'admin',
             proxy: {
                 '/api': {

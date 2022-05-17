@@ -31,32 +31,32 @@ jobs:
           VITE_ADMIN_VERSION=${{ env.RELEASE_VERSION }} yarn build
           cd ..
 
-      # - name: Scp admin
-      #   env:
-      #     host: 'ubuntu@en.dtm.pub'
-      #     dest: '/data/dtm-admin/'
-      #   run: |
-      #     cd admin
-      #     echo "${{secrets.DEPLOY_KEY}}" > deploy_key
-      #     chmod 600 ./deploy_key
-      #     tar -cvzf dist.tar.gz dist
-      #     scp -i deploy_key -o StrictHostKeyChecking=no dist.tar.gz ${{env.host}}:${{env.dest}}
-      #     ssh -i deploy_key -o StrictHostKeyChecking=no ${{env.host}} 'cd ${{env.dest}} && tar -zvxf dist.tar.gz'
-      #     rm deploy_key dist.tar.gz
-      #     echo > dist/placeholder
-      #     cd ..
+      - name: Scp admin
+        env:
+          host: 'ubuntu@en.dtm.pub'
+          dest: '/data/dtm-admin/'
+        run: |
+          cd admin
+          echo "${{secrets.DEPLOY_KEY}}" > deploy_key
+          chmod 600 ./deploy_key
+          tar -cvzf dist.tar.gz dist
+          scp -i deploy_key -o StrictHostKeyChecking=no dist.tar.gz ${{env.host}}:${{env.dest}}
+          ssh -i deploy_key -o StrictHostKeyChecking=no ${{env.host}} 'cd ${{env.dest}} && tar -zvxf dist.tar.gz'
+          rm deploy_key dist.tar.gz
+          echo > dist/placeholder
+          cd ..
 
-      # - name: Validates GO releaser config
-      #   uses: docker://goreleaser/goreleaser:v1.7.0
-      #   with:
-      #     args: check
+      - name: Validates GO releaser config
+        uses: docker://goreleaser/goreleaser:v1.7.0
+        with:
+          args: check
 
-      # - name: Create release on GitHub
-      #   uses: docker://goreleaser/goreleaser:v1.7.0
-      #   with:
-      #     args: release -f helper/.goreleaser.yml --rm-dist
-      #   env:
-      #     GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
+      - name: Create release on GitHub
+        uses: docker://goreleaser/goreleaser:v1.7.0
+        with:
+          args: release -f helper/.goreleaser.yml --rm-dist
+        env:
+          GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
 
       - name: Create Docker
         id: meta
