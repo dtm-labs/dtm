@@ -276,7 +276,7 @@ func (s *Store) ScanTransGlobalStores(position *string, limit int64) []storage.T
 	globals := []storage.TransGlobalStore{}
 	err := s.boltDb.View(func(t *bolt.Tx) error {
 		cursor := t.Bucket(bucketGlobal).Cursor()
-		for k, v := cursor.First(); k != nil; k, v = cursor.Next() {
+		for k, v := cursor.Seek([]byte(*position)); k != nil; k, v = cursor.Next() {
 			if string(k) == *position {
 				continue
 			}
