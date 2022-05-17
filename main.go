@@ -63,6 +63,7 @@ func addAdmin(app *gin.Engine, conf *config.Type) {
 		logger.Infof("admin is served from dir 'admin/dist/'")
 	} else {
 		app.GET("/", proxyAdmin)
+		app.GET("/assets/*name", proxyAdmin)
 		app.GET("/admin/*name", proxyAdmin)
 		logger.Infof("admin is proxied to %s", target)
 	}
@@ -82,6 +83,7 @@ func proxyAdmin(c *gin.Context) {
 		_, _ = rw.Write([]byte(ret))
 	}
 	logger.Debugf("proxy admin to %s", target)
+	c.Request.Host = target
 	proxy.ServeHTTP(c.Writer, c.Request)
 
 }
