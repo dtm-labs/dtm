@@ -9,6 +9,12 @@ jobs:
     name: Release on GitHub
     runs-on: ubuntu-latest
     steps:
+      - name: Get Release Version
+        run: |
+          export RELEASE_VERSION=${GITHUB_REF#refs/*/}
+          echo RELEASE_VERSION: ${RELEASE_VERSION}
+          echo "RELEASE_VERSION=${RELEASE_VERSION}" >> $GITHUB_ENV
+
       - name: Check out code
         uses: actions/checkout@v3
 
@@ -25,7 +31,7 @@ jobs:
           cd admin
           npm install -g yarn
           yarn
-          VITE_ADMIN_VERSION=${GITHUB_REF#refs/*/} yarn build
+          VITE_ADMIN_VERSION=${{ env.RELEASE_VERSION }} yarn build
           echo "${{secrets.DEPLOY_KEY}}" > deploy_key
           chmod 600 ./deploy_key
           tar -cvzf dist.tar.gz dist
@@ -47,7 +53,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
 
-      - name: Docker meta
+      - name: Create Docker
         id: meta
         uses: docker/metadata-action@v3
         with:
@@ -70,9 +76,6 @@ jobs:
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
-
-      - name: Get Release Version
-        run: echo "RELEASE_VERSION=${GITHUB_REF#refs/*/}" >> $GITHUB_ENV
 
       - name: Build and push
         uses: docker/build-push-action@v2
