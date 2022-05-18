@@ -34,6 +34,7 @@ jobs:
       - name: Scp admin
         env:
           host: 'ubuntu@en.dtm.pub'
+          host2: 'ubuntu@dtm.pub'
           dest: '/data/dtm-admin/'
         run: |
           cd admin
@@ -42,6 +43,8 @@ jobs:
           tar -cvzf dist.tar.gz dist
           scp -i deploy_key -o StrictHostKeyChecking=no dist.tar.gz ${{env.host}}:${{env.dest}}
           ssh -i deploy_key -o StrictHostKeyChecking=no ${{env.host}} 'cd ${{env.dest}} && tar -zvxf dist.tar.gz'
+          scp -i deploy_key -o StrictHostKeyChecking=no dist.tar.gz ${{env.host2}}:${{env.dest}}
+          ssh -i deploy_key -o StrictHostKeyChecking=no ${{env.host2}} 'cd ${{env.dest}} && tar -zvxf dist.tar.gz'
           rm deploy_key dist.tar.gz
           echo > dist/placeholder
           cd ..

@@ -14,6 +14,8 @@ import (
 	"net/http"
 	"net/http/httputil"
 	"net/url"
+	"os"
+	"strings"
 
 	"github.com/dtm-labs/dtm/dtmcli/logger"
 	"github.com/dtm-labs/dtm/dtmsvr/config"
@@ -36,7 +38,7 @@ func main() {
 //go:embed admin/dist
 var admin embed.FS
 
-var target = "admin.dtm.pub"
+var target = ""
 
 func getSub(f1 fs.FS, sub string) fs.FS {
 	f2, err := fs.Sub(f1, sub)
@@ -65,6 +67,12 @@ func addAdmin(app *gin.Engine, conf *config.Type) {
 		app.GET("/", proxyAdmin)
 		app.GET("/assets/*name", proxyAdmin)
 		app.GET("/admin/*name", proxyAdmin)
+		lang := os.Getenv("LANG")
+		if strings.HasPrefix(lang, "zh_CN") {
+			target = "dtm.pub"
+		} else {
+			target = "end.dtm.pub"
+		}
 		logger.Infof("admin is proxied to %s", target)
 	}
 	logger.Infof("admin is running at: http://localhost:%d", conf.HTTPPort)
