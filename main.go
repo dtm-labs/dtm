@@ -69,9 +69,9 @@ func addAdmin(app *gin.Engine, conf *config.Type) {
 		app.GET("/admin/*name", proxyAdmin)
 		lang := os.Getenv("LANG")
 		if strings.HasPrefix(lang, "zh_CN") {
-			target = "dtm.pub"
+			target = "cn-admin.dtm.pub"
 		} else {
-			target = "end.dtm.pub"
+			target = "admin.dtm.pub"
 		}
 		logger.Infof("admin is proxied to %s", target)
 	}
