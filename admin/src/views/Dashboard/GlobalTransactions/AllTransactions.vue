@@ -9,7 +9,7 @@
                 </template>
                 <template v-else-if="column.key === 'action'">
                     <span>
-                        <a class="mr-2 font-medium">Detail</a>
+                        <a class="mr-2 font-medium" @click="handleTransactionDetail(record.gid)">Detail</a>
                         <a class="text-red-400 font-medium">Stop</a>
                     </span>
                 </template>
@@ -19,13 +19,15 @@
             <a-button type="text" :disabled="!canPrev" @click="handlePrevPage">Previous</a-button>
             <a-button type="text" :disabled="!canNext" @click="handleNextPage">Next</a-button>
         </div>
+
+    <DialogTransactionDetail ref="transactionDetail" />
     </div>
 </template>
 <script setup lang="ts">
-import { IListAllTransactions, listAllTransactions } from '/@/api/api_dtm'
-import { ref, onMounted, reactive, computed } from 'vue-demi'
+import { IListAllTransactionsReq, listAllTransactions } from '/@/api/api_dtm'
+import { ref, computed } from 'vue-demi'
 import { usePagination } from 'vue-request'
-import { TableProps } from 'ant-design-vue/es/vc-table/Table'
+import DialogTransactionDetail from './_Components/DialogTransactionDetail.vue';
 const columns = [
     {
         title: 'GID',
@@ -75,10 +77,9 @@ type Data = {
     next_position: string
 }
 
-const queryData = (params: IListAllTransactions) => {
+const queryData = (params: IListAllTransactionsReq) => {
     return listAllTransactions<Data>(params)
 }
-
 
 const { data, run, current, loading, pageSize } = usePagination(queryData, {
     defaultParams: [
@@ -97,20 +98,26 @@ const handlePrevPage = () => {
     curPage.value -= 1;
     const params = {
         limit: pageSize.value,
-        position: pages.value[curPage.value]
+        position: pages.value[curPage.value] as string
     }
     run(params)
 }
 
 const handleNextPage = () => {
     curPage.value += 1;
-    pages.value[curPage.value] = data.value?.data.next_position
+    pages.value[curPage.value] = data.value?.data.next_position as string
 
     run({
         position: data.value?.data.next_position,
         limit: pageSize.value,
     })
 }
+
+const transactionDetail = ref<null | {open:(gid: string) => null}>(null)
+const handleTransactionDetail = (gid: string) => {
+    transactionDetail.value?.open(gid)
+}
+
 </script>
 
 <style lang="postcss" scoped>
