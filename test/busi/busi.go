@@ -106,8 +106,9 @@ func SagaMongoAdjustBalance(ctx context.Context, mc *mongo.Client, uid int, amou
 }
 
 func tccAdjustTrading(db dtmcli.DB, uid int, amount int) error {
-	affected, err := dtmimp.DBExec(db, `update dtm_busi.user_account set trading_balance=trading_balance+?
-		 where user_id=? and trading_balance + ? + balance >= 0`, amount, uid, amount)
+	affected, err := dtmimp.DBExec(db, `update dtm_busi.user_account
+		set trading_balance=trading_balance+?
+		where user_id=? and trading_balance + ? + balance >= 0`, amount, uid, amount)
 	if err == nil && affected == 0 {
 		return fmt.Errorf("update error, maybe balance not enough")
 	}
@@ -115,8 +116,9 @@ func tccAdjustTrading(db dtmcli.DB, uid int, amount int) error {
 }
 
 func tccAdjustBalance(db dtmcli.DB, uid int, amount int) error {
-	affected, err := dtmimp.DBExec(db, `update dtm_busi.user_account set trading_balance=trading_balance-?,
-		 balance=balance+? where user_id=?`, amount, amount, uid)
+	affected, err := dtmimp.DBExec(db, `update dtm_busi.user_account
+		set trading_balance=trading_balance-?,
+		balance=balance+? where user_id=?`, amount, amount, uid)
 	if err == nil && affected == 0 {
 		return fmt.Errorf("update user_account 0 rows")
 	}

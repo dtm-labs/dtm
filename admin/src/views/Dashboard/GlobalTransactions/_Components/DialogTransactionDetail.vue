@@ -1,14 +1,8 @@
 <template>
     <div>
-        <a-modal v-model:visible="visible" title="Transaction Detail" width="80%">
+        <a-modal v-model:visible="visible" title="Transaction Detail" width="100%" wrap-class-name="full-modal">
             <a-table :columns="columns" :data-source="dataSource" :pagination="false">
                 <template #bodyCell="{column, record}">
-                    <template v-if="column.key === 'op'">
-                        <span class="font-medium">{{ record.op.toUpperCase()}}</span>
-                    </template>
-                    <template v-if="column.key === 'status'">
-                        <span class="font-medium">{{ record.status.toUpperCase()}}</span>
-                    </template>
                 </template>
             </a-table>
             <div class="mt-10 relative">
@@ -104,3 +98,20 @@ defineExpose({
 })
 
 </script>
+
+<style lang="postcss">
+.full-modal .ant-modal {
+    max-width: 100%;
+    top: 0;
+    padding-bottom: 0;
+    margin: 0;
+  }
+.full-modal .ant-modal-content {
+    display: flex;
+    flex-direction: column;
+    height: calc(100vh);
+  }
+.full-modal .ant-modal-body {
+    flex: 1;
+  }
+</style>

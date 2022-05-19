@@ -4,7 +4,7 @@
             <template #bodyCell="{column, record}">
                 <template v-if="column.key === 'status'">
                     <span>
-                        <a-tag :key="record.status" :color="record.status === 'succeed' ? 'green' : 'volcano'">{{ record.status.toUpperCase() }}</a-tag>
+                        <a-tag :key="record.status" :color="record.status === 'succeed' ? 'green' : 'volcano'">{{ record.status }}</a-tag>
                     </span>
                 </template>
                 <template v-else-if="column.key === 'action'">
