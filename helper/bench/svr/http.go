@@ -122,7 +122,7 @@ func qsAdjustBalance(uid int, amount int, c *gin.Context) error { // nolint: unp
 	if strings.Contains(mode, "barrier") {
 		barrier, err := dtmcli.BarrierFromQuery(c.Request.URL.Query())
 		logger.FatalIfError(err)
-		err = barrier.Call(txGet(), f)
+		err = barrier.CallWithDB(pdbGet(), f)
 		logger.FatalIfError(err)
 	} else {
 		tx := txGet()

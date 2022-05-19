@@ -22,49 +22,49 @@ func init() {
 	setupFuncs["BarrierSetup"] = func(app *gin.Engine) {
 		app.POST(BusiAPI+"/SagaBTransIn", dtmutil.WrapHandler(func(c *gin.Context) interface{} {
 			barrier := MustBarrierFromGin(c)
-			return barrier.Call(txGet(), func(tx *sql.Tx) error {
+			return barrier.CallWithDB(pdbGet(), func(tx *sql.Tx) error {
 				return SagaAdjustBalance(tx, TransInUID, reqFrom(c).Amount, reqFrom(c).TransInResult)
 			})
 		}))
 		app.POST(BusiAPI+"/SagaBTransInCom", dtmutil.WrapHandler(func(c *gin.Context) interface{} {
 			barrier := MustBarrierFromGin(c)
-			return barrier.Call(txGet(), func(tx *sql.Tx) error {
+			return barrier.CallWithDB(pdbGet(), func(tx *sql.Tx) error {
 				return SagaAdjustBalance(tx, TransInUID, -reqFrom(c).Amount, "")
 			})
 		}))
 		app.POST(BusiAPI+"/SagaB2TransIn", dtmutil.WrapHandler(func(c *gin.Context) interface{} {
 			barrier := MustBarrierFromGin(c)
-			err := barrier.Call(txGet(), func(tx *sql.Tx) error {
+			err := barrier.CallWithDB(pdbGet(), func(tx *sql.Tx) error {
 				return SagaAdjustBalance(tx, TransInUID, reqFrom(c).Amount/2, reqFrom(c).TransInResult)
 			})
 			if err != nil {
 				return err
 			}
-			return barrier.Call(txGet(), func(tx *sql.Tx) error {
+			return barrier.CallWithDB(pdbGet(), func(tx *sql.Tx) error {
 				return SagaAdjustBalance(tx, TransInUID, reqFrom(c).Amount/2, reqFrom(c).TransInResult)
 			})
 		}))
 		app.POST(BusiAPI+"/SagaB2TransInCom", dtmutil.WrapHandler(func(c *gin.Context) interface{} {
 			barrier := MustBarrierFromGin(c)
-			err := barrier.Call(txGet(), func(tx *sql.Tx) error {
+			err := barrier.CallWithDB(pdbGet(), func(tx *sql.Tx) error {
 				return SagaAdjustBalance(tx, TransInUID, -reqFrom(c).Amount/2, "")
 			})
 			if err != nil {
 				return err
 			}
-			return barrier.Call(txGet(), func(tx *sql.Tx) error {
+			return barrier.CallWithDB(pdbGet(), func(tx *sql.Tx) error {
 				return SagaAdjustBalance(tx, TransInUID, -reqFrom(c).Amount, "")
 			})
 		}))
 		app.POST(BusiAPI+"/SagaBTransOut", dtmutil.WrapHandler(func(c *gin.Context) interface{} {
 			barrier := MustBarrierFromGin(c)
-			return barrier.Call(txGet(), func(tx *sql.Tx) error {
+			return barrier.CallWithDB(pdbGet(), func(tx *sql.Tx) error {
 				return SagaAdjustBalance(tx, TransOutUID, -reqFrom(c).Amount, reqFrom(c).TransOutResult)
 			})
 		}))
 		app.POST(BusiAPI+"/SagaBTransOutCom", dtmutil.WrapHandler(func(c *gin.Context) interface{} {
 			barrier := MustBarrierFromGin(c)
-			return barrier.Call(txGet(), func(tx *sql.Tx) error {
+			return barrier.CallWithDB(pdbGet(), func(tx *sql.Tx) error {
 				return SagaAdjustBalance(tx, TransOutUID, reqFrom(c).Amount, "")
 			})
 		}))
@@ -82,17 +82,17 @@ func init() {
 			if req.TransInResult != "" {
 				return dtmcli.String2DtmError(req.TransInResult)
 			}
-			return MustBarrierFromGin(c).Call(txGet(), func(tx *sql.Tx) error {
+			return MustBarrierFromGin(c).CallWithDB(pdbGet(), func(tx *sql.Tx) error {
 				return tccAdjustTrading(tx, TransInUID, req.Amount)
 			})
 		}))
 		app.POST(BusiAPI+"/TccBTransInConfirm", dtmutil.WrapHandler(func(c *gin.Context) interface{} {
-			return MustBarrierFromGin(c).Call(txGet(), func(tx *sql.Tx) error {
+			return MustBarrierFromGin(c).CallWithDB(pdbGet(), func(tx *sql.Tx) error {
 				return tccAdjustBalance(tx, TransInUID, reqFrom(c).Amount)
 			})
 		}))
 		app.POST(BusiAPI+"/TccBTransInCancel", dtmutil.WrapHandler(func(c *gin.Context) interface{} {
-			return MustBarrierFromGin(c).Call(txGet(), func(tx *sql.Tx) error {
+			return MustBarrierFromGin(c).CallWithDB(pdbGet(), func(tx *sql.Tx) error {
 				return tccAdjustTrading(tx, TransInUID, -reqFrom(c).Amount)
 			})
 		}))
@@ -170,7 +170,7 @@ func init() {
 				})
 			}
 
-			return bb.Call(txGet(), func(tx *sql.Tx) error {
+			return bb.CallWithDB(pdbGet(), func(tx *sql.Tx) error {
 				return tccAdjustTrading(tx, TransOutUID, -req.Amount)
 			})
 		}))
@@ -178,7 +178,7 @@ func init() {
 			if reqFrom(c).Store == Redis || reqFrom(c).Store == Mongo {
 				return nil
 			}
-			return MustBarrierFromGin(c).Call(txGet(), func(tx *sql.Tx) error {
+			return MustBarrierFromGin(c).CallWithDB(pdbGet(), func(tx *sql.Tx) error {
 				return tccAdjustBalance(tx, TransOutUID, -reqFrom(c).Amount)
 			})
 		}))
@@ -198,7 +198,7 @@ func TccBarrierTransOutCancel(c *gin.Context) interface{} {
 			return SagaMongoAdjustBalance(sc, sc.Client(), TransOutUID, reqFrom(c).Amount, "")
 		})
 	}
-	return bb.Call(txGet(), func(tx *sql.Tx) error {
+	return bb.CallWithDB(pdbGet(), func(tx *sql.Tx) error {
 		return tccAdjustTrading(tx, TransOutUID, reqFrom(c).Amount)
 	})
 }
@@ -212,21 +212,21 @@ func (s *busiServer) TransInBSaga(ctx context.Context, in *BusiReq) (*emptypb.Em
 
 func (s *busiServer) TransOutBSaga(ctx context.Context, in *BusiReq) (*emptypb.Empty, error) {
 	barrier := MustBarrierFromGrpc(ctx)
-	return &emptypb.Empty{}, barrier.Call(txGet(), func(tx *sql.Tx) error {
+	return &emptypb.Empty{}, barrier.CallWithDB(pdbGet(), func(tx *sql.Tx) error {
 		return sagaGrpcAdjustBalance(tx, TransOutUID, -in.Amount, in.TransOutResult)
 	})
 }
 
 func (s *busiServer) TransInRevertBSaga(ctx context.Context, in *BusiReq) (*emptypb.Empty, error) {
 	barrier := MustBarrierFromGrpc(ctx)
-	return &emptypb.Empty{}, barrier.Call(txGet(), func(tx *sql.Tx) error {
+	return &emptypb.Empty{}, barrier.CallWithDB(pdbGet(), func(tx *sql.Tx) error {
 		return sagaGrpcAdjustBalance(tx, TransInUID, -in.Amount, "")
 	})
 }
 
 func (s *busiServer) TransOutRevertBSaga(ctx context.Context, in *BusiReq) (*emptypb.Empty, error) {
 	barrier := MustBarrierFromGrpc(ctx)
-	return &emptypb.Empty{}, barrier.Call(txGet(), func(tx *sql.Tx) error {
+	return &emptypb.Empty{}, barrier.CallWithDB(pdbGet(), func(tx *sql.Tx) error {
 		return sagaGrpcAdjustBalance(tx, TransOutUID, in.Amount, "")
 	})
 }

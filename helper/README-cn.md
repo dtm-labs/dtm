@@ -85,7 +85,7 @@ go run main.go
   req := &gin.H{"amount": 30} // 微服务的载荷
   // DtmServer为DTM服务的地址，是一个url
   DtmServer := "http://localhost:36789/api/dtmsvr"
-  saga := dtmcli.NewSaga(DtmServer, dtmcli.MustGenGid(DtmServer)).
+  saga := dtmcli.NewSaga(DtmServer, shortuuid.New()).
     // 添加一个TransOut的子事务，正向操作为url: qsBusi+"/TransOut"， 补偿操作为url: qsBusi+"/TransOutCom"
     Add(qsBusi+"/TransOut", qsBusi+"/TransOutCom", req).
     // 添加一个TransIn的子事务，正向操作为url: qsBusi+"/TransIn"， 补偿操作为url: qsBusi+"/TransInCom"

@@ -56,7 +56,7 @@ go run main.go
   DtmServer := "http://localhost:36789/api/dtmsvr"
   req := &gin.H{"amount": 30} // micro-service payload
 	// DtmServer is the address of DTM micro-service
-	saga := dtmcli.NewSaga(DtmServer, dtmcli.MustGenGid(DtmServer)).
+	saga := dtmcli.NewSaga(DtmServer, shortuuid.New()).
 		// add a TransOut subtraction，forward operation with url: qsBusi+"/TransOut", reverse compensation operation with url: qsBusi+"/TransOutCom"
 		Add(qsBusi+"/TransOut", qsBusi+"/TransOutCom", req).
 		// add a TransIn subtraction, forward operation with url: qsBusi+"/TransIn", reverse compensation operation with url: qsBusi+"/TransInCom"
