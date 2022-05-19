@@ -39,14 +39,14 @@ DTM 可以应用于大量的场景下的数据一致性问题，以下是几个�
 
 |  特性| DTM | SEATA |备注|
 |:-----:|:----:|:----:|:----:|
-|[支持语言](https://dtm.pub/other/opensource.html#lang) |<span style="color:green">Go、c#、Java、python、php...</span>|<span style="color:orange">Java</span>|dtm可轻松接入一门新语言|
-|[异常处理](https://dtm.pub/other/opensource.html#exception)| <span style="color:green"> 子事务屏障自动处理 </span>|<span style="color:orange">手动处理</span> |dtm解决了幂等、悬挂、空补偿|
-|[SAGA事务](https://dtm.pub/other/opensource.html#saga) |<span style="color:green">极简易用</span> |<span style="color:orange">复杂状态机</span> ||
-|[二阶段消息](https://dtm.pub/other/opensource.html#msg)|<span style="color:green">✓</span>|<span style="color:red">✗</span>|最简消息最终一致性架构|
+|[支持语言](https://dtm.pub/other/opensource.html#lang) |<span style="color:green">Go、c#、Java、python、php...</span>|<span style="color:green">Java、go、python</span>|dtm可轻松接入一门新语言|
+|[异常处理](https://dtm.pub/other/opensource.html#exception)| <span style="color:green"> 子事务屏障自动处理 </span>|<span style="color:green">自动防悬挂</span> |都解决了幂等、悬挂、空补偿|
+|[SAGA事务](https://dtm.pub/other/opensource.html#saga) |<span style="color:green">极简易用</span> |<span style="color:green">状态机&注解</span> |seata: 注解模式Preview阶段|
+|[二阶段消息](https://dtm.pub/other/opensource.html#msg)|<span style="color:green">✓</span>|<span style="color:green">✓</span>|dtm:最简消息最终一致性架构,seata: 自动托管消息与其它事务一致性,可与TCC,XA,AT混用 (Preview)|
 |[TCC事务](https://dtm.pub/other/opensource.html#tcc)| <span style="color:green">✓</span>|<span style="color:green">✓</span>||
 |[XA事务](https://dtm.pub/other/opensource.html#xa)|<span style="color:green">✓</span>|<span style="color:green">✓</span>||
-|[AT事务](https://dtm.pub/other/opensource.html#at)|<span style="color:orange">建议使用XA</span>|<span style="color:green">✓</span>|AT与XA类似，但有脏回滚|
-|[单服务多数据源](https://dtm.pub/other/opensource.html#multidb)|<span style="color:green">✓</span>|<span style="color:red">✗</span>||
+|[AT事务](https://dtm.pub/other/opensource.html#at)|<span style="color:orange">X</span>|<span style="color:green">✓</span>|AT是本地事务原理的二阶段化，虽然有脏回滚,但在99.9%以上的业务高可靠性下,回滚几率本身就低,脏写未隔离出现无法回滚的几率也就更低了,与XA不同的时,当协调方宕机,AT模式可直接降级走本地事务即可,而XA事务处于prepare的事务锁定了数据,其强依赖协调方的特性导致数据将直接锁定至人工介入或协调方恢复|
+|[单服务多数据源](https://dtm.pub/other/opensource.html#multidb)|<span style="color:green">✓</span>|<span style="color:green">✓</span>||
 
 从上面对比的各项特性来看，dtm在具备很多优势。详细的对比可以点击特性中的链接，跳到相关文档
 
