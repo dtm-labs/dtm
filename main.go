@@ -15,7 +15,9 @@ import (
 	"net/http/httputil"
 	"net/url"
 	"os"
+	"os/signal"
 	"strings"
+	"syscall"
 
 	"github.com/dtm-labs/dtm/dtmcli/logger"
 	"github.com/dtm-labs/dtm/dtmsvr/config"
@@ -31,7 +33,10 @@ func main() {
 	app, conf := entry.Main(&Version)
 	if app != nil {
 		addAdmin(app, conf)
-		select {}
+		q := make(chan os.Signal)
+		signal.Notify(q, syscall.SIGINT, syscall.SIGTERM)
+		<-q
+		logger.Infof("Shutdown dtm server...")
 	}
 }
 
