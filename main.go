@@ -33,7 +33,7 @@ func main() {
 	app, conf := entry.Main(&Version)
 	if app != nil {
 		addAdmin(app, conf)
-		q := make(chan os.Signal)
+		q := make(chan os.Signal, 1)
 		signal.Notify(q, syscall.SIGINT, syscall.SIGTERM)
 		<-q
 		logger.Infof("Shutdown dtm server...")
