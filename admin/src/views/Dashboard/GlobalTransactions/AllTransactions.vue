@@ -10,7 +10,8 @@
                 <template v-else-if="column.key === 'action'">
                     <span>
                         <a class="mr-2 font-medium" @click="handleTransactionDetail(record.gid)">Detail</a>
-                        <a class="text-red-400 font-medium">Stop</a>
+                        <a-button danger type="link" :disabled="record.status==='failed' || record.status==='succeed'" @click="handleTransactionStop(record.gid)">ForceStop</a-button>
+                        <!-- <a class="text-red-400 font-medium"  @click="handleTransactionStop(record.gid)">ForceStop</a> -->
                     </span>
                 </template>
             </template>
@@ -24,7 +25,7 @@
     </div>
 </template>
 <script setup lang="ts">
-import { IListAllTransactionsReq, listAllTransactions } from '/@/api/api_dtm'
+import { IListAllTransactionsReq, listAllTransactions, forceStopTransaction } from '/@/api/api_dtm'
 import { ref, computed } from 'vue-demi'
 import { usePagination } from 'vue-request'
 import DialogTransactionDetail from './_Components/DialogTransactionDetail.vue';
@@ -116,6 +117,14 @@ const handleNextPage = () => {
 const transactionDetail = ref<null | {open:(gid: string) => null}>(null)
 const handleTransactionDetail = (gid: string) => {
     transactionDetail.value?.open(gid)
+}
+
+const handleTransactionStop = async (gid: string) => {
+    await forceStopTransaction(gid)
+    run({
+        position: data.value?.data.next_position,
+        limit: pageSize.value,
+    })
 }
 
 </script>

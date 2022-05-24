@@ -16,19 +16,19 @@ export const allowRouter: Array<IMenubarList> = [
     meta: { title: 'Admin', activeMenu: '/admin' },
     children: [
       {
-        name: 'Nodes',
-        path: '/admin/nodes',
-        component: Components['LayoutMain'],
-        meta: { title: 'Nodes' },
-        children: [
-          {
-            name: 'LivingNodes',
-            path: '/admin/nodes/living',
-            component: Components['LivingNodes'],
-            meta: { title: 'Living Nodes' },
-          }
-        ]
-      }, {
+        //   name: 'Nodes',
+        //   path: '/admin/nodes',
+        //   component: Components['LayoutMain'],
+        //   meta: { title: 'Nodes' },
+        //   children: [
+        //     {
+        //       name: 'LivingNodes',
+        //       path: '/admin/nodes/living',
+        //       component: Components['LivingNodes'],
+        //       meta: { title: 'Living Nodes' },
+        //     }
+        //   ]
+        // }, {
         name: 'GlobalTransactions',
         path: '/admin/global-transactions',
         component: Components['LayoutMain'],
@@ -39,11 +39,11 @@ export const allowRouter: Array<IMenubarList> = [
             path: '/admin/global-transactions/all',
             component: Components['AllTransactions'],
             meta: { title: 'All Transactions' },
-          }, {
-            name: 'UnfinishedTransactions',
-            path: '/admin/global-transactions/unfinished',
-            component: Components['UnfinishedTransactions'],
-            meta: { title: 'Unfinished Transactions' },
+            // }, {
+            //   name: 'UnfinishedTransactions',
+            //   path: '/admin/global-transactions/unfinished',
+            //   component: Components['UnfinishedTransactions'],
+            //   meta: { title: 'Unfinished Transactions' },
           }
         ]
       }

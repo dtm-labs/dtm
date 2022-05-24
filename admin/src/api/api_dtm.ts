@@ -14,7 +14,15 @@ export function listAllTransactions<T>(payload: IListAllTransactionsReq): Promis
     })
 }
 
-export function getTransaction<T>(payload: {gid: string}): Promise<AxiosResponse<T>> {
+export function forceStopTransaction(gid: string): Promise<AxiosResponse> {
+    return request({
+        url: '/api/dtmsvr/forceStop',
+        method: 'post',
+        data: { gid },
+    })
+}
+
+export function getTransaction<T>(payload: { gid: string }): Promise<AxiosResponse<T>> {
     return request({
         url: '/api/dtmsvr/query',
         method: 'get',
