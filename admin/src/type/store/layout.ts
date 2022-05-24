@@ -6,6 +6,7 @@ export interface ILayout {
   menubar: IMenubar
   status: IStatus
   dtmVersion: string
+  globalError: string
 }
 
 export interface IStatus {

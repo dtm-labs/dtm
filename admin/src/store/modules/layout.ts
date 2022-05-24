@@ -13,6 +13,7 @@ export const useLayoutStore = defineStore({
             isLoading: false
         },
         dtmVersion: "",
+        globalError: "",
     }),
     getters: {
         getMenubar(): IMenubar {
@@ -25,6 +26,9 @@ export const useLayoutStore = defineStore({
     actions: {
         setRoutes(data: Array<IMenubarList>): void {
             this.menubar.menuList = data
+        },
+        setGlobalError(err: string) {
+            this.globalError = err
         },
         concatAllowRoutes(): void {
             allowRouter.reverse().forEach(v => this.menubar.menuList.unshift(v))

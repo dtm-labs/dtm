@@ -2,6 +2,7 @@ import { createApp } from 'vue'
 import App from './App.vue'
 import router from '/@/router/index'
 import { pinia } from '/@/store'
+import { useLayoutStore } from '/@/store/modules/layout'
 import '/@/permission'
 
 import '/@/assets/css/index.css'
@@ -11,3 +12,22 @@ const app = createApp(App)
 app.use(router)
 app.use(pinia)
 app.mount('#app')
+
+
+window.onunhandledrejection = (ev: PromiseRejectionEvent) => {
+  showAlert(ev.reason.stack || ev.reason.message)
+
+}
+window.onerror = err => {
+  if (typeof err === "string") {
+    return showAlert(err)
+  }
+  showAlert(JSON.stringify(err))
+}
+
+function showAlert(msg: string) {
+  let layout = useLayoutStore()
+  if (!layout.globalError) {
+    layout.setGlobalError(msg)
+  }
+}
