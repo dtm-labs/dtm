@@ -6,7 +6,7 @@ import (
 
 	"github.com/dtm-labs/dtm/dtmcli"
 	"github.com/dtm-labs/dtm/dtmcli/logger"
-	"gopkg.in/yaml.v2"
+	"gopkg.in/yaml.v3"
 )
 
 const (
@@ -106,7 +106,7 @@ func MustLoadConfig(confFile string) {
 	if confFile != "" {
 		cont, err := ioutil.ReadFile(confFile)
 		logger.FatalIfError(err)
-		err = yaml.UnmarshalStrict(cont, &Config)
+		err = yaml.Unmarshal(cont, &Config)
 		logger.FatalIfError(err)
 	}
 	scont, err := json.MarshalIndent(&Config, "", "  ")
