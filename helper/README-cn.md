@@ -24,7 +24,7 @@ DTM是一款变革性的分布式事务框架，提供了傻瓜式的使用方�
 * 支持多种语言：支持Go、Java、PHP、C#、Python、Nodejs 各种语言的SDK
 * 支持多种事务模式：SAGA、TCC、XA
 * 支持消息最终一致性：二阶段消息，比本地消息表更优雅的方案
-* 未支持 AT 事务模式，详细原因参见[XA vs AT](https://dtm.pub/practice/at)
+* 未支持 AT 事务模式，建议使用XA，详情参见[XA vs AT](https://dtm.pub/practice/at)
 * 支持多种数据库事务：Mysql、Redis、MongoDB、Postgres、TDSQL等
 * 支持多种存储引擎：Mysql（常用）、Redis（高性能）、MongoDB（规划中）
 * 支持多种微服务架构：[go-zero](https://github.com/zeromicro/go-zero)、go-kratos/kratos、polarismesh/polaris
