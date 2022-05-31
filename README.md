@@ -15,6 +15,8 @@ DTM is a distributed transaction framework which provides cross-service eventual
 
 <img alt="function-picture" src="https://en.dtm.pub/assets/function.7d5618f8.png" height=250 />
 
+## Features
+
 ## Who's using DTM (partial)
 
 [Tencent](https://en.dtm.pub/other/using.html#tencent)
