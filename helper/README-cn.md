@@ -20,6 +20,8 @@ DTM是一款变革性的分布式事务框架，提供了傻瓜式的使用方�
 
 [更多](https://dtm.pub/other/using.html)
 
+如果贵公司也已使用 dtm，欢迎在 [登记地址](https://github.com/dtm-labs/dtm/issues/7) 登记，仅仅为了推广，不做其它用途。
+
 ## 特性
 * 支持多种语言：支持Go、Java、PHP、C#、Python、Nodejs 各种语言的SDK
 * 支持多种事务模式：SAGA、TCC、XA
@@ -113,9 +115,7 @@ go run main.go
 
 如果您希望更快的获得反馈，或者更多的了解其他用户在使用过程中的各种反馈，欢迎加入我们的微信交流群
 
-请加作者的微信 yedf2008 好友或者扫码加好友，备注 `dtm` 按照指引进群
-
-![yedf2008](http://service.ivydad.com/cover/dubbingb6b5e2c0-2d2a-cd59-f7c5-c6b90aceb6f1.jpeg)
+<img src="https://raw.githubusercontent.com/dtm-labs/dtm.pub/main/docs/imgs/wechat.jpeg" alt="wechat" width="300" />
 
 欢迎使用[dtm](https://github.com/dtm-labs/dtm)，或者通过dtm学习实践分布式事务相关知识，欢迎star支持我们
 
