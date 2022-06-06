@@ -50,6 +50,6 @@ CREATE TABLE IF NOT EXISTS dtm.kv (
   `version` bigint(22) default 1 COMMENT 'version of the value',
   create_time datetime default NULL,
   update_time datetime DEFAULT NULL,
-  PRIMARY KEY (`id`)
+  PRIMARY KEY (`id`),
   UNIQUE key `uniq_k`(`cat`, `k`)
 ) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4;
