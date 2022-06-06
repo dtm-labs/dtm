@@ -64,7 +64,7 @@ func WrapHandler(fn func(*gin.Context) interface{}) gin.HandlerFunc {
 	}
 }
 
-// WrapHandler2 wrap a function te bo the handler of gin request
+// WrapHandler2 wrap a function to be the handler of gin request
 // used by dtmsvr
 func WrapHandler2(fn func(*gin.Context) interface{}) gin.HandlerFunc {
 	return func(c *gin.Context) {
