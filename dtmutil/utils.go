@@ -168,7 +168,7 @@ func RunSQLScript(conf dtmcli.DBConf, script string, skipDrop bool) {
 		if s == "" || (skipDrop && strings.Contains(s, "drop")) {
 			continue
 		}
-		_, err = dtmimp.DBExec(con, s)
+		_, err = dtmimp.DBExec(conf.Driver, con, s)
 		logger.FatalIfError(err)
 		logger.Infof("sql scripts finished: %s", s)
 	}

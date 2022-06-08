@@ -187,12 +187,12 @@ func XaDB(conf DBConf) (*sql.DB, error) {
 }
 
 // DBExec use raw db to exec
-func DBExec(db DB, sql string, values ...interface{}) (affected int64, rerr error) {
+func DBExec(dbType string, db DB, sql string, values ...interface{}) (affected int64, rerr error) {
 	if sql == "" {
 		return 0, nil
 	}
 	began := time.Now()
-	sql = GetDBSpecial().GetPlaceHoldSQL(sql)
+	sql = GetDBSpecial(dbType).GetPlaceHoldSQL(sql)
 	r, rerr := db.Exec(sql, values...)
 	used := time.Since(began) / time.Millisecond
 	if rerr == nil {
@@ -262,10 +262,16 @@ func EscapeGet(qs url.Values, key string) string {
 }
 
 // InsertBarrier insert a record to barrier
-func InsertBarrier(tx DB, transType string, gid string, branchID string, op string, barrierID string, reason string) (int64, error) {
+func InsertBarrier(tx DB, transType string, gid string, branchID string, op string, barrierID string, reason string, dbType string, barrierTableName string) (int64, error) {
 	if op == "" {
 		return 0, nil
 	}
-	sql := GetDBSpecial().GetInsertIgnoreTemplate(BarrierTableName+"(trans_type, gid, branch_id, op, barrier_id, reason) values(?,?,?,?,?,?)", "uniq_barrier")
-	return DBExec(tx, sql, transType, gid, branchID, op, barrierID, reason)
+	if dbType == "" {
+		dbType = currentDBType
+	}
+	if barrierTableName == "" {
+		barrierTableName = BarrierTableName
+	}
+	sql := GetDBSpecial(dbType).GetInsertIgnoreTemplate(barrierTableName+"(trans_type, gid, branch_id, op, barrier_id, reason) values(?,?,?,?,?,?)", "uniq_barrier")
+	return DBExec(dbType, tx, sql, transType, gid, branchID, op, barrierID, reason)
 }

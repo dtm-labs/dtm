@@ -75,8 +75,8 @@ func init() {
 }
 
 // GetDBSpecial get DBSpecial for currentDBType
-func GetDBSpecial() DBSpecial {
-	return dbSpecials[currentDBType]
+func GetDBSpecial(dbType string) DBSpecial {
+	return dbSpecials[dbType]
 }
 
 // SetCurrentDBType set currentDBType
