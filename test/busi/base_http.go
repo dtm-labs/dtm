@@ -69,7 +69,8 @@ func BaseAppStartup() *gin.Engine {
 	}
 	logger.Debugf("Starting busi at: %d", BusiPort)
 	go func() {
-		_ = app.Run(fmt.Sprintf(":%d", BusiPort))
+		err := app.Run(fmt.Sprintf(":%d", BusiPort))
+		dtmimp.FatalIfError(err)
 	}()
 	return app
 }

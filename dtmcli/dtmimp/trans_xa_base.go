@@ -25,7 +25,7 @@ func XaHandlePhase2(gid string, dbConf DBConf, branchID string, op string) error
 	}
 	if op == OpRollback && err == nil {
 		// rollback insert a row after prepare. no-error means prepare has finished.
-		_, err = InsertBarrier(db, "xa", gid, branchID, OpAction, XaBarrier1, op, dbConf.Driver, "TODO")
+		_, err = InsertBarrier(db, "xa", gid, branchID, OpAction, XaBarrier1, op, dbConf.Driver, "")
 	}
 	return err
 }
@@ -52,7 +52,7 @@ func XaHandleLocalTrans(xa *TransBase, dbConf DBConf, cb func(*sql.DB) error) (r
 		_, _ = DBExec(dbConf.Driver, db, GetDBSpecial(dbConf.Driver).GetXaSQL("end", xaBranch))
 	}()
 	// prepare and rollback both insert a row
-	_, rerr = InsertBarrier(db, xa.TransType, xa.Gid, xa.BranchID, OpAction, XaBarrier1, OpAction, dbConf.Driver, "TODO")
+	_, rerr = InsertBarrier(db, xa.TransType, xa.Gid, xa.BranchID, OpAction, XaBarrier1, OpAction, dbConf.Driver, "")
 	if rerr == nil {
 		rerr = cb(db)
 	}

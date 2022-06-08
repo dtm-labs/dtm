@@ -24,7 +24,7 @@ func TestDBSpecial(t *testing.T) {
 	assert.Equal(t, "xa start 'xa1'", sp.GetXaSQL("start", "xa1"))
 	assert.Equal(t, "insert ignore into a(f) values(?)", sp.GetInsertIgnoreTemplate("a(f) values(?)", "c"))
 	SetCurrentDBType(DBTypePostgres)
-	sp = GetDBSpecial(DBTypeMysql)
+	sp = GetDBSpecial(DBTypePostgres)
 	assert.Equal(t, "$1 $2", sp.GetPlaceHoldSQL("? ?"))
 	assert.Equal(t, "begin", sp.GetXaSQL("start", "xa1"))
 	assert.Equal(t, "insert into a(f) values(?) on conflict ON CONSTRAINT c do nothing", sp.GetInsertIgnoreTemplate("a(f) values(?)", "c"))
