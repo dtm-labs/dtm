@@ -30,5 +30,5 @@ type Store interface {
 	ChangeGlobalStatus(global *TransGlobalStore, newStatus string, updates []string, finished bool)
 	TouchCronTime(global *TransGlobalStore, nextCronInterval int64, nextCronTime *time.Time)
 	LockOneGlobalTrans(expireIn time.Duration) *TransGlobalStore
-	ResetCronTime(timeout time.Duration, limit int64) (succeedCount int64, hasRemaining bool, err error)
+	ResetCronTime(after time.Duration, limit int64) (succeedCount int64, hasRemaining bool, err error)
 }

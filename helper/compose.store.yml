@@ -22,6 +22,7 @@ services:
       - /etc/timezone:/etc/timezone:ro
     environment:
       POSTGRES_PASSWORD: mysecretpassword
+      POSTGRES_DB: dtm
 
     ports:
       - '5432:5432'

@@ -26,7 +26,7 @@ type BarrierModel struct {
 }
 
 // TableName gorm table name
-func (BarrierModel) TableName() string { return "dtm_barrier.barrier" }
+func (BarrierModel) TableName() string { return dtmimp.BarrierTableName }
 
 func TestBaseSqlDB(t *testing.T) {
 	asserts := assert.New(t)
@@ -38,7 +38,7 @@ func TestBaseSqlDB(t *testing.T) {
 		Op:        dtmimp.OpAction,
 		BarrierID: 1,
 	}
-	db.Must().Exec("insert into dtm_barrier.barrier(trans_type, gid, branch_id, op, barrier_id, reason) values('saga', 'gid1', 'branch_id1', 'action', '01', 'saga')")
+	db.Must().Exec(fmt.Sprintf("insert into %s(trans_type, gid, branch_id, op, barrier_id, reason) values('saga', 'gid1', 'branch_id1', 'action', '01', 'saga')", dtmimp.BarrierTableName))
 	tx, err := db.ToSQLDB().Begin()
 	asserts.Nil(err)
 	err = barrier.Call(tx, func(tx *sql.Tx) error {

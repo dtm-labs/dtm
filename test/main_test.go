@@ -48,6 +48,12 @@ func TestMain(m *testing.M) {
 		conf.Store.Port = 3306
 		conf.Store.User = "root"
 		conf.Store.Password = ""
+	} else if tenv == "postgres" {
+		conf.Store.Driver = "postgres"
+		conf.Store.Host = "localhost"
+		conf.Store.Port = 5432
+		conf.Store.User = "postgres"
+		conf.Store.Password = "mysecretpassword"
 	} else {
 		conf.Store.Driver = "redis"
 		conf.Store.Host = "localhost"
@@ -55,10 +61,15 @@ func TestMain(m *testing.M) {
 		conf.Store.Password = ""
 		conf.Store.Port = 6379
 	}
+	conf.Store.Db = ""
 	registry.WaitStoreUp()
 
 	dtmsvr.PopulateDB(false)
 	conf.Store.Db = "dtm" // after populateDB, set current db to dtm
+	if tenv == "postgres" {
+		busi.BusiConf = conf.Store.GetDBConf()
+		dtmcli.SetCurrentDBType(tenv)
+	}
 	go dtmsvr.StartSvr()
 
 	busi.PopulateDB(false)
