@@ -30,7 +30,6 @@ func exitIf(code int) {
 func TestMain(m *testing.M) {
 	config.MustLoadConfig("")
 	logger.InitLog("debug")
-	dtmcli.SetCurrentDBType(busi.BusiConf.Driver)
 	dtmsvr.TransProcessedTestChan = make(chan string, 1)
 	dtmsvr.NowForwardDuration = 0 * time.Second
 	dtmsvr.CronForwardDuration = 180 * time.Second
@@ -59,6 +58,7 @@ func TestMain(m *testing.M) {
 	registry.WaitStoreUp()
 
 	dtmsvr.PopulateDB(false)
+	conf.Store.Db = "dtm" // after populateDB, set current db to dtm
 	go dtmsvr.StartSvr()
 
 	busi.PopulateDB(false)

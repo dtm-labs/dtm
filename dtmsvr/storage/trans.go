@@ -11,7 +11,6 @@ import (
 
 	"github.com/dtm-labs/dtm/dtmcli"
 	"github.com/dtm-labs/dtm/dtmcli/dtmimp"
-	"github.com/dtm-labs/dtm/dtmsvr/config"
 	"github.com/dtm-labs/dtm/dtmutil"
 )
 
@@ -45,7 +44,7 @@ type TransGlobalStore struct {
 
 // TableName TableName
 func (g *TransGlobalStore) TableName() string {
-	return config.Config.Store.TransGlobalTable
+	return "trans_global"
 }
 
 func (g *TransGlobalStore) String() string {
@@ -67,7 +66,7 @@ type TransBranchStore struct {
 
 // TableName TableName
 func (b *TransBranchStore) TableName() string {
-	return config.Config.Store.TransBranchOpTable
+	return "trans_branch_op"
 }
 
 func (b *TransBranchStore) String() string {

@@ -53,7 +53,7 @@ func reloadData() {
 	db := pdbGet()
 	tables := []string{"dtm_busi.user_account", "dtm_busi.user_account_log", "dtm.trans_global", "dtm.trans_branch_op", "dtm_barrier.barrier"}
 	for _, t := range tables {
-		_, err := dtmimp.DBExec(db, fmt.Sprintf("truncate %s", t))
+		_, err := dtmimp.DBExec(busi.BusiConf.Driver, db, fmt.Sprintf("truncate %s", t))
 		logger.FatalIfError(err)
 	}
 	s := "insert ignore into dtm_busi.user_account(user_id, balance) values "
@@ -61,7 +61,7 @@ func reloadData() {
 	for i := 1; i <= total; i++ {
 		ss = append(ss, fmt.Sprintf("(%d, 1000000)", i))
 	}
-	_, err := dtmimp.DBExec(db, s+strings.Join(ss, ","))
+	_, err := dtmimp.DBExec(busi.BusiConf.Driver, db, s+strings.Join(ss, ","))
 	logger.FatalIfError(err)
 	logger.Debugf("%d users inserted. used: %dms", total, time.Since(began).Milliseconds())
 }
@@ -73,11 +73,11 @@ var sqls = 1
 // PrepareBenchDB prepares db data for bench
 func PrepareBenchDB() {
 	db := pdbGet()
-	_, err := dtmimp.DBExec(db, "CREATE DATABASE if not exists dtm_busi")
+	_, err := dtmimp.DBExec(busi.BusiConf.Driver, db, "CREATE DATABASE if not exists dtm_busi")
 	logger.FatalIfError(err)
-	_, err = dtmimp.DBExec(db, "drop table if exists dtm_busi.user_account_log")
+	_, err = dtmimp.DBExec(busi.BusiConf.Driver, db, "drop table if exists dtm_busi.user_account_log")
 	logger.FatalIfError(err)
-	_, err = dtmimp.DBExec(db, `create table if not exists dtm_busi.user_account_log (
+	_, err = dtmimp.DBExec(busi.BusiConf.Driver, db, `create table if not exists dtm_busi.user_account_log (
 	id      INT(11) AUTO_INCREMENT PRIMARY KEY,
 	user_id INT(11) NOT NULL,
 	delta DECIMAL(11, 2) not null,
@@ -111,10 +111,10 @@ func qsAdjustBalance(uid int, amount int, c *gin.Context) error { // nolint: unp
 	tb := dtmimp.TransBaseFromQuery(c.Request.URL.Query())
 	f := func(tx *sql.Tx) error {
 		for i := 0; i < sqls; i++ {
-			_, err := dtmimp.DBExec(tx, "insert into dtm_busi.user_account_log(user_id, delta, gid, branch_id, op, reason)  values(?,?,?,?,?,?)",
+			_, err := dtmimp.DBExec(busi.BusiConf.Driver, tx, "insert into dtm_busi.user_account_log(user_id, delta, gid, branch_id, op, reason)  values(?,?,?,?,?,?)",
 				uid, amount, tb.Gid, c.Query("branch_id"), tb.TransType, fmt.Sprintf("inserted by dtm transaction %s %s", tb.Gid, c.Query("branch_id")))
 			logger.FatalIfError(err)
-			_, err = dtmimp.DBExec(tx, "update dtm_busi.user_account set balance = balance + ?, update_time = now() where user_id = ?", amount, uid)
+			_, err = dtmimp.DBExec(busi.BusiConf.Driver, tx, "update dtm_busi.user_account set balance = balance + ?, update_time = now() where user_id = ?", amount, uid)
 			logger.FatalIfError(err)
 		}
 		return nil
