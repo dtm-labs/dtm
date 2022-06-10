@@ -34,7 +34,7 @@ jobs:
         volumes:
           - /etc/localtime:/etc/localtime:ro
           - /etc/timezone:/etc/timezone:ro
-        environment:
+        env:
           POSTGRES_PASSWORD: mysecretpassword
           POSTGRES_DB: dtm
         ports:
