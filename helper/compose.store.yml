@@ -15,8 +15,7 @@ services:
     ports:
       - '3306:3306'
   postgres:
-    image: 'postgres:13'
-    command: postgres --max_prepared_transactions=1000
+    image: 'yedf/postgres-xa'
     volumes:
       - /etc/localtime:/etc/localtime:ro
       - /etc/timezone:/etc/timezone:ro
