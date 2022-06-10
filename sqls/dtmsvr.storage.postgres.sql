@@ -1,11 +1,8 @@
-CREATE SCHEMA if not EXISTS dtm
-/* SQLINES DEMO *** RACTER SET utf8mb4 */
-;
-drop table IF EXISTS dtm.trans_global;
--- SQLINES LICENSE FOR EVALUATION USE ONLY
-CREATE SEQUENCE if not EXISTS dtm.trans_global_seq;
-CREATE TABLE if not EXISTS dtm.trans_global (
-  id bigint NOT NULL DEFAULT NEXTVAL ('dtm.trans_global_seq'),
+drop table IF EXISTS trans_global;
+
+CREATE SEQUENCE if not EXISTS trans_global_seq;
+CREATE TABLE if not EXISTS trans_global (
+  id bigint NOT NULL DEFAULT NEXTVAL ('trans_global_seq'),
   gid varchar(128) NOT NULL,
   trans_type varchar(45) not null,
   status varchar(45) NOT NULL,
@@ -24,13 +21,13 @@ CREATE TABLE if not EXISTS dtm.trans_global (
   PRIMARY KEY (id),
   CONSTRAINT gid UNIQUE (gid)
 );
-create index if not EXISTS owner on dtm.trans_global(owner);
-create index if not EXISTS status_next_cron_time on dtm.trans_global (status, next_cron_time);
-drop table IF EXISTS dtm.trans_branch_op;
--- SQLINES LICENSE FOR EVALUATION USE ONLY
-CREATE SEQUENCE if not EXISTS dtm.trans_branch_op_seq;
-CREATE TABLE IF NOT EXISTS dtm.trans_branch_op (
-  id bigint NOT NULL DEFAULT NEXTVAL ('dtm.trans_branch_op_seq'),
+create index if not EXISTS owner on trans_global(owner);
+create index if not EXISTS status_next_cron_time on trans_global (status, next_cron_time);
+drop table IF EXISTS trans_branch_op;
+
+CREATE SEQUENCE if not EXISTS trans_branch_op_seq;
+CREATE TABLE IF NOT EXISTS trans_branch_op (
+  id bigint NOT NULL DEFAULT NEXTVAL ('trans_branch_op_seq'),
   gid varchar(128) NOT NULL,
   url varchar(1024) NOT NULL,
   data TEXT,

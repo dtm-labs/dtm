@@ -100,7 +100,7 @@ func DbGet(conf dtmcli.DBConf, ops ...func(*gorm.DB)) *DB {
 	dsn := dtmimp.GetDsn(conf)
 	db, ok := dbs.Load(dsn)
 	if !ok {
-		logger.Infof("connecting '%s' '%s' '%s' '%d'", conf.Driver, conf.Host, conf.User, conf.Port)
+		logger.Infof("connecting '%s' '%s' '%s' '%d' '%s'", conf.Driver, conf.Host, conf.User, conf.Port, conf.Db)
 		db1, err := gorm.Open(getGormDialetor(conf.Driver, dsn), &gorm.Config{
 			SkipDefaultTransaction: true,
 		})

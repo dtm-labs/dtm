@@ -92,8 +92,7 @@ func all(c *gin.Context) interface{} {
 	return map[string]interface{}{"transactions": globals, "next_position": position}
 }
 
-// resetCronTime rest nextCronTime
-// Prevent multiple backoff from causing NextCronTime to be too long
+// unfinished transactions need to be retried as soon as possible after business downtime is recovered
 func resetCronTime(c *gin.Context) interface{} {
 	sTimeoutSecond := dtmimp.OrString(c.Query("timeout"), strconv.FormatInt(3*conf.TimeoutToFail, 10))
 	sLimit := dtmimp.OrString(c.Query("limit"), "100")

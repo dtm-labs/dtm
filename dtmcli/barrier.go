@@ -109,6 +109,8 @@ func (bb *BranchBarrier) QueryPrepared(db *sql.DB) error {
 	var reason string
 	if err == nil {
 		sql := fmt.Sprintf("select reason from %s where gid=? and branch_id=? and op=? and barrier_id=?", dtmimp.BarrierTableName)
+		sql = dtmimp.GetDBSpecial(bb.DBType).GetPlaceHoldSQL(sql)
+		logger.Debugf("queryrow: %s", sql, bb.Gid, dtmimp.MsgDoBranch0, dtmimp.MsgDoOp, dtmimp.MsgDoBarrier1)
 		err = db.QueryRow(sql, bb.Gid, dtmimp.MsgDoBranch0, dtmimp.MsgDoOp, dtmimp.MsgDoBarrier1).Scan(&reason)
 	}
 	if reason == dtmimp.OpRollback {

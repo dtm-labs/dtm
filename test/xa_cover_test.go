@@ -39,6 +39,9 @@ func TestXaCoverDTMError(t *testing.T) {
 }
 
 func TestXaCoverGidError(t *testing.T) {
+	if dtmimp.GetCurrentDBType() != dtmimp.DBTypeMysql {
+		return
+	}
 	gid := dtmimp.GetFuncName() + "-'  '"
 	err := dtmcli.XaGlobalTransaction(DtmServer, gid, func(xa *dtmcli.Xa) (*resty.Response, error) {
 		req := busi.GenTransReq(30, false, false)
