@@ -29,8 +29,7 @@ jobs:
         ports:
           - 6379:6379
       postgres:
-        image: 'postgres:13'
-        options: --max_prepared_transactions=1000
+        image: 'yedf/postgres-xa'
         volumes:
           - /etc/localtime:/etc/localtime:ro
           - /etc/timezone:/etc/timezone:ro
