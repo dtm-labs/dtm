@@ -30,7 +30,7 @@ jobs:
           - 6379:6379
       postgres:
         image: 'postgres:13'
-        command: postgres --max_prepared_transactions=1000
+        options: --max_prepared_transactions=1000
         volumes:
           - /etc/localtime:/etc/localtime:ro
           - /etc/timezone:/etc/timezone:ro
