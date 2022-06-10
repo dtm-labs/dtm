@@ -195,14 +195,6 @@ func wrapError(err error) error {
 	return err
 }
 
-func getTime(after time.Duration) string {
-	second := int64(after / time.Second)
-	return map[string]string{
-		"mysql":    fmt.Sprintf("date_add(now(), interval %d second)", second),
-		"postgres": fmt.Sprintf("current_timestamp + interval '%d second'", second),
-	}[conf.Store.Driver]
-}
-
 func getTimeStr(afterSecond int64) string {
 	return dtmutil.GetNextTime(afterSecond).Format("2006-01-02 15:04:05")
 }
