@@ -141,7 +141,7 @@ func BaseAddRoute(app *gin.Engine) {
 	}))
 	app.POST(BusiAPI+"/TransOutXa", dtmutil.WrapHandler(func(c *gin.Context) interface{} {
 		return dtmcli.XaLocalTransaction(c.Request.URL.Query(), BusiConf, func(db *sql.DB, xa *dtmcli.Xa) error {
-			return SagaAdjustBalance(db, TransOutUID, reqFrom(c).Amount, reqFrom(c).TransOutResult)
+			return SagaAdjustBalance(db, TransOutUID, -reqFrom(c).Amount, reqFrom(c).TransOutResult)
 		})
 	}))
 	app.POST(BusiAPI+"/TransOutTimeout", dtmutil.WrapHandler(func(c *gin.Context) interface{} {

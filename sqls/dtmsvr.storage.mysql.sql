@@ -41,3 +41,15 @@ CREATE TABLE IF NOT EXISTS dtm.trans_branch_op (
   PRIMARY KEY (`id`),
   UNIQUE KEY `gid_uniq` (`gid`, `branch_id`, `op`)
 ) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4;
+drop table IF EXISTS dtm.kv;
+CREATE TABLE IF NOT EXISTS dtm.kv (
+  `id` bigint(22) NOT NULL AUTO_INCREMENT,
+  `cat` varchar(45) NOT NULL COMMENT 'the category of this data',
+  `k` varchar(128) NOT NULL,
+  `v` TEXT,
+  `version` bigint(22) default 1 COMMENT 'version of the value',
+  create_time datetime default NULL,
+  update_time datetime DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE key `uniq_k`(`cat`, `k`)
+) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4;
