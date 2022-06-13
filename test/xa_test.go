@@ -43,10 +43,10 @@ func TestXaDuplicate(t *testing.T) {
 		sdb, err := dtmimp.StandaloneDB(busi.BusiConf)
 		assert.Nil(t, err)
 		if dtmcli.GetCurrentDBType() == dtmcli.DBTypeMysql {
-			_, err = dtmimp.DBExec(sdb, "xa recover")
+			_, err = dtmimp.DBExec(busi.BusiConf.Driver, sdb, "xa recover")
 			assert.Nil(t, err)
 		}
-		_, err = dtmimp.DBExec(sdb, dtmimp.GetDBSpecial().GetXaSQL("commit", gid+"-01")) // simulate repeated request
+		_, err = dtmimp.DBExec(busi.BusiConf.Driver, sdb, dtmimp.GetDBSpecial(busi.BusiConf.Driver).GetXaSQL("commit", gid+"-01")) // simulate repeated request
 		assert.Nil(t, err)
 		return xa.CallBranch(req, busi.Busi+"/TransInXa")
 	})

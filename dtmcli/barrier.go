@@ -20,11 +20,13 @@ type BarrierBusiFunc func(tx *sql.Tx) error
 
 // BranchBarrier every branch info
 type BranchBarrier struct {
-	TransType string
-	Gid       string
-	BranchID  string
-	Op        string
-	BarrierID int
+	TransType        string
+	Gid              string
+	BranchID         string
+	Op               string
+	BarrierID        int
+	DBType           string // DBTypeMysql | DBTypePostgres
+	BarrierTableName string
 }
 
 func (bb *BranchBarrier) String() string {
@@ -70,8 +72,8 @@ func (bb *BranchBarrier) Call(tx *sql.Tx, busiCall BarrierBusiFunc) (rerr error)
 		dtmimp.OpCompensate: dtmimp.OpAction,
 	}[bb.Op]
 
-	originAffected, oerr := dtmimp.InsertBarrier(tx, bb.TransType, bb.Gid, bb.BranchID, originOp, bid, bb.Op)
-	currentAffected, rerr := dtmimp.InsertBarrier(tx, bb.TransType, bb.Gid, bb.BranchID, bb.Op, bid, bb.Op)
+	originAffected, oerr := dtmimp.InsertBarrier(tx, bb.TransType, bb.Gid, bb.BranchID, originOp, bid, bb.Op, bb.DBType, bb.BarrierTableName)
+	currentAffected, rerr := dtmimp.InsertBarrier(tx, bb.TransType, bb.Gid, bb.BranchID, bb.Op, bid, bb.Op, bb.DBType, bb.BarrierTableName)
 	logger.Debugf("originAffected: %d currentAffected: %d", originAffected, currentAffected)
 
 	if rerr == nil && bb.Op == dtmimp.MsgDoOp && currentAffected == 0 { // for msg's DoAndSubmit, repeated insert should be rejected.
@@ -103,10 +105,12 @@ func (bb *BranchBarrier) CallWithDB(db *sql.DB, busiCall BarrierBusiFunc) error 
 
 // QueryPrepared queries prepared data
 func (bb *BranchBarrier) QueryPrepared(db *sql.DB) error {
-	_, err := dtmimp.InsertBarrier(db, bb.TransType, bb.Gid, dtmimp.MsgDoBranch0, dtmimp.MsgDoOp, dtmimp.MsgDoBarrier1, dtmimp.OpRollback)
+	_, err := dtmimp.InsertBarrier(db, bb.TransType, bb.Gid, dtmimp.MsgDoBranch0, dtmimp.MsgDoOp, dtmimp.MsgDoBarrier1, dtmimp.OpRollback, bb.DBType, bb.BarrierTableName)
 	var reason string
 	if err == nil {
 		sql := fmt.Sprintf("select reason from %s where gid=? and branch_id=? and op=? and barrier_id=?", dtmimp.BarrierTableName)
+		sql = dtmimp.GetDBSpecial(bb.DBType).GetPlaceHoldSQL(sql)
+		logger.Debugf("queryrow: %s", sql, bb.Gid, dtmimp.MsgDoBranch0, dtmimp.MsgDoOp, dtmimp.MsgDoBarrier1)
 		err = db.QueryRow(sql, bb.Gid, dtmimp.MsgDoBranch0, dtmimp.MsgDoOp, dtmimp.MsgDoBarrier1).Scan(&reason)
 	}
 	if reason == dtmimp.OpRollback {

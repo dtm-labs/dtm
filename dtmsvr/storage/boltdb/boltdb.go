@@ -413,12 +413,12 @@ func (s *Store) LockOneGlobalTrans(expireIn time.Duration) *storage.TransGlobalS
 	return trans
 }
 
-// ResetCronTime rest nextCronTime
-// Prevent multiple backoff from causing NextCronTime to be too long
-func (s *Store) ResetCronTime(timeout time.Duration, limit int64) (succeedCount int64, hasRemaining bool, err error) {
+// ResetCronTime reset nextCronTime
+// unfinished transactions need to be retried as soon as possible after business downtime is recovered
+func (s *Store) ResetCronTime(after time.Duration, limit int64) (succeedCount int64, hasRemaining bool, err error) {
 	next := time.Now()
 	var trans *storage.TransGlobalStore
-	min := fmt.Sprintf("%d", time.Now().Add(timeout).Unix())
+	min := fmt.Sprintf("%d", time.Now().Add(after).Unix())
 	err = s.boltDb.Update(func(t *bolt.Tx) error {
 		cursor := t.Bucket(bucketIndex).Cursor()
 		succeedCount = 0

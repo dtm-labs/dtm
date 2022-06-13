@@ -28,6 +28,16 @@ jobs:
           - /etc/timezone:/etc/timezone:ro
         ports:
           - 6379:6379
+      postgres:
+        image: 'yedf/postgres-xa'
+        volumes:
+          - /etc/localtime:/etc/localtime:ro
+          - /etc/timezone:/etc/timezone:ro
+        env:
+          POSTGRES_PASSWORD: mysecretpassword
+          POSTGRES_DB: dtm
+        ports:
+          - '5432:5432'
       mongo:
         image: 'yedf/mongo-rs'
         volumes:

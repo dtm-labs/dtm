@@ -270,11 +270,11 @@ return gid
 	}
 }
 
-// ResetCronTime rest nextCronTime
-// Prevent multiple backoff from causing NextCronTime to be too long
-func (s *Store) ResetCronTime(timeout time.Duration, limit int64) (succeedCount int64, hasRemaining bool, err error) {
+// ResetCronTime reset nextCronTime
+// unfinished transactions need to be retried as soon as possible after business downtime is recovered
+func (s *Store) ResetCronTime(after time.Duration, limit int64) (succeedCount int64, hasRemaining bool, err error) {
 	next := time.Now().Unix()
-	timeoutTimestamp := time.Now().Add(timeout).Unix()
+	timeoutTimestamp := time.Now().Add(after).Unix()
 	args := newArgList().AppendGid("").AppendRaw(timeoutTimestamp).AppendRaw(next).AppendRaw(limit)
 	lua := `-- ResetCronTime
 local r = redis.call('ZRANGEBYSCORE', KEYS[3], ARGV[3], '+inf', 'LIMIT', 0, ARGV[5]+1)

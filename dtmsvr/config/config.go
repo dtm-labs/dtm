@@ -53,14 +53,13 @@ type Store struct {
 	Port               int64  `yaml:"Port"`
 	User               string `yaml:"User"`
 	Password           string `yaml:"Password"`
+	Db                 string `yaml:"Db" default:"dtm"`
 	MaxOpenConns       int64  `yaml:"MaxOpenConns" default:"500"`
 	MaxIdleConns       int64  `yaml:"MaxIdleConns" default:"500"`
 	ConnMaxLifeTime    int64  `yaml:"ConnMaxLifeTime" default:"5"`
 	DataExpire         int64  `yaml:"DataExpire" default:"604800"`        // Trans data will expire in 7 days. only for redis/boltdb.
 	FinishedDataExpire int64  `yaml:"FinishedDataExpire" default:"86400"` // finished Trans data will expire in 1 days. only for redis.
 	RedisPrefix        string `yaml:"RedisPrefix" default:"{a}"`          // Redis storage prefix. store data to only one slot in cluster
-	TransGlobalTable   string `yaml:"TransGlobalTable" default:"dtm.trans_global"`
-	TransBranchOpTable string `yaml:"TransBranchOpTable" default:"dtm.trans_branch_op"`
 }
 
 // IsDB checks config driver is mysql or postgres
@@ -76,6 +75,7 @@ func (s *Store) GetDBConf() dtmcli.DBConf {
 		Port:     s.Port,
 		User:     s.User,
 		Password: s.Password,
+		Db:       s.Db,
 	}
 }
 

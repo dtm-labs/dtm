@@ -137,61 +137,42 @@ func (s *Store) TouchCronTime(global *storage.TransGlobalStore, nextCronInterval
 // LockOneGlobalTrans finds GlobalTrans
 func (s *Store) LockOneGlobalTrans(expireIn time.Duration) *storage.TransGlobalStore {
 	db := dbGet()
-	getTime := func(second int) string {
-		return map[string]string{
-			"mysql":    fmt.Sprintf("date_add(now(), interval %d second)", second),
-			"postgres": fmt.Sprintf("current_timestamp + interval '%d second'", second),
-		}[conf.Store.Driver]
-	}
-	expire := int(expireIn / time.Second)
-	whereTime := fmt.Sprintf("next_cron_time < %s", getTime(expire))
 	owner := shortuuid.New()
-	global := &storage.TransGlobalStore{}
-	dbr := db.Must().Model(global).
-		Where(whereTime + "and status in ('prepared', 'aborting', 'submitted')").
-		Limit(1).
-		Select([]string{"owner", "next_cron_time"}).
-		Updates(&storage.TransGlobalStore{
-			Owner:        owner,
-			NextCronTime: dtmutil.GetNextTime(conf.RetryInterval),
-		})
-	if dbr.RowsAffected == 0 {
+	where := map[string]string{
+		dtmimp.DBTypeMysql:    fmt.Sprintf(`next_cron_time < date_add(now(), interval %d second) and status in ('prepared', 'aborting', 'submitted') limit 1`, int(expireIn/time.Second)),
+		dtmimp.DBTypePostgres: fmt.Sprintf(`id in (select id from trans_global where next_cron_time < current_timestamp + interval '%d second' and status in ('prepared', 'aborting', 'submitted') limit 1 )`, int(expireIn/time.Second)),
+	}[conf.Store.Driver]
+
+	sql := fmt.Sprintf(`UPDATE trans_global SET update_time='%s',next_cron_time='%s', owner='%s' WHERE %s`,
+		getTimeStr(0),
+		getTimeStr(conf.RetryInterval),
+		owner,
+		where)
+	affected, err := dtmimp.DBExec(conf.Store.Driver, db.ToSQLDB(), sql)
+
+	dtmimp.PanicIf(err != nil, err)
+	if affected == 0 {
 		return nil
 	}
+	global := &storage.TransGlobalStore{}
 	db.Must().Where("owner=?", owner).First(global)
 	return global
 }
 
-// ResetCronTime rest nextCronTime
-// Prevent multiple backoff from causing NextCronTime to be too long
-func (s *Store) ResetCronTime(timeout time.Duration, limit int64) (succeedCount int64, hasRemaining bool, err error) {
-	db := dbGet()
-	getTime := func(second int) string {
-		return map[string]string{
-			"mysql":    fmt.Sprintf("date_add(now(), interval %d second)", second),
-			"postgres": fmt.Sprintf("current_timestamp + interval '%d second'", second),
-		}[conf.Store.Driver]
-	}
-	timeoutSecond := int(timeout / time.Second)
-	whereTime := fmt.Sprintf("next_cron_time > %s", getTime(timeoutSecond))
-	global := &storage.TransGlobalStore{}
-	dbr := db.Must().Model(global).
-		Where(whereTime + "and status in ('prepared', 'aborting', 'submitted')").
-		Limit(int(limit)).
-		Select([]string{"next_cron_time"}).
-		Updates(&storage.TransGlobalStore{
-			NextCronTime: dtmutil.GetNextTime(0),
-		})
-	succeedCount = dbr.RowsAffected
-	if succeedCount == limit {
-		var count int64
-		db.Must().Model(global).Where(whereTime + "and status in ('prepared', 'aborting', 'submitted')").Limit(1).Count(&count)
-		if count > 0 {
-			hasRemaining = true
-		}
-	}
+// ResetCronTime reset nextCronTime
+// unfinished transactions need to be retried as soon as possible after business downtime is recovered
+func (s *Store) ResetCronTime(after time.Duration, limit int64) (succeedCount int64, hasRemaining bool, err error) {
+	where := map[string]string{
+		dtmimp.DBTypeMysql:    fmt.Sprintf(`next_cron_time > date_add(now(), interval %d second) and status in ('prepared', 'aborting', 'submitted') limit %d`, int(after/time.Second), limit),
+		dtmimp.DBTypePostgres: fmt.Sprintf(`id in (select id from trans_global where next_cron_time > current_timestamp + interval '%d second' and status in ('prepared', 'aborting', 'submitted') limit %d )`, int(after/time.Second), limit),
+	}[conf.Store.Driver]
 
-	return succeedCount, hasRemaining, dbr.Error
+	sql := fmt.Sprintf(`UPDATE trans_global SET update_time='%s',next_cron_time='%s' WHERE %s`,
+		getTimeStr(0),
+		getTimeStr(0),
+		where)
+	affected, err := dtmimp.DBExec(conf.Store.Driver, dbGet().ToSQLDB(), sql)
+	return affected, affected == limit, err
 }
 
 // SetDBConn sets db conn pool
@@ -212,4 +193,8 @@ func wrapError(err error) error {
 	}
 	dtmimp.E2P(err)
 	return err
+}
+
+func getTimeStr(afterSecond int64) string {
+	return dtmutil.GetNextTime(afterSecond).Format("2006-01-02 15:04:05")
 }

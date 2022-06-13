@@ -18,14 +18,14 @@ func XaHandlePhase2(gid string, dbConf DBConf, branchID string, op string) error
 		return err
 	}
 	xaID := gid + "-" + branchID
-	_, err = DBExec(db, GetDBSpecial().GetXaSQL(op, xaID))
+	_, err = DBExec(dbConf.Driver, db, GetDBSpecial(dbConf.Driver).GetXaSQL(op, xaID))
 	if err != nil &&
 		(strings.Contains(err.Error(), "XAER_NOTA") || strings.Contains(err.Error(), "does not exist")) { // Repeat commit/rollback with the same id, report this error, ignore
 		err = nil
 	}
 	if op == OpRollback && err == nil {
 		// rollback insert a row after prepare. no-error means prepare has finished.
-		_, err = InsertBarrier(db, "xa", gid, branchID, OpAction, XaBarrier1, op)
+		_, err = InsertBarrier(db, "xa", gid, branchID, OpAction, XaBarrier1, op, dbConf.Driver, "")
 	}
 	return err
 }
@@ -39,20 +39,20 @@ func XaHandleLocalTrans(xa *TransBase, dbConf DBConf, cb func(*sql.DB) error) (r
 	}
 	defer func() { _ = db.Close() }()
 	defer DeferDo(&rerr, func() error {
-		_, err := DBExec(db, GetDBSpecial().GetXaSQL("prepare", xaBranch))
+		_, err := DBExec(dbConf.Driver, db, GetDBSpecial(dbConf.Driver).GetXaSQL("prepare", xaBranch))
 		return err
 	}, func() error {
 		return nil
 	})
-	_, rerr = DBExec(db, GetDBSpecial().GetXaSQL("start", xaBranch))
+	_, rerr = DBExec(dbConf.Driver, db, GetDBSpecial(dbConf.Driver).GetXaSQL("start", xaBranch))
 	if rerr != nil {
 		return
 	}
 	defer func() {
-		_, _ = DBExec(db, GetDBSpecial().GetXaSQL("end", xaBranch))
+		_, _ = DBExec(dbConf.Driver, db, GetDBSpecial(dbConf.Driver).GetXaSQL("end", xaBranch))
 	}()
 	// prepare and rollback both insert a row
-	_, rerr = InsertBarrier(db, xa.TransType, xa.Gid, xa.BranchID, OpAction, XaBarrier1, OpAction)
+	_, rerr = InsertBarrier(db, xa.TransType, xa.Gid, xa.BranchID, OpAction, XaBarrier1, OpAction, dbConf.Driver, "")
 	if rerr == nil {
 		rerr = cb(db)
 	}
