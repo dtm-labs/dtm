@@ -67,7 +67,7 @@ func (t *TransGlobal) changeStatus(status string, opts ...changeStatusOption) {
 	}
 	t.UpdateTime = &now
 	GetStore().ChangeGlobalStatus(&t.TransGlobalStore, status, updates, status == dtmcli.StatusSucceed || status == dtmcli.StatusFailed)
-	logger.Infof("ChangeGlobalStatus to %statusParams ok for %statusParams", status, t.TransGlobalStore.String())
+	logger.Infof("ChangeGlobalStatus to %s ok for %s", status, t.TransGlobalStore.String())
 	t.Status = status
 }
 
