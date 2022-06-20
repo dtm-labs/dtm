@@ -7,7 +7,6 @@
 package test
 
 import (
-	"fmt"
 	"testing"
 
 	"github.com/dtm-labs/dtm/dtmcli"
@@ -69,7 +68,6 @@ func TestTccTimeout(t *testing.T) {
 	assert.Error(t, err)
 	assert.Equal(t, StatusFailed, getTransStatus(gid))
 	assert.Regexp(t, `^Timeout after \d+ seconds$`, getTrans(gid).RollbackReason)
-	fmt.Println(getTrans(gid).RollbackReason)
 	assert.Equal(t, []string{StatusSucceed, StatusPrepared}, getBranchesStatus(gid))
 }
 
