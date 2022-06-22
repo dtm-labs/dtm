@@ -18,6 +18,7 @@ CREATE TABLE if not EXISTS trans_global (
   next_cron_time timestamp(0) with time zone default null,
   owner varchar(128) not null default '',
   ext_data text,
+  rollback_reason varchar(1024) DEFAULT '',
   PRIMARY KEY (id),
   CONSTRAINT gid UNIQUE (gid)
 );

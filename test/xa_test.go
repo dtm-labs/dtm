@@ -94,6 +94,7 @@ func TestXaTimeout(t *testing.T) {
 	})
 	assert.Error(t, err)
 	assert.Equal(t, StatusFailed, getTransStatus(gid))
+	assert.Regexp(t, `^Timeout after \d+ seconds$`, getTrans(gid).RollbackReason)
 	assert.Equal(t, []string{}, getBranchesStatus(gid))
 }
 

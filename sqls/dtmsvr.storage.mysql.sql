@@ -19,6 +19,7 @@ CREATE TABLE if not EXISTS dtm.trans_global (
   `next_cron_time` datetime default null comment 'next time to process this trans. for use of cron job',
   `owner` varchar(128) not null default '' comment 'who is locking this trans',
   `ext_data` TEXT comment 'extended data for this trans',
+  `rollback_reason` varchar(1024) DEFAULT '' COMMENT 'rollback reason for transaction',
   PRIMARY KEY (`id`),
   UNIQUE KEY `gid` (`gid`),
   key `owner`(`owner`),
