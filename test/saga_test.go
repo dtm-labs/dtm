@@ -22,6 +22,7 @@ func TestSagaNormal(t *testing.T) {
 	waitTransProcessed(saga.Gid)
 	assert.Equal(t, []string{StatusPrepared, StatusSucceed, StatusPrepared, StatusSucceed}, getBranchesStatus(saga.Gid))
 	assert.Equal(t, StatusSucceed, getTransStatus(saga.Gid))
+	assert.Equal(t, "", getTrans(saga.Gid).RollbackReason)
 }
 
 func TestSagaRollback(t *testing.T) {
@@ -31,6 +32,7 @@ func TestSagaRollback(t *testing.T) {
 	waitTransProcessed(saga.Gid)
 	assert.Equal(t, []string{StatusSucceed, StatusSucceed, StatusSucceed, StatusFailed}, getBranchesStatus(saga.Gid))
 	assert.Equal(t, StatusFailed, getTransStatus(saga.Gid))
+	assert.Equal(t, "Transaction branch execution failed", getTrans(saga.Gid).RollbackReason)
 }
 
 func TestSagaOngoingSucceed(t *testing.T) {
@@ -44,6 +46,7 @@ func TestSagaOngoingSucceed(t *testing.T) {
 	cronTransOnce(t, gid)
 	assert.Equal(t, []string{StatusPrepared, StatusSucceed, StatusPrepared, StatusSucceed}, getBranchesStatus(saga.Gid))
 	assert.Equal(t, StatusSucceed, getTransStatus(saga.Gid))
+	assert.Equal(t, "", getTrans(saga.Gid).RollbackReason)
 }
 
 func TestSagaFailed(t *testing.T) {
@@ -54,9 +57,11 @@ func TestSagaFailed(t *testing.T) {
 	assert.Nil(t, err)
 	waitTransProcessed(saga.Gid)
 	assert.Equal(t, StatusAborting, getTransStatus(saga.Gid))
+	assert.Equal(t, "Transaction branch execution failed", getTrans(saga.Gid).RollbackReason)
 	cronTransOnce(t, gid)
 	assert.Equal(t, StatusFailed, getTransStatus(saga.Gid))
 	assert.Equal(t, []string{StatusSucceed, StatusSucceed, StatusSucceed, StatusFailed}, getBranchesStatus(saga.Gid))
+	assert.Equal(t, "Transaction branch execution failed", getTrans(saga.Gid).RollbackReason)
 }
 
 func TestSagaAbnormal(t *testing.T) {

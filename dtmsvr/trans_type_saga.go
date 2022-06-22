@@ -55,7 +55,7 @@ func (t *transSagaProcessor) ProcessOnce(branches []TransBranch) error {
 	// when saga tasks is fetched, it always need to process
 	logger.Debugf("status: %s timeout: %t", t.Status, t.isTimeout())
 	if t.Status == dtmcli.StatusSubmitted && t.isTimeout() {
-		t.changeStatus(dtmcli.StatusAborting)
+		t.changeStatus(dtmcli.StatusAborting, withRollbackReason(fmt.Sprintf("Timeout after %d seconds", t.TimeoutToFail)))
 	}
 	n := len(branches)
 
@@ -219,8 +219,11 @@ func (t *transSagaProcessor) ProcessOnce(branches []TransBranch) error {
 		t.changeStatus(dtmcli.StatusSucceed)
 		return nil
 	}
-	if t.Status == dtmcli.StatusSubmitted && (rsAFailed > 0 || t.isTimeout()) {
-		t.changeStatus(dtmcli.StatusAborting)
+	if t.Status == dtmcli.StatusSubmitted && rsAFailed > 0 {
+		t.changeStatus(dtmcli.StatusAborting, withRollbackReason("Transaction branch execution failed"))
+	}
+	if t.Status == dtmcli.StatusSubmitted && t.isTimeout() {
+		t.changeStatus(dtmcli.StatusAborting, withRollbackReason(fmt.Sprintf("Timeout after %d seconds", t.TimeoutToFail)))
 	}
 	if t.Status == dtmcli.StatusAborting {
 		prepareToCompensate()
