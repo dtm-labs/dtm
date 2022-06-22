@@ -55,14 +55,15 @@ func (g *TransGlobalStore) String() string {
 // TransBranchStore branch transaction
 type TransBranchStore struct {
 	dtmutil.ModelBase
-	Gid          string `json:"gid,omitempty"`
-	URL          string `json:"url,omitempty"`
-	BinData      []byte
-	BranchID     string     `json:"branch_id,omitempty"`
-	Op           string     `json:"op,omitempty"`
-	Status       string     `json:"status,omitempty"`
-	FinishTime   *time.Time `json:"finish_time,omitempty"`
-	RollbackTime *time.Time `json:"rollback_time,omitempty"`
+	Gid            string `json:"gid,omitempty"`
+	URL            string `json:"url,omitempty"`
+	BinData        []byte
+	BranchID       string     `json:"branch_id,omitempty"`
+	Op             string     `json:"op,omitempty"`
+	Status         string     `json:"status,omitempty"`
+	FinishTime     *time.Time `json:"finish_time,omitempty"`
+	RollbackTime   *time.Time `json:"rollback_time,omitempty"`
+	RollbackReason string     `json:"-" gorm:"-"`
 }
 
 // TableName TableName

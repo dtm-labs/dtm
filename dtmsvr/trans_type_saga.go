@@ -45,10 +45,11 @@ type cSagaCustom struct {
 }
 
 type branchResult struct {
-	index   int
-	status  string
-	started bool
-	op      string
+	index          int
+	status         string
+	started        bool
+	op             string
+	rollbackReason string
 }
 
 func (t *transSagaProcessor) ProcessOnce(branches []TransBranch) error {
@@ -73,6 +74,7 @@ func (t *transSagaProcessor) ProcessOnce(branches []TransBranch) error {
 	}
 	// resultStats
 	var rsAToStart, rsAStarted, rsADone, rsAFailed, rsASucceed, rsCToStart, rsCDone, rsCSucceed int
+	var rollbackReason string
 	branchResults := make([]branchResult, n) // save the branch result
 	for i := 0; i < n; i++ {
 		b := branches[i]
@@ -125,7 +127,7 @@ func (t *transSagaProcessor) ProcessOnce(branches []TransBranch) error {
 			if x := recover(); x != nil {
 				err = dtmimp.AsError(x)
 			}
-			resultChan <- branchResult{index: i, status: branches[i].Status, op: branches[i].Op}
+			resultChan <- branchResult{index: i, status: branches[i].Status, op: branches[i].Op, rollbackReason: branches[i].RollbackReason}
 			if err != nil && !errors.Is(err, dtmcli.ErrOngoing) {
 				logger.Errorf("exec branch %s %s %s error: %v", branches[i].BranchID, branches[i].Op, branches[i].URL, err)
 			}
@@ -172,6 +174,7 @@ func (t *transSagaProcessor) ProcessOnce(branches []TransBranch) error {
 				rsADone++
 				if r.status == dtmcli.StatusFailed {
 					rsAFailed++
+					rollbackReason = r.rollbackReason
 				} else if r.status == dtmcli.StatusSucceed {
 					rsASucceed++
 				}
@@ -220,7 +223,7 @@ func (t *transSagaProcessor) ProcessOnce(branches []TransBranch) error {
 		return nil
 	}
 	if t.Status == dtmcli.StatusSubmitted && rsAFailed > 0 {
-		t.changeStatus(dtmcli.StatusAborting, withRollbackReason("Transaction branch execution failed"))
+		t.changeStatus(dtmcli.StatusAborting, withRollbackReason(rollbackReason))
 	}
 	if t.Status == dtmcli.StatusSubmitted && t.isTimeout() {
 		t.changeStatus(dtmcli.StatusAborting, withRollbackReason(fmt.Sprintf("Timeout after %d seconds", t.TimeoutToFail)))
