@@ -58,11 +58,10 @@ func TestSagaFailed(t *testing.T) {
 	assert.Nil(t, err)
 	waitTransProcessed(saga.Gid)
 	assert.Equal(t, StatusAborting, getTransStatus(saga.Gid))
-	assert.Equal(t, "Transaction branch execution failed", getTrans(saga.Gid).RollbackReason)
 	cronTransOnce(t, gid)
 	assert.Equal(t, StatusFailed, getTransStatus(saga.Gid))
 	assert.Equal(t, []string{StatusSucceed, StatusSucceed, StatusSucceed, StatusFailed}, getBranchesStatus(saga.Gid))
-	assert.Equal(t, "Transaction branch execution failed", getTrans(saga.Gid).RollbackReason)
+	assert.Equal(t, "url:http://localhost:8081/api/busi/TransIn return failed: {\"error\":\"FAILURE\"}. FAILURE", getTrans(saga.Gid).RollbackReason)
 }
 
 func TestSagaAbnormal(t *testing.T) {
