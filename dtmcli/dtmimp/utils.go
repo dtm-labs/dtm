@@ -233,8 +233,8 @@ func RespAsErrorCompatible(resp *resty.Response) error {
 	return nil
 }
 
-// JsonRpcRespAsError  translate json rpc resty response to error
-func JsonRpcRespAsError(resp *resty.Response) error {
+// RespAsErrorByJSONRPC  translate json rpc resty response to error
+func RespAsErrorByJSONRPC(resp *resty.Response) error {
 	str := resp.String()
 	var result map[string]interface{}
 	MustUnmarshalString(str, &result)

@@ -113,14 +113,14 @@ func (t *TransGlobal) getURLResult(uri string, branchID, op string, branchPayloa
 			dtmimp.RestyClient.SetTimeout(time.Duration(t.RequestTimeout) * time.Second)
 		}
 		if t.Protocol == "json-rpc" && strings.Contains(uri, "method") {
-			return t.getJsonRpcResult(uri, branchID, op, branchPayload)
+			return t.getJSONRPCResult(uri, branchID, op, branchPayload)
 		}
-		return t.getHttpResult(uri, branchID, op, branchPayload)
+		return t.getHTTPResult(uri, branchID, op, branchPayload)
 	}
 	return t.getGrpcResult(uri, branchID, op, branchPayload)
 }
 
-func (t *TransGlobal) getHttpResult(uri string, branchID, op string, branchPayload []byte) error {
+func (t *TransGlobal) getHTTPResult(uri string, branchID, op string, branchPayload []byte) error {
 	resp, err := dtmimp.RestyClient.R().SetBody(string(branchPayload)).
 		SetQueryParams(map[string]string{
 			"gid":        t.Gid,
@@ -138,7 +138,7 @@ func (t *TransGlobal) getHttpResult(uri string, branchID, op string, branchPaylo
 	return dtmimp.RespAsErrorCompatible(resp)
 }
 
-func (t *TransGlobal) getJsonRpcResult(uri string, branchID, op string, branchPayload []byte) error {
+func (t *TransGlobal) getJSONRPCResult(uri string, branchID, op string, branchPayload []byte) error {
 	var params map[string]interface{}
 	dtmimp.MustUnmarshal(branchPayload, &params)
 	u, err := url.Parse(uri)
@@ -161,7 +161,7 @@ func (t *TransGlobal) getJsonRpcResult(uri string, branchID, op string, branchPa
 		err = dtmimp.RespAsErrorCompatible(resp)
 	}
 	if err == nil {
-		err = dtmimp.JsonRpcRespAsError(resp)
+		err = dtmimp.RespAsErrorByJSONRPC(resp)
 	}
 	return err
 }
