@@ -113,59 +113,60 @@ func (t *TransGlobal) getURLResult(uri string, branchID, op string, branchPayloa
 			dtmimp.RestyClient.SetTimeout(time.Duration(t.RequestTimeout) * time.Second)
 		}
 		if t.Protocol == "json-rpc" && strings.Contains(uri, "method") {
-			var params map[string]interface{}
-			dtmimp.MustUnmarshal(branchPayload, &params)
-			u, err := url.Parse(uri)
-			dtmimp.E2P(err)
-			params["gid"] = t.Gid
-			params["trans_type"] = t.TransType
-			params["branch_id"] = branchID
-			params["op"] = op
-			resp, err := dtmimp.RestyClient.R().SetBody(map[string]interface{}{
-				"params":  params,
-				"jsonrpc": "2.0",
-				"method":  u.Query().Get("method"),
-				"id":      shortuuid.New(),
-			}).
-				SetHeader("Content-type", "application/json").
-				SetHeaders(t.Ext.Headers).
-				SetHeaders(t.TransOptions.BranchHeaders).
-				Post(uri)
-			if err == nil {
-				err = dtmimp.RespAsErrorCompatible(resp)
-			}
-			var result map[string]interface{}
-			if err == nil {
-				dtmimp.MustUnmarshalString(resp.String(), &result)
-				if result["error"] != nil {
-					rerr := result["error"].(map[string]interface{})
-					if rerr["code"] == dtmimp.JrpcCodeFailure {
-						return dtmcli.ErrFailure
-					} else if rerr["code"] == dtmimp.JrpcCodeOngoing {
-						return dtmcli.ErrOngoing
-					}
-					return errors.New(resp.String())
-				}
-			}
-			return err
+			return t.getJsonRpcResult(uri, branchID, op, branchPayload)
 		}
-		resp, err := dtmimp.RestyClient.R().SetBody(string(branchPayload)).
-			SetQueryParams(map[string]string{
-				"gid":        t.Gid,
-				"trans_type": t.TransType,
-				"branch_id":  branchID,
-				"op":         op,
-			}).
-			SetHeader("Content-type", "application/json").
-			SetHeaders(t.Ext.Headers).
-			SetHeaders(t.TransOptions.BranchHeaders).
-			Execute(dtmimp.If(branchPayload != nil || t.TransType == "xa", "POST", "GET").(string), uri)
-		if err != nil {
-			return err
-		}
-		return dtmimp.RespAsErrorCompatible(resp)
+		return t.getHttpResult(uri, branchID, op, branchPayload)
 	}
-	dtmimp.PanicIf(t.Protocol == dtmimp.ProtocolHTTP, fmt.Errorf("bad url for http: %s", uri))
+	return t.getGrpcResult(uri, branchID, op, branchPayload)
+}
+
+func (t *TransGlobal) getHttpResult(uri string, branchID, op string, branchPayload []byte) error {
+	resp, err := dtmimp.RestyClient.R().SetBody(string(branchPayload)).
+		SetQueryParams(map[string]string{
+			"gid":        t.Gid,
+			"trans_type": t.TransType,
+			"branch_id":  branchID,
+			"op":         op,
+		}).
+		SetHeader("Content-type", "application/json").
+		SetHeaders(t.Ext.Headers).
+		SetHeaders(t.TransOptions.BranchHeaders).
+		Execute(dtmimp.If(branchPayload != nil || t.TransType == "xa", "POST", "GET").(string), uri)
+	if err != nil {
+		return err
+	}
+	return dtmimp.RespAsErrorCompatible(resp)
+}
+
+func (t *TransGlobal) getJsonRpcResult(uri string, branchID, op string, branchPayload []byte) error {
+	var params map[string]interface{}
+	dtmimp.MustUnmarshal(branchPayload, &params)
+	u, err := url.Parse(uri)
+	dtmimp.E2P(err)
+	params["gid"] = t.Gid
+	params["trans_type"] = t.TransType
+	params["branch_id"] = branchID
+	params["op"] = op
+	resp, err := dtmimp.RestyClient.R().SetBody(map[string]interface{}{
+		"params":  params,
+		"jsonrpc": "2.0",
+		"method":  u.Query().Get("method"),
+		"id":      shortuuid.New(),
+	}).
+		SetHeader("Content-type", "application/json").
+		SetHeaders(t.Ext.Headers).
+		SetHeaders(t.TransOptions.BranchHeaders).
+		Post(uri)
+	if err == nil {
+		err = dtmimp.RespAsErrorCompatible(resp)
+	}
+	if err == nil {
+		err = dtmimp.JsonRpcRespAsError(resp)
+	}
+	return err
+}
+
+func (t *TransGlobal) getGrpcResult(uri string, branchID, op string, branchPayload []byte) error {
 	// grpc handler
 	server, method, err := dtmdriver.GetDriver().ParseServerMethod(uri)
 	if err != nil {

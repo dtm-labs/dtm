@@ -20,6 +20,8 @@ import (
 	"sync"
 	"time"
 
+	"github.com/dtm-labs/dtm/dtmcli"
+
 	"github.com/dtm-labs/dtm/dtmcli/logger"
 	"github.com/go-resty/resty/v2"
 )
@@ -229,6 +231,23 @@ func RespAsErrorCompatible(resp *resty.Response) error {
 		return fmt.Errorf("%s. %w", str, ErrFailure)
 	} else if code != http.StatusOK {
 		return errors.New(str)
+	}
+	return nil
+}
+
+// JsonRpcRespAsError  translate json rpc resty response to error
+func JsonRpcRespAsError(resp *resty.Response) error {
+	str := resp.String()
+	var result map[string]interface{}
+	MustUnmarshalString(str, &result)
+	if result["error"] != nil {
+		rerr := result["error"].(map[string]interface{})
+		if rerr["code"] == JrpcCodeFailure {
+			return fmt.Errorf("%s. %w", str, ErrFailure)
+		} else if rerr["code"] == JrpcCodeOngoing {
+			return dtmcli.ErrOngoing
+		}
+		return errors.New(resp.String())
 	}
 	return nil
 }
