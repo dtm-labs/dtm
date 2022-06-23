@@ -33,7 +33,7 @@ func TestSagaRollback(t *testing.T) {
 	waitTransProcessed(saga.Gid)
 	assert.Equal(t, []string{StatusSucceed, StatusSucceed, StatusSucceed, StatusFailed}, getBranchesStatus(saga.Gid))
 	assert.Equal(t, StatusFailed, getTransStatus(saga.Gid))
-	assert.Equal(t, "url:http://localhost:8081/api/busi/TransIn return failed: {\"error\":\"Insufficient balance. FAILURE\"}. FAILURE", getTrans(saga.Gid).RollbackReason)
+	assert.Equal(t, "url:http://localhost:8081/api/busi/TransIn return failed: {\"error\":\"reason:Insufficient balance. FAILURE\"}. FAILURE", getTrans(saga.Gid).RollbackReason)
 }
 
 func TestSagaOngoingSucceed(t *testing.T) {

@@ -49,10 +49,7 @@ func handleGeneralBusiness(c *gin.Context, result1 string, result2 string, busi 
 		return errors.New("ERROR from user")
 	}
 	if res == dtmimp.ResultFailure {
-		failureReason := MainSwitch.FailureReason.Fetch()
-		if failureReason != "" {
-			return fmt.Errorf("%s. %w", failureReason, dtmimp.ErrFailure)
-		}
+		return fmt.Errorf("reason:%s. %w", MainSwitch.FailureReason.Fetch(), dtmimp.ErrFailure)
 	}
 	return dtmcli.String2DtmError(res)
 }
