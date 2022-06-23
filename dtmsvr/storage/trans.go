@@ -52,6 +52,7 @@ func (g *TransGlobalStore) String() string {
 	return dtmimp.MustMarshalString(g)
 }
 
+// IsFinished return true if status == "failed" || status == "succeed"
 func (g *TransGlobalStore) IsFinished() bool {
 	return g.Status == dtmcli.StatusFailed || g.Status == dtmcli.StatusSucceed
 }
