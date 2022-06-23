@@ -49,13 +49,14 @@ type branchResult struct {
 	status  string
 	started bool
 	op      string
+	err     error
 }
 
 func (t *transSagaProcessor) ProcessOnce(branches []TransBranch) error {
 	// when saga tasks is fetched, it always need to process
 	logger.Debugf("status: %s timeout: %t", t.Status, t.isTimeout())
 	if t.Status == dtmcli.StatusSubmitted && t.isTimeout() {
-		t.changeStatus(dtmcli.StatusAborting)
+		t.changeStatus(dtmcli.StatusAborting, withRollbackReason(fmt.Sprintf("Timeout after %d seconds", t.TimeoutToFail)))
 	}
 	n := len(branches)
 
@@ -73,6 +74,7 @@ func (t *transSagaProcessor) ProcessOnce(branches []TransBranch) error {
 	}
 	// resultStats
 	var rsAToStart, rsAStarted, rsADone, rsAFailed, rsASucceed, rsCToStart, rsCDone, rsCSucceed int
+	var failureError error
 	branchResults := make([]branchResult, n) // save the branch result
 	for i := 0; i < n; i++ {
 		b := branches[i]
@@ -125,7 +127,7 @@ func (t *transSagaProcessor) ProcessOnce(branches []TransBranch) error {
 			if x := recover(); x != nil {
 				err = dtmimp.AsError(x)
 			}
-			resultChan <- branchResult{index: i, status: branches[i].Status, op: branches[i].Op}
+			resultChan <- branchResult{index: i, status: branches[i].Status, op: branches[i].Op, err: branches[i].Error}
 			if err != nil && !errors.Is(err, dtmcli.ErrOngoing) {
 				logger.Errorf("exec branch %s %s %s error: %v", branches[i].BranchID, branches[i].Op, branches[i].URL, err)
 			}
@@ -172,6 +174,7 @@ func (t *transSagaProcessor) ProcessOnce(branches []TransBranch) error {
 				rsADone++
 				if r.status == dtmcli.StatusFailed {
 					rsAFailed++
+					failureError = r.err
 				} else if r.status == dtmcli.StatusSucceed {
 					rsASucceed++
 				}
@@ -219,8 +222,11 @@ func (t *transSagaProcessor) ProcessOnce(branches []TransBranch) error {
 		t.changeStatus(dtmcli.StatusSucceed)
 		return nil
 	}
-	if t.Status == dtmcli.StatusSubmitted && (rsAFailed > 0 || t.isTimeout()) {
-		t.changeStatus(dtmcli.StatusAborting)
+	if t.Status == dtmcli.StatusSubmitted && rsAFailed > 0 {
+		t.changeStatus(dtmcli.StatusAborting, withRollbackReason(failureError.Error()))
+	}
+	if t.Status == dtmcli.StatusSubmitted && t.isTimeout() {
+		t.changeStatus(dtmcli.StatusAborting, withRollbackReason(fmt.Sprintf("Timeout after %d seconds", t.TimeoutToFail)))
 	}
 	if t.Status == dtmcli.StatusAborting {
 		prepareToCompensate()

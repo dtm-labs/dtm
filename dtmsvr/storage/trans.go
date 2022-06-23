@@ -68,6 +68,7 @@ type TransBranchStore struct {
 	Status       string     `json:"status,omitempty"`
 	FinishTime   *time.Time `json:"finish_time,omitempty"`
 	RollbackTime *time.Time `json:"rollback_time,omitempty"`
+	Error        error      `json:"-" gorm:"-"`
 }
 
 // TableName TableName

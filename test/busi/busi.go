@@ -34,7 +34,7 @@ func handleGrpcBusiness(in *BusiReq, result1 string, result2 string, busi string
 	if res == dtmcli.ResultSuccess {
 		return nil
 	} else if res == dtmcli.ResultFailure {
-		return status.New(codes.Aborted, dtmcli.ResultFailure).Err()
+		return status.New(codes.Aborted, fmt.Sprintf("reason:%s", MainSwitch.FailureReason.Fetch())).Err()
 	} else if res == dtmcli.ResultOngoing {
 		return status.New(codes.FailedPrecondition, dtmcli.ResultOngoing).Err()
 	}
@@ -47,6 +47,9 @@ func handleGeneralBusiness(c *gin.Context, result1 string, result2 string, busi 
 	logger.Debugf("%s %s result: %s", busi, info.String(), res)
 	if res == "ERROR" {
 		return errors.New("ERROR from user")
+	}
+	if res == dtmimp.ResultFailure {
+		return fmt.Errorf("reason:%s. %w", MainSwitch.FailureReason.Fetch(), dtmimp.ErrFailure)
 	}
 	return dtmcli.String2DtmError(res)
 }
