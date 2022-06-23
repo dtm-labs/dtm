@@ -190,7 +190,7 @@ func (t *TransGlobal) getBranchResult(branch *TransBranch) (string, error) {
 	if err == nil {
 		return dtmcli.StatusSucceed, nil
 	} else if t.TransType == "saga" && branch.Op == dtmimp.OpAction && errors.Is(err, dtmcli.ErrFailure) {
-		branch.RollbackReason = fmt.Sprintf("url:%s return failed: %s", branch.URL, err.Error())
+		branch.Error = fmt.Errorf("url:%s return failed: %w", branch.URL, err)
 		return dtmcli.StatusFailed, nil
 	} else if errors.Is(err, dtmcli.ErrOngoing) {
 		return "", dtmcli.ErrOngoing
