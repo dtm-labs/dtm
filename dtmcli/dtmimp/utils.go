@@ -20,8 +20,6 @@ import (
 	"sync"
 	"time"
 
-	"github.com/dtm-labs/dtm/dtmcli"
-
 	"github.com/dtm-labs/dtm/dtmcli/logger"
 	"github.com/go-resty/resty/v2"
 )
@@ -245,7 +243,7 @@ func JsonRpcRespAsError(resp *resty.Response) error {
 		if rerr["code"] == JrpcCodeFailure {
 			return fmt.Errorf("%s. %w", str, ErrFailure)
 		} else if rerr["code"] == JrpcCodeOngoing {
-			return dtmcli.ErrOngoing
+			return ErrOngoing
 		}
 		return errors.New(resp.String())
 	}
