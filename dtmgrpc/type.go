@@ -39,6 +39,7 @@ func GrpcError2DtmError(err error) error {
 		if st.Message() == dtmcli.ResultOngoing {
 			return dtmcli.ErrOngoing
 		}
+
 		return fmt.Errorf("%s. %w", st.Message(), dtmcli.ErrFailure)
 	} else if ok && st.Code() == codes.FailedPrecondition {
 		return dtmcli.ErrOngoing
