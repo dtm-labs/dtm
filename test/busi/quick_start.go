@@ -7,6 +7,7 @@ import (
 
 	"github.com/dtm-labs/dtm/dtmcli"
 	"github.com/gin-gonic/gin"
+	"github.com/lithammer/shortuuid/v3"
 )
 
 // busi address
@@ -59,7 +60,7 @@ const dtmServer = "http://localhost:36789/api/dtmsvr"
 func QsFireRequest() string {
 	req := &gin.H{"amount": 30} // load of micro-service
 	// DtmServer is the url of dtm
-	saga := dtmcli.NewSaga(dtmServer, dtmcli.MustGenGid(dtmServer)).
+	saga := dtmcli.NewSaga(dtmServer, shortuuid.New()).
 		// add a TransOut subtraction，forward operation with url: qsBusi+"/TransOut", reverse compensation operation with url: qsBusi+"/TransOutCompensate"
 		Add(qsBusi+"/TransOut", qsBusi+"/TransOutCompensate", req).
 		// add a TransIn subtraction, forward operation with url: qsBusi+"/TransIn", reverse compensation operation with url: qsBusi+"/TransInCompensate"

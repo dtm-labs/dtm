@@ -34,7 +34,7 @@ func handleGrpcBusiness(in *BusiReq, result1 string, result2 string, busi string
 	if res == dtmcli.ResultSuccess {
 		return nil
 	} else if res == dtmcli.ResultFailure {
-		return status.New(codes.Aborted, dtmcli.ResultFailure).Err()
+		return status.New(codes.Aborted, fmt.Sprintf("reason:%s", MainSwitch.FailureReason.Fetch())).Err()
 	} else if res == dtmcli.ResultOngoing {
 		return status.New(codes.FailedPrecondition, dtmcli.ResultOngoing).Err()
 	}
@@ -47,6 +47,9 @@ func handleGeneralBusiness(c *gin.Context, result1 string, result2 string, busi 
 	logger.Debugf("%s %s result: %s", busi, info.String(), res)
 	if res == "ERROR" {
 		return errors.New("ERROR from user")
+	}
+	if res == dtmimp.ResultFailure {
+		return fmt.Errorf("reason:%s. %w", MainSwitch.FailureReason.Fetch(), dtmimp.ErrFailure)
 	}
 	return dtmcli.String2DtmError(res)
 }
@@ -66,7 +69,7 @@ func sagaGrpcAdjustBalance(db dtmcli.DB, uid int, amount int64, result string) e
 	if result == dtmcli.ResultFailure {
 		return status.New(codes.Aborted, dtmcli.ResultFailure).Err()
 	}
-	_, err := dtmimp.DBExec(db, "update dtm_busi.user_account set balance = balance + ? where user_id = ?", amount, uid)
+	_, err := dtmimp.DBExec(BusiConf.Driver, db, "update dtm_busi.user_account set balance = balance + ? where user_id = ?", amount, uid)
 	return err
 }
 
@@ -75,7 +78,7 @@ func SagaAdjustBalance(db dtmcli.DB, uid int, amount int, result string) error {
 	if strings.Contains(result, dtmcli.ResultFailure) {
 		return dtmcli.ErrFailure
 	}
-	_, err := dtmimp.DBExec(db, "update dtm_busi.user_account set balance = balance + ? where user_id = ?", amount, uid)
+	_, err := dtmimp.DBExec(BusiConf.Driver, db, "update dtm_busi.user_account set balance = balance + ? where user_id = ?", amount, uid)
 	return err
 }
 
@@ -102,12 +105,12 @@ func SagaMongoAdjustBalance(ctx context.Context, mc *mongo.Client, uid int, amou
 		return fmt.Errorf("balance not enough %w", dtmcli.ErrFailure)
 	}
 	return nil
-
 }
 
 func tccAdjustTrading(db dtmcli.DB, uid int, amount int) error {
-	affected, err := dtmimp.DBExec(db, `update dtm_busi.user_account set trading_balance=trading_balance+?
-		 where user_id=? and trading_balance + ? + balance >= 0`, amount, uid, amount)
+	affected, err := dtmimp.DBExec(BusiConf.Driver, db, `update dtm_busi.user_account
+		set trading_balance=trading_balance+?
+		where user_id=? and trading_balance + ? + balance >= 0`, amount, uid, amount)
 	if err == nil && affected == 0 {
 		return fmt.Errorf("update error, maybe balance not enough")
 	}
@@ -115,8 +118,9 @@ func tccAdjustTrading(db dtmcli.DB, uid int, amount int) error {
 }
 
 func tccAdjustBalance(db dtmcli.DB, uid int, amount int) error {
-	affected, err := dtmimp.DBExec(db, `update dtm_busi.user_account set trading_balance=trading_balance-?,
-		 balance=balance+? where user_id=?`, amount, amount, uid)
+	affected, err := dtmimp.DBExec(BusiConf.Driver, db, `update dtm_busi.user_account
+		set trading_balance=trading_balance-?,
+		balance=balance+? where user_id=?`, amount, amount, uid)
 	if err == nil && affected == 0 {
 		return fmt.Errorf("update user_account 0 rows")
 	}

@@ -11,7 +11,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/dtm-labs/dtm/dtmcli"
 	"github.com/dtm-labs/dtm/dtmcli/dtmimp"
 	"github.com/dtm-labs/dtm/dtmcli/logger"
 	"github.com/dtm-labs/dtm/dtmsvr/storage"
@@ -276,7 +275,7 @@ func (s *Store) ScanTransGlobalStores(position *string, limit int64) []storage.T
 	globals := []storage.TransGlobalStore{}
 	err := s.boltDb.View(func(t *bolt.Tx) error {
 		cursor := t.Bucket(bucketGlobal).Cursor()
-		for k, v := cursor.First(); k != nil; k, v = cursor.Next() {
+		for k, v := cursor.Seek([]byte(*position)); k != nil; k, v = cursor.Next() {
 			if string(k) == *position {
 				continue
 			}
@@ -383,42 +382,42 @@ func (s *Store) TouchCronTime(global *storage.TransGlobalStore, nextCronInterval
 
 // LockOneGlobalTrans finds GlobalTrans
 func (s *Store) LockOneGlobalTrans(expireIn time.Duration) *storage.TransGlobalStore {
-	var trans *storage.TransGlobalStore
+	var transo *storage.TransGlobalStore
 	min := fmt.Sprintf("%d", time.Now().Add(expireIn).Unix())
-	next := time.Now().Add(time.Duration(s.retryInterval) * time.Second)
 	err := s.boltDb.Update(func(t *bolt.Tx) error {
 		cursor := t.Bucket(bucketIndex).Cursor()
 		toDelete := [][]byte{}
-		for trans == nil || trans.Status == dtmcli.StatusSucceed || trans.Status == dtmcli.StatusFailed {
-			k, v := cursor.First()
-			if k == nil || string(k) > min {
-				return storage.ErrNotFound
-			}
-			trans = tGetGlobal(t, string(v))
+		for k, v := cursor.First(); k != nil && string(k) <= min; k, v = cursor.Next() {
 			toDelete = append(toDelete, k)
+			trans := tGetGlobal(t, string(v))
+			if trans != nil && !trans.IsFinished() {
+				transo = trans
+				break
+			}
 		}
 		for _, k := range toDelete {
 			err := t.Bucket(bucketIndex).Delete(k)
 			dtmimp.E2P(err)
 		}
-		trans.NextCronTime = &next
-		tPutGlobal(t, trans)
-		tPutIndex(t, next.Unix(), trans.Gid)
+		if transo != nil {
+			next := time.Now().Add(time.Duration(s.retryInterval) * time.Second)
+			transo.NextCronTime = &next
+			tPutGlobal(t, transo)
+			tPutIndex(t, next.Unix(), transo.Gid)
+
+		}
 		return nil
 	})
-	if err == storage.ErrNotFound {
-		return nil
-	}
 	dtmimp.E2P(err)
-	return trans
+	return transo
 }
 
-// ResetCronTime rest nextCronTime
-// Prevent multiple backoff from causing NextCronTime to be too long
-func (s *Store) ResetCronTime(timeout time.Duration, limit int64) (succeedCount int64, hasRemaining bool, err error) {
+// ResetCronTime reset nextCronTime
+// unfinished transactions need to be retried as soon as possible after business downtime is recovered
+func (s *Store) ResetCronTime(after time.Duration, limit int64) (succeedCount int64, hasRemaining bool, err error) {
 	next := time.Now()
 	var trans *storage.TransGlobalStore
-	min := fmt.Sprintf("%d", time.Now().Add(timeout).Unix())
+	min := fmt.Sprintf("%d", time.Now().Add(after).Unix())
 	err = s.boltDb.Update(func(t *bolt.Tx) error {
 		cursor := t.Bucket(bucketIndex).Cursor()
 		succeedCount = 0

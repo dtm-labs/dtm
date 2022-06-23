@@ -11,7 +11,6 @@ import (
 
 	"github.com/dtm-labs/dtm/dtmcli"
 	"github.com/dtm-labs/dtm/dtmcli/dtmimp"
-	"github.com/dtm-labs/dtm/dtmsvr/config"
 	"github.com/dtm-labs/dtm/dtmutil"
 )
 
@@ -33,6 +32,7 @@ type TransGlobalStore struct {
 	Protocol         string              `json:"protocol,omitempty"`
 	FinishTime       *time.Time          `json:"finish_time,omitempty"`
 	RollbackTime     *time.Time          `json:"rollback_time,omitempty"`
+	RollbackReason   string              `json:"rollback_reason,omitempty"`
 	Options          string              `json:"options,omitempty"`
 	CustomData       string              `json:"custom_data,omitempty"`
 	NextCronInterval int64               `json:"next_cron_interval,omitempty"`
@@ -45,11 +45,16 @@ type TransGlobalStore struct {
 
 // TableName TableName
 func (g *TransGlobalStore) TableName() string {
-	return config.Config.Store.TransGlobalTable
+	return "trans_global"
 }
 
 func (g *TransGlobalStore) String() string {
 	return dtmimp.MustMarshalString(g)
+}
+
+// IsFinished return true if status == "failed" || status == "succeed"
+func (g *TransGlobalStore) IsFinished() bool {
+	return g.Status == dtmcli.StatusFailed || g.Status == dtmcli.StatusSucceed
 }
 
 // TransBranchStore branch transaction
@@ -63,11 +68,12 @@ type TransBranchStore struct {
 	Status       string     `json:"status,omitempty"`
 	FinishTime   *time.Time `json:"finish_time,omitempty"`
 	RollbackTime *time.Time `json:"rollback_time,omitempty"`
+	Error        error      `json:"-" gorm:"-"`
 }
 
 // TableName TableName
 func (b *TransBranchStore) TableName() string {
-	return config.Config.Store.TransBranchOpTable
+	return "trans_branch_op"
 }
 
 func (b *TransBranchStore) String() string {

@@ -19,6 +19,9 @@ import (
 )
 
 func addRoute(engine *gin.Engine) {
+	engine.GET("/api/dtmsvr/version", dtmutil.WrapHandler2(func(c *gin.Context) interface{} {
+		return gin.H{"version": Version}
+	}))
 	engine.GET("/api/dtmsvr/newGid", dtmutil.WrapHandler2(newGid))
 	engine.POST("/api/dtmsvr/prepare", dtmutil.WrapHandler2(prepare))
 	engine.POST("/api/dtmsvr/submit", dtmutil.WrapHandler2(submit))
@@ -89,8 +92,7 @@ func all(c *gin.Context) interface{} {
 	return map[string]interface{}{"transactions": globals, "next_position": position}
 }
 
-// resetCronTime rest nextCronTime
-// Prevent multiple backoff from causing NextCronTime to be too long
+// unfinished transactions need to be retried as soon as possible after business downtime is recovered
 func resetCronTime(c *gin.Context) interface{} {
 	sTimeoutSecond := dtmimp.OrString(c.Query("timeout"), strconv.FormatInt(3*conf.TimeoutToFail, 10))
 	sLimit := dtmimp.OrString(c.Query("limit"), "100")

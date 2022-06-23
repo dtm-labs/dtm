@@ -1,6 +1,8 @@
 package dtmsvr
 
 import (
+	"fmt"
+
 	"github.com/dtm-labs/dtm/dtmcli"
 	"github.com/dtm-labs/dtm/dtmcli/dtmimp"
 )
@@ -22,7 +24,7 @@ func (t *transXaProcessor) ProcessOnce(branches []TransBranch) error {
 		return nil
 	}
 	if t.Status == dtmcli.StatusPrepared && t.isTimeout() {
-		t.changeStatus(dtmcli.StatusAborting)
+		t.changeStatus(dtmcli.StatusAborting, withRollbackReason(fmt.Sprintf("Timeout after %d seconds", t.TimeoutToFail)))
 	}
 	currentType := dtmimp.If(t.Status == dtmcli.StatusSubmitted, dtmimp.OpCommit, dtmimp.OpRollback).(string)
 	for i, branch := range branches {

@@ -36,7 +36,22 @@ func (t *TransGlobal) touchCronTime(ctype cronType, delay uint64) {
 	logger.Infof("TouchCronTime for: %s", t.TransGlobalStore.String())
 }
 
-func (t *TransGlobal) changeStatus(status string) {
+type changeStatusParams struct {
+	rollbackReason string
+}
+type changeStatusOption func(c *changeStatusParams)
+
+func withRollbackReason(rollbackReason string) changeStatusOption {
+	return func(c *changeStatusParams) {
+		c.rollbackReason = rollbackReason
+	}
+}
+
+func (t *TransGlobal) changeStatus(status string, opts ...changeStatusOption) {
+	statusParams := &changeStatusParams{}
+	for _, opt := range opts {
+		opt(statusParams)
+	}
 	updates := []string{"status", "update_time"}
 	now := time.Now()
 	if status == dtmcli.StatusSucceed {
@@ -45,6 +60,10 @@ func (t *TransGlobal) changeStatus(status string) {
 	} else if status == dtmcli.StatusFailed {
 		t.RollbackTime = &now
 		updates = append(updates, "rollback_time")
+	}
+	if statusParams.rollbackReason != "" {
+		t.RollbackReason = statusParams.rollbackReason
+		updates = append(updates, "rollback_reason")
 	}
 	t.UpdateTime = &now
 	GetStore().ChangeGlobalStatus(&t.TransGlobalStore, status, updates, status == dtmcli.StatusSucceed || status == dtmcli.StatusFailed)
@@ -171,6 +190,7 @@ func (t *TransGlobal) getBranchResult(branch *TransBranch) (string, error) {
 	if err == nil {
 		return dtmcli.StatusSucceed, nil
 	} else if t.TransType == "saga" && branch.Op == dtmimp.OpAction && errors.Is(err, dtmcli.ErrFailure) {
+		branch.Error = fmt.Errorf("url:%s return failed: %w", branch.URL, err)
 		return dtmcli.StatusFailed, nil
 	} else if errors.Is(err, dtmcli.ErrOngoing) {
 		return "", dtmcli.ErrOngoing

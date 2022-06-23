@@ -12,9 +12,9 @@ builds:
     dir: .
     main: main.go
     ldflags:
-      - -s -w -X main.Version={{.Version}}
+      - -s -w -X main.Version=v{{.Version}}
   - id: dtm_arm64
-    env: [ CGO_ENABLED=0 ]
+    env: [CGO_ENABLED=0]
     goos:
       - darwin
     goarch:
@@ -22,4 +22,4 @@ builds:
     dir: .
     main: main.go
     ldflags:
-      - -s -w -X main.Version={{.Version}}
+      - -s -w -X main.Version=v{{.Version}}

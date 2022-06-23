@@ -33,12 +33,12 @@ func testSql(t *testing.T) {
 func testDbAlone(t *testing.T) {
 	db, err := dtmimp.StandaloneDB(conf.Store.GetDBConf())
 	assert.Nil(t, err)
-	_, err = dtmimp.DBExec(db, "select 1")
+	_, err = dtmimp.DBExec(conf.Store.Driver, db, "select 1")
 	assert.Equal(t, nil, err)
-	_, err = dtmimp.DBExec(db, "")
+	_, err = dtmimp.DBExec(conf.Store.Driver, db, "")
 	assert.Equal(t, nil, err)
 	db.Close()
-	_, err = dtmimp.DBExec(db, "select 1")
+	_, err = dtmimp.DBExec(conf.Store.Driver, db, "select 1")
 	assert.NotEqual(t, nil, err)
 }
 

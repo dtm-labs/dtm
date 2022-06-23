@@ -17,11 +17,13 @@ DTM is a distributed transaction framework which provides cross-service eventual
 
 ## Who's using DTM (partial)
 
-[Tencent](https://www.tencent.com/)
+[Tencent](https://en.dtm.pub/other/using.html#tencent)
 
-[Bytedance](https://www.bytedance.com/)
+[Bytedance](https://en.dtm.pub/other/using.html#bytedance)
 
-[Ivydad](https://ivydad.com)
+[Ivydad](https://en.dtm.pub/other/using.html#ivydad)
+
+[More](https://en.dtm.pub/other/using.html)
 
 ## [Cook Book](https://en.dtm.pub)
 
@@ -54,7 +56,7 @@ go run main.go
   DtmServer := "http://localhost:36789/api/dtmsvr"
   req := &gin.H{"amount": 30} // micro-service payload
 	// DtmServer is the address of DTM micro-service
-	saga := dtmcli.NewSaga(DtmServer, dtmcli.MustGenGid(DtmServer)).
+	saga := dtmcli.NewSaga(DtmServer, shortuuid.New()).
 		// add a TransOut subtraction，forward operation with url: qsBusi+"/TransOut", reverse compensation operation with url: qsBusi+"/TransOutCom"
 		Add(qsBusi+"/TransOut", qsBusi+"/TransOutCom", req).
 		// add a TransIn subtraction, forward operation with url: qsBusi+"/TransIn", reverse compensation operation with url: qsBusi+"/TransInCom"

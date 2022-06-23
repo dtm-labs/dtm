@@ -11,6 +11,7 @@
 #   User: 'root'
 #   Password: ''
 #   Port: 3306
+#   Db: 'dtm'
 
 #   Driver: 'boltdb' # default store engine
 
@@ -30,8 +31,6 @@
 #   MaxOpenConns: 500
 #   MaxIdleConns: 500
 #   ConnMaxLifeTime: 5 # default value is 5 (minutes)
-#   TransGlobalTable: 'dtm.trans_global'
-#   TransBranchOpTable: 'dtm.trans_branch_op'
 
 ### flollowing config is only for some Driver
 #   DataExpire: 604800 # Trans data will expire in 7 days. only for redis/boltdb.

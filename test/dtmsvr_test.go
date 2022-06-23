@@ -26,6 +26,10 @@ func getTransStatus(gid string) string {
 	return dtmsvr.GetTransGlobal(gid).Status
 }
 
+func getTrans(gid string) *dtmsvr.TransGlobal {
+	return dtmsvr.GetTransGlobal(gid)
+}
+
 func getBranchesStatus(gid string) []string {
 	branches := dtmsvr.GetStore().FindBranches(gid)
 	status := []string{}
