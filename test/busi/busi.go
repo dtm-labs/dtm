@@ -34,7 +34,7 @@ func handleGrpcBusiness(in *BusiReq, result1 string, result2 string, busi string
 	if res == dtmcli.ResultSuccess {
 		return nil
 	} else if res == dtmcli.ResultFailure {
-		return status.New(codes.Aborted, dtmcli.ResultFailure).Err()
+		return status.New(codes.Aborted, fmt.Sprintf("reason:%s. %s", MainSwitch.FailureReason.Fetch(), dtmimp.ErrFailure)).Err()
 	} else if res == dtmcli.ResultOngoing {
 		return status.New(codes.FailedPrecondition, dtmcli.ResultOngoing).Err()
 	}

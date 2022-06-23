@@ -28,6 +28,7 @@ func TestSagaGrpcNormal(t *testing.T) {
 func TestSagaGrpcRollback(t *testing.T) {
 	gid := dtmimp.GetFuncName()
 	saga := genSagaGrpc(gid, false, true)
+	busi.MainSwitch.FailureReason.SetOnce("Insufficient balance")
 	busi.MainSwitch.TransOutRevertResult.SetOnce(dtmcli.ResultOngoing)
 	saga.Submit()
 	waitTransProcessed(saga.Gid)
@@ -35,6 +36,7 @@ func TestSagaGrpcRollback(t *testing.T) {
 	cronTransOnce(t, gid)
 	assert.Equal(t, StatusFailed, getTransStatus(saga.Gid))
 	assert.Equal(t, []string{StatusSucceed, StatusSucceed, StatusSucceed, StatusFailed}, getBranchesStatus(saga.Gid))
+	assert.Equal(t, "url:localhost:58081/busi.Busi/TransIn return failed: reason:Insufficient balance. FAILURE. FAILURE", getTrans(saga.Gid).RollbackReason)
 }
 
 func TestSagaGrpcCurrent(t *testing.T) {
