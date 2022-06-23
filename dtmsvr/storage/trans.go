@@ -52,6 +52,10 @@ func (g *TransGlobalStore) String() string {
 	return dtmimp.MustMarshalString(g)
 }
 
+func (g *TransGlobalStore) IsFinished() bool {
+	return g.Status == dtmcli.StatusFailed || g.Status == dtmcli.StatusSucceed
+}
+
 // TransBranchStore branch transaction
 type TransBranchStore struct {
 	dtmutil.ModelBase
