@@ -94,12 +94,13 @@ func TransFromDtmRequest(ctx context.Context, c *dtmgpb.DtmRequest) *TransGlobal
 		o = c.TransOptions
 	}
 	r := TransGlobal{TransGlobalStore: storage.TransGlobalStore{
-		Gid:           c.Gid,
-		TransType:     c.TransType,
-		QueryPrepared: c.QueryPrepared,
-		Protocol:      "grpc",
-		BinPayloads:   c.BinPayloads,
-		CustomData:    c.CustomedData,
+		Gid:            c.Gid,
+		TransType:      c.TransType,
+		QueryPrepared:  c.QueryPrepared,
+		Protocol:       "grpc",
+		BinPayloads:    c.BinPayloads,
+		CustomData:     c.CustomedData,
+		RollbackReason: o.RollbackReason,
 		TransOptions: dtmcli.TransOptions{
 			WaitResult:         o.WaitResult,
 			TimeoutToFail:      o.TimeoutToFail,
@@ -107,6 +108,7 @@ func TransFromDtmRequest(ctx context.Context, c *dtmgpb.DtmRequest) *TransGlobal
 			PassthroughHeaders: o.PassthroughHeaders,
 			BranchHeaders:      o.BranchHeaders,
 			RequestTimeout:     o.RequestTimeout,
+			RollbackReason:     o.RollbackReason,
 		},
 	}}
 	if c.Steps != "" {

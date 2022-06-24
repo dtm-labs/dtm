@@ -52,6 +52,7 @@ func TestTccGrpcRollback(t *testing.T) {
 	cronTransOnce(t, gid)
 	assert.Equal(t, StatusFailed, getTransStatus(gid))
 	assert.Equal(t, []string{StatusSucceed, StatusPrepared, StatusSucceed, StatusPrepared}, getBranchesStatus(gid))
+	assert.Equal(t, "rpc error: code = Aborted desc = reason:", getTrans(gid).RollbackReason)
 }
 
 func TestTccGrpcNested(t *testing.T) {
