@@ -37,6 +37,7 @@ func DtmGrpcCall(s *dtmimp.TransBase, operation string) error {
 			PassthroughHeaders: s.PassthroughHeaders,
 			BranchHeaders:      s.BranchHeaders,
 			RequestTimeout:     s.RequestTimeout,
+			RollbackReason:     s.RollbackReason,
 		},
 		QueryPrepared: s.QueryPrepared,
 		CustomedData:  s.CustomData,
