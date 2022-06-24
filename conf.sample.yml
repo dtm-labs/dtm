@@ -46,7 +46,7 @@
 #   Driver: 'dtm-driver-http' # name of the driver to handle register/discover
 #   RegistryType: 'nacos'
 #   RegistryAddress: '127.0.0.1:8848,127.0.0.1:8848'
-#   RegistryOptions: '{"UserName":"nacos","Password":"nacos","NotLoadCacheAtStart":true}'
+#   RegistryOptions: '{"namespaceId":"a6843d66-cf5b-43ab-b7e7-461200dfe76c","UserName":"nacos","Password":"nacos","NotLoadCacheAtStart":true}'
 #   Target: '{"ServiceName":"dtmService","Enable":true,"Healthy":true,"Weight":10}' # target and options
 #   EndPoint: '127.0.0.1:36789'
 
