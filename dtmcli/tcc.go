@@ -41,6 +41,7 @@ func TccGlobalTransaction2(dtm string, gid string, custom func(*Tcc), tccFunc Tc
 	defer dtmimp.DeferDo(&rerr, func() error {
 		return dtmimp.TransCallDtm(&tcc.TransBase, tcc, "submit")
 	}, func() error {
+		tcc.RollbackReason = rerr.Error()
 		return dtmimp.TransCallDtm(&tcc.TransBase, tcc, "abort")
 	})
 	_, rerr = tccFunc(tcc)
