@@ -253,6 +253,7 @@ func RespAsErrorByJSONRPC(resp *resty.Response) error {
 // DeferDo a common defer do used in dtmcli/dtmgrpc
 func DeferDo(rerr *error, success func() error, fail func() error) {
 	if x := recover(); x != nil {
+		*rerr = AsError(x)
 		_ = fail()
 		panic(x)
 	} else if *rerr != nil {
