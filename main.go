@@ -45,15 +45,18 @@ var admin embed.FS
 
 var target = ""
 
-func getSub(f1 fs.FS, sub string) fs.FS {
-	f2, err := fs.Sub(f1, sub)
-	logger.FatalIfError(err)
-	return f2
+func getSub(f1 fs.FS, subs ...string) fs.FS {
+	var err error
+	for _, sub := range subs {
+		f1, err = fs.Sub(f1, sub)
+		logger.FatalIfError(err)
+	}
+	return f1
 }
 func addAdmin(app *gin.Engine, conf *config.Type) {
 	// for released dtm, serve admin from local files because the build output has been embed
 	// for testing users, proxy admin to target because the build output has not been embed
-	dist := getSub(admin, "admin/dist")
+	dist := getSub(admin, "admin", "dist")
 	index, err := dist.Open("index.html")
 	if err == nil {
 		cont, err := ioutil.ReadAll(index)
