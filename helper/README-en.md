@@ -57,11 +57,11 @@ go run main.go
   req := &gin.H{"amount": 30} // micro-service payload
 	// DtmServer is the address of DTM micro-service
 	saga := dtmcli.NewSaga(DtmServer, shortuuid.New()).
-		// add a TransOut subtraction，forward operation with url: qsBusi+"/TransOut", reverse compensation operation with url: qsBusi+"/TransOutCom"
+		// add a TransOut sub-transaction，forward operation with url: qsBusi+"/TransOut", reverse compensation operation with url: qsBusi+"/TransOutCom"
 		Add(qsBusi+"/TransOut", qsBusi+"/TransOutCom", req).
-		// add a TransIn subtraction, forward operation with url: qsBusi+"/TransIn", reverse compensation operation with url: qsBusi+"/TransInCom"
+		// add a TransIn sub-transaction, forward operation with url: qsBusi+"/TransIn", reverse compensation operation with url: qsBusi+"/TransInCom"
 		Add(qsBusi+"/TransIn", qsBusi+"/TransInCom", req)
-	// submit the created saga transaction，dtm ensures all subtractions either complete or get revoked
+	// submit the created saga transaction，dtm ensures all sub-transactions either complete or get revoked
 	err := saga.Submit()
 ```
 
