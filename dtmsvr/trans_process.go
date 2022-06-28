@@ -45,7 +45,11 @@ func (t *TransGlobal) process(branches []TransBranch) error {
 	if err != nil {
 		return err
 	}
+
 	if submitting && t.Status != dtmcli.StatusSucceed {
+		if t.RollbackReason != "" {
+			return fmt.Errorf(t.RollbackReason)
+		}
 		return fmt.Errorf("wait result not return success: %w", dtmcli.ErrFailure)
 	}
 	return nil
