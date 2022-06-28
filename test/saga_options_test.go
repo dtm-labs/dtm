@@ -106,6 +106,7 @@ func TestSagaOptionsRollbackWait(t *testing.T) {
 	waitTransProcessed(saga.Gid)
 	assert.Equal(t, StatusFailed, getTransStatus(saga.Gid))
 	assert.Equal(t, []string{StatusSucceed, StatusSucceed, StatusSucceed, StatusFailed}, getBranchesStatus(saga.Gid))
+	assert.Contains(t, getTrans(saga.Gid).RollbackReason, "Insufficient balance")
 }
 
 func TestSagaPassthroughHeadersYes(t *testing.T) {

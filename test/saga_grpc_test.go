@@ -123,6 +123,20 @@ func TestSagaGrpcWithGlobalTransRequestTimeout(t *testing.T) {
 	waitTransProcessed(gid)
 }
 
+func TestSagaGrpcOptionsRollbackWait(t *testing.T) {
+	gid := dtmimp.GetFuncName()
+	saga := genSagaGrpc(gid, false, true)
+	busi.MainSwitch.FailureReason.SetOnce("Insufficient balance")
+	saga.WaitResult = true
+	err := saga.Submit()
+	assert.Error(t, err)
+	assert.Contains(t, err.Error(), "Insufficient balance")
+	waitTransProcessed(saga.Gid)
+	assert.Equal(t, StatusFailed, getTransStatus(saga.Gid))
+	assert.Equal(t, []string{StatusSucceed, StatusSucceed, StatusSucceed, StatusFailed}, getBranchesStatus(saga.Gid))
+	assert.Contains(t, getTrans(saga.Gid).RollbackReason, "Insufficient balance")
+}
+
 func TestSagaGrpcCronPassthroughHeadersYes(t *testing.T) {
 	gidYes := dtmimp.GetFuncName()
 	sagaYes := dtmgrpc.NewSagaGrpc(dtmutil.DefaultGrpcServer, gidYes)

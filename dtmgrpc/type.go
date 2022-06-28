@@ -8,6 +8,7 @@ package dtmgrpc
 
 import (
 	context "context"
+	"errors"
 	"fmt"
 
 	"github.com/dtm-labs/dtm/dtmcli"
@@ -23,9 +24,9 @@ import (
 // DtmError2GrpcError translate dtm error to grpc error
 func DtmError2GrpcError(res interface{}) error {
 	e, ok := res.(error)
-	if ok && e == dtmimp.ErrFailure {
-		return status.New(codes.Aborted, dtmcli.ResultFailure).Err()
-	} else if ok && e == dtmimp.ErrOngoing {
+	if ok && errors.Is(e, dtmimp.ErrFailure) {
+		return status.New(codes.Aborted, e.Error()).Err()
+	} else if ok && errors.Is(e, dtmimp.ErrOngoing) {
 		return status.New(codes.FailedPrecondition, dtmcli.ResultOngoing).Err()
 	}
 	return e
