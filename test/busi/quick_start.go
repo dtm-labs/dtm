@@ -61,11 +61,11 @@ func QsFireRequest() string {
 	req := &gin.H{"amount": 30} // load of micro-service
 	// DtmServer is the url of dtm
 	saga := dtmcli.NewSaga(dtmServer, shortuuid.New()).
-		// add a TransOut subtraction，forward operation with url: qsBusi+"/TransOut", reverse compensation operation with url: qsBusi+"/TransOutCompensate"
+		// add a TransOut sub-transaction，forward operation with url: qsBusi+"/TransOut", reverse compensation operation with url: qsBusi+"/TransOutCompensate"
 		Add(qsBusi+"/TransOut", qsBusi+"/TransOutCompensate", req).
-		// add a TransIn subtraction, forward operation with url: qsBusi+"/TransIn", reverse compensation operation with url: qsBusi+"/TransInCompensate"
+		// add a TransIn sub-transaction, forward operation with url: qsBusi+"/TransIn", reverse compensation operation with url: qsBusi+"/TransInCompensate"
 		Add(qsBusi+"/TransIn", qsBusi+"/TransInCompensate", req)
-	// submit the created saga transaction，dtm ensures all subtractions either complete or get revoked
+	// submit the created saga transaction，dtm ensures all sub-transactions either complete or get revoked
 	err := saga.Submit()
 
 	if err != nil {
