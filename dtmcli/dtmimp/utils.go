@@ -233,18 +233,34 @@ func RespAsErrorCompatible(resp *resty.Response) error {
 	return nil
 }
 
+// RespAsErrorByJSONRPC  translate json rpc resty response to error
+func RespAsErrorByJSONRPC(resp *resty.Response) error {
+	str := resp.String()
+	var result map[string]interface{}
+	MustUnmarshalString(str, &result)
+	if result["error"] != nil {
+		rerr := result["error"].(map[string]interface{})
+		if rerr["code"] == JrpcCodeFailure {
+			return fmt.Errorf("%s. %w", str, ErrFailure)
+		} else if rerr["code"] == JrpcCodeOngoing {
+			return ErrOngoing
+		}
+		return errors.New(resp.String())
+	}
+	return nil
+}
+
 // DeferDo a common defer do used in dtmcli/dtmgrpc
 func DeferDo(rerr *error, success func() error, fail func() error) {
-	defer func() {
-		if x := recover(); x != nil {
-			_ = fail()
-			panic(x)
-		} else if *rerr != nil {
-			_ = fail()
-		} else {
-			*rerr = success()
-		}
-	}()
+	if x := recover(); x != nil {
+		*rerr = AsError(x)
+		_ = fail()
+		panic(x)
+	} else if *rerr != nil {
+		_ = fail()
+	} else {
+		*rerr = success()
+	}
 }
 
 // Escape solve CodeQL reported problem

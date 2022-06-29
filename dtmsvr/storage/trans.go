@@ -32,6 +32,7 @@ type TransGlobalStore struct {
 	Protocol         string              `json:"protocol,omitempty"`
 	FinishTime       *time.Time          `json:"finish_time,omitempty"`
 	RollbackTime     *time.Time          `json:"rollback_time,omitempty"`
+	RollbackReason   string              `json:"rollback_reason,omitempty"`
 	Options          string              `json:"options,omitempty"`
 	CustomData       string              `json:"custom_data,omitempty"`
 	NextCronInterval int64               `json:"next_cron_interval,omitempty"`
@@ -51,6 +52,7 @@ func (g *TransGlobalStore) String() string {
 	return dtmimp.MustMarshalString(g)
 }
 
+// IsFinished return true if status == "failed" || status == "succeed"
 func (g *TransGlobalStore) IsFinished() bool {
 	return g.Status == dtmcli.StatusFailed || g.Status == dtmcli.StatusSucceed
 }
@@ -66,6 +68,7 @@ type TransBranchStore struct {
 	Status       string     `json:"status,omitempty"`
 	FinishTime   *time.Time `json:"finish_time,omitempty"`
 	RollbackTime *time.Time `json:"rollback_time,omitempty"`
+	Error        error      `json:"-" gorm:"-"`
 }
 
 // TableName TableName

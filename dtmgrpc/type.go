@@ -9,6 +9,7 @@ package dtmgrpc
 import (
 	context "context"
 	"errors"
+	"fmt"
 
 	"github.com/dtm-labs/dtm/dtmcli"
 	"github.com/dtm-labs/dtm/dtmcli/dtmimp"
@@ -39,9 +40,9 @@ func GrpcError2DtmError(err error) error {
 		if st.Message() == dtmcli.ResultOngoing {
 			return dtmcli.ErrOngoing
 		}
-		return dtmcli.ErrFailure
+		return fmt.Errorf("%s. %w", st.Message(), dtmcli.ErrFailure)
 	} else if st != nil && st.Code() == codes.FailedPrecondition {
-		return dtmcli.ErrOngoing
+		return fmt.Errorf("%s. %w", st.Message(), dtmcli.ErrOngoing)
 	}
 	return err
 }

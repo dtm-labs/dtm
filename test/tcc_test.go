@@ -46,6 +46,7 @@ func TestTccRollback(t *testing.T) {
 	cronTransOnce(t, gid)
 	assert.Equal(t, StatusFailed, getTransStatus(gid))
 	assert.Equal(t, []string{StatusSucceed, StatusPrepared, StatusSucceed, StatusPrepared}, getBranchesStatus(gid))
+	assert.Equal(t, "{\"error\":\"reason:. FAILURE\"}. FAILURE", getTrans(gid).RollbackReason)
 }
 
 func TestTccTimeout(t *testing.T) {
@@ -67,6 +68,7 @@ func TestTccTimeout(t *testing.T) {
 	})
 	assert.Error(t, err)
 	assert.Equal(t, StatusFailed, getTransStatus(gid))
+	assert.Regexp(t, `^Timeout after \d+ seconds$`, getTrans(gid).RollbackReason)
 	assert.Equal(t, []string{StatusSucceed, StatusPrepared}, getBranchesStatus(gid))
 }
 

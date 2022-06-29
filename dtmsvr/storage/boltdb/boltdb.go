@@ -384,7 +384,6 @@ func (s *Store) TouchCronTime(global *storage.TransGlobalStore, nextCronInterval
 func (s *Store) LockOneGlobalTrans(expireIn time.Duration) *storage.TransGlobalStore {
 	var trans *storage.TransGlobalStore
 	min := fmt.Sprintf("%d", time.Now().Add(expireIn).Unix())
-	next := time.Now().Add(time.Duration(s.retryInterval) * time.Second)
 	err := s.boltDb.Update(func(t *bolt.Tx) error {
 		cursor := t.Bucket(bucketIndex).Cursor()
 		toDelete := [][]byte{}
@@ -397,6 +396,7 @@ func (s *Store) LockOneGlobalTrans(expireIn time.Duration) *storage.TransGlobalS
 			dtmimp.E2P(err)
 		}
 		if trans != nil && !trans.IsFinished() {
+			next := time.Now().Add(time.Duration(s.retryInterval) * time.Second)
 			trans.NextCronTime = &next
 			tPutGlobal(t, trans)
 			// this put should be after delete, because the data may be the same

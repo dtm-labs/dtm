@@ -18,6 +18,18 @@ jobs:
       - name: Check out code
         uses: actions/checkout@v3
 
+      - name: Validates GO releaser config
+        uses: docker://goreleaser/goreleaser:v1.7.0
+        with:
+          args: check
+
+      - name: Create release on GitHub
+        uses: docker://goreleaser/goreleaser:v1.7.0
+        with:
+          args: release -f helper/.goreleaser.yml --rm-dist
+        env:
+          GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
+
       - name: Setup node
         uses: actions/setup-node@v3
         with:
@@ -48,18 +60,6 @@ jobs:
           rm deploy_key dist.tar.gz
           echo > dist/placeholder
           cd ..
-
-      - name: Validates GO releaser config
-        uses: docker://goreleaser/goreleaser:v1.7.0
-        with:
-          args: check
-
-      - name: Create release on GitHub
-        uses: docker://goreleaser/goreleaser:v1.7.0
-        with:
-          args: release -f helper/.goreleaser.yml --rm-dist
-        env:
-          GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
 
       - name: Create Docker
         id: meta

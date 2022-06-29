@@ -42,6 +42,7 @@ func GetDtmRequest(s *dtmimp.TransBase) *dtmgpb.DtmRequest {
 			PassthroughHeaders: s.PassthroughHeaders,
 			BranchHeaders:      s.BranchHeaders,
 			RequestTimeout:     s.RequestTimeout,
+			RollbackReason:     s.RollbackReason,
 		},
 		QueryPrepared: s.QueryPrepared,
 		CustomedData:  s.CustomData,

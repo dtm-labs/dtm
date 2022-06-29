@@ -56,6 +56,8 @@ func TestSagaOptionsTimeout(t *testing.T) {
 	cronTransOnceForwardNow(t, gid, 3600)
 	assert.Equal(t, StatusFailed, getTransStatus(saga.Gid))
 	assert.Equal(t, []string{StatusSucceed, StatusPrepared, StatusPrepared, StatusPrepared}, getBranchesStatus(saga.Gid))
+	assert.Regexp(t, `^Timeout after \d+ seconds$`, getTrans(gid).RollbackReason)
+
 }
 
 func TestSagaGlobalTransWithRequestTimeout(t *testing.T) {
@@ -96,12 +98,15 @@ func TestSagaOptionsCommittedOngoingWait(t *testing.T) {
 
 func TestSagaOptionsRollbackWait(t *testing.T) {
 	saga := genSaga(dtmimp.GetFuncName(), false, true)
+	busi.MainSwitch.FailureReason.SetOnce("Insufficient balance")
 	saga.WaitResult = true
 	err := saga.Submit()
 	assert.Error(t, err)
+	assert.Contains(t, err.Error(), "Insufficient balance")
 	waitTransProcessed(saga.Gid)
 	assert.Equal(t, StatusFailed, getTransStatus(saga.Gid))
 	assert.Equal(t, []string{StatusSucceed, StatusSucceed, StatusSucceed, StatusFailed}, getBranchesStatus(saga.Gid))
+	assert.Contains(t, getTrans(saga.Gid).RollbackReason, "Insufficient balance")
 }
 
 func TestSagaPassthroughHeadersYes(t *testing.T) {
