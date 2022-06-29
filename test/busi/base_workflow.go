@@ -6,7 +6,8 @@ import (
 	"google.golang.org/grpc"
 )
 
+// WorkflowStarup 1
 func WorkflowStarup(server *grpc.Server) {
-	workflow.InitHttp(dtmServer, Busi+"/workflow/resume")
+	workflow.InitHTTP(dtmServer, Busi+"/workflow/resume")
 	workflow.InitGrpc(dtmutil.DefaultGrpcServer, BusiGrpc, server)
 }

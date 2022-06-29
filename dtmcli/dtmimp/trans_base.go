@@ -113,6 +113,7 @@ func TransCallDtmExt(tb *TransBase, body interface{}, operation string) (*resty.
 	return resp, nil
 }
 
+// TransCallDtm is the short call for TransCallDtmExt
 func TransCallDtm(tb *TransBase, operation string) error {
 	_, err := TransCallDtmExt(tb, tb, operation)
 	return err

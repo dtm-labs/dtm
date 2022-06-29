@@ -12,10 +12,10 @@ import (
 )
 
 type workflowImp struct {
-	restyClient   *resty.Client
+	restyClient   *resty.Client //nolint
 	idGen         dtmimp.BranchIDGen
-	currentBranch string
-	progresses    map[string]*stepResult
+	currentBranch string                 //nolint
+	progresses    map[string]*stepResult //nolint
 	currentOp     string
 	succeededOps  []workflowPhase2Item
 	failedOps     []workflowPhase2Item
@@ -84,7 +84,7 @@ func (wf *Workflow) initRestyClient() {
 		return err
 	})
 	old := wf.restyClient.GetClient().Transport
-	wf.restyClient.GetClient().Transport = NewRoundTripper(old, wf)
+	wf.restyClient.GetClient().Transport = newRoundTripper(old, wf)
 	wf.restyClient.OnAfterResponse(func(c *resty.Client, r *resty.Response) error {
 		err := dtmimp.AfterResponse(c, r)
 		if err == nil && !wf.Options.DisalbeAutoError {
@@ -135,7 +135,7 @@ func (wf *Workflow) processPhase2(err error) error {
 	for i := len(ops) - 1; i >= 0; i-- {
 		op := ops[i]
 
-		err1 := wf.callPhase2(op.branchID, op.op, op.fn)
+		err1 := wf.callPhase2(op.branchID, op.fn)
 		if err1 != nil {
 			return err1
 		}
@@ -143,7 +143,7 @@ func (wf *Workflow) processPhase2(err error) error {
 	return err
 }
 
-func (wf *Workflow) callPhase2(branchID string, op string, fn WfPhase2Func) error {
+func (wf *Workflow) callPhase2(branchID string, fn WfPhase2Func) error {
 	wf.currentBranch = branchID
 	r := wf.recordedDo(func(bb *dtmcli.BranchBarrier) *stepResult {
 		err := fn(bb)

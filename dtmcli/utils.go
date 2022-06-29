@@ -51,10 +51,12 @@ func Result2HttpJSON(result interface{}) (code int, res interface{}) {
 	return
 }
 
+// IsRollback returns whether the result is indicating rollback
 func IsRollback(resp *resty.Response, err error) bool {
 	return err == ErrFailure || dtmimp.RespAsErrorCompatible(resp) == ErrFailure
 }
 
+// IsOngoing returns whether the result is indicating ongoing
 func IsOngoing(resp *resty.Response, err error) bool {
 	return err == ErrOngoing || dtmimp.RespAsErrorCompatible(resp) == ErrOngoing
 }

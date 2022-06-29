@@ -28,7 +28,7 @@ func TestWorkflowNormal(t *testing.T) {
 	gid := dtmimp.GetFuncName()
 
 	workflow.Register(gid, func(wf *workflow.Workflow, data []byte) error {
-		var req busi.ReqHttp
+		var req busi.ReqHTTP
 		dtmimp.MustUnmarshal(data, &req)
 		_, err := wf.NewRequest().SetBody(req).Post(Busi + "/TransOut")
 		if err != nil {
@@ -50,11 +50,11 @@ func TestWorkflowNormal(t *testing.T) {
 func TestWorkflowRollback(t *testing.T) {
 	workflow.SetProtocolForTest(dtmimp.ProtocolHTTP)
 
-	req := &busi.ReqHttp{Amount: 30, TransInResult: dtmimp.ResultFailure}
+	req := &busi.ReqHTTP{Amount: 30, TransInResult: dtmimp.ResultFailure}
 	gid := dtmimp.GetFuncName()
 
 	workflow.Register(gid, func(wf *workflow.Workflow, data []byte) error {
-		var req busi.ReqHttp
+		var req busi.ReqHTTP
 		dtmimp.MustUnmarshal(data, &req)
 		wf.AddSagaPhase2(func(bb *dtmcli.BranchBarrier) error {
 			_, err := wf.NewRequest().SetBody(req).Post(Busi + "/SagaBTransOutCom")
@@ -313,7 +313,7 @@ func TestWorkflowMixed(t *testing.T) {
 			_, err := busi.BusiCli.TransInConfirm(wf.Context, &req)
 			return err
 		}, func(bb *dtmcli.BranchBarrier) error {
-			req2 := &busi.ReqHttp{Amount: 30}
+			req2 := &busi.ReqHTTP{Amount: 30}
 			_, err := wf.NewRequest().SetBody(req2).Post(Busi + "/TransInRevert")
 			return err
 		})

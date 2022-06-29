@@ -15,16 +15,16 @@ import (
 	"google.golang.org/grpc"
 )
 
-// InitHttp will init Workflow engine to use http
+// InitHTTP will init Workflow engine to use http
 // param httpDtm specify the dtm address
 // param callback specify the url for dtm to callback if a workflow timeout
-func InitHttp(httpDtm string, callback string) {
+func InitHTTP(httpDtm string, callback string) {
 	defaultFac.protocol = dtmimp.ProtocolHTTP
 	defaultFac.httpDtm = httpDtm
 	defaultFac.httpCallback = callback
 }
 
-// InitHttp will init Workflow engine to use grpc
+// InitGrpc will init Workflow engine to use grpc
 // param dtm specify the dtm address
 // param clientHost specify the client host for dtm to callback if a workflow timeout
 // param grpcServer specify the grpc server
@@ -57,10 +57,10 @@ func ExecuteByQS(qs url.Values, body []byte) error {
 	return defaultFac.executeByQS(qs, body)
 }
 
-// WorkflowOptions is for specifying workflow options
-type WorkflowOptions struct {
+// Options is for specifying workflow options
+type Options struct {
 	// if this flag is set true, then Workflow's restyClient will keep the origin http response
-	// or else, Workflow's restyClient will convert http reponse to error if status code is not 200
+	// or else, Workflow's restyClient will convert http response to error if status code is not 200
 	DisalbeAutoError bool
 }
 
@@ -68,7 +68,7 @@ type WorkflowOptions struct {
 type Workflow struct {
 	// The name of the workflow
 	Name    string
-	Options WorkflowOptions
+	Options Options
 	*dtmimp.TransBase
 	workflowImp
 }
@@ -96,7 +96,7 @@ func (wf *Workflow) AddSagaPhase2(compensate WfPhase2Func) {
 	})
 }
 
-// DefineSagaPhase2 will define a tcc branch transaction
+// AddTccPhase2 will define a tcc branch transaction
 // param confirm, concel specify the confirm and cancel operation of next workflow action
 func (wf *Workflow) AddTccPhase2(confirm, cancel WfPhase2Func) {
 	branchID := wf.currentBranch
@@ -121,6 +121,8 @@ func (wf *Workflow) DoAction(fn func(bb *dtmcli.BranchBarrier) ([]byte, error)) 
 	return stepResultToLocal(res)
 }
 
+// DoXaAction will begin a local xa transaction
+// after the return of workflow function, xa commit/rollback will be called
 func (wf *Workflow) DoXaAction(dbConf dtmcli.DBConf, fn func(db *sql.DB) ([]byte, error)) ([]byte, error) {
 	branchID := wf.currentBranch
 	res := wf.recordedDo(func(bb *dtmcli.BranchBarrier) *stepResult {

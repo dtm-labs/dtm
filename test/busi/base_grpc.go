@@ -33,6 +33,7 @@ var BusiGrpc = fmt.Sprintf("localhost:%d", BusiGrpcPort)
 // DtmClient grpc client for dtm
 var DtmClient dtmgpb.DtmClient
 
+// BusiCli grpc client for busi
 var BusiCli BusiClient
 
 // GrpcStartup for grpc

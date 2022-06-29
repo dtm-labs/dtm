@@ -209,7 +209,12 @@ func tPutGlobal(t *bolt.Tx, global *storage.TransGlobalStore) {
 	dtmimp.E2P(err)
 }
 
-func tPutBranches(t *bolt.Tx, branches []storage.TransBranchStore, start int64) error {
+func tPutBranches(t *bolt.Tx, branches []storage.TransBranchStore, start int64) {
+	err := tPutBranches2(t, branches, start)
+	dtmimp.E2P(err)
+}
+
+func tPutBranches2(t *bolt.Tx, branches []storage.TransBranchStore, start int64) error {
 	if start == -1 {
 		b0 := &branches[0]
 		bs := tGetBranches(t, b0.Gid)
@@ -330,7 +335,7 @@ func (s *Store) LockGlobalSaveBranches(gid string, status string, branches []sto
 		if g.Status != status {
 			return storage.ErrNotFound
 		}
-		return tPutBranches(t, branches, int64(branchStart))
+		return tPutBranches2(t, branches, int64(branchStart))
 	})
 	dtmimp.E2P(err)
 }

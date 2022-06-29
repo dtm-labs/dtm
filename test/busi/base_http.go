@@ -158,7 +158,7 @@ func BaseAddRoute(app *gin.Engine) {
 		tcc, err := dtmcli.TccFromQuery(c.Request.URL.Query())
 		logger.FatalIfError(err)
 		logger.Debugf("TransInTccNested ")
-		resp, err := tcc.CallBranch(&ReqHttp{Amount: reqFrom(c).Amount}, Busi+"/TransIn", Busi+"/TransInConfirm", Busi+"/TransInRevert")
+		resp, err := tcc.CallBranch(&ReqHTTP{Amount: reqFrom(c).Amount}, Busi+"/TransIn", Busi+"/TransInConfirm", Busi+"/TransInRevert")
 		if err != nil {
 			return err
 		}

@@ -42,6 +42,7 @@ var PassthroughHeaders = []string{}
 // BarrierTableName the table name of barrier table
 var BarrierTableName = "dtm_barrier.barrier"
 
+// BeforeRequest is the middleware for default resty.Client
 func BeforeRequest(c *resty.Client, r *resty.Request) error {
 	r.URL = MayReplaceLocalhost(r.URL)
 	u, err := dtmdriver.GetHTTPDriver().ResolveURL(r.URL)
@@ -50,6 +51,7 @@ func BeforeRequest(c *resty.Client, r *resty.Request) error {
 	return err
 }
 
+// AfterResponse is the middleware for default resty.Client
 func AfterResponse(c *resty.Client, resp *resty.Response) error {
 	r := resp.Request
 	logger.Debugf("requested: %d %s %s %s", resp.StatusCode(), r.Method, r.URL, resp.String())

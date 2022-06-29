@@ -15,9 +15,6 @@ import (
 	"google.golang.org/protobuf/reflect/protoreflect"
 )
 
-const HBranchID = "dtm-branch-id"
-const HBranchOp = "dtm-branch-op"
-
 func statusToCode(status string) int {
 	if status == "succeed" {
 		return 200
@@ -66,12 +63,12 @@ func (r *roundTripper) RoundTrip(req *http.Request) (*http.Response, error) {
 	}
 	sr := wf.recordedDo(func(bb *dtmcli.BranchBarrier) *stepResult {
 		resp, err := r.old.RoundTrip(req)
-		return stepResultFromHttp(resp, err)
+		return stepResultFromHTTP(resp, err)
 	})
-	return stepResultToHttp(sr)
+	return stepResultToHTTP(sr)
 }
 
-func NewRoundTripper(old http.RoundTripper, wf *Workflow) http.RoundTripper {
+func newRoundTripper(old http.RoundTripper, wf *Workflow) http.RoundTripper {
 	return &roundTripper{old: old, wf: wf}
 }
 
@@ -117,7 +114,7 @@ func stepResultToGrpc(s *stepResult, reply interface{}) error {
 	return status.New(codes.Aborted, string(s.Data)).Err()
 }
 
-func stepResultFromHttp(resp *http.Response, err error) *stepResult {
+func stepResultFromHTTP(resp *http.Response, err error) *stepResult {
 	sr := &stepResult{Error: err}
 	if err == nil {
 		sr.Data, sr.Error = ioutil.ReadAll(resp.Body)
@@ -130,7 +127,7 @@ func stepResultFromHttp(resp *http.Response, err error) *stepResult {
 	return sr
 }
 
-func stepResultToHttp(s *stepResult) (*http.Response, error) {
+func stepResultToHTTP(s *stepResult) (*http.Response, error) {
 	if s.Error != nil {
 		return nil, s.Error
 	}
