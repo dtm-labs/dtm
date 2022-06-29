@@ -291,3 +291,47 @@ func TestWorkflowBranchConflict(t *testing.T) {
 	assert.Equal(t, storage.ErrUniqueConflict, err)
 	store.ChangeGlobalStatus(g, StatusSucceed, []string{}, true)
 }
+
+func TestWorkflowMixed(t *testing.T) {
+	workflow.SetProtocolForTest(dtmimp.ProtocolHTTP)
+	req := &busi.BusiReq{Amount: 30}
+	gid := dtmimp.GetFuncName()
+	workflow.Register(gid, func(wf *workflow.Workflow, data []byte) error {
+		var req busi.BusiReq
+		dtmgimp.MustProtoUnmarshal(data, &req)
+
+		wf.AddSagaPhase2(func(bb *dtmcli.BranchBarrier) error {
+			_, err := busi.BusiCli.TransOutRevertBSaga(wf.Context, &req)
+			return err
+		})
+		_, err := busi.BusiCli.TransOutBSaga(wf.Context, &req)
+		if err != nil {
+			return err
+		}
+
+		wf.AddTccPhase2(func(bb *dtmcli.BranchBarrier) error {
+			_, err := busi.BusiCli.TransInConfirm(wf.Context, &req)
+			return err
+		}, func(bb *dtmcli.BranchBarrier) error {
+			req2 := &busi.ReqHttp{Amount: 30}
+			_, err := wf.NewRequest().SetBody(req2).Post(Busi + "/TransInRevert")
+			return err
+		})
+		_, err = wf.DoAction(func(bb *dtmcli.BranchBarrier) ([]byte, error) {
+			err := busi.SagaAdjustBalance(dbGet().ToSQLDB(), busi.TransInUID, int(req.Amount), "")
+			return nil, err
+		})
+		if err != nil {
+			return err
+		}
+		_, err = wf.DoXaAction(busi.BusiConf, func(db *sql.DB) ([]byte, error) {
+			return nil, busi.SagaAdjustBalance(db, busi.TransInUID, 0, dtmcli.ResultSuccess)
+		})
+		return err
+	})
+	err := workflow.Execute(gid, gid, dtmgimp.MustProtoMarshal(req))
+	assert.Nil(t, err)
+	assert.Equal(t, StatusSucceed, getTransStatus(gid))
+	waitTransProcessed(gid)
+
+}
