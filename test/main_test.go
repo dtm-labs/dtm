@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"github.com/dtm-labs/dtm/dtmcli"
+	"github.com/dtm-labs/dtm/dtmcli/dtmimp"
 	"github.com/dtm-labs/dtm/dtmcli/logger"
 	"github.com/dtm-labs/dtm/dtmgrpc"
 	"github.com/dtm-labs/dtm/dtmsvr"
@@ -39,7 +40,7 @@ func TestMain(m *testing.M) {
 	dtmcli.GetRestyClient().OnBeforeRequest(busi.SetHTTPHeaderForHeadersYes)
 	dtmcli.GetRestyClient().OnAfterResponse(func(c *resty.Client, resp *resty.Response) error { return nil })
 
-	tenv := os.Getenv("TEST_STORE")
+	tenv := dtmimp.OrString(os.Getenv("TEST_STORE"), config.Redis)
 	conf.Store.Host = "localhost"
 	conf.Store.Driver = tenv
 	if tenv == "boltdb" {

@@ -11,7 +11,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/dtm-labs/dtm/dtmcli"
 	"github.com/dtm-labs/dtm/dtmcli/dtmimp"
 	"github.com/dtm-labs/dtm/dtmcli/logger"
 	"github.com/dtm-labs/dtm/dtmsvr/storage"
@@ -389,11 +388,7 @@ func (s *Store) LockOneGlobalTrans(expireIn time.Duration) *storage.TransGlobalS
 	err := s.boltDb.Update(func(t *bolt.Tx) error {
 		cursor := t.Bucket(bucketIndex).Cursor()
 		toDelete := [][]byte{}
-		for trans == nil || trans.Status == dtmcli.StatusSucceed || trans.Status == dtmcli.StatusFailed {
-			k, v := cursor.First()
-			if k == nil || string(k) > min {
-				return storage.ErrNotFound
-			}
+		for k, v := cursor.First(); k != nil && string(k) <= min && (trans == nil || trans.IsFinished()); k, v = cursor.Next() {
 			trans = tGetGlobal(t, string(v))
 			toDelete = append(toDelete, k)
 		}
@@ -401,14 +396,14 @@ func (s *Store) LockOneGlobalTrans(expireIn time.Duration) *storage.TransGlobalS
 			err := t.Bucket(bucketIndex).Delete(k)
 			dtmimp.E2P(err)
 		}
-		trans.NextCronTime = &next
-		tPutGlobal(t, trans)
-		tPutIndex(t, next.Unix(), trans.Gid)
+		if trans != nil && !trans.IsFinished() {
+			trans.NextCronTime = &next
+			tPutGlobal(t, trans)
+			// this put should be after delete, because the data may be the same
+			tPutIndex(t, next.Unix(), trans.Gid)
+		}
 		return nil
 	})
-	if err == storage.ErrNotFound {
-		return nil
-	}
 	dtmimp.E2P(err)
 	return trans
 }

@@ -84,7 +84,7 @@ func SetGrpcHeaderForHeadersYes(ctx context.Context, method string, req, reply i
 
 // SetHTTPHeaderForHeadersYes interceptor to set head for HeadersYes
 func SetHTTPHeaderForHeadersYes(c *resty.Client, r *resty.Request) error {
-	if b, ok := r.Body.(*dtmcli.Saga); ok && strings.HasSuffix(b.Gid, "HeadersYes") {
+	if b, ok := r.Body.(*dtmimp.TransBase); ok && strings.HasSuffix(b.Gid, "HeadersYes") {
 		logger.Debugf("set test_header for url: %s", r.URL)
 		r.SetHeader("test_header", "yes")
 	}

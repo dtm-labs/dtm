@@ -51,12 +51,16 @@ func (g *TransGlobalStore) String() string {
 	return dtmimp.MustMarshalString(g)
 }
 
+func (g *TransGlobalStore) IsFinished() bool {
+	return g.Status == dtmcli.StatusFailed || g.Status == dtmcli.StatusSucceed
+}
+
 // TransBranchStore branch transaction
 type TransBranchStore struct {
 	dtmutil.ModelBase
-	Gid          string `json:"gid,omitempty"`
-	URL          string `json:"url,omitempty"`
-	BinData      []byte
+	Gid          string     `json:"gid,omitempty"`
+	URL          string     `json:"url,omitempty"`
+	BinData      []byte     `json:"bin_data,omitempty"`
 	BranchID     string     `json:"branch_id,omitempty"`
 	Op           string     `json:"op,omitempty"`
 	Status       string     `json:"status,omitempty"`

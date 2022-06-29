@@ -35,7 +35,7 @@ func CronTransOnce() (gid string) {
 	trans.WaitResult = true
 	branches := GetStore().FindBranches(gid)
 	err := trans.Process(branches)
-	dtmimp.PanicIf(err != nil && !errors.Is(err, dtmcli.ErrFailure), err)
+	dtmimp.PanicIf(err != nil && !errors.Is(err, dtmcli.ErrFailure) && !errors.Is(err, dtmcli.ErrOngoing), err)
 	return
 }
 

@@ -14,7 +14,7 @@ CREATE TABLE if not EXISTS dtm.trans_global (
   `finish_time` datetime DEFAULT NULL,
   `rollback_time` datetime DEFAULT NULL,
   `options` varchar(1024) DEFAULT 'options for transaction like: TimeoutToFail, RequestTimeout',
-  `custom_data` varchar(256) DEFAULT '' COMMENT 'custom data for transaction',
+  `custom_data` varchar(1024) DEFAULT '' COMMENT 'custom data for transaction',
   `next_cron_interval` int(11) default null comment 'next cron interval. for use of cron job',
   `next_cron_time` datetime default null comment 'next time to process this trans. for use of cron job',
   `owner` varchar(128) not null default '' comment 'who is locking this trans',

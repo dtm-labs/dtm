@@ -69,7 +69,7 @@ func XaGlobalTransaction2(server string, gid string, custom func(*Xa), xaFunc Xa
 	xa := &Xa{TransBase: *dtmimp.NewTransBase(gid, "xa", server, "")}
 	custom(xa)
 	return dtmimp.XaHandleGlobalTrans(&xa.TransBase, func(action string) error {
-		return dtmimp.TransCallDtm(&xa.TransBase, xa, action)
+		return dtmimp.TransCallDtm(&xa.TransBase, action)
 	}, func() error {
 		_, rerr := xaFunc(xa)
 		return rerr

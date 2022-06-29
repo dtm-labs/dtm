@@ -93,39 +93,28 @@ func TransBaseFromQuery(qs url.Values) *TransBase {
 	return NewTransBase(EscapeGet(qs, "gid"), EscapeGet(qs, "trans_type"), EscapeGet(qs, "dtm"), EscapeGet(qs, "branch_id"))
 }
 
-// TransCallDtm TransBase call dtm
-func TransCallDtm(tb *TransBase, body interface{}, operation string) error {
+// TransCallDtmExt TransBase call dtm
+func TransCallDtmExt(tb *TransBase, body interface{}, operation string) (*resty.Response, error) {
+	if tb.Protocol == Jrpc {
+		return transCallDtmJrpc(tb, body, operation)
+	}
 	if tb.RequestTimeout != 0 {
 		RestyClient.SetTimeout(time.Duration(tb.RequestTimeout) * time.Second)
-	}
-	if tb.Protocol == Jrpc {
-		var result map[string]interface{}
-		resp, err := RestyClient.R().
-			SetBody(map[string]interface{}{
-				"jsonrpc": "2.0",
-				"id":      "no-use",
-				"method":  operation,
-				"params":  body,
-			}).
-			SetResult(&result).
-			Post(tb.Dtm)
-		if err != nil {
-			return err
-		}
-		if resp.StatusCode() != http.StatusOK || result["error"] != nil {
-			return errors.New(resp.String())
-		}
-		return nil
 	}
 	resp, err := RestyClient.R().
 		SetBody(body).Post(fmt.Sprintf("%s/%s", tb.Dtm, operation))
 	if err != nil {
-		return err
+		return nil, err
 	}
 	if resp.StatusCode() != http.StatusOK || strings.Contains(resp.String(), ResultFailure) {
-		return errors.New(resp.String())
+		return nil, errors.New(resp.String())
 	}
-	return nil
+	return resp, nil
+}
+
+func TransCallDtm(tb *TransBase, operation string) error {
+	_, err := TransCallDtmExt(tb, tb, operation)
+	return err
 }
 
 // TransRegisterBranch TransBase register a branch to dtm
@@ -137,7 +126,8 @@ func TransRegisterBranch(tb *TransBase, added map[string]string, operation strin
 	for k, v := range added {
 		m[k] = v
 	}
-	return TransCallDtm(tb, m, operation)
+	_, err := TransCallDtmExt(tb, m, operation)
+	return err
 }
 
 // TransRequestBranch TransBase request branch result
@@ -164,4 +154,27 @@ func TransRequestBranch(t *TransBase, method string, body interface{}, branchID 
 		err = RespAsErrorCompatible(resp)
 	}
 	return resp, err
+}
+
+func transCallDtmJrpc(tb *TransBase, body interface{}, operation string) (*resty.Response, error) {
+	if tb.RequestTimeout != 0 {
+		RestyClient.SetTimeout(time.Duration(tb.RequestTimeout) * time.Second)
+	}
+	var result map[string]interface{}
+	resp, err := RestyClient.R().
+		SetBody(map[string]interface{}{
+			"jsonrpc": "2.0",
+			"id":      "no-use",
+			"method":  operation,
+			"params":  body,
+		}).
+		SetResult(&result).
+		Post(tb.Dtm)
+	if err != nil {
+		return nil, err
+	}
+	if resp.StatusCode() != http.StatusOK || result["error"] != nil {
+		return nil, errors.New(resp.String())
+	}
+	return resp, nil
 }

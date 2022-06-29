@@ -21,6 +21,7 @@ import (
 
 	"github.com/dtm-labs/dtm/dtmgrpc/dtmgimp"
 	"github.com/dtm-labs/dtm/dtmgrpc/dtmgpb"
+	"github.com/dtm-labs/dtm/dtmgrpc/workflow"
 	grpc "google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 	emptypb "google.golang.org/protobuf/types/known/emptypb"
@@ -32,22 +33,31 @@ var BusiGrpc = fmt.Sprintf("localhost:%d", BusiGrpcPort)
 // DtmClient grpc client for dtm
 var DtmClient dtmgpb.DtmClient
 
+var BusiCli BusiClient
+
 // GrpcStartup for grpc
-func GrpcStartup() {
+func GrpcStartup() *grpc.Server {
 	conn, err := grpc.Dial(dtmutil.DefaultGrpcServer, grpc.WithTransportCredentials(insecure.NewCredentials()), grpc.WithUnaryInterceptor(dtmgimp.GrpcClientLog))
 	logger.FatalIfError(err)
 	DtmClient = dtmgpb.NewDtmClient(conn)
 	logger.Debugf("dtm client inited")
 
-	lis, err := net.Listen("tcp", fmt.Sprintf(":%d", BusiGrpcPort))
+	conn1, err := grpc.Dial(BusiGrpc, grpc.WithTransportCredentials(insecure.NewCredentials()), grpc.WithUnaryInterceptor(workflow.Interceptor))
 	logger.FatalIfError(err)
+	BusiCli = NewBusiClient(conn1)
+
 	s := grpc.NewServer(grpc.UnaryInterceptor(dtmgimp.GrpcServerLog))
 	RegisterBusiServer(s, &busiServer{})
-	go func() {
-		logger.Debugf("busi grpc listening at %v", lis.Addr())
-		err := s.Serve(lis)
-		logger.FatalIfError(err)
-	}()
+	return s
+}
+
+// GrpcServe start to serve grpc
+func GrpcServe(server *grpc.Server) {
+	lis, err := net.Listen("tcp", fmt.Sprintf(":%d", BusiGrpcPort))
+	logger.FatalIfError(err)
+	logger.Debugf("busi grpc listening at %v", lis.Addr())
+	err = server.Serve(lis)
+	logger.FatalIfError(err)
 }
 
 // busiServer is used to implement busi.BusiServer.

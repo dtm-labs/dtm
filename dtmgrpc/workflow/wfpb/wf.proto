@@ -1,0 +1,15 @@
+syntax = "proto3";
+
+option go_package = "./wfpb";
+import "google/protobuf/empty.proto";
+
+package workflow;
+
+// The Workflow service definition.
+service Workflow {
+  rpc Execute(WorkflowData) returns (google.protobuf.Empty) {}
+}
+
+message WorkflowData {
+  bytes Data = 1;
+}

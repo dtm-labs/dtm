@@ -8,6 +8,7 @@ package dtmgrpc
 
 import (
 	context "context"
+	"errors"
 
 	"github.com/dtm-labs/dtm/dtmcli"
 	"github.com/dtm-labs/dtm/dtmcli/dtmimp"
@@ -22,24 +23,24 @@ import (
 // DtmError2GrpcError translate dtm error to grpc error
 func DtmError2GrpcError(res interface{}) error {
 	e, ok := res.(error)
-	if ok && e == dtmimp.ErrFailure {
-		return status.New(codes.Aborted, dtmcli.ResultFailure).Err()
-	} else if ok && e == dtmimp.ErrOngoing {
-		return status.New(codes.FailedPrecondition, dtmcli.ResultOngoing).Err()
+	if ok && errors.Is(e, dtmimp.ErrFailure) {
+		return status.New(codes.Aborted, e.Error()).Err()
+	} else if ok && errors.Is(e, dtmimp.ErrOngoing) {
+		return status.New(codes.FailedPrecondition, e.Error()).Err()
 	}
 	return e
 }
 
 // GrpcError2DtmError translate grpc error to dtm error
 func GrpcError2DtmError(err error) error {
-	st, ok := status.FromError(err)
-	if ok && st.Code() == codes.Aborted {
+	st, _ := status.FromError(err)
+	if st != nil && st.Code() == codes.Aborted {
 		// version lower then v1.10, will specify Ongoing in code Aborted
 		if st.Message() == dtmcli.ResultOngoing {
 			return dtmcli.ErrOngoing
 		}
 		return dtmcli.ErrFailure
-	} else if ok && st.Code() == codes.FailedPrecondition {
+	} else if st != nil && st.Code() == codes.FailedPrecondition {
 		return dtmcli.ErrOngoing
 	}
 	return err

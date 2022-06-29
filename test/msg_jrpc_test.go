@@ -130,7 +130,7 @@ func TestMsgJprcAbnormal(t *testing.T) {
 func TestMsgJprcAbnormal2(t *testing.T) {
 	tb := dtmimp.NewTransBase(dtmimp.GetFuncName(), "msg", dtmutil.DefaultJrpcServer, "01")
 	tb.Protocol = "json-rpc"
-	err := dtmimp.TransCallDtm(tb, "", "newGid")
+	_, err := dtmimp.TransCallDtmExt(tb, "", "newGid")
 	assert.Nil(t, err)
 }
 

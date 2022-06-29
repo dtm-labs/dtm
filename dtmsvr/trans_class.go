@@ -16,6 +16,7 @@ import (
 // TransGlobal global transaction
 type TransGlobal struct {
 	storage.TransGlobalStore
+	ReqExtra         map[string]string `json:"req_extra"`
 	Context          context.Context
 	lastTouched      time.Time // record the start time of process
 	updateBranchSync bool
@@ -109,6 +110,7 @@ func TransFromDtmRequest(ctx context.Context, c *dtmgpb.DtmRequest) *TransGlobal
 			RequestTimeout:     o.RequestTimeout,
 		},
 	}}
+	r.ReqExtra = c.ReqExtra
 	if c.Steps != "" {
 		dtmimp.MustUnmarshalString(c.Steps, &r.Steps)
 	}

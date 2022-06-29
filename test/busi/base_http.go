@@ -10,10 +10,12 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"io/ioutil"
 
 	"github.com/dtm-labs/dtm/dtmcli"
 	"github.com/dtm-labs/dtm/dtmcli/dtmimp"
 	"github.com/dtm-labs/dtm/dtmcli/logger"
+	"github.com/dtm-labs/dtm/dtmgrpc/workflow"
 	"github.com/dtm-labs/dtm/dtmutil"
 	"github.com/gin-gonic/gin"
 	"gorm.io/driver/mysql"
@@ -77,6 +79,11 @@ func BaseAppStartup() *gin.Engine {
 
 // BaseAddRoute add base route handler
 func BaseAddRoute(app *gin.Engine) {
+	app.POST(BusiAPI+"/workflow/resume", dtmutil.WrapHandler(func(ctx *gin.Context) interface{} {
+		data, err := ioutil.ReadAll(ctx.Request.Body)
+		logger.FatalIfError(err)
+		return workflow.ExecuteByQS(ctx.Request.URL.Query(), data)
+	}))
 	app.POST(BusiAPI+"/TransIn", dtmutil.WrapHandler(func(c *gin.Context) interface{} {
 		return handleGeneralBusiness(c, MainSwitch.TransInResult.Fetch(), reqFrom(c).TransInResult, "transIn")
 	}))

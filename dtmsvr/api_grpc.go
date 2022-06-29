@@ -48,3 +48,19 @@ func (s *dtmServer) RegisterBranch(ctx context.Context, in *pb.DtmBranchRequest)
 	}, in.Data)
 	return &emptypb.Empty{}, dtmgrpc.DtmError2GrpcError(r)
 }
+
+func (s *dtmServer) Progresses(ctx context.Context, in *pb.DtmRequest) (*pb.DtmProgressesReply, error) {
+	branches := GetStore().FindBranches(in.Gid)
+	reply := &pb.DtmProgressesReply{
+		Progresses: []*pb.DtmProgress{},
+	}
+	for _, b := range branches {
+		reply.Progresses = append(reply.Progresses, &pb.DtmProgress{
+			Status:   b.Status,
+			BranchID: b.BranchID,
+			Op:       b.Op,
+			BinData:  b.BinData,
+		})
+	}
+	return reply, nil
+}

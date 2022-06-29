@@ -12,6 +12,7 @@ service Dtm {
   rpc Prepare(DtmRequest) returns (google.protobuf.Empty) {}
   rpc Abort(DtmRequest) returns (google.protobuf.Empty) {}
   rpc RegisterBranch(DtmBranchRequest) returns (google.protobuf.Empty) {}
+  rpc Progresses(DtmRequest) returns (DtmProgressesReply) {}
 }
 
 message DtmTransOptions {
@@ -29,9 +30,10 @@ message DtmRequest {
   string TransType = 2;
   DtmTransOptions TransOptions = 3;
   string CustomedData = 4;
-  repeated bytes BinPayloads = 5; // for MSG/SAGA branch payloads
-  string QueryPrepared = 6; // for MSG
+  repeated bytes BinPayloads = 5; // for Msg/Saga/Workflow branch payloads
+  string QueryPrepared = 6; // for Msg
   string Steps = 7;
+  map<string, string> ReqExtra = 8;
 }
 
 message DtmGidReply {
@@ -47,3 +49,13 @@ message DtmBranchRequest {
   bytes BusiPayload = 6;
 }
 
+message DtmProgressesReply {
+  repeated DtmProgress Progresses = 1;
+}
+
+message DtmProgress {
+  string Status = 1;
+  bytes BinData = 2;
+  string BranchID = 3;
+  string Op = 4;
+}

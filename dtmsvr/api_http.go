@@ -31,6 +31,7 @@ func addRoute(engine *gin.Engine) {
 	engine.POST("/api/dtmsvr/registerXaBranch", dtmutil.WrapHandler2(registerBranch))  // compatible for old sdk
 	engine.POST("/api/dtmsvr/registerTccBranch", dtmutil.WrapHandler2(registerBranch)) // compatible for old sdk
 	engine.GET("/api/dtmsvr/query", dtmutil.WrapHandler2(query))
+	engine.GET("/api/dtmsvr/progresses", dtmutil.WrapHandler2(progresses))
 	engine.GET("/api/dtmsvr/all", dtmutil.WrapHandler2(all))
 	engine.GET("/api/dtmsvr/resetCronTime", dtmutil.WrapHandler2(resetCronTime))
 
@@ -83,6 +84,11 @@ func query(c *gin.Context) interface{} {
 	trans := GetStore().FindTransGlobalStore(gid)
 	branches := GetStore().FindBranches(gid)
 	return map[string]interface{}{"transaction": trans, "branches": branches}
+}
+
+func progresses(c *gin.Context) interface{} {
+	gid := c.Query("gid")
+	return GetStore().FindBranches(gid)
 }
 
 func all(c *gin.Context) interface{} {
