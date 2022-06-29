@@ -69,12 +69,12 @@ func initializeBuckets(db *bolt.DB) error {
 
 // cleanupExpiredData will clean the expired data in boltdb, the
 //    expired time is configurable.
-func cleanupExpiredData(expiredSeconds time.Duration, db *bolt.DB) error {
-	if expiredSeconds <= 0 {
+func cleanupExpiredData(expire time.Duration, db *bolt.DB) error {
+	if expire <= 0 {
 		return nil
 	}
 
-	lastKeepTime := time.Now().Add(-expiredSeconds)
+	lastKeepTime := time.Now().Add(-expire)
 	return db.Update(func(t *bolt.Tx) error {
 		globalBucket := t.Bucket(bucketGlobal)
 		if globalBucket == nil {
@@ -209,9 +209,15 @@ func tPutGlobal(t *bolt.Tx, global *storage.TransGlobalStore) {
 	dtmimp.E2P(err)
 }
 
-func tPutBranches(t *bolt.Tx, branches []storage.TransBranchStore, start int64) {
+func tPutBranches(t *bolt.Tx, branches []storage.TransBranchStore, start int64) error {
 	if start == -1 {
-		bs := tGetBranches(t, branches[0].Gid)
+		b0 := &branches[0]
+		bs := tGetBranches(t, b0.Gid)
+		for _, b := range bs {
+			if b.BranchID == b0.BranchID && b.Op == b0.Op {
+				return storage.ErrUniqueConflict
+			}
+		}
 		start = int64(len(bs))
 	}
 	for i, b := range branches {
@@ -220,6 +226,7 @@ func tPutBranches(t *bolt.Tx, branches []storage.TransBranchStore, start int64) 
 		err := t.Bucket(bucketBranches).Put([]byte(k), []byte(v))
 		dtmimp.E2P(err)
 	}
+	return nil
 }
 
 func tDelIndex(t *bolt.Tx, unix int64, gid string) {
@@ -323,8 +330,7 @@ func (s *Store) LockGlobalSaveBranches(gid string, status string, branches []sto
 		if g.Status != status {
 			return storage.ErrNotFound
 		}
-		tPutBranches(t, branches, int64(branchStart))
-		return nil
+		return tPutBranches(t, branches, int64(branchStart))
 	})
 	dtmimp.E2P(err)
 }

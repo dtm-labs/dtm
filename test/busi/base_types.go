@@ -60,21 +60,21 @@ func GetBalanceByUID(uid int, store string) int {
 	return dtmimp.MustAtoi(ua.Balance[:len(ua.Balance)-3])
 }
 
-// TransReq transaction request payload
-type TransReq struct {
+// ReqHttp transaction request payload
+type ReqHttp struct {
 	Amount         int    `json:"amount"`
 	TransInResult  string `json:"trans_in_result"`
 	TransOutResult string `json:"trans_out_Result"`
 	Store          string `json:"store"` // default mysql, value can be mysql|redis
 }
 
-func (t *TransReq) String() string {
+func (t *ReqHttp) String() string {
 	return fmt.Sprintf("amount: %d transIn: %s transOut: %s", t.Amount, t.TransInResult, t.TransOutResult)
 }
 
 // GenTransReq 1
-func GenTransReq(amount int, outFailed bool, inFailed bool) *TransReq {
-	return &TransReq{
+func GenTransReq(amount int, outFailed bool, inFailed bool) *ReqHttp {
+	return &ReqHttp{
 		Amount:         amount,
 		TransOutResult: dtmimp.If(outFailed, dtmcli.ResultFailure, "").(string),
 		TransInResult:  dtmimp.If(inFailed, dtmcli.ResultFailure, "").(string),
@@ -90,16 +90,16 @@ func GenBusiReq(amount int, outFailed bool, inFailed bool) *BusiReq {
 	}
 }
 
-func reqFrom(c *gin.Context) *TransReq {
+func reqFrom(c *gin.Context) *ReqHttp {
 	v, ok := c.Get("trans_req")
 	if !ok {
-		req := TransReq{}
+		req := ReqHttp{}
 		err := c.BindJSON(&req)
 		logger.FatalIfError(err)
 		c.Set("trans_req", &req)
 		v = &req
 	}
-	return v.(*TransReq)
+	return v.(*ReqHttp)
 }
 
 func infoFromContext(c *gin.Context) *dtmcli.BranchBarrier {

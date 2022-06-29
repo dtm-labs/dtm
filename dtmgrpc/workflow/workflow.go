@@ -85,9 +85,9 @@ func (wf *Workflow) NewRequest() *resty.Request {
 	return wf.restyClient.R().SetContext(wf.Context)
 }
 
-// DefineSagaPhase2 will define a saga branch transaction
+// AddSagaPhase2 will define a saga branch transaction
 // param compensate specify a function for the compensation of next workflow action
-func (wf *Workflow) DefineSagaPhase2(compensate WfPhase2Func) {
+func (wf *Workflow) AddSagaPhase2(compensate WfPhase2Func) {
 	branchID := wf.currentBranch
 	wf.failedOps = append(wf.failedOps, workflowPhase2Item{
 		branchID: branchID,
@@ -98,7 +98,7 @@ func (wf *Workflow) DefineSagaPhase2(compensate WfPhase2Func) {
 
 // DefineSagaPhase2 will define a tcc branch transaction
 // param confirm, concel specify the confirm and cancel operation of next workflow action
-func (wf *Workflow) DefineTccPhase2(confirm, cancel WfPhase2Func) {
+func (wf *Workflow) AddTccPhase2(confirm, cancel WfPhase2Func) {
 	branchID := wf.currentBranch
 	wf.failedOps = append(wf.failedOps, workflowPhase2Item{
 		branchID: branchID,

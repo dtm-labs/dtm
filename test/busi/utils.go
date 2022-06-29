@@ -25,6 +25,8 @@ import (
 	"google.golang.org/grpc/metadata"
 )
 
+type ReqGrpc = BusiReq
+
 func dbGet() *dtmutil.DB {
 	return dtmutil.DbGet(BusiConf)
 }

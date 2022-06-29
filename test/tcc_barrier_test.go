@@ -69,7 +69,7 @@ func runTestTccBarrierDisorder(t *testing.T, store string) {
 	gid := dtmimp.GetFuncName() + store
 	cronFinished := make(chan string, 2)
 	err := dtmcli.TccGlobalTransaction(DtmServer, gid, func(tcc *dtmcli.Tcc) (*resty.Response, error) {
-		body := &busi.TransReq{Amount: 30, Store: store}
+		body := &busi.ReqHttp{Amount: 30, Store: store}
 		tryURL := Busi + "/TccBTransOutTry"
 		confirmURL := Busi + "/TccBTransOutConfirm"
 		cancelURL := Busi + "/SleepCancel"
