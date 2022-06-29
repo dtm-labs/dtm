@@ -50,7 +50,6 @@ type TransOptions struct {
 	PassthroughHeaders []string          `json:"passthrough_headers,omitempty" gorm:"-"` // for inherit the specified gin context headers
 	BranchHeaders      map[string]string `json:"branch_headers,omitempty" gorm:"-"`      // custom branch headers,  dtm server => service api
 	Concurrent         bool              `json:"concurrent" gorm:"-"`                    // for trans type: saga msg
-	RollbackReason     string            `json:"rollback_reason,omitempty" gorm:"-"`
 }
 
 // TransBase base for all trans
@@ -68,8 +67,9 @@ type TransBase struct {
 	BranchIDGen `json:"-"`          // used in XA/TCC
 	Op          string              `json:"-"` // used in XA/TCC
 
-	QueryPrepared string `json:"query_prepared,omitempty"` // used in MSG
-	Protocol      string `json:"protocol"`
+	QueryPrepared  string `json:"query_prepared,omitempty"` // used in MSG
+	Protocol       string `json:"protocol"`
+	RollbackReason string `json:"rollback_reason,omitempty" gorm:"-"`
 }
 
 // NewTransBase new a TransBase

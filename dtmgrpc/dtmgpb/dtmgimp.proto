@@ -22,7 +22,6 @@ message DtmTransOptions {
   repeated string PassthroughHeaders = 4;
   map<string, string> BranchHeaders = 5;
   int64 RequestTimeout = 6;
-  string RollbackReason = 7;
 }
 
 // DtmRequest request sent to dtm server
@@ -35,6 +34,7 @@ message DtmRequest {
   string QueryPrepared = 6; // for Msg
   string Steps = 7;
   map<string, string> ReqExtra = 8;
+  string RollbackReason = 9;
 }
 
 message DtmGidReply {
