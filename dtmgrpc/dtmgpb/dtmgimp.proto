@@ -12,7 +12,7 @@ service Dtm {
   rpc Prepare(DtmRequest) returns (google.protobuf.Empty) {}
   rpc Abort(DtmRequest) returns (google.protobuf.Empty) {}
   rpc RegisterBranch(DtmBranchRequest) returns (google.protobuf.Empty) {}
-  rpc Progresses(DtmRequest) returns (DtmProgressesReply) {}
+  rpc PrepareWorkflow(DtmRequest) returns (DtmProgressesReply) {}
 }
 
 message DtmTransOptions {

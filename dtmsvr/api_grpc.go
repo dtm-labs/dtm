@@ -49,8 +49,8 @@ func (s *dtmServer) RegisterBranch(ctx context.Context, in *pb.DtmBranchRequest)
 	return &emptypb.Empty{}, dtmgrpc.DtmError2GrpcError(r)
 }
 
-func (s *dtmServer) Progresses(ctx context.Context, in *pb.DtmRequest) (*pb.DtmProgressesReply, error) {
-	branches := GetStore().FindBranches(in.Gid)
+func (s *dtmServer) PrepareWorkflow(ctx context.Context, in *pb.DtmRequest) (*pb.DtmProgressesReply, error) {
+	branches, err := svcPrepareWorkflow(TransFromDtmRequest(ctx, in))
 	reply := &pb.DtmProgressesReply{
 		Progresses: []*pb.DtmProgress{},
 	}
@@ -62,5 +62,5 @@ func (s *dtmServer) Progresses(ctx context.Context, in *pb.DtmRequest) (*pb.DtmP
 			BinData:  b.BinData,
 		})
 	}
-	return reply, nil
+	return reply, dtmgrpc.DtmError2GrpcError(err)
 }

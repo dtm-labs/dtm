@@ -14,14 +14,14 @@ import (
 func (wf *Workflow) getProgress() ([]*dtmgpb.DtmProgress, error) {
 	if wf.Protocol == dtmimp.ProtocolGRPC {
 		var reply dtmgpb.DtmProgressesReply
-		err := dtmgimp.MustGetGrpcConn(wf.Dtm, false).Invoke(wf.Context, "/dtmgimp.Dtm/Progresses",
+		err := dtmgimp.MustGetGrpcConn(wf.Dtm, false).Invoke(wf.Context, "/dtmgimp.Dtm/PrepareWorkflow",
 			dtmgimp.GetDtmRequest(wf.TransBase), &reply)
 		if err == nil {
 			return reply.Progresses, nil
 		}
 		return nil, err
 	}
-	resp, err := dtmimp.RestyClient.R().SetQueryParam("gid", wf.Gid).Get(wf.Dtm + "/progresses")
+	resp, err := dtmimp.RestyClient.R().SetBody(wf.TransBase).Post(wf.Dtm + "/prepareWorkflow")
 	var progresses []*dtmgpb.DtmProgress
 	if err == nil {
 		dtmimp.MustUnmarshal(resp.Body(), &progresses)

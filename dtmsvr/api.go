@@ -50,6 +50,15 @@ func svcPrepare(t *TransGlobal) interface{} {
 	return err
 }
 
+func svcPrepareWorkflow(t *TransGlobal) ([]TransBranch, error) {
+	t.Status = dtmcli.StatusPrepared
+	_, err := t.saveNew()
+	if err == storage.ErrUniqueConflict { // transaction exists, query the branches
+		return GetStore().FindBranches(t.Gid), nil
+	}
+	return []TransBranch{}, nil
+}
+
 func svcAbort(t *TransGlobal) interface{} {
 	dbt := GetTransGlobal(t.Gid)
 	if dbt.TransType == "msg" && dbt.Status == dtmcli.StatusPrepared {

@@ -28,7 +28,7 @@ type DtmClient interface {
 	Prepare(ctx context.Context, in *DtmRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
 	Abort(ctx context.Context, in *DtmRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
 	RegisterBranch(ctx context.Context, in *DtmBranchRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
-	Progresses(ctx context.Context, in *DtmRequest, opts ...grpc.CallOption) (*DtmProgressesReply, error)
+	PrepareWorkflow(ctx context.Context, in *DtmRequest, opts ...grpc.CallOption) (*DtmProgressesReply, error)
 }
 
 type dtmClient struct {
@@ -84,9 +84,9 @@ func (c *dtmClient) RegisterBranch(ctx context.Context, in *DtmBranchRequest, op
 	return out, nil
 }
 
-func (c *dtmClient) Progresses(ctx context.Context, in *DtmRequest, opts ...grpc.CallOption) (*DtmProgressesReply, error) {
+func (c *dtmClient) PrepareWorkflow(ctx context.Context, in *DtmRequest, opts ...grpc.CallOption) (*DtmProgressesReply, error) {
 	out := new(DtmProgressesReply)
-	err := c.cc.Invoke(ctx, "/dtmgimp.Dtm/Progresses", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/dtmgimp.Dtm/PrepareWorkflow", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -102,7 +102,7 @@ type DtmServer interface {
 	Prepare(context.Context, *DtmRequest) (*emptypb.Empty, error)
 	Abort(context.Context, *DtmRequest) (*emptypb.Empty, error)
 	RegisterBranch(context.Context, *DtmBranchRequest) (*emptypb.Empty, error)
-	Progresses(context.Context, *DtmRequest) (*DtmProgressesReply, error)
+	PrepareWorkflow(context.Context, *DtmRequest) (*DtmProgressesReply, error)
 	mustEmbedUnimplementedDtmServer()
 }
 
@@ -125,8 +125,8 @@ func (UnimplementedDtmServer) Abort(context.Context, *DtmRequest) (*emptypb.Empt
 func (UnimplementedDtmServer) RegisterBranch(context.Context, *DtmBranchRequest) (*emptypb.Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method RegisterBranch not implemented")
 }
-func (UnimplementedDtmServer) Progresses(context.Context, *DtmRequest) (*DtmProgressesReply, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method Progresses not implemented")
+func (UnimplementedDtmServer) PrepareWorkflow(context.Context, *DtmRequest) (*DtmProgressesReply, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method PrepareWorkflow not implemented")
 }
 func (UnimplementedDtmServer) mustEmbedUnimplementedDtmServer() {}
 
@@ -231,20 +231,20 @@ func _Dtm_RegisterBranch_Handler(srv interface{}, ctx context.Context, dec func(
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Dtm_Progresses_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _Dtm_PrepareWorkflow_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(DtmRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(DtmServer).Progresses(ctx, in)
+		return srv.(DtmServer).PrepareWorkflow(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/dtmgimp.Dtm/Progresses",
+		FullMethod: "/dtmgimp.Dtm/PrepareWorkflow",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(DtmServer).Progresses(ctx, req.(*DtmRequest))
+		return srv.(DtmServer).PrepareWorkflow(ctx, req.(*DtmRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -277,8 +277,8 @@ var Dtm_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _Dtm_RegisterBranch_Handler,
 		},
 		{
-			MethodName: "Progresses",
-			Handler:    _Dtm_Progresses_Handler,
+			MethodName: "PrepareWorkflow",
+			Handler:    _Dtm_PrepareWorkflow_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

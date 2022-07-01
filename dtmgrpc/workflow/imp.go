@@ -95,10 +95,7 @@ func (wf *Workflow) initRestyClient() {
 }
 
 func (wf *Workflow) process(handler WfFunc, data []byte) (err error) {
-	err = wf.prepare()
-	if err == nil {
-		err = wf.loadProgresses()
-	}
+	err = wf.loadProgresses()
 	if err == nil {
 		err = handler(wf, data)
 		err = dtmgrpc.GrpcError2DtmError(err)
