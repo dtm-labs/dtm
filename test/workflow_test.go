@@ -30,11 +30,11 @@ func TestWorkflowNormal(t *testing.T) {
 	workflow.Register(gid, func(wf *workflow.Workflow, data []byte) error {
 		var req busi.ReqHTTP
 		dtmimp.MustUnmarshal(data, &req)
-		_, err := wf.NewRequest().SetBody(req).Post(Busi + "/TransOut")
+		_, err := wf.NewBranch().NewRequest().SetBody(req).Post(Busi + "/TransOut")
 		if err != nil {
 			return err
 		}
-		_, err = wf.NewRequest().SetBody(req).Post(Busi + "/TransIn")
+		_, err = wf.NewBranch().NewRequest().SetBody(req).Post(Busi + "/TransIn")
 		if err != nil {
 			return err
 		}
@@ -47,6 +47,29 @@ func TestWorkflowNormal(t *testing.T) {
 	assert.Equal(t, StatusSucceed, getTransStatus(gid))
 }
 
+func TestWorkflowSimpleResume(t *testing.T) {
+	workflow.SetProtocolForTest(dtmimp.ProtocolHTTP)
+	req := busi.GenTransReq(30, false, false)
+	gid := dtmimp.GetFuncName()
+	ongoingStep = 0
+
+	workflow.Register(gid, func(wf *workflow.Workflow, data []byte) error {
+		if fetchOngoingStep(0) {
+			return dtmcli.ErrOngoing
+		}
+		var req busi.ReqHTTP
+		dtmimp.MustUnmarshal(data, &req)
+		_, err := wf.NewBranch().NewRequest().SetBody(req).Post(Busi + "/TransOut")
+		return err
+	})
+
+	err := workflow.Execute(gid, gid, dtmimp.MustMarshal(req))
+	assert.Error(t, err)
+	go waitTransProcessed(gid)
+	cronTransOnceForwardNow(t, gid, 1000)
+	assert.Equal(t, StatusSucceed, getTransStatus(gid))
+}
+
 func TestWorkflowRollback(t *testing.T) {
 	workflow.SetProtocolForTest(dtmimp.ProtocolHTTP)
 
@@ -56,11 +79,10 @@ func TestWorkflowRollback(t *testing.T) {
 	workflow.Register(gid, func(wf *workflow.Workflow, data []byte) error {
 		var req busi.ReqHTTP
 		dtmimp.MustUnmarshal(data, &req)
-		wf.AddSagaPhase2(func(bb *dtmcli.BranchBarrier) error {
+		_, err := wf.NewBranch().OnBranchRollback(func(bb *dtmcli.BranchBarrier) error {
 			_, err := wf.NewRequest().SetBody(req).Post(Busi + "/SagaBTransOutCom")
 			return err
-		})
-		_, err := wf.DoAction(func(bb *dtmcli.BranchBarrier) ([]byte, error) {
+		}).Do(func(bb *dtmcli.BranchBarrier) ([]byte, error) {
 			return nil, bb.CallWithDB(dbGet().ToSQLDB(), func(tx *sql.Tx) error {
 				return busi.SagaAdjustBalance(tx, busi.TransOutUID, -req.Amount, "")
 			})
@@ -68,12 +90,11 @@ func TestWorkflowRollback(t *testing.T) {
 		if err != nil {
 			return err
 		}
-		wf.AddSagaPhase2(func(bb *dtmcli.BranchBarrier) error {
+		_, err = wf.NewBranch().OnBranchRollback(func(bb *dtmcli.BranchBarrier) error {
 			return bb.CallWithDB(dbGet().ToSQLDB(), func(tx *sql.Tx) error {
 				return busi.SagaAdjustBalance(tx, busi.TransInUID, -req.Amount, "")
 			})
-		})
-		_, err = wf.NewRequest().SetBody(req).Post(Busi + "/SagaBTransIn")
+		}).NewRequest().SetBody(req).Post(Busi + "/SagaBTransIn")
 		if err != nil {
 			return err
 		}
@@ -93,7 +114,7 @@ func TestWorkflowGrpcNormal(t *testing.T) {
 	workflow.Register(gid, func(wf *workflow.Workflow, data []byte) error {
 		var req busi.BusiReq
 		dtmgimp.MustProtoUnmarshal(data, &req)
-		wf.AddSagaPhase2(func(bb *dtmcli.BranchBarrier) error {
+		wf.NewBranch().OnBranchRollback(func(bb *dtmcli.BranchBarrier) error {
 			_, err := busi.BusiCli.TransOutRevertBSaga(wf.Context, &req)
 			return err
 		})
@@ -101,7 +122,7 @@ func TestWorkflowGrpcNormal(t *testing.T) {
 		if err != nil {
 			return err
 		}
-		wf.AddSagaPhase2(func(bb *dtmcli.BranchBarrier) error {
+		wf.NewBranch().OnBranchRollback(func(bb *dtmcli.BranchBarrier) error {
 			_, err := busi.BusiCli.TransInRevertBSaga(wf.Context, &req)
 			return err
 		})
@@ -136,7 +157,7 @@ func TestWorkflowGrpcRollbackResume(t *testing.T) {
 		if fetchOngoingStep(0) {
 			return dtmcli.ErrOngoing
 		}
-		wf.AddSagaPhase2(func(bb *dtmcli.BranchBarrier) error {
+		wf.NewBranch().OnBranchRollback(func(bb *dtmcli.BranchBarrier) error {
 			if fetchOngoingStep(4) {
 				return dtmcli.ErrOngoing
 			}
@@ -150,7 +171,7 @@ func TestWorkflowGrpcRollbackResume(t *testing.T) {
 		if err != nil {
 			return err
 		}
-		wf.AddSagaPhase2(func(bb *dtmcli.BranchBarrier) error {
+		wf.NewBranch().OnBranchRollback(func(bb *dtmcli.BranchBarrier) error {
 			if fetchOngoingStep(3) {
 				return dtmcli.ErrOngoing
 			}
@@ -185,13 +206,13 @@ func TestWorkflowXaAction(t *testing.T) {
 	workflow.SetProtocolForTest(dtmimp.ProtocolGRPC)
 	gid := dtmimp.GetFuncName()
 	workflow.Register(gid, func(wf *workflow.Workflow, data []byte) error {
-		_, err := wf.DoXaAction(busi.BusiConf, func(db *sql.DB) ([]byte, error) {
+		_, err := wf.NewBranch().DoXa(busi.BusiConf, func(db *sql.DB) ([]byte, error) {
 			return nil, busi.SagaAdjustBalance(db, busi.TransOutUID, -30, dtmcli.ResultSuccess)
 		})
 		if err != nil {
 			return err
 		}
-		_, err = wf.DoXaAction(busi.BusiConf, func(db *sql.DB) ([]byte, error) {
+		_, err = wf.NewBranch().DoXa(busi.BusiConf, func(db *sql.DB) ([]byte, error) {
 			return nil, busi.SagaAdjustBalance(db, busi.TransInUID, 30, dtmcli.ResultSuccess)
 		})
 		return err
@@ -206,13 +227,13 @@ func TestWorkflowXaRollback(t *testing.T) {
 	workflow.SetProtocolForTest(dtmimp.ProtocolGRPC)
 	gid := dtmimp.GetFuncName()
 	workflow.Register(gid, func(wf *workflow.Workflow, data []byte) error {
-		_, err := wf.DoXaAction(busi.BusiConf, func(db *sql.DB) ([]byte, error) {
+		_, err := wf.NewBranch().DoXa(busi.BusiConf, func(db *sql.DB) ([]byte, error) {
 			return nil, busi.SagaAdjustBalance(db, busi.TransOutUID, -30, dtmcli.ResultSuccess)
 		})
 		if err != nil {
 			return err
 		}
-		_, err = wf.DoXaAction(busi.BusiConf, func(db *sql.DB) ([]byte, error) {
+		_, err = wf.NewBranch().DoXa(busi.BusiConf, func(db *sql.DB) ([]byte, error) {
 			e := busi.SagaAdjustBalance(db, busi.TransInUID, 30, dtmcli.ResultSuccess)
 			logger.FatalIfError(e)
 			return nil, dtmcli.ErrFailure
@@ -230,7 +251,7 @@ func TestWorkflowXaResume(t *testing.T) {
 	ongoingStep = 0
 	gid := dtmimp.GetFuncName()
 	workflow.Register(gid, func(wf *workflow.Workflow, data []byte) error {
-		_, err := wf.DoXaAction(busi.BusiConf, func(db *sql.DB) ([]byte, error) {
+		_, err := wf.NewBranch().DoXa(busi.BusiConf, func(db *sql.DB) ([]byte, error) {
 			if fetchOngoingStep(0) {
 				return nil, dtmcli.ErrOngoing
 			}
@@ -239,7 +260,7 @@ func TestWorkflowXaResume(t *testing.T) {
 		if err != nil {
 			return err
 		}
-		_, err = wf.DoXaAction(busi.BusiConf, func(db *sql.DB) ([]byte, error) {
+		_, err = wf.NewBranch().DoXa(busi.BusiConf, func(db *sql.DB) ([]byte, error) {
 			if fetchOngoingStep(1) {
 				return nil, dtmcli.ErrOngoing
 			}
@@ -300,7 +321,7 @@ func TestWorkflowMixed(t *testing.T) {
 		var req busi.BusiReq
 		dtmgimp.MustProtoUnmarshal(data, &req)
 
-		wf.AddSagaPhase2(func(bb *dtmcli.BranchBarrier) error {
+		wf.NewBranch().OnBranchRollback(func(bb *dtmcli.BranchBarrier) error {
 			_, err := busi.BusiCli.TransOutRevertBSaga(wf.Context, &req)
 			return err
 		})
@@ -309,22 +330,21 @@ func TestWorkflowMixed(t *testing.T) {
 			return err
 		}
 
-		wf.AddTccPhase2(func(bb *dtmcli.BranchBarrier) error {
+		_, err = wf.NewBranch().OnBranchCommit(func(bb *dtmcli.BranchBarrier) error {
 			_, err := busi.BusiCli.TransInConfirm(wf.Context, &req)
 			return err
-		}, func(bb *dtmcli.BranchBarrier) error {
+		}).OnBranchRollback(func(bb *dtmcli.BranchBarrier) error {
 			req2 := &busi.ReqHTTP{Amount: 30}
 			_, err := wf.NewRequest().SetBody(req2).Post(Busi + "/TransInRevert")
 			return err
-		})
-		_, err = wf.DoAction(func(bb *dtmcli.BranchBarrier) ([]byte, error) {
+		}).Do(func(bb *dtmcli.BranchBarrier) ([]byte, error) {
 			err := busi.SagaAdjustBalance(dbGet().ToSQLDB(), busi.TransInUID, int(req.Amount), "")
 			return nil, err
 		})
 		if err != nil {
 			return err
 		}
-		_, err = wf.DoXaAction(busi.BusiConf, func(db *sql.DB) ([]byte, error) {
+		_, err = wf.NewBranch().DoXa(busi.BusiConf, func(db *sql.DB) ([]byte, error) {
 			return nil, busi.SagaAdjustBalance(db, busi.TransInUID, 0, dtmcli.ResultSuccess)
 		})
 		return err
@@ -333,5 +353,4 @@ func TestWorkflowMixed(t *testing.T) {
 	assert.Nil(t, err)
 	assert.Equal(t, StatusSucceed, getTransStatus(gid))
 	waitTransProcessed(gid)
-
 }

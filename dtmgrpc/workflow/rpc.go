@@ -2,7 +2,6 @@ package workflow
 
 import (
 	"context"
-	"strings"
 
 	"github.com/dtm-labs/dtm/dtmcli/dtmimp"
 	"github.com/dtm-labs/dtm/dtmcli/logger"
@@ -67,12 +66,4 @@ func (wf *Workflow) registerBranch(res []byte, branchID string, op string, statu
 		Data:        map[string]string{"status": status, "op": op},
 	})
 	return err
-}
-
-func (wf *Workflow) prepare() error {
-	operation := "prepare"
-	if wf.Protocol == dtmimp.ProtocolGRPC {
-		return dtmgimp.DtmGrpcCall(wf.TransBase, strings.Title(operation))
-	}
-	return dtmimp.TransCallDtm(wf.TransBase, operation)
 }

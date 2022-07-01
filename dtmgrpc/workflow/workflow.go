@@ -85,35 +85,52 @@ func (wf *Workflow) NewRequest() *resty.Request {
 	return wf.restyClient.R().SetContext(wf.Context)
 }
 
-// AddSagaPhase2 will define a saga branch transaction
+// NewBranch will start a new branch transaction
+func (wf *Workflow) NewBranch() *Workflow {
+	dtmimp.PanicIf(wf.currentOp != dtmimp.OpAction, fmt.Errorf("should not call NewBranch() in Branch callbacks"))
+	wf.idGen.NewSubBranchID()
+	wf.currentBranch = wf.idGen.CurrentSubBranchID()
+	wf.currentActionAdded = false
+	wf.currentCommitAdded = false
+	wf.currentRollbackAdded = false
+	return wf
+}
+
+// NewBranchCtx will call NewBranch and return a workflow context
+func (wf *Workflow) NewBranchCtx() context.Context {
+	return wf.NewBranch().Context
+}
+
+// OnBranchRollback will define a saga branch transaction
 // param compensate specify a function for the compensation of next workflow action
-func (wf *Workflow) AddSagaPhase2(compensate WfPhase2Func) {
+func (wf *Workflow) OnBranchRollback(compensate WfPhase2Func) *Workflow {
 	branchID := wf.currentBranch
+	dtmimp.PanicIf(wf.currentRollbackAdded, fmt.Errorf("on branch can only add one rollback callback"))
+	wf.currentRollbackAdded = true
 	wf.failedOps = append(wf.failedOps, workflowPhase2Item{
 		branchID: branchID,
 		op:       dtmimp.OpRollback,
 		fn:       compensate,
 	})
+	return wf
 }
 
-// AddTccPhase2 will define a tcc branch transaction
-// param confirm, concel specify the confirm and cancel operation of next workflow action
-func (wf *Workflow) AddTccPhase2(confirm, cancel WfPhase2Func) {
+// OnBranchCommit will define a saga branch transaction
+// param compensate specify a function for the compensation of next workflow action
+func (wf *Workflow) OnBranchCommit(fn WfPhase2Func) *Workflow {
 	branchID := wf.currentBranch
-	wf.failedOps = append(wf.failedOps, workflowPhase2Item{
-		branchID: branchID,
-		op:       dtmimp.OpRollback,
-		fn:       cancel,
-	})
-	wf.succeededOps = append(wf.succeededOps, workflowPhase2Item{
+	dtmimp.PanicIf(wf.currentCommitAdded, fmt.Errorf("on branch can only add one commit callback"))
+	wf.currentCommitAdded = true
+	wf.failedOps = append(wf.succeededOps, workflowPhase2Item{
 		branchID: branchID,
 		op:       dtmimp.OpCommit,
-		fn:       confirm,
+		fn:       fn,
 	})
+	return wf
 }
 
-// DoAction will do an action which will be recored
-func (wf *Workflow) DoAction(fn func(bb *dtmcli.BranchBarrier) ([]byte, error)) ([]byte, error) {
+// Do will do an action which will be recored
+func (wf *Workflow) Do(fn func(bb *dtmcli.BranchBarrier) ([]byte, error)) ([]byte, error) {
 	res := wf.recordedDo(func(bb *dtmcli.BranchBarrier) *stepResult {
 		r, e := fn(bb)
 		return stepResultFromLocal(r, e)
@@ -121,9 +138,9 @@ func (wf *Workflow) DoAction(fn func(bb *dtmcli.BranchBarrier) ([]byte, error)) 
 	return stepResultToLocal(res)
 }
 
-// DoXaAction will begin a local xa transaction
+// DoXa will begin a local xa transaction
 // after the return of workflow function, xa commit/rollback will be called
-func (wf *Workflow) DoXaAction(dbConf dtmcli.DBConf, fn func(db *sql.DB) ([]byte, error)) ([]byte, error) {
+func (wf *Workflow) DoXa(dbConf dtmcli.DBConf, fn func(db *sql.DB) ([]byte, error)) ([]byte, error) {
 	branchID := wf.currentBranch
 	res := wf.recordedDo(func(bb *dtmcli.BranchBarrier) *stepResult {
 		sBusi := "business"

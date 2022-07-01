@@ -3,6 +3,7 @@ package workflow
 import (
 	"context"
 	"errors"
+	"fmt"
 
 	"github.com/dtm-labs/dtm/dtmcli"
 	"github.com/dtm-labs/dtm/dtmcli/dtmimp"
@@ -12,13 +13,16 @@ import (
 )
 
 type workflowImp struct {
-	restyClient   *resty.Client //nolint
-	idGen         dtmimp.BranchIDGen
-	currentBranch string                 //nolint
-	progresses    map[string]*stepResult //nolint
-	currentOp     string
-	succeededOps  []workflowPhase2Item
-	failedOps     []workflowPhase2Item
+	restyClient          *resty.Client //nolint
+	idGen                dtmimp.BranchIDGen
+	currentBranch        string                 //nolint
+	currentActionAdded   bool                   //nolint
+	currentCommitAdded   bool                   //nolint
+	currentRollbackAdded bool                   //nolint
+	progresses           map[string]*stepResult //nolint
+	currentOp            string
+	succeededOps         []workflowPhase2Item
+	failedOps            []workflowPhase2Item
 }
 
 type workflowPhase2Item struct {
@@ -61,7 +65,6 @@ func (w *workflowFactory) newWorkflow(name string, gid string, data []byte) *Wor
 		wf.Dtm = w.httpDtm
 		wf.QueryPrepared = w.httpCallback
 	}
-	wf.newBranch()
 	wf.CustomData = dtmimp.MustMarshalString(map[string]interface{}{
 		"name": wf.Name,
 		"data": data,
@@ -155,10 +158,11 @@ func (wf *Workflow) callPhase2(branchID string, fn WfPhase2Func) error {
 
 func (wf *Workflow) recordedDo(fn func(bb *dtmcli.BranchBarrier) *stepResult) *stepResult {
 	branchID := wf.currentBranch
-	r := wf.getStepResult()
-	if wf.currentOp == dtmimp.OpAction { // for action steps, an action will start a new branch
-		wf.newBranch()
+	if wf.currentOp == dtmimp.OpAction {
+		dtmimp.PanicIf(wf.currentActionAdded, fmt.Errorf("one branch can have only on action"))
+		wf.currentActionAdded = true
 	}
+	r := wf.getStepResult()
 	if r != nil {
 		logger.Debugf("progress restored: %s %s %v %s %s", branchID, wf.currentOp, r.Error, r.Status, r.Data)
 		return r
@@ -175,11 +179,6 @@ func (wf *Workflow) recordedDo(fn func(bb *dtmcli.BranchBarrier) *stepResult) *s
 		r = stepResultFromLocal(nil, err)
 	}
 	return r
-}
-
-func (wf *Workflow) newBranch() {
-	wf.idGen.NewSubBranchID()
-	wf.currentBranch = wf.idGen.CurrentSubBranchID()
 }
 
 func (wf *Workflow) getStepResult() *stepResult {

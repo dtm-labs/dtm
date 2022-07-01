@@ -56,7 +56,7 @@ func svcPrepareWorkflow(t *TransGlobal) ([]TransBranch, error) {
 	if err == storage.ErrUniqueConflict { // transaction exists, query the branches
 		return GetStore().FindBranches(t.Gid), nil
 	}
-	return []TransBranch{}, nil
+	return []TransBranch{}, err
 }
 
 func svcAbort(t *TransGlobal) interface{} {
