@@ -288,7 +288,7 @@ func TestWorkflowBranchConflict(t *testing.T) {
 			{BranchID: "00", Op: dtmimp.OpAction},
 		}, -1)
 	})
-	assert.Equal(t, storage.ErrUniqueConflict, err)
+	assert.Error(t, err)
 	store.ChangeGlobalStatus(g, StatusSucceed, []string{}, true)
 }
 
