@@ -19,8 +19,8 @@ import (
 )
 
 func TestWorkflowGrpcSimple(t *testing.T) {
-	workflow.SetProtocolForTest(dtmimp.ProtocolGRPC)
-	req := &busi.BusiReq{Amount: 30, TransInResult: "FAILURE"}
+	workflow.SetProtocolForTest(dtmimp.ProtocolHTTP)
+	req := &busi.ReqGrpc{Amount: 30, TransInResult: "FAILURE"}
 	gid := dtmimp.GetFuncName()
 	workflow.Register(gid, func(wf *workflow.Workflow, data []byte) error {
 		var req busi.BusiReq
