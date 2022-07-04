@@ -122,6 +122,8 @@ func stepResultFromHTTP(resp *http.Response, err error) *stepResult {
 			sr.Status = dtmcli.StatusSucceed
 		} else if resp.StatusCode == http.StatusConflict {
 			sr.Status = dtmcli.StatusFailed
+		} else {
+			sr.Error = errors.New(string(sr.Data))
 		}
 	}
 	return sr

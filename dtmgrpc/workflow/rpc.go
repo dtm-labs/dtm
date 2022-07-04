@@ -4,7 +4,6 @@ import (
 	"context"
 
 	"github.com/dtm-labs/dtm/dtmcli/dtmimp"
-	"github.com/dtm-labs/dtm/dtmcli/logger"
 	"github.com/dtm-labs/dtm/dtmgrpc/dtmgimp"
 	"github.com/dtm-labs/dtm/dtmgrpc/dtmgpb"
 	"google.golang.org/protobuf/types/known/emptypb"
@@ -49,7 +48,6 @@ func (wf *Workflow) submit(status string) error {
 }
 
 func (wf *Workflow) registerBranch(res []byte, branchID string, op string, status string) error {
-	logger.Errorf("registerBranch: %s %s %s", branchID, op, status)
 	if wf.Protocol == dtmimp.ProtocolHTTP {
 		return dtmimp.TransRegisterBranch(wf.TransBase, map[string]string{
 			"data":      string(res),

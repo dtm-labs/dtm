@@ -14,7 +14,7 @@ func TestXaCoverDBError(t *testing.T) {
 	oldDriver := busi.BusiConf.Driver
 	gid := dtmimp.GetFuncName()
 	err := dtmcli.XaGlobalTransaction(DtmServer, gid, func(xa *dtmcli.Xa) (*resty.Response, error) {
-		req := busi.GenTransReq(30, false, false)
+		req := busi.GenReqHTTP(30, false, false)
 		_, err := xa.CallBranch(req, busi.Busi+"/TransOutXa")
 		assert.Nil(t, err)
 		busi.BusiConf.Driver = "no-driver"
@@ -44,7 +44,7 @@ func TestXaCoverGidError(t *testing.T) {
 	}
 	gid := dtmimp.GetFuncName() + "-'  '"
 	err := dtmcli.XaGlobalTransaction(DtmServer, gid, func(xa *dtmcli.Xa) (*resty.Response, error) {
-		req := busi.GenTransReq(30, false, false)
+		req := busi.GenReqHTTP(30, false, false)
 		_, err := xa.CallBranch(req, busi.Busi+"/TransOutXa")
 		assert.Error(t, err)
 		return nil, err

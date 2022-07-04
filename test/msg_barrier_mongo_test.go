@@ -14,7 +14,7 @@ import (
 func TestMsgMongoDoSucceed(t *testing.T) {
 	before := getBeforeBalances("mongo")
 	gid := dtmimp.GetFuncName()
-	req := busi.GenTransReq(30, false, false)
+	req := busi.GenReqHTTP(30, false, false)
 	msg := dtmcli.NewMsg(DtmServer, gid).
 		Add(busi.Busi+"/SagaMongoTransIn", req)
 	err := msg.DoAndSubmit(Busi+"/MongoQueryPrepared", func(bb *dtmcli.BranchBarrier) error {
@@ -32,7 +32,7 @@ func TestMsgMongoDoSucceed(t *testing.T) {
 func TestMsgMongoDoBusiFailed(t *testing.T) {
 	before := getBeforeBalances("mongo")
 	gid := dtmimp.GetFuncName()
-	req := busi.GenTransReq(30, false, false)
+	req := busi.GenReqHTTP(30, false, false)
 	msg := dtmcli.NewMsg(DtmServer, gid).
 		Add(busi.Busi+"/SagaMongoTransIn", req)
 	err := msg.DoAndSubmit(Busi+"/MongoQueryPrepared", func(bb *dtmcli.BranchBarrier) error {
@@ -45,7 +45,7 @@ func TestMsgMongoDoBusiFailed(t *testing.T) {
 func TestMsgMongoDoBusiLater(t *testing.T) {
 	before := getBeforeBalances("mongo")
 	gid := dtmimp.GetFuncName()
-	req := busi.GenTransReq(30, false, false)
+	req := busi.GenReqHTTP(30, false, false)
 	_, err := dtmcli.GetRestyClient().R().
 		SetQueryParams(map[string]string{
 			"trans_type": "msg",
@@ -70,7 +70,7 @@ func TestMsgMongoDoBusiLater(t *testing.T) {
 func TestMsgMongoDoCommitFailed(t *testing.T) {
 	before := getBeforeBalances("mongo")
 	gid := dtmimp.GetFuncName()
-	req := busi.GenTransReq(30, false, false)
+	req := busi.GenReqHTTP(30, false, false)
 	msg := dtmcli.NewMsg(DtmServer, gid).
 		Add(busi.Busi+"/SagaMongoTransIn", req)
 	err := msg.DoAndSubmit(Busi+"/MongoQueryPrepared", func(bb *dtmcli.BranchBarrier) error {
@@ -87,7 +87,7 @@ func TestMsgMongoDoCommitFailed(t *testing.T) {
 func TestMsgMongoDoCommitAfterFailed(t *testing.T) {
 	before := getBeforeBalances("mongo")
 	gid := dtmimp.GetFuncName()
-	req := busi.GenTransReq(30, false, false)
+	req := busi.GenReqHTTP(30, false, false)
 	msg := dtmcli.NewMsg(DtmServer, gid).
 		Add(busi.Busi+"/SagaMongoTransIn", req)
 	err := msg.DoAndSubmit(Busi+"/MongoQueryPrepared", func(bb *dtmcli.BranchBarrier) error {

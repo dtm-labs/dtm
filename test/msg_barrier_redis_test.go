@@ -13,7 +13,7 @@ import (
 func TestMsgRedisDo(t *testing.T) {
 	before := getBeforeBalances("redis")
 	gid := dtmimp.GetFuncName()
-	req := busi.GenTransReq(30, false, false)
+	req := busi.GenReqHTTP(30, false, false)
 	msg := dtmcli.NewMsg(DtmServer, gid).
 		Add(busi.Busi+"/SagaRedisTransIn", req)
 	err := msg.DoAndSubmit(Busi+"/RedisQueryPrepared", func(bb *dtmcli.BranchBarrier) error {
@@ -29,7 +29,7 @@ func TestMsgRedisDo(t *testing.T) {
 func TestMsgRedisDoBusiFailed(t *testing.T) {
 	before := getBeforeBalances("redis")
 	gid := dtmimp.GetFuncName()
-	req := busi.GenTransReq(30, false, false)
+	req := busi.GenReqHTTP(30, false, false)
 	msg := dtmcli.NewMsg(DtmServer, gid).
 		Add(busi.Busi+"/SagaRedisTransIn", req)
 	err := msg.DoAndSubmit(Busi+"/RedisQueryPrepared", func(bb *dtmcli.BranchBarrier) error {
@@ -42,7 +42,7 @@ func TestMsgRedisDoBusiFailed(t *testing.T) {
 func TestMsgRedisDoBusiLater(t *testing.T) {
 	before := getBeforeBalances("redis")
 	gid := dtmimp.GetFuncName()
-	req := busi.GenTransReq(30, false, false)
+	req := busi.GenReqHTTP(30, false, false)
 	_, err := dtmcli.GetRestyClient().R().
 		SetQueryParams(map[string]string{
 			"trans_type": "msg",
@@ -65,7 +65,7 @@ func TestMsgRedisDoBusiLater(t *testing.T) {
 func TestMsgRedisDoPrepareFailed(t *testing.T) {
 	before := getBeforeBalances("redis")
 	gid := dtmimp.GetFuncName()
-	req := busi.GenTransReq(30, false, false)
+	req := busi.GenReqHTTP(30, false, false)
 	msg := dtmcli.NewMsg(DtmServer+"not-exists", gid).
 		Add(busi.Busi+"/SagaRedisTransIn", req)
 	err := msg.DoAndSubmit(Busi+"/RedisQueryPrepared", func(bb *dtmcli.BranchBarrier) error {
@@ -78,7 +78,7 @@ func TestMsgRedisDoPrepareFailed(t *testing.T) {
 func TestMsgRedisDoCommitFailed(t *testing.T) {
 	before := getBeforeBalances("redis")
 	gid := dtmimp.GetFuncName()
-	req := busi.GenTransReq(30, false, false)
+	req := busi.GenReqHTTP(30, false, false)
 	msg := dtmcli.NewMsg(DtmServer, gid).
 		Add(busi.Busi+"/SagaRedisTransIn", req)
 	err := msg.DoAndSubmit(Busi+"/RedisQueryPrepared", func(bb *dtmcli.BranchBarrier) error {
@@ -91,7 +91,7 @@ func TestMsgRedisDoCommitFailed(t *testing.T) {
 func TestMsgRedisDoCommitAfterFailed(t *testing.T) {
 	before := getBeforeBalances("redis")
 	gid := dtmimp.GetFuncName()
-	req := busi.GenTransReq(30, false, false)
+	req := busi.GenReqHTTP(30, false, false)
 	msg := dtmcli.NewMsg(DtmServer, gid).
 		Add(busi.Busi+"/SagaRedisTransIn", req)
 	err := msg.DoAndSubmit(Busi+"/RedisQueryPrepared", func(bb *dtmcli.BranchBarrier) error {

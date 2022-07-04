@@ -21,7 +21,7 @@ import (
 func TestXaGrpcNormal(t *testing.T) {
 	gid := dtmimp.GetFuncName()
 	err := dtmgrpc.XaGlobalTransaction(DtmGrpcServer, gid, func(xa *dtmgrpc.XaGrpc) error {
-		req := busi.GenBusiReq(30, false, false)
+		req := busi.GenReqGrpc(30, false, false)
 		r := &emptypb.Empty{}
 		err := xa.CallBranch(req, busi.BusiGrpc+"/busi.Busi/TransOutXa", r)
 		if err != nil {
@@ -38,7 +38,7 @@ func TestXaGrpcNormal(t *testing.T) {
 func TestXaGrpcRollback(t *testing.T) {
 	gid := dtmimp.GetFuncName()
 	err := dtmgrpc.XaGlobalTransaction(DtmGrpcServer, gid, func(xa *dtmgrpc.XaGrpc) error {
-		req := busi.GenBusiReq(30, false, true)
+		req := busi.GenReqGrpc(30, false, true)
 		r := &emptypb.Empty{}
 		err := xa.CallBranch(req, busi.BusiGrpc+"/busi.Busi/TransOutXa", r)
 		if err != nil {

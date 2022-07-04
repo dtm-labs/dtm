@@ -32,7 +32,7 @@ func TestTccGrpcCoverPanic(t *testing.T) {
 }
 
 func TestTccGrpcCoverCallBranch(t *testing.T) {
-	req := busi.GenBusiReq(30, false, false)
+	req := busi.GenReqGrpc(30, false, false)
 	gid := dtmimp.GetFuncName()
 	err := dtmgrpc.TccGlobalTransaction(dtmutil.DefaultGrpcServer, gid, func(tcc *dtmgrpc.TccGrpc) error {
 

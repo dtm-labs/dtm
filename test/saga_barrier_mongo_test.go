@@ -38,7 +38,7 @@ func TestSagaBarrierMongoRollback(t *testing.T) {
 }
 
 func genSagaBarrierMongo(gid string, transInFailed bool) *dtmcli.Saga {
-	req := busi.GenTransReq(30, false, transInFailed)
+	req := busi.GenReqHTTP(30, false, transInFailed)
 	req.Store = "mongo"
 	return dtmcli.NewSaga(DtmServer, gid).
 		Add(Busi+"/SagaMongoTransOut", Busi+"/SagaMongoTransOutCom", req).

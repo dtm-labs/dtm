@@ -49,7 +49,7 @@ func TestMsgJrpcResults(t *testing.T) {
 func TestMsgJrpcDoAndSubmit(t *testing.T) {
 	before := getBeforeBalances("mysql")
 	gid := dtmimp.GetFuncName()
-	req := busi.GenTransReq(30, false, false)
+	req := busi.GenReqHTTP(30, false, false)
 	msg := dtmcli.NewMsg(dtmutil.DefaultJrpcServer, gid).
 		Add(busi.Busi+"/SagaBTransIn", req)
 	msg.Protocol = dtmimp.Jrpc
@@ -66,7 +66,7 @@ func TestMsgJrpcDoAndSubmit(t *testing.T) {
 func TestMsgJrpcDoAndSubmitBusiFailed(t *testing.T) {
 	before := getBeforeBalances("mysql")
 	gid := dtmimp.GetFuncName()
-	req := busi.GenTransReq(30, false, false)
+	req := busi.GenReqHTTP(30, false, false)
 	msg := dtmcli.NewMsg(dtmutil.DefaultJrpcServer, gid).
 		Add(busi.Busi+"/SagaBTransIn", req)
 	msg.Protocol = dtmimp.Jrpc
@@ -135,7 +135,7 @@ func TestMsgJprcAbnormal2(t *testing.T) {
 }
 
 func genJrpcMsg(gid string) *dtmcli.Msg {
-	req := busi.GenTransReq(30, false, false)
+	req := busi.GenReqHTTP(30, false, false)
 	msg := dtmcli.NewMsg(dtmutil.DefaultJrpcServer, gid).
 		Add(busi.Busi+"/TransOut", &req).
 		Add(busi.BusiJrpcURL+"TransIn", &req)

@@ -17,7 +17,7 @@ import (
 func TestMsgDoAndSubmit(t *testing.T) {
 	before := getBeforeBalances("mysql")
 	gid := dtmimp.GetFuncName()
-	req := busi.GenTransReq(30, false, false)
+	req := busi.GenReqHTTP(30, false, false)
 	msg := dtmcli.NewMsg(DtmServer, gid).
 		Add(busi.Busi+"/SagaBTransIn", req)
 	err := msg.DoAndSubmitDB(Busi+"/QueryPreparedB", dbGet().ToSQLDB(), func(tx *sql.Tx) error {
@@ -33,7 +33,7 @@ func TestMsgDoAndSubmit(t *testing.T) {
 func TestMsgDoAndSubmitBusiFailed(t *testing.T) {
 	before := getBeforeBalances("mysql")
 	gid := dtmimp.GetFuncName()
-	req := busi.GenTransReq(30, false, false)
+	req := busi.GenReqHTTP(30, false, false)
 	msg := dtmcli.NewMsg(DtmServer, gid).
 		Add(busi.Busi+"/SagaBTransIn", req)
 	err := msg.DoAndSubmitDB(Busi+"/QueryPreparedB", dbGet().ToSQLDB(), func(tx *sql.Tx) error {
@@ -46,7 +46,7 @@ func TestMsgDoAndSubmitBusiFailed(t *testing.T) {
 func TestMsgDoAndSubmitBusiLater(t *testing.T) {
 	before := getBeforeBalances("mysql")
 	gid := dtmimp.GetFuncName()
-	req := busi.GenTransReq(30, false, false)
+	req := busi.GenReqHTTP(30, false, false)
 	_, err := dtmcli.GetRestyClient().R().
 		SetQueryParams(map[string]string{
 			"trans_type": "msg",
@@ -69,7 +69,7 @@ func TestMsgDoAndSubmitBusiLater(t *testing.T) {
 func TestMsgDoAndSubmitPrepareFailed(t *testing.T) {
 	before := getBeforeBalances("mysql")
 	gid := dtmimp.GetFuncName()
-	req := busi.GenTransReq(30, false, false)
+	req := busi.GenReqHTTP(30, false, false)
 	msg := dtmcli.NewMsg(DtmServer+"not-exists", gid).
 		Add(busi.Busi+"/SagaBTransIn", req)
 	err := msg.DoAndSubmitDB(Busi+"/QueryPreparedB", dbGet().ToSQLDB(), func(tx *sql.Tx) error {
@@ -85,7 +85,7 @@ func TestMsgDoAndSubmitCommitFailed(t *testing.T) {
 	}
 	before := getBeforeBalances("mysql")
 	gid := dtmimp.GetFuncName()
-	req := busi.GenTransReq(30, false, false)
+	req := busi.GenReqHTTP(30, false, false)
 	msg := dtmcli.NewMsg(DtmServer, gid).
 		Add(busi.Busi+"/SagaBTransIn", req)
 	var g *monkey.PatchGuard
@@ -108,7 +108,7 @@ func TestMsgDoAndSubmitCommitAfterFailed(t *testing.T) {
 	}
 	before := getBeforeBalances("mysql")
 	gid := dtmimp.GetFuncName()
-	req := busi.GenTransReq(30, false, false)
+	req := busi.GenReqHTTP(30, false, false)
 	msg := dtmcli.NewMsg(DtmServer, gid).
 		Add(busi.Busi+"/SagaBTransIn", req)
 	var guard *monkey.PatchGuard

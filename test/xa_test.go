@@ -21,7 +21,7 @@ import (
 func TestXaNormal(t *testing.T) {
 	gid := dtmimp.GetFuncName()
 	err := dtmcli.XaGlobalTransaction(dtmutil.DefaultHTTPServer, gid, func(xa *dtmcli.Xa) (*resty.Response, error) {
-		req := busi.GenTransReq(30, false, false)
+		req := busi.GenReqHTTP(30, false, false)
 		resp, err := xa.CallBranch(req, busi.Busi+"/TransOutXa")
 		if err != nil {
 			return resp, err
@@ -37,7 +37,7 @@ func TestXaNormal(t *testing.T) {
 func TestXaDuplicate(t *testing.T) {
 	gid := dtmimp.GetFuncName()
 	err := dtmcli.XaGlobalTransaction(DtmServer, gid, func(xa *dtmcli.Xa) (*resty.Response, error) {
-		req := busi.GenTransReq(30, false, false)
+		req := busi.GenReqHTTP(30, false, false)
 		_, err := xa.CallBranch(req, busi.Busi+"/TransOutXa")
 		assert.Nil(t, err)
 		sdb, err := dtmimp.StandaloneDB(busi.BusiConf)
@@ -59,7 +59,7 @@ func TestXaDuplicate(t *testing.T) {
 func TestXaRollback(t *testing.T) {
 	gid := dtmimp.GetFuncName()
 	err := dtmcli.XaGlobalTransaction(DtmServer, gid, func(xa *dtmcli.Xa) (*resty.Response, error) {
-		req := busi.GenTransReq(30, false, true)
+		req := busi.GenReqHTTP(30, false, true)
 		resp, err := xa.CallBranch(req, busi.Busi+"/TransOutXa")
 		if err != nil {
 			return resp, err
@@ -107,7 +107,7 @@ func TestXaNotTimeout(t *testing.T) {
 			timeoutChan <- 0
 		}()
 		<-timeoutChan
-		req := busi.GenTransReq(30, false, false)
+		req := busi.GenReqHTTP(30, false, false)
 		_, err := xa.CallBranch(req, busi.Busi+"/TransOutXa")
 		assert.Nil(t, err)
 		busi.MainSwitch.NextResult.SetOnce(dtmcli.ResultOngoing) // make commit temp error

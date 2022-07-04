@@ -12,7 +12,7 @@ import (
 )
 
 func TestTccOldNormal(t *testing.T) {
-	req := busi.GenTransReq(30, false, false)
+	req := busi.GenReqHTTP(30, false, false)
 	gid := dtmimp.GetFuncName()
 	err := dtmcli.TccGlobalTransaction(dtmutil.DefaultHTTPServer, gid, func(tcc *dtmcli.Tcc) (*resty.Response, error) {
 		_, err := tcc.CallBranch(req, Busi+"/TransOutOld", Busi+"/TransOutConfirmOld", Busi+"/TransOutRevertOld")
@@ -27,7 +27,7 @@ func TestTccOldNormal(t *testing.T) {
 
 func TestTccOldRollback(t *testing.T) {
 	gid := dtmimp.GetFuncName()
-	req := busi.GenTransReq(30, false, true)
+	req := busi.GenReqHTTP(30, false, true)
 	err := dtmcli.TccGlobalTransaction(dtmutil.DefaultHTTPServer, gid, func(tcc *dtmcli.Tcc) (*resty.Response, error) {
 		_, rerr := tcc.CallBranch(req, Busi+"/TransOutOld", Busi+"/TransOutConfirmOld", Busi+"/TransOutRevertOld")
 		assert.Nil(t, rerr)
@@ -43,7 +43,7 @@ func TestTccOldRollback(t *testing.T) {
 }
 
 func TestTccOldTimeout(t *testing.T) {
-	req := busi.GenTransReq(30, false, false)
+	req := busi.GenReqHTTP(30, false, false)
 	gid := dtmimp.GetFuncName()
 	timeoutChan := make(chan int, 1)
 
