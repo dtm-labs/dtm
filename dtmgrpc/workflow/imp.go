@@ -19,6 +19,7 @@ type workflowImp struct {
 	currentActionAdded   bool                   //nolint
 	currentCommitAdded   bool                   //nolint
 	currentRollbackAdded bool                   //nolint
+	currentRollbackItem  *workflowPhase2Item    // nolint
 	progresses           map[string]*stepResult //nolint
 	currentOp            string
 	succeededOps         []workflowPhase2Item
@@ -157,6 +158,15 @@ func (wf *Workflow) callPhase2(branchID string, fn WfPhase2Func) error {
 }
 
 func (wf *Workflow) recordedDo(fn func(bb *dtmcli.BranchBarrier) *stepResult) *stepResult {
+	sr := wf.recordedDoInner(fn)
+	// if options not enabled, only successful branch need to be compensated
+	if !wf.Options.CompensateErrorBranch && wf.currentRollbackItem != nil && sr.Status == dtmcli.ResultSuccess {
+		wf.failedOps = append(wf.failedOps, *wf.currentRollbackItem)
+	}
+	return sr
+}
+
+func (wf *Workflow) recordedDoInner(fn func(bb *dtmcli.BranchBarrier) *stepResult) *stepResult {
 	branchID := wf.currentBranch
 	if wf.currentOp == dtmimp.OpAction {
 		dtmimp.PanicIf(wf.currentActionAdded, fmt.Errorf("one branch can have only on action"))

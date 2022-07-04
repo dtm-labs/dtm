@@ -41,8 +41,8 @@ func SetProtocolForTest(protocol string) {
 }
 
 // Register will register a workflow with the specified name
-func Register(name string, handler WfFunc) error {
-	return defaultFac.register(name, handler)
+func Register(name string, handler WfFunc, custom ...func(wf *Workflow)) error {
+	return defaultFac.register(name, handler, custom...)
 }
 
 // Execute will execute a workflow with the gid and specified params
@@ -59,9 +59,13 @@ func ExecuteByQS(qs url.Values, body []byte) error {
 
 // Options is for specifying workflow options
 type Options struct {
+	// default false: Workflow's restyClient will convert http response to error if status code is not 200
 	// if this flag is set true, then Workflow's restyClient will keep the origin http response
-	// or else, Workflow's restyClient will convert http response to error if status code is not 200
 	DisalbeAutoError bool
+
+	// default false: fn registered by OnBranchRollback will not be called for FAILURE branch
+	// if this flag is set true, then fn will be called. the user should handle null rollback and dangling
+	CompensateErrorBranch bool
 }
 
 // Workflow is the type for a workflow
@@ -71,6 +75,11 @@ type Workflow struct {
 	Options Options
 	*dtmimp.TransBase
 	workflowImp
+}
+
+type wfItem struct {
+	fn     WfFunc
+	custom []func(*Workflow)
 }
 
 // WfFunc is the type for workflow function
@@ -107,11 +116,16 @@ func (wf *Workflow) OnBranchRollback(compensate WfPhase2Func) *Workflow {
 	branchID := wf.currentBranch
 	dtmimp.PanicIf(wf.currentRollbackAdded, fmt.Errorf("on branch can only add one rollback callback"))
 	wf.currentRollbackAdded = true
-	wf.failedOps = append(wf.failedOps, workflowPhase2Item{
+	item := workflowPhase2Item{
 		branchID: branchID,
 		op:       dtmimp.OpRollback,
 		fn:       compensate,
-	})
+	}
+	if wf.Options.CompensateErrorBranch {
+		wf.failedOps = append(wf.failedOps, item)
+	} else {
+		wf.currentRollbackItem = &item
+	}
 	return wf
 }
 

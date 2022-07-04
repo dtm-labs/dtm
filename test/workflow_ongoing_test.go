@@ -90,6 +90,8 @@ func TestWorkflowGrpcRollbackResume(t *testing.T) {
 			return dtmcli.ErrOngoing
 		}
 		return err
+	}, func(wf *workflow.Workflow) {
+		wf.Options.CompensateErrorBranch = true
 	})
 	req := &busi.BusiReq{Amount: 30, TransInResult: "FAILURE"}
 	err := workflow.Execute(gid, gid, dtmgimp.MustProtoMarshal(req))
