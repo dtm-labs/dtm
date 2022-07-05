@@ -40,7 +40,7 @@ func TestWorkflowGrpcSimple(t *testing.T) {
 
 func TestWorkflowGrpcNormal(t *testing.T) {
 	workflow.SetProtocolForTest(dtmimp.ProtocolGRPC)
-	req := &busi.BusiReq{Amount: 30, TransInResult: "FAILURE"}
+	req := &busi.ReqGrpc{Amount: 30, TransInResult: "FAILURE"}
 	gid := dtmimp.GetFuncName()
 	workflow.Register(gid, func(wf *workflow.Workflow, data []byte) error {
 		var req busi.BusiReq

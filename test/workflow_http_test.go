@@ -89,14 +89,27 @@ func TestWorkflowError(t *testing.T) {
 		var req busi.ReqHTTP
 		dtmimp.MustUnmarshal(data, &req)
 		_, err := wf.NewBranch().NewRequest().SetBody(req).Post(Busi + "/TransOut")
-		if err != nil {
-			return err
-		}
-		_, err = wf.NewBranch().NewRequest().SetBody(req).Post(Busi + "/TransIn")
-		if err != nil {
-			return err
-		}
-		return nil
+		return err
+	})
+
+	err := workflow.Execute(gid, gid, dtmimp.MustMarshal(req))
+	assert.Error(t, err)
+	go waitTransProcessed(gid)
+	cronTransOnceForwardCron(t, gid, 1000)
+	assert.Equal(t, StatusSucceed, getTransStatus(gid))
+}
+
+func TestWorkflowOngoing(t *testing.T) {
+	workflow.SetProtocolForTest(dtmimp.ProtocolHTTP)
+	req := busi.GenReqHTTP(30, false, false)
+	gid := dtmimp.GetFuncName()
+	busi.MainSwitch.TransOutResult.SetOnce("ONGOING")
+
+	workflow.Register(gid, func(wf *workflow.Workflow, data []byte) error {
+		var req busi.ReqHTTP
+		dtmimp.MustUnmarshal(data, &req)
+		_, err := wf.NewBranch().NewRequest().SetBody(req).Post(Busi + "/TransOut")
+		return err
 	})
 
 	err := workflow.Execute(gid, gid, dtmimp.MustMarshal(req))

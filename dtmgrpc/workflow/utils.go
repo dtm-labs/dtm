@@ -14,13 +14,6 @@ import (
 	"google.golang.org/protobuf/reflect/protoreflect"
 )
 
-func statusToCode(status string) int {
-	if status == "succeed" {
-		return 200
-	}
-	return 409
-}
-
 func wfErrorToStatus(err error) string {
 	if err == nil {
 		return dtmcli.StatusSucceed
@@ -102,15 +95,12 @@ func (wf *Workflow) stepResultToLocal(sr *stepResult) ([]byte, error) {
 }
 
 func (wf *Workflow) stepResultFromGrpc(reply interface{}, err error) *stepResult {
-	sr := &stepResult{Error: err}
-	if err == nil {
-		sr.Error = wf.Options.GRPCError2DtmError(err)
-		sr.Status = wfErrorToStatus(sr.Error)
-		if sr.Error == nil {
-			sr.Data = dtmgimp.MustProtoMarshal(reply.(protoreflect.ProtoMessage))
-		} else if sr.Status == dtmcli.StatusFailed {
-			sr.Data = []byte(sr.Error.Error())
-		}
+	sr := &stepResult{Error: wf.Options.GRPCError2DtmError(err)}
+	sr.Status = wfErrorToStatus(sr.Error)
+	if sr.Error == nil {
+		sr.Data = dtmgimp.MustProtoMarshal(reply.(protoreflect.ProtoMessage))
+	} else if sr.Status == dtmcli.StatusFailed {
+		sr.Data = []byte(sr.Error.Error())
 	}
 	return sr
 }
@@ -135,5 +125,5 @@ func (wf *Workflow) stepResultToHTTP(s *stepResult) (*http.Response, error) {
 	if s.Error != nil {
 		return nil, s.Error
 	}
-	return newJSONResponse(statusToCode(s.Status), s.Data), nil
+	return newJSONResponse(200, s.Data), nil
 }

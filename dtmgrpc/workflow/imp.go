@@ -153,9 +153,7 @@ func (wf *Workflow) callPhase2(branchID string, fn WfPhase2Func) error {
 	wf.currentBranch = branchID
 	r := wf.recordedDo(func(bb *dtmcli.BranchBarrier) *stepResult {
 		err := fn(bb)
-		if errors.Is(err, dtmcli.ErrFailure) {
-			panic("should not return ErrFail in phase2")
-		}
+		dtmimp.PanicIf(errors.Is(err, dtmcli.ErrFailure), errors.New("should not return ErrFail in phase2"))
 		return wf.stepResultFromLocal(nil, err)
 	})
 	_, err := wf.stepResultToLocal(r)
