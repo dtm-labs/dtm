@@ -160,9 +160,10 @@ func (wf *Workflow) callPhase2(branchID string, fn WfPhase2Func) error {
 func (wf *Workflow) recordedDo(fn func(bb *dtmcli.BranchBarrier) *stepResult) *stepResult {
 	sr := wf.recordedDoInner(fn)
 	// if options not enabled, only successful branch need to be compensated
-	if !wf.Options.CompensateErrorBranch && wf.currentRollbackItem != nil && sr.Status == dtmcli.ResultSuccess {
+	if !wf.Options.CompensateErrorBranch && wf.currentRollbackItem != nil && sr.Status == dtmcli.StatusSucceed {
 		wf.failedOps = append(wf.failedOps, *wf.currentRollbackItem)
 	}
+	wf.currentRollbackItem = nil
 	return sr
 }
 
