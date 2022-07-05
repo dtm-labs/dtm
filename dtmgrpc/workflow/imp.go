@@ -36,10 +36,14 @@ func (wf *Workflow) loadProgresses() error {
 	if err == nil {
 		wf.progresses = map[string]*stepResult{}
 		for _, p := range progresses {
-			wf.progresses[p.BranchID+"-"+p.Op] = &stepResult{
+			sr := &stepResult{
 				Status: p.Status,
 				Data:   p.BinData,
 			}
+			if sr.Status == dtmcli.StatusFailed {
+				sr.Error = fmt.Errorf("%s. %w", string(p.BinData), dtmcli.ErrFailure)
+			}
+			wf.progresses[p.BranchID+"-"+p.Op] = sr
 		}
 	}
 	return err
@@ -71,6 +75,8 @@ func (w *workflowFactory) newWorkflow(name string, gid string, data []byte) *Wor
 		"data": data,
 	})
 	wf.Context = context.WithValue(wf.Context, wfMeta{}, wf)
+	wf.Options.HTTPResp2DtmError = HTTPResp2DtmError
+	wf.Options.GRPCError2DtmError = dtmgrpc.GrpcError2DtmError
 	wf.initRestyClient()
 	return wf
 }
@@ -90,11 +96,7 @@ func (wf *Workflow) initRestyClient() {
 	old := wf.restyClient.GetClient().Transport
 	wf.restyClient.GetClient().Transport = newRoundTripper(old, wf)
 	wf.restyClient.OnAfterResponse(func(c *resty.Client, r *resty.Response) error {
-		err := dtmimp.AfterResponse(c, r)
-		if err == nil && !wf.Options.DisalbeAutoError {
-			err = dtmimp.RespAsErrorCompatible(r) // check for dtm error
-		}
-		return err
+		return dtmimp.AfterResponse(c, r)
 	})
 }
 
@@ -119,10 +121,13 @@ func (wf *Workflow) process(handler WfFunc, data []byte) (err error) {
 }
 
 func (wf *Workflow) saveResult(branchID string, op string, sr *stepResult) error {
-	if sr.Status == "" {
-		return sr.Error
+	if sr.Status != "" {
+		err := wf.registerBranch(sr.Data, branchID, op, sr.Status)
+		if err != nil {
+			return err
+		}
 	}
-	return wf.registerBranch(sr.Data, branchID, op, sr.Status)
+	return sr.Error
 }
 
 func (wf *Workflow) processPhase2(err error) error {
@@ -151,9 +156,9 @@ func (wf *Workflow) callPhase2(branchID string, fn WfPhase2Func) error {
 		if errors.Is(err, dtmcli.ErrFailure) {
 			panic("should not return ErrFail in phase2")
 		}
-		return stepResultFromLocal(nil, err)
+		return wf.stepResultFromLocal(nil, err)
 	})
-	_, err := stepResultToLocal(r)
+	_, err := wf.stepResultToLocal(r)
 	return err
 }
 
@@ -187,7 +192,7 @@ func (wf *Workflow) recordedDoInner(fn func(bb *dtmcli.BranchBarrier) *stepResul
 	r = fn(bb)
 	err := wf.saveResult(branchID, wf.currentOp, r)
 	if err != nil {
-		r = stepResultFromLocal(nil, err)
+		r = wf.stepResultFromLocal(nil, err)
 	}
 	return r
 }

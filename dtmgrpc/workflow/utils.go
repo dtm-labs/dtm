@@ -1,6 +1,7 @@
 package workflow
 
 import (
+	"bytes"
 	"errors"
 	"fmt"
 	"io/ioutil"
@@ -10,8 +11,6 @@ import (
 	"github.com/dtm-labs/dtm/dtmcli"
 	"github.com/dtm-labs/dtm/dtmcli/dtmimp"
 	"github.com/dtm-labs/dtm/dtmgrpc/dtmgimp"
-	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/reflect/protoreflect"
 )
 
@@ -58,21 +57,39 @@ func newJSONResponse(status int, result []byte) *http.Response {
 
 func (r *roundTripper) RoundTrip(req *http.Request) (*http.Response, error) {
 	wf := r.wf
-	if wf.currentOp != dtmimp.OpAction { // in phase 2, do not save, because it is saved outer
-		return r.old.RoundTrip(req)
-	}
-	sr := wf.recordedDo(func(bb *dtmcli.BranchBarrier) *stepResult {
+	origin := func(bb *dtmcli.BranchBarrier) *stepResult {
 		resp, err := r.old.RoundTrip(req)
-		return stepResultFromHTTP(resp, err)
-	})
-	return stepResultToHTTP(sr)
+		return wf.stepResultFromHTTP(resp, err)
+	}
+	var sr *stepResult
+	if wf.currentOp != dtmimp.OpAction { // in phase 2, do not save, because it is saved outer
+		sr = origin(nil)
+	} else {
+		sr = wf.recordedDo(origin)
+	}
+	return wf.stepResultToHTTP(sr)
 }
 
 func newRoundTripper(old http.RoundTripper, wf *Workflow) http.RoundTripper {
 	return &roundTripper{old: old, wf: wf}
 }
 
-func stepResultFromLocal(data []byte, err error) *stepResult {
+// HTTPResp2DtmError check for dtm error and return it
+func HTTPResp2DtmError(resp *http.Response) ([]byte, error) {
+	code := resp.StatusCode
+	data, err := ioutil.ReadAll(resp.Body)
+	resp.Body = ioutil.NopCloser(bytes.NewBuffer(data))
+	if code == http.StatusTooEarly {
+		return data, fmt.Errorf("%s. %w", string(data), dtmcli.ErrOngoing)
+	} else if code == http.StatusConflict {
+		return data, fmt.Errorf("%s. %w", string(data), dtmcli.ErrFailure)
+	} else if err == nil && code != http.StatusOK {
+		return data, errors.New(string(data))
+	}
+	return data, err
+}
+
+func (wf *Workflow) stepResultFromLocal(data []byte, err error) *stepResult {
 	return &stepResult{
 		Error:  err,
 		Status: wfErrorToStatus(err),
@@ -80,56 +97,41 @@ func stepResultFromLocal(data []byte, err error) *stepResult {
 	}
 }
 
-func stepResultToLocal(s *stepResult) ([]byte, error) {
-	if s.Error != nil {
-		return nil, s.Error
-	} else if s.Status == dtmcli.StatusFailed {
-		return nil, fmt.Errorf("%s. %w", string(s.Data), dtmcli.ErrFailure)
-	}
-	return s.Data, nil
+func (wf *Workflow) stepResultToLocal(sr *stepResult) ([]byte, error) {
+	return sr.Data, sr.Error
 }
 
-func stepResultFromGrpc(reply interface{}, err error) *stepResult {
-	sr := &stepResult{}
-	st, ok := status.FromError(err)
-	if err == nil {
-		sr.Status = dtmcli.StatusSucceed
-		sr.Data = dtmgimp.MustProtoMarshal(reply.(protoreflect.ProtoMessage))
-	} else if ok && st.Code() == codes.Aborted {
-		sr.Status = dtmcli.StatusFailed
-		sr.Data = []byte(st.Message())
-	} else {
-		sr.Error = err
-	}
-	return sr
-}
-
-func stepResultToGrpc(s *stepResult, reply interface{}) error {
-	if s.Error != nil {
-		return s.Error
-	} else if s.Status == dtmcli.StatusSucceed {
-		dtmgimp.MustProtoUnmarshal(s.Data, reply.(protoreflect.ProtoMessage))
-		return nil
-	}
-	return status.New(codes.Aborted, string(s.Data)).Err()
-}
-
-func stepResultFromHTTP(resp *http.Response, err error) *stepResult {
+func (wf *Workflow) stepResultFromGrpc(reply interface{}, err error) *stepResult {
 	sr := &stepResult{Error: err}
 	if err == nil {
-		sr.Data, sr.Error = ioutil.ReadAll(resp.Body)
-		if resp.StatusCode == http.StatusOK {
-			sr.Status = dtmcli.StatusSucceed
-		} else if resp.StatusCode == http.StatusConflict {
-			sr.Status = dtmcli.StatusFailed
-		} else {
-			sr.Error = errors.New(string(sr.Data))
+		sr.Error = wf.Options.GRPCError2DtmError(err)
+		sr.Status = wfErrorToStatus(sr.Error)
+		if sr.Error == nil {
+			sr.Data = dtmgimp.MustProtoMarshal(reply.(protoreflect.ProtoMessage))
+		} else if sr.Status == dtmcli.StatusFailed {
+			sr.Data = []byte(sr.Error.Error())
 		}
 	}
 	return sr
 }
 
-func stepResultToHTTP(s *stepResult) (*http.Response, error) {
+func (wf *Workflow) stepResultToGrpc(s *stepResult, reply interface{}) error {
+	if s.Error == nil && s.Status == dtmcli.StatusSucceed {
+		dtmgimp.MustProtoUnmarshal(s.Data, reply.(protoreflect.ProtoMessage))
+	}
+	return s.Error
+}
+
+func (wf *Workflow) stepResultFromHTTP(resp *http.Response, err error) *stepResult {
+	sr := &stepResult{Error: err}
+	if err == nil {
+		sr.Data, sr.Error = wf.Options.HTTPResp2DtmError(resp)
+		sr.Status = wfErrorToStatus(sr.Error)
+	}
+	return sr
+}
+
+func (wf *Workflow) stepResultToHTTP(s *stepResult) (*http.Response, error) {
 	if s.Error != nil {
 		return nil, s.Error
 	}

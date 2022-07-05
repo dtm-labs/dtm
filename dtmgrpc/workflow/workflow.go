@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"net/http"
 	"net/url"
 
 	"github.com/dtm-labs/dtm/dtmcli"
@@ -59,12 +60,16 @@ func ExecuteByQS(qs url.Values, body []byte) error {
 
 // Options is for specifying workflow options
 type Options struct {
-	// default false: Workflow's restyClient will convert http response to error if status code is not 200
-	// if this flag is set true, then Workflow's restyClient will keep the origin http response
-	DisalbeAutoError bool
 
-	// default false: fn registered by OnBranchRollback will not be called for FAILURE branch
-	// if this flag is set true, then fn will be called. the user should handle null rollback and dangling
+	// Default: Code 409 => ErrFailure; Code 425 => ErrOngoing
+	HTTPResp2DtmError func(*http.Response) ([]byte, error)
+
+	// Default: Code Aborted => ErrFailure; Code FailedPrecondition => ErrOngoing
+	GRPCError2DtmError func(error) error
+
+	// This Option specify whether a branch returning ErrFailure should be compensated on rollback.
+	// for most idempotent branches, no compensation is needed.
+	// But for a timeout request, the caller cannot know where the request is successful, so the compensation should be called
 	CompensateErrorBranch bool
 }
 
@@ -147,9 +152,9 @@ func (wf *Workflow) OnBranchCommit(fn WfPhase2Func) *Workflow {
 func (wf *Workflow) Do(fn func(bb *dtmcli.BranchBarrier) ([]byte, error)) ([]byte, error) {
 	res := wf.recordedDo(func(bb *dtmcli.BranchBarrier) *stepResult {
 		r, e := fn(bb)
-		return stepResultFromLocal(r, e)
+		return wf.stepResultFromLocal(r, e)
 	})
-	return stepResultToLocal(res)
+	return wf.stepResultToLocal(res)
 }
 
 // DoXa will begin a local xa transaction
@@ -217,7 +222,7 @@ func Interceptor(ctx context.Context, method string, req, reply interface{}, cc 
 	}
 	sr := wf.recordedDo(func(bb *dtmcli.BranchBarrier) *stepResult {
 		err := origin()
-		return stepResultFromGrpc(reply, err)
+		return wf.stepResultFromGrpc(reply, err)
 	})
-	return stepResultToGrpc(sr, reply)
+	return wf.stepResultToGrpc(sr, reply)
 }
