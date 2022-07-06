@@ -41,3 +41,10 @@ services:
       - /etc/timezone:/etc/timezone:ro
     ports:
       - '27017:27017'
+  mongo_m1:
+    image:
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - /etc/timezone:/etc/timezone:ro
+    ports:
+      - '27018:27018'

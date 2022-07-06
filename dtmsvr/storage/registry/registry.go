@@ -8,6 +8,7 @@ import (
 	"github.com/dtm-labs/dtm/dtmsvr/config"
 	"github.com/dtm-labs/dtm/dtmsvr/storage"
 	"github.com/dtm-labs/dtm/dtmsvr/storage/boltdb"
+	"github.com/dtm-labs/dtm/dtmsvr/storage/mongo"
 	"github.com/dtm-labs/dtm/dtmsvr/storage/redis"
 	"github.com/dtm-labs/dtm/dtmsvr/storage/sql"
 )
@@ -39,6 +40,11 @@ var storeFactorys = map[string]StorageFactory{
 	},
 	"mysql":    sqlFac,
 	"postgres": sqlFac,
+	"mongo": &SingletonFactory{
+		creatorFunction: func() storage.Store {
+			return &mongo.Store{}
+		},
+	},
 }
 
 // GetStore returns storage.Store

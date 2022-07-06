@@ -6,12 +6,12 @@
 #####################################################################
 
 Store: # specify which engine to store trans status
-  Driver: 'mysql'
-  Host: 'localhost'
-  User: 'root'
-  Password: ''
-  Port: 3306
-  Db: 'dtm'
+  # Driver: 'mysql'
+  # Host: 'localhost'
+  # User: 'root'
+  # Password: ''
+  # Port: 3306
+  # Db: 'dtm'
 
 #   Driver: 'boltdb' # default store engine
 
@@ -21,11 +21,18 @@ Store: # specify which engine to store trans status
 #   Password: ''
 #   Port: 6379
 
-#   Driver: 'postgres'
-#   Host: 'localhost'
-#   User: 'postgres'
-#   Password: 'mysecretpassword'
-#   Port: '5432'
+  # Driver: 'postgres'
+  # Host: 'localhost'
+  # User: 'postgres'
+  # Password: 'mysecretpassword'
+  # Port: '5432'
+
+  Driver: 'mongo'
+  Host: 'localhost'
+  User: ''
+  Password: ''
+  Port: 27017
+  Db: 'dtm'
 
 ### following config is for only Driver postgres/mysql
 #   MaxOpenConns: 500
