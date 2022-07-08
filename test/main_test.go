@@ -24,12 +24,6 @@ import (
 	"github.com/go-resty/resty/v2"
 )
 
-func exitIf(code int) {
-	if code != 0 {
-		os.Exit(code)
-	}
-}
-
 func TestMain(m *testing.M) {
 	config.MustLoadConfig("")
 	logger.InitLog("debug")

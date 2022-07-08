@@ -72,6 +72,7 @@ func BaseAppStartup() *gin.Engine {
 	return app
 }
 
+// RunHTTP will run http server
 func RunHTTP(app *gin.Engine) {
 	logger.Debugf("Starting busi at: %d", BusiPort)
 	err := app.Run(fmt.Sprintf(":%d", BusiPort))
