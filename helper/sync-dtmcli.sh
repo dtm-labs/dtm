@@ -38,6 +38,7 @@ cp -r ../dtm/dtmgrpc/* ./
 go get github.com/dtm-labs/dtmcli@$ver
 sed -i '' -e 's/dtm-labs\/dtm\//dtm-labs\//g' *.go */**.go
 rm -rf *_test.go
+rm -rf workflow/*_test.go
 go mod tidy
 go build || exit 1
 git add .
