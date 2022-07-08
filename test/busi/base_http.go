@@ -69,12 +69,13 @@ func BaseAppStartup() *gin.Engine {
 		logger.Debugf("initing %s", k)
 		v(app)
 	}
-	logger.Debugf("Starting busi at: %d", BusiPort)
-	go func() {
-		err := app.Run(fmt.Sprintf(":%d", BusiPort))
-		dtmimp.FatalIfError(err)
-	}()
 	return app
+}
+
+func RunHTTP(app *gin.Engine) {
+	logger.Debugf("Starting busi at: %d", BusiPort)
+	err := app.Run(fmt.Sprintf(":%d", BusiPort))
+	dtmimp.FatalIfError(err)
 }
 
 // BaseAddRoute add base route handler

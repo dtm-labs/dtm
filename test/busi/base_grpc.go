@@ -52,8 +52,8 @@ func GrpcStartup() *grpc.Server {
 	return s
 }
 
-// GrpcServe start to serve grpc
-func GrpcServe(server *grpc.Server) {
+// RunGrpc start to serve grpc
+func RunGrpc(server *grpc.Server) {
 	lis, err := net.Listen("tcp", fmt.Sprintf(":%d", BusiGrpcPort))
 	logger.FatalIfError(err)
 	logger.Debugf("busi grpc listening at %v", lis.Addr())
