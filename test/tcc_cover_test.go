@@ -32,7 +32,7 @@ func TestTccCoverPanic(t *testing.T) {
 }
 
 func TestTccNested(t *testing.T) {
-	req := busi.GenTransReq(30, false, false)
+	req := busi.GenReqHTTP(30, false, false)
 	gid := dtmimp.GetFuncName()
 	err := dtmcli.TccGlobalTransaction(dtmutil.DefaultHTTPServer, gid, func(tcc *dtmcli.Tcc) (*resty.Response, error) {
 		_, err := tcc.CallBranch(req, Busi+"/TransOut", Busi+"/TransOutConfirm", Busi+"/TransOutRevert")

@@ -21,7 +21,7 @@ import (
 )
 
 func TestTccGrpcNormal(t *testing.T) {
-	req := busi.GenBusiReq(30, false, false)
+	req := busi.GenReqGrpc(30, false, false)
 	gid := dtmimp.GetFuncName()
 	err := dtmgrpc.TccGlobalTransaction(dtmutil.DefaultGrpcServer, gid, func(tcc *dtmgrpc.TccGrpc) error {
 		r := &emptypb.Empty{}
@@ -38,7 +38,7 @@ func TestTccGrpcNormal(t *testing.T) {
 
 func TestTccGrpcRollback(t *testing.T) {
 	gid := dtmimp.GetFuncName()
-	req := busi.GenBusiReq(30, false, true)
+	req := busi.GenReqGrpc(30, false, true)
 	err := dtmgrpc.TccGlobalTransaction(dtmutil.DefaultGrpcServer, gid, func(tcc *dtmgrpc.TccGrpc) error {
 		r := &emptypb.Empty{}
 		err := tcc.CallBranch(req, busi.BusiGrpc+"/busi.Busi/TransOutTcc", busi.BusiGrpc+"/busi.Busi/TransOutConfirm", busi.BusiGrpc+"/busi.Busi/TransOutRevert", r)
@@ -56,7 +56,7 @@ func TestTccGrpcRollback(t *testing.T) {
 }
 
 func TestTccGrpcNested(t *testing.T) {
-	req := busi.GenBusiReq(30, false, false)
+	req := busi.GenReqGrpc(30, false, false)
 	gid := dtmimp.GetFuncName()
 	err := dtmgrpc.TccGlobalTransaction(dtmutil.DefaultGrpcServer, gid, func(tcc *dtmgrpc.TccGrpc) error {
 		r := &emptypb.Empty{}

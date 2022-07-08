@@ -83,7 +83,7 @@ func TestSagaGrpcNormalWait(t *testing.T) {
 
 func TestSagaGrpcEmptyUrl(t *testing.T) {
 	saga := dtmgrpc.NewSagaGrpc(dtmutil.DefaultGrpcServer, dtmimp.GetFuncName())
-	req := busi.GenBusiReq(30, false, false)
+	req := busi.GenReqGrpc(30, false, false)
 	saga.Add(busi.BusiGrpc+"/busi.Busi/TransOut", busi.BusiGrpc+"/busi.Busi/TransOutRevert", req)
 	saga.Add("", busi.BusiGrpc+"/busi.Busi/TransInRevert", req)
 	saga.Submit()
@@ -95,7 +95,7 @@ func TestSagaGrpcEmptyUrl(t *testing.T) {
 //nolint: unparam
 func genSagaGrpc(gid string, outFailed bool, inFailed bool) *dtmgrpc.SagaGrpc {
 	saga := dtmgrpc.NewSagaGrpc(dtmutil.DefaultGrpcServer, gid)
-	req := busi.GenBusiReq(30, outFailed, inFailed)
+	req := busi.GenReqGrpc(30, outFailed, inFailed)
 	saga.Add(busi.BusiGrpc+"/busi.Busi/TransOut", busi.BusiGrpc+"/busi.Busi/TransOutRevert", req)
 	saga.Add(busi.BusiGrpc+"/busi.Busi/TransIn", busi.BusiGrpc+"/busi.Busi/TransInRevert", req)
 	return saga

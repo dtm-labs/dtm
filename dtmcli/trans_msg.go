@@ -40,13 +40,13 @@ func (s *Msg) SetDelay(delay uint64) *Msg {
 // Prepare prepare the msg, msg will later be submitted
 func (s *Msg) Prepare(queryPrepared string) error {
 	s.QueryPrepared = dtmimp.OrString(queryPrepared, s.QueryPrepared)
-	return dtmimp.TransCallDtm(&s.TransBase, s, "prepare")
+	return dtmimp.TransCallDtm(&s.TransBase, "prepare")
 }
 
 // Submit submit the msg
 func (s *Msg) Submit() error {
 	s.BuildCustomOptions()
-	return dtmimp.TransCallDtm(&s.TransBase, s, "submit")
+	return dtmimp.TransCallDtm(&s.TransBase, "submit")
 }
 
 // DoAndSubmitDB short method for Do on db type. please see DoAndSubmit
@@ -72,7 +72,7 @@ func (s *Msg) DoAndSubmit(queryPrepared string, busiCall func(bb *BranchBarrier)
 			_, err = dtmimp.TransRequestBranch(&s.TransBase, "GET", nil, bb.BranchID, bb.Op, queryPrepared)
 		}
 		if errors.Is(errb, ErrFailure) || errors.Is(err, ErrFailure) {
-			_ = dtmimp.TransCallDtm(&s.TransBase, s, "abort")
+			_ = dtmimp.TransCallDtm(&s.TransBase, "abort")
 		} else if err == nil {
 			err = s.Submit()
 		}

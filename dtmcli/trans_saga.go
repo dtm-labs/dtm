@@ -43,7 +43,7 @@ func (s *Saga) SetConcurrent() *Saga {
 // Submit submit the saga trans
 func (s *Saga) Submit() error {
 	s.BuildCustomOptions()
-	return dtmimp.TransCallDtm(&s.TransBase, s, "submit")
+	return dtmimp.TransCallDtm(&s.TransBase, "submit")
 }
 
 // BuildCustomOptions add custom options to the request context

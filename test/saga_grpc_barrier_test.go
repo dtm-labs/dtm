@@ -36,7 +36,7 @@ func TestSagaGrpcBarrierRollback(t *testing.T) {
 
 func genSagaGrpcBarrier(gid string, outFailed bool, inFailed bool) *dtmgrpc.SagaGrpc {
 	saga := dtmgrpc.NewSagaGrpc(dtmutil.DefaultGrpcServer, gid)
-	req := busi.GenBusiReq(30, outFailed, inFailed)
+	req := busi.GenReqGrpc(30, outFailed, inFailed)
 	saga.Add(busi.BusiGrpc+"/busi.Busi/TransOutBSaga", busi.BusiGrpc+"/busi.Busi/TransOutRevertBSaga", req)
 	saga.Add(busi.BusiGrpc+"/busi.Busi/TransInBSaga", busi.BusiGrpc+"/busi.Busi/TransInRevertBSaga", req)
 	return saga

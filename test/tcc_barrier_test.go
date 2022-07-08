@@ -22,7 +22,7 @@ import (
 )
 
 func TestTccBarrierNormal(t *testing.T) {
-	req := busi.GenTransReq(30, false, false)
+	req := busi.GenReqHTTP(30, false, false)
 	gid := dtmimp.GetFuncName()
 	err := dtmcli.TccGlobalTransaction(DtmServer, gid, func(tcc *dtmcli.Tcc) (*resty.Response, error) {
 		_, err := tcc.CallBranch(req, Busi+"/TccBTransOutTry", Busi+"/TccBTransOutConfirm", Busi+"/TccBTransOutCancel")
@@ -36,7 +36,7 @@ func TestTccBarrierNormal(t *testing.T) {
 }
 
 func TestTccBarrierRollback(t *testing.T) {
-	req := busi.GenTransReq(30, false, true)
+	req := busi.GenReqHTTP(30, false, true)
 	gid := dtmimp.GetFuncName()
 	err := dtmcli.TccGlobalTransaction(DtmServer, gid, func(tcc *dtmcli.Tcc) (*resty.Response, error) {
 		_, err := tcc.CallBranch(req, Busi+"/TccBTransOutTry", Busi+"/TccBTransOutConfirm", Busi+"/TccBTransOutCancel")
@@ -69,7 +69,7 @@ func runTestTccBarrierDisorder(t *testing.T, store string) {
 	gid := dtmimp.GetFuncName() + store
 	cronFinished := make(chan string, 2)
 	err := dtmcli.TccGlobalTransaction(DtmServer, gid, func(tcc *dtmcli.Tcc) (*resty.Response, error) {
-		body := &busi.TransReq{Amount: 30, Store: store}
+		body := &busi.ReqHTTP{Amount: 30, Store: store}
 		tryURL := Busi + "/TccBTransOutTry"
 		confirmURL := Busi + "/TccBTransOutConfirm"
 		cancelURL := Busi + "/SleepCancel"

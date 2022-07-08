@@ -13,7 +13,7 @@ CREATE TABLE if not EXISTS trans_global (
   finish_time timestamp(0) with time zone DEFAULT NULL,
   rollback_time timestamp(0) with time zone DEFAULT NULL,
   options varchar(1024) DEFAULT '',
-  custom_data varchar(256) DEFAULT '',
+  custom_data varchar(1024) DEFAULT '',
   next_cron_interval int default null,
   next_cron_time timestamp(0) with time zone default null,
   owner varchar(128) not null default '',

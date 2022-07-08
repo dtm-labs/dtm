@@ -14,7 +14,7 @@ import (
 func TestMsgGrpcRedisDo(t *testing.T) {
 	before := getBeforeBalances("redis")
 	gid := dtmimp.GetFuncName()
-	req := busi.GenBusiReq(30, false, false)
+	req := busi.GenReqGrpc(30, false, false)
 	msg := dtmgrpc.NewMsgGrpc(DtmGrpcServer, gid).
 		Add(busi.BusiGrpc+"/busi.Busi/TransInRedis", req)
 	err := msg.DoAndSubmit(busi.BusiGrpc+"/busi.Busi/QueryPreparedRedis", func(bb *dtmcli.BranchBarrier) error {
@@ -30,7 +30,7 @@ func TestMsgGrpcRedisDo(t *testing.T) {
 func TestMsgGrpcRedisDoBusiFailed(t *testing.T) {
 	before := getBeforeBalances("redis")
 	gid := dtmimp.GetFuncName()
-	req := busi.GenBusiReq(30, false, false)
+	req := busi.GenReqGrpc(30, false, false)
 	msg := dtmgrpc.NewMsgGrpc(DtmGrpcServer, gid).
 		Add(busi.BusiGrpc+"/busi.Busi/TransInRedis", req)
 	err := msg.DoAndSubmit(busi.BusiGrpc+"/busi.Busi/QueryPreparedRedis", func(bb *dtmcli.BranchBarrier) error {
@@ -43,7 +43,7 @@ func TestMsgGrpcRedisDoBusiFailed(t *testing.T) {
 func TestMsgGrpcRedisDoPrepareFailed(t *testing.T) {
 	before := getBeforeBalances("redis")
 	gid := dtmimp.GetFuncName()
-	req := busi.GenBusiReq(30, false, false)
+	req := busi.GenReqGrpc(30, false, false)
 	msg := dtmgrpc.NewMsgGrpc(DtmGrpcServer+"not-exists", gid).
 		Add(busi.BusiGrpc+"/busi.Busi/TransInRedis", req)
 	err := msg.DoAndSubmit(busi.BusiGrpc+"/busi.Busi/QueryPreparedRedis", func(bb *dtmcli.BranchBarrier) error {
@@ -56,7 +56,7 @@ func TestMsgGrpcRedisDoPrepareFailed(t *testing.T) {
 func TestMsgGrpcRedisDoCommitFailed(t *testing.T) {
 	before := getBeforeBalances("redis")
 	gid := dtmimp.GetFuncName()
-	req := busi.GenBusiReq(30, false, false)
+	req := busi.GenReqGrpc(30, false, false)
 	msg := dtmgrpc.NewMsgGrpc(DtmGrpcServer, gid).
 		Add(busi.BusiGrpc+"/busi.Busi/TransInRedis", req)
 	err := msg.DoAndSubmit(busi.BusiGrpc+"/busi.Busi/QueryPreparedRedis", func(bb *dtmcli.BranchBarrier) error {
@@ -69,7 +69,7 @@ func TestMsgGrpcRedisDoCommitFailed(t *testing.T) {
 func TestMsgGrpcRedisDoCommitAfterFailed(t *testing.T) {
 	before := getBeforeBalances("redis")
 	gid := dtmimp.GetFuncName()
-	req := busi.GenBusiReq(30, false, false)
+	req := busi.GenReqGrpc(30, false, false)
 	msg := dtmgrpc.NewMsgGrpc(DtmGrpcServer, gid).
 		Add(busi.BusiGrpc+"/busi.Busi/TransInRedis", req)
 	err := msg.DoAndSubmit(busi.BusiGrpc+"/busi.Busi/QueryPreparedRedis", func(bb *dtmcli.BranchBarrier) error {

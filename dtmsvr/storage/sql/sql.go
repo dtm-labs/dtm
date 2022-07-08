@@ -89,7 +89,11 @@ func (s *Store) LockGlobalSaveBranches(gid string, status string, branches []sto
 		g := &storage.TransGlobalStore{}
 		dbr := tx.Clauses(clause.Locking{Strength: "UPDATE"}).Model(g).Where("gid=? and status=?", gid, status).First(g)
 		if dbr.Error == nil {
-			dbr = tx.Save(branches)
+			if branchStart == -1 {
+				dbr = tx.Create(branches)
+			} else {
+				dbr = tx.Save(branches)
+			}
 		}
 		return wrapError(dbr.Error)
 	})

@@ -15,7 +15,9 @@ import (
 	"github.com/dtm-labs/dtm/dtmcli/logger"
 	"github.com/dtm-labs/dtmdriver"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/metadata"
+	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/proto"
 )
 
@@ -27,10 +29,11 @@ func GrpcServerLog(ctx context.Context, req interface{}, info *grpc.UnaryServerI
 	m, err := handler(ctx, req)
 	res := fmt.Sprintf("%2dms %v %s %s %s",
 		time.Since(began).Milliseconds(), err, info.FullMethod, dtmimp.MustMarshalString(m), dtmimp.MustMarshalString(req))
-	if err != nil {
-		logger.Errorf("%s", res)
-	} else {
+	st, _ := status.FromError(err)
+	if err == nil || st != nil && st.Code() == codes.FailedPrecondition {
 		logger.Infof("%s", res)
+	} else {
+		logger.Errorf("%s", res)
 	}
 	return m, err
 }
@@ -42,10 +45,11 @@ func GrpcClientLog(ctx context.Context, method string, req, reply interface{}, c
 	err := invoker(ctx, method, req, reply, cc, opts...)
 	res := fmt.Sprintf("grpc client called: %s%s %s result: %s err: %v",
 		cc.Target(), method, dtmimp.MustMarshalString(req), dtmimp.MustMarshalString(reply), err)
-	if err != nil {
-		logger.Errorf("%s", res)
+	st, _ := status.FromError(err)
+	if err == nil || st != nil && st.Code() == codes.FailedPrecondition {
+		logger.Infof("%s", res)
 	} else {
-		logger.Debugf("%s", res)
+		logger.Errorf("%s", res)
 	}
 	return err
 }

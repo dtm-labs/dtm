@@ -17,7 +17,7 @@ import (
 func TestMsgGrpcPrepareAndSubmit(t *testing.T) {
 	before := getBeforeBalances("mysql")
 	gid := dtmimp.GetFuncName()
-	req := busi.GenBusiReq(30, false, false)
+	req := busi.GenReqGrpc(30, false, false)
 	msg := dtmgrpc.NewMsgGrpc(DtmGrpcServer, gid).
 		Add(busi.BusiGrpc+"/busi.Busi/TransInBSaga", req)
 	err := msg.DoAndSubmitDB(busi.BusiGrpc+"/busi.Busi/QueryPreparedB", dbGet().ToSQLDB(), func(tx *sql.Tx) error {
@@ -36,7 +36,7 @@ func TestMsgGrpcPrepareAndSubmitCommitAfterFailed(t *testing.T) {
 	}
 	before := getBeforeBalances("mysql")
 	gid := dtmimp.GetFuncName()
-	req := busi.GenBusiReq(30, false, false)
+	req := busi.GenReqGrpc(30, false, false)
 	msg := dtmgrpc.NewMsgGrpc(DtmGrpcServer, gid).
 		Add(busi.BusiGrpc+"/busi.Busi/TransInBSaga", req)
 	var guard *monkey.PatchGuard
@@ -60,7 +60,7 @@ func TestMsgGrpcPrepareAndSubmitCommitFailed(t *testing.T) {
 	}
 	before := getBeforeBalances("mysql")
 	gid := dtmimp.GetFuncName()
-	req := busi.GenBusiReq(30, false, false)
+	req := busi.GenReqGrpc(30, false, false)
 	msg := dtmgrpc.NewMsgGrpc(DtmGrpcServer, gid).
 		Add(busi.Busi+"/SagaBTransIn", req)
 	var g *monkey.PatchGuard

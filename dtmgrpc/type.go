@@ -27,23 +27,22 @@ func DtmError2GrpcError(res interface{}) error {
 	if ok && errors.Is(e, dtmimp.ErrFailure) {
 		return status.New(codes.Aborted, e.Error()).Err()
 	} else if ok && errors.Is(e, dtmimp.ErrOngoing) {
-		return status.New(codes.FailedPrecondition, dtmcli.ResultOngoing).Err()
+		return status.New(codes.FailedPrecondition, e.Error()).Err()
 	}
 	return e
 }
 
 // GrpcError2DtmError translate grpc error to dtm error
 func GrpcError2DtmError(err error) error {
-	st, ok := status.FromError(err)
-	if ok && st.Code() == codes.Aborted {
+	st, _ := status.FromError(err)
+	if st != nil && st.Code() == codes.Aborted {
 		// version lower then v1.10, will specify Ongoing in code Aborted
 		if st.Message() == dtmcli.ResultOngoing {
 			return dtmcli.ErrOngoing
 		}
-
 		return fmt.Errorf("%s. %w", st.Message(), dtmcli.ErrFailure)
-	} else if ok && st.Code() == codes.FailedPrecondition {
-		return dtmcli.ErrOngoing
+	} else if st != nil && st.Code() == codes.FailedPrecondition {
+		return fmt.Errorf("%s. %w", st.Message(), dtmcli.ErrOngoing)
 	}
 	return err
 }

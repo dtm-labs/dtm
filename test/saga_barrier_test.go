@@ -34,14 +34,14 @@ func TestSagaBarrierRollback(t *testing.T) {
 }
 
 func genSagaBarrier(gid string, outFailed, inFailed bool) *dtmcli.Saga {
-	req := busi.GenTransReq(30, outFailed, inFailed)
+	req := busi.GenReqHTTP(30, outFailed, inFailed)
 	return dtmcli.NewSaga(DtmServer, gid).
 		Add(Busi+"/SagaBTransOut", Busi+"/SagaBTransOutCom", req).
 		Add(Busi+"/SagaBTransIn", Busi+"/SagaBTransInCom", req)
 }
 
 func TestSagaBarrier2Normal(t *testing.T) {
-	req := busi.GenTransReq(30, false, false)
+	req := busi.GenReqHTTP(30, false, false)
 	gid := dtmimp.GetFuncName()
 	saga := dtmcli.NewSaga(DtmServer, gid).
 		Add(Busi+"/SagaBTransOut", Busi+"/SagaBTransOutCom", req).

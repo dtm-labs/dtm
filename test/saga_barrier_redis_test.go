@@ -40,7 +40,7 @@ func TestSagaBarrierRedisRollback(t *testing.T) {
 }
 
 func genSagaBarrierRedis(gid string) *dtmcli.Saga {
-	req := busi.GenTransReq(30, false, false)
+	req := busi.GenReqHTTP(30, false, false)
 	req.Store = "redis"
 	return dtmcli.NewSaga(DtmServer, gid).
 		Add(Busi+"/SagaRedisTransIn", Busi+"/SagaRedisTransInCom", req).

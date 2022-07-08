@@ -28,6 +28,7 @@ type DtmClient interface {
 	Prepare(ctx context.Context, in *DtmRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
 	Abort(ctx context.Context, in *DtmRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
 	RegisterBranch(ctx context.Context, in *DtmBranchRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
+	PrepareWorkflow(ctx context.Context, in *DtmRequest, opts ...grpc.CallOption) (*DtmProgressesReply, error)
 }
 
 type dtmClient struct {
@@ -83,6 +84,15 @@ func (c *dtmClient) RegisterBranch(ctx context.Context, in *DtmBranchRequest, op
 	return out, nil
 }
 
+func (c *dtmClient) PrepareWorkflow(ctx context.Context, in *DtmRequest, opts ...grpc.CallOption) (*DtmProgressesReply, error) {
+	out := new(DtmProgressesReply)
+	err := c.cc.Invoke(ctx, "/dtmgimp.Dtm/PrepareWorkflow", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // DtmServer is the server API for Dtm service.
 // All implementations must embed UnimplementedDtmServer
 // for forward compatibility
@@ -92,6 +102,7 @@ type DtmServer interface {
 	Prepare(context.Context, *DtmRequest) (*emptypb.Empty, error)
 	Abort(context.Context, *DtmRequest) (*emptypb.Empty, error)
 	RegisterBranch(context.Context, *DtmBranchRequest) (*emptypb.Empty, error)
+	PrepareWorkflow(context.Context, *DtmRequest) (*DtmProgressesReply, error)
 	mustEmbedUnimplementedDtmServer()
 }
 
@@ -113,6 +124,9 @@ func (UnimplementedDtmServer) Abort(context.Context, *DtmRequest) (*emptypb.Empt
 }
 func (UnimplementedDtmServer) RegisterBranch(context.Context, *DtmBranchRequest) (*emptypb.Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method RegisterBranch not implemented")
+}
+func (UnimplementedDtmServer) PrepareWorkflow(context.Context, *DtmRequest) (*DtmProgressesReply, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method PrepareWorkflow not implemented")
 }
 func (UnimplementedDtmServer) mustEmbedUnimplementedDtmServer() {}
 
@@ -217,6 +231,24 @@ func _Dtm_RegisterBranch_Handler(srv interface{}, ctx context.Context, dec func(
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Dtm_PrepareWorkflow_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DtmRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(DtmServer).PrepareWorkflow(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/dtmgimp.Dtm/PrepareWorkflow",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(DtmServer).PrepareWorkflow(ctx, req.(*DtmRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // Dtm_ServiceDesc is the grpc.ServiceDesc for Dtm service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -243,6 +275,10 @@ var Dtm_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "RegisterBranch",
 			Handler:    _Dtm_RegisterBranch_Handler,
+		},
+		{
+			MethodName: "PrepareWorkflow",
+			Handler:    _Dtm_PrepareWorkflow_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

@@ -7,6 +7,7 @@
 package dtmsvr
 
 import (
+	"errors"
 	"fmt"
 	"time"
 
@@ -34,7 +35,7 @@ func (t *TransGlobal) process(branches []TransBranch) error {
 	if !t.WaitResult {
 		go func() {
 			err := t.processInner(branches)
-			if err != nil {
+			if err != nil && !errors.Is(err, dtmimp.ErrOngoing) {
 				logger.Errorf("processInner err: %v", err)
 			}
 		}()
@@ -58,7 +59,7 @@ func (t *TransGlobal) process(branches []TransBranch) error {
 func (t *TransGlobal) processInner(branches []TransBranch) (rerr error) {
 	defer handlePanic(&rerr)
 	defer func() {
-		if rerr != nil && rerr != dtmcli.ErrOngoing {
+		if rerr != nil && !errors.Is(rerr, dtmcli.ErrOngoing) {
 			logger.Errorf("processInner got error: %s", rerr.Error())
 		}
 		if TransProcessedTestChan != nil {

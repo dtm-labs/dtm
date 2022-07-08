@@ -20,6 +20,9 @@ var Version = ""
 
 func svcSubmit(t *TransGlobal) interface{} {
 	t.Status = dtmcli.StatusSubmitted
+	if t.ReqExtra != nil && t.ReqExtra["status"] != "" {
+		t.Status = t.ReqExtra["status"]
+	}
 	branches, err := t.saveNew()
 
 	if err == storage.ErrUniqueConflict {
@@ -45,6 +48,15 @@ func svcPrepare(t *TransGlobal) interface{} {
 		return nil
 	}
 	return err
+}
+
+func svcPrepareWorkflow(t *TransGlobal) ([]TransBranch, error) {
+	t.Status = dtmcli.StatusPrepared
+	_, err := t.saveNew()
+	if err == storage.ErrUniqueConflict { // transaction exists, query the branches
+		return GetStore().FindBranches(t.Gid), nil
+	}
+	return []TransBranch{}, err
 }
 
 func svcAbort(t *TransGlobal) interface{} {
@@ -82,6 +94,10 @@ func svcRegisterBranch(transType string, branch *TransBranch, data map[string]st
 		branches[0].URL = data["url"]
 		branches[1].Op = dtmimp.OpCommit
 		branches[1].URL = data["url"]
+	} else if transType == "workflow" {
+		branches = []TransBranch{*branch}
+		branches[0].Status = data["status"]
+		branches[0].Op = data["op"]
 	} else {
 		return fmt.Errorf("unknow trans type: %s", transType)
 	}

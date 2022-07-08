@@ -24,10 +24,15 @@ func MustProtoMarshal(msg proto.Message) []byte {
 	return b
 }
 
-// DtmGrpcCall make a convenient call to dtm
-func DtmGrpcCall(s *dtmimp.TransBase, operation string) error {
-	reply := emptypb.Empty{}
-	return MustGetGrpcConn(s.Dtm, false).Invoke(s.Context, "/dtmgimp.Dtm/"+operation, &dtmgpb.DtmRequest{
+// MustProtoUnmarshal must version of proto.Unmarshal
+func MustProtoUnmarshal(data []byte, msg proto.Message) {
+	err := proto.Unmarshal(data, msg)
+	dtmimp.PanicIf(err != nil, err)
+}
+
+// GetDtmRequest return a DtmRequest from TransBase
+func GetDtmRequest(s *dtmimp.TransBase) *dtmgpb.DtmRequest {
+	return &dtmgpb.DtmRequest{
 		Gid:       s.Gid,
 		TransType: s.TransType,
 		TransOptions: &dtmgpb.DtmTransOptions{
@@ -37,13 +42,19 @@ func DtmGrpcCall(s *dtmimp.TransBase, operation string) error {
 			PassthroughHeaders: s.PassthroughHeaders,
 			BranchHeaders:      s.BranchHeaders,
 			RequestTimeout:     s.RequestTimeout,
-			RollbackReason:     s.RollbackReason,
 		},
-		QueryPrepared: s.QueryPrepared,
-		CustomedData:  s.CustomData,
-		BinPayloads:   s.BinPayloads,
-		Steps:         dtmimp.MustMarshalString(s.Steps),
-	}, &reply)
+		QueryPrepared:  s.QueryPrepared,
+		CustomedData:   s.CustomData,
+		BinPayloads:    s.BinPayloads,
+		Steps:          dtmimp.MustMarshalString(s.Steps),
+		RollbackReason: s.RollbackReason,
+	}
+}
+
+// DtmGrpcCall make a convenient call to dtm
+func DtmGrpcCall(s *dtmimp.TransBase, operation string) error {
+	reply := emptypb.Empty{}
+	return MustGetGrpcConn(s.Dtm, false).Invoke(s.Context, "/dtmgimp.Dtm/"+operation, GetDtmRequest(s), &reply)
 }
 
 const dtmpre string = "dtm-"

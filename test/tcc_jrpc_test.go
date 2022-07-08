@@ -12,7 +12,7 @@ import (
 )
 
 func TestTccJrpcNormal(t *testing.T) {
-	req := busi.GenTransReq(30, false, false)
+	req := busi.GenReqHTTP(30, false, false)
 	gid := dtmimp.GetFuncName()
 	err := dtmcli.TccGlobalTransaction2(dtmutil.DefaultJrpcServer, gid, func(tcc *dtmcli.Tcc) {
 		tcc.Protocol = dtmimp.Jrpc

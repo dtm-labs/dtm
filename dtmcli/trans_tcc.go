@@ -34,17 +34,17 @@ func TccGlobalTransaction(dtm string, gid string, tccFunc TccGlobalFunc) (rerr e
 func TccGlobalTransaction2(dtm string, gid string, custom func(*Tcc), tccFunc TccGlobalFunc) (rerr error) {
 	tcc := &Tcc{TransBase: *dtmimp.NewTransBase(gid, "tcc", dtm, "")}
 	custom(tcc)
-	rerr = dtmimp.TransCallDtm(&tcc.TransBase, tcc, "prepare")
+	rerr = dtmimp.TransCallDtm(&tcc.TransBase, "prepare")
 	if rerr != nil {
 		return rerr
 	}
 	defer dtmimp.DeferDo(&rerr, func() error {
-		return dtmimp.TransCallDtm(&tcc.TransBase, tcc, "submit")
+		return dtmimp.TransCallDtm(&tcc.TransBase, "submit")
 	}, func() error {
 		if rerr != nil {
 			tcc.RollbackReason = rerr.Error()
 		}
-		return dtmimp.TransCallDtm(&tcc.TransBase, tcc, "abort")
+		return dtmimp.TransCallDtm(&tcc.TransBase, "abort")
 	})
 	_, rerr = tccFunc(tcc)
 	return
