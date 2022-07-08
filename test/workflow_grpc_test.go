@@ -45,7 +45,7 @@ func TestWorkflowGrpcNormal(t *testing.T) {
 	workflow.Register(gid, func(wf *workflow.Workflow, data []byte) error {
 		var req busi.BusiReq
 		dtmgimp.MustProtoUnmarshal(data, &req)
-		wf.NewBranch().OnBranchRollback(func(bb *dtmcli.BranchBarrier) error {
+		wf.NewBranch().OnRollback(func(bb *dtmcli.BranchBarrier) error {
 			_, err := busi.BusiCli.TransOutRevertBSaga(wf.Context, &req)
 			return err
 		})
@@ -53,7 +53,7 @@ func TestWorkflowGrpcNormal(t *testing.T) {
 		if err != nil {
 			return err
 		}
-		wf.NewBranch().OnBranchRollback(func(bb *dtmcli.BranchBarrier) error {
+		wf.NewBranch().OnRollback(func(bb *dtmcli.BranchBarrier) error {
 			_, err := busi.BusiCli.TransInRevertBSaga(wf.Context, &req)
 			return err
 		})
@@ -74,7 +74,7 @@ func TestWorkflowMixed(t *testing.T) {
 		var req busi.BusiReq
 		dtmgimp.MustProtoUnmarshal(data, &req)
 
-		wf.NewBranch().OnBranchRollback(func(bb *dtmcli.BranchBarrier) error {
+		wf.NewBranch().OnRollback(func(bb *dtmcli.BranchBarrier) error {
 			_, err := busi.BusiCli.TransOutRevertBSaga(wf.Context, &req)
 			return err
 		})
@@ -83,10 +83,10 @@ func TestWorkflowMixed(t *testing.T) {
 			return err
 		}
 
-		_, err = wf.NewBranch().OnBranchCommit(func(bb *dtmcli.BranchBarrier) error {
+		_, err = wf.NewBranch().OnCommit(func(bb *dtmcli.BranchBarrier) error {
 			_, err := busi.BusiCli.TransInConfirm(wf.Context, &req)
 			return err
-		}).OnBranchRollback(func(bb *dtmcli.BranchBarrier) error {
+		}).OnRollback(func(bb *dtmcli.BranchBarrier) error {
 			req2 := &busi.ReqHTTP{Amount: 30}
 			_, err := wf.NewRequest().SetBody(req2).Post(Busi + "/TransInRevert")
 			return err

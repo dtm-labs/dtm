@@ -64,7 +64,7 @@ func TestWorkflowGrpcRollbackResume(t *testing.T) {
 		if fetchOngoingStep(0) {
 			return dtmcli.ErrOngoing
 		}
-		wf.NewBranch().OnBranchRollback(func(bb *dtmcli.BranchBarrier) error {
+		wf.NewBranch().OnRollback(func(bb *dtmcli.BranchBarrier) error {
 			if fetchOngoingStep(4) {
 				return dtmcli.ErrOngoing
 			}
@@ -78,7 +78,7 @@ func TestWorkflowGrpcRollbackResume(t *testing.T) {
 		if err != nil {
 			return err
 		}
-		wf.NewBranch().OnBranchRollback(func(bb *dtmcli.BranchBarrier) error {
+		wf.NewBranch().OnRollback(func(bb *dtmcli.BranchBarrier) error {
 			if fetchOngoingStep(3) {
 				return dtmcli.ErrOngoing
 			}

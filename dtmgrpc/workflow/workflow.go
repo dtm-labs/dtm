@@ -115,30 +115,27 @@ func (wf *Workflow) NewBranchCtx() context.Context {
 	return wf.NewBranch().Context
 }
 
-// OnBranchRollback will define a saga branch transaction
-// param compensate specify a function for the compensation of next workflow action
-func (wf *Workflow) OnBranchRollback(compensate WfPhase2Func) *Workflow {
+// OnRollback will set the callback for current branch when rollback happen.
+// If you are writing a saga transaction, then you should  write the compensation here
+// If you are writing a tcc transaction, then you should write the cancel operation here
+func (wf *Workflow) OnRollback(compensate WfPhase2Func) *Workflow {
 	branchID := wf.currentBranch
-	dtmimp.PanicIf(wf.currentRollbackAdded, fmt.Errorf("on branch can only add one rollback callback"))
+	dtmimp.PanicIf(wf.currentRollbackAdded, fmt.Errorf("one branch can only add one rollback callback"))
 	wf.currentRollbackAdded = true
 	item := workflowPhase2Item{
 		branchID: branchID,
 		op:       dtmimp.OpRollback,
 		fn:       compensate,
 	}
-	if wf.Options.CompensateErrorBranch {
-		wf.failedOps = append(wf.failedOps, item)
-	} else {
-		wf.currentRollbackItem = &item
-	}
+	wf.currentRollbackItem = &item
 	return wf
 }
 
-// OnBranchCommit will define a saga branch transaction
-// param compensate specify a function for the compensation of next workflow action
-func (wf *Workflow) OnBranchCommit(fn WfPhase2Func) *Workflow {
+// OnCommit will will set the callback for current branch when commit happen.
+// If you are writing a tcc transaction, then you should write the confirm operation here
+func (wf *Workflow) OnCommit(fn WfPhase2Func) *Workflow {
 	branchID := wf.currentBranch
-	dtmimp.PanicIf(wf.currentCommitAdded, fmt.Errorf("on branch can only add one commit callback"))
+	dtmimp.PanicIf(wf.currentCommitAdded, fmt.Errorf("one branch can only add one commit callback"))
 	wf.currentCommitAdded = true
 	wf.failedOps = append(wf.succeededOps, workflowPhase2Item{
 		branchID: branchID,

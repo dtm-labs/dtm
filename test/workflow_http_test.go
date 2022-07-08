@@ -51,7 +51,7 @@ func TestWorkflowRollback(t *testing.T) {
 	workflow.Register(gid, func(wf *workflow.Workflow, data []byte) error {
 		var req busi.ReqHTTP
 		dtmimp.MustUnmarshal(data, &req)
-		_, err := wf.NewBranch().OnBranchRollback(func(bb *dtmcli.BranchBarrier) error {
+		_, err := wf.NewBranch().OnRollback(func(bb *dtmcli.BranchBarrier) error {
 			_, err := wf.NewRequest().SetBody(req).Post(Busi + "/SagaBTransOutCom")
 			return err
 		}).Do(func(bb *dtmcli.BranchBarrier) ([]byte, error) {
@@ -62,7 +62,7 @@ func TestWorkflowRollback(t *testing.T) {
 		if err != nil {
 			return err
 		}
-		_, err = wf.NewBranch().OnBranchRollback(func(bb *dtmcli.BranchBarrier) error {
+		_, err = wf.NewBranch().OnRollback(func(bb *dtmcli.BranchBarrier) error {
 			return bb.CallWithDB(dbGet().ToSQLDB(), func(tx *sql.Tx) error {
 				return busi.SagaAdjustBalance(tx, busi.TransInUID, -req.Amount, "")
 			})
