@@ -86,7 +86,7 @@ func TestTccGrpcHeaders(t *testing.T) {
 		}
 		tg.WaitResult = true
 	}, func(tcc *dtmgrpc.TccGrpc) error {
-		data := &busi.BusiReq{Amount: 30}
+		data := &busi.ReqGrpc{Amount: 30}
 		r := &emptypb.Empty{}
 		return tcc.CallBranch(data, busi.BusiGrpc+"/busi.Busi/TransOutHeaderYes", "", "", r)
 	})

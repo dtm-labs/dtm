@@ -59,7 +59,7 @@ func TestMsgGrpcTimeoutFailed(t *testing.T) {
 }
 
 func genGrpcMsg(gid string) *dtmgrpc.MsgGrpc {
-	req := &busi.BusiReq{Amount: 30}
+	req := &busi.ReqGrpc{Amount: 30}
 	msg := dtmgrpc.NewMsgGrpc(dtmutil.DefaultGrpcServer, gid).
 		Add(busi.BusiGrpc+"/busi.Busi/TransOut", req).
 		Add(busi.BusiGrpc+"/busi.Busi/TransIn", req)

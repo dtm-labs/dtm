@@ -6,7 +6,7 @@ import "google/protobuf/empty.proto";
 option go_package = "./busi";
 
 // DtmRequest request sent to dtm server
-message BusiReq {
+message ReqGrpc {
   int64 Amount = 1;
   string TransOutResult = 2;
   string TransInResult = 3;
@@ -17,34 +17,34 @@ message BusiReply {
 }
 // The dtm service definition.
 service Busi {
-  rpc TransIn(BusiReq) returns (google.protobuf.Empty) {}
-  rpc TransOut(BusiReq) returns (google.protobuf.Empty) {}
-  rpc TransInRevert(BusiReq) returns (google.protobuf.Empty) {}
-  rpc TransOutRevert(BusiReq) returns (google.protobuf.Empty) {}
-  rpc TransInConfirm(BusiReq) returns (google.protobuf.Empty) {}
-  rpc TransOutConfirm(BusiReq) returns (google.protobuf.Empty) {}
+  rpc TransIn(ReqGrpc) returns (google.protobuf.Empty) {}
+  rpc TransOut(ReqGrpc) returns (google.protobuf.Empty) {}
+  rpc TransInRevert(ReqGrpc) returns (google.protobuf.Empty) {}
+  rpc TransOutRevert(ReqGrpc) returns (google.protobuf.Empty) {}
+  rpc TransInConfirm(ReqGrpc) returns (google.protobuf.Empty) {}
+  rpc TransOutConfirm(ReqGrpc) returns (google.protobuf.Empty) {}
   rpc XaNotify(google.protobuf.Empty) returns (google.protobuf.Empty) {}
 
-  rpc TransInXa(BusiReq) returns (google.protobuf.Empty) {}
-  rpc TransOutXa(BusiReq) returns (google.protobuf.Empty) {}
-  rpc TransInTcc(BusiReq) returns (google.protobuf.Empty) {}
-  rpc TransOutTcc(BusiReq) returns (google.protobuf.Empty) {}
-  rpc TransInTccNested(BusiReq) returns (google.protobuf.Empty) {}
+  rpc TransInXa(ReqGrpc) returns (google.protobuf.Empty) {}
+  rpc TransOutXa(ReqGrpc) returns (google.protobuf.Empty) {}
+  rpc TransInTcc(ReqGrpc) returns (google.protobuf.Empty) {}
+  rpc TransOutTcc(ReqGrpc) returns (google.protobuf.Empty) {}
+  rpc TransInTccNested(ReqGrpc) returns (google.protobuf.Empty) {}
 
-  rpc TransInBSaga(BusiReq) returns (google.protobuf.Empty) {}
-  rpc TransOutBSaga(BusiReq) returns (google.protobuf.Empty) {}
-  rpc TransInRevertBSaga(BusiReq) returns (google.protobuf.Empty) {}
-  rpc TransOutRevertBSaga(BusiReq) returns (google.protobuf.Empty) {}
-  rpc TransOutHeaderYes(BusiReq) returns (google.protobuf.Empty) {}
-  rpc TransOutHeaderNo(BusiReq) returns (google.protobuf.Empty) {}
+  rpc TransInBSaga(ReqGrpc) returns (google.protobuf.Empty) {}
+  rpc TransOutBSaga(ReqGrpc) returns (google.protobuf.Empty) {}
+  rpc TransInRevertBSaga(ReqGrpc) returns (google.protobuf.Empty) {}
+  rpc TransOutRevertBSaga(ReqGrpc) returns (google.protobuf.Empty) {}
+  rpc TransOutHeaderYes(ReqGrpc) returns (google.protobuf.Empty) {}
+  rpc TransOutHeaderNo(ReqGrpc) returns (google.protobuf.Empty) {}
 
-  rpc TransInRedis(BusiReq) returns (google.protobuf.Empty) {}
-  rpc TransOutRedis(BusiReq) returns (google.protobuf.Empty) {}
-  rpc TransInRevertRedis(BusiReq) returns (google.protobuf.Empty) {}
-  rpc TransOutRevertRedis(BusiReq) returns (google.protobuf.Empty) {}
+  rpc TransInRedis(ReqGrpc) returns (google.protobuf.Empty) {}
+  rpc TransOutRedis(ReqGrpc) returns (google.protobuf.Empty) {}
+  rpc TransInRevertRedis(ReqGrpc) returns (google.protobuf.Empty) {}
+  rpc TransOutRevertRedis(ReqGrpc) returns (google.protobuf.Empty) {}
 
-  rpc QueryPrepared(BusiReq) returns (BusiReply) {}
-  rpc QueryPreparedB(BusiReq) returns (google.protobuf.Empty) {}
-  rpc QueryPreparedRedis(BusiReq) returns (google.protobuf.Empty) {}
+  rpc QueryPrepared(ReqGrpc) returns (BusiReply) {}
+  rpc QueryPreparedB(ReqGrpc) returns (google.protobuf.Empty) {}
+  rpc QueryPreparedRedis(ReqGrpc) returns (google.protobuf.Empty) {}
 }
 

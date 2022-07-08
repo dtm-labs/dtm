@@ -83,7 +83,7 @@ func GenReqHTTP(amount int, outFailed bool, inFailed bool) *ReqHTTP {
 
 // GenReqGrpc 1
 func GenReqGrpc(amount int, outFailed bool, inFailed bool) *ReqGrpc {
-	return &BusiReq{
+	return &ReqGrpc{
 		Amount:         int64(amount),
 		TransOutResult: dtmimp.If(outFailed, dtmcli.ResultFailure, "").(string),
 		TransInResult:  dtmimp.If(inFailed, dtmcli.ResultFailure, "").(string),

@@ -25,9 +25,6 @@ import (
 	"google.golang.org/grpc/metadata"
 )
 
-// ReqGrpc is the req for grpc protocol
-type ReqGrpc = BusiReq
-
 func dbGet() *dtmutil.DB {
 	return dtmutil.DbGet(BusiConf)
 }

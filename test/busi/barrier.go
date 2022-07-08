@@ -203,61 +203,61 @@ func TccBarrierTransOutCancel(c *gin.Context) interface{} {
 	})
 }
 
-func (s *busiServer) TransInBSaga(ctx context.Context, in *BusiReq) (*emptypb.Empty, error) {
+func (s *busiServer) TransInBSaga(ctx context.Context, in *ReqGrpc) (*emptypb.Empty, error) {
 	barrier := MustBarrierFromGrpc(ctx)
 	return &emptypb.Empty{}, barrier.Call(txGet(), func(tx *sql.Tx) error {
 		return sagaGrpcAdjustBalance(tx, TransInUID, in.Amount, in.TransInResult)
 	})
 }
 
-func (s *busiServer) TransOutBSaga(ctx context.Context, in *BusiReq) (*emptypb.Empty, error) {
+func (s *busiServer) TransOutBSaga(ctx context.Context, in *ReqGrpc) (*emptypb.Empty, error) {
 	barrier := MustBarrierFromGrpc(ctx)
 	return &emptypb.Empty{}, barrier.CallWithDB(pdbGet(), func(tx *sql.Tx) error {
 		return sagaGrpcAdjustBalance(tx, TransOutUID, -in.Amount, in.TransOutResult)
 	})
 }
 
-func (s *busiServer) TransInRevertBSaga(ctx context.Context, in *BusiReq) (*emptypb.Empty, error) {
+func (s *busiServer) TransInRevertBSaga(ctx context.Context, in *ReqGrpc) (*emptypb.Empty, error) {
 	barrier := MustBarrierFromGrpc(ctx)
 	return &emptypb.Empty{}, barrier.CallWithDB(pdbGet(), func(tx *sql.Tx) error {
 		return sagaGrpcAdjustBalance(tx, TransInUID, -in.Amount, "")
 	})
 }
 
-func (s *busiServer) TransOutRevertBSaga(ctx context.Context, in *BusiReq) (*emptypb.Empty, error) {
+func (s *busiServer) TransOutRevertBSaga(ctx context.Context, in *ReqGrpc) (*emptypb.Empty, error) {
 	barrier := MustBarrierFromGrpc(ctx)
 	return &emptypb.Empty{}, barrier.CallWithDB(pdbGet(), func(tx *sql.Tx) error {
 		return sagaGrpcAdjustBalance(tx, TransOutUID, in.Amount, "")
 	})
 }
 
-func (s *busiServer) TransInRedis(ctx context.Context, in *BusiReq) (*emptypb.Empty, error) {
+func (s *busiServer) TransInRedis(ctx context.Context, in *ReqGrpc) (*emptypb.Empty, error) {
 	barrier := MustBarrierFromGrpc(ctx)
 	return &emptypb.Empty{}, barrier.RedisCheckAdjustAmount(RedisGet(), GetRedisAccountKey(TransInUID), int(in.Amount), 86400)
 }
 
-func (s *busiServer) TransOutRedis(ctx context.Context, in *BusiReq) (*emptypb.Empty, error) {
+func (s *busiServer) TransOutRedis(ctx context.Context, in *ReqGrpc) (*emptypb.Empty, error) {
 	barrier := MustBarrierFromGrpc(ctx)
 	return &emptypb.Empty{}, barrier.RedisCheckAdjustAmount(RedisGet(), GetRedisAccountKey(TransOutUID), int(-in.Amount), 86400)
 }
 
-func (s *busiServer) TransInRevertRedis(ctx context.Context, in *BusiReq) (*emptypb.Empty, error) {
+func (s *busiServer) TransInRevertRedis(ctx context.Context, in *ReqGrpc) (*emptypb.Empty, error) {
 	barrier := MustBarrierFromGrpc(ctx)
 	return &emptypb.Empty{}, barrier.RedisCheckAdjustAmount(RedisGet(), GetRedisAccountKey(TransInUID), -int(in.Amount), 86400)
 }
 
-func (s *busiServer) TransOutRevertRedis(ctx context.Context, in *BusiReq) (*emptypb.Empty, error) {
+func (s *busiServer) TransOutRevertRedis(ctx context.Context, in *ReqGrpc) (*emptypb.Empty, error) {
 	barrier := MustBarrierFromGrpc(ctx)
 	return &emptypb.Empty{}, barrier.RedisCheckAdjustAmount(RedisGet(), GetRedisAccountKey(TransOutUID), int(in.Amount), 86400)
 }
 
-func (s *busiServer) QueryPreparedB(ctx context.Context, in *BusiReq) (*emptypb.Empty, error) {
+func (s *busiServer) QueryPreparedB(ctx context.Context, in *ReqGrpc) (*emptypb.Empty, error) {
 	barrier := MustBarrierFromGrpc(ctx)
 	err := barrier.QueryPrepared(dbGet().ToSQLDB())
 	return &emptypb.Empty{}, dtmgrpc.DtmError2GrpcError(err)
 }
 
-func (s *busiServer) QueryPreparedRedis(ctx context.Context, in *BusiReq) (*emptypb.Empty, error) {
+func (s *busiServer) QueryPreparedRedis(ctx context.Context, in *ReqGrpc) (*emptypb.Empty, error) {
 	barrier := MustBarrierFromGrpc(ctx)
 	err := barrier.RedisQueryPrepared(RedisGet(), 86400)
 	return &emptypb.Empty{}, dtmgrpc.DtmError2GrpcError(err)

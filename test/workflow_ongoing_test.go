@@ -59,7 +59,7 @@ func TestWorkflowGrpcRollbackResume(t *testing.T) {
 	gid := dtmimp.GetFuncName()
 	ongoingStep = 0
 	workflow.Register(gid, func(wf *workflow.Workflow, data []byte) error {
-		var req busi.BusiReq
+		var req busi.ReqGrpc
 		dtmgimp.MustProtoUnmarshal(data, &req)
 		if fetchOngoingStep(0) {
 			return dtmcli.ErrOngoing

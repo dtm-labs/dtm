@@ -44,7 +44,7 @@ const Redis = "redis"
 // Mongo 1
 const Mongo = "mongo"
 
-func handleGrpcBusiness(in *BusiReq, result1 string, result2 string, busi string) error {
+func handleGrpcBusiness(in *ReqGrpc, result1 string, result2 string, busi string) error {
 	res := dtmimp.OrString(result1, result2, dtmcli.ResultSuccess)
 	logger.Debugf("grpc busi %s %v %s %s result: %s", busi, in, result1, result2, res)
 	if res == dtmcli.ResultSuccess {

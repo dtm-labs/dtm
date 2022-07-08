@@ -23,7 +23,7 @@ func TestWorkflowGrpcSimple(t *testing.T) {
 	req := &busi.ReqGrpc{Amount: 30, TransInResult: "FAILURE"}
 	gid := dtmimp.GetFuncName()
 	workflow.Register(gid, func(wf *workflow.Workflow, data []byte) error {
-		var req busi.BusiReq
+		var req busi.ReqGrpc
 		dtmgimp.MustProtoUnmarshal(data, &req)
 		_, err := busi.BusiCli.TransOutBSaga(wf.NewBranchCtx(), &req)
 		if err != nil {
@@ -43,7 +43,7 @@ func TestWorkflowGrpcNormal(t *testing.T) {
 	req := &busi.ReqGrpc{Amount: 30, TransInResult: "FAILURE"}
 	gid := dtmimp.GetFuncName()
 	workflow.Register(gid, func(wf *workflow.Workflow, data []byte) error {
-		var req busi.BusiReq
+		var req busi.ReqGrpc
 		dtmgimp.MustProtoUnmarshal(data, &req)
 		wf.NewBranch().OnRollback(func(bb *dtmcli.BranchBarrier) error {
 			_, err := busi.BusiCli.TransOutRevertBSaga(wf.Context, &req)
@@ -68,10 +68,10 @@ func TestWorkflowGrpcNormal(t *testing.T) {
 
 func TestWorkflowMixed(t *testing.T) {
 	workflow.SetProtocolForTest(dtmimp.ProtocolHTTP)
-	req := &busi.BusiReq{Amount: 30}
+	req := &busi.ReqGrpc{Amount: 30}
 	gid := dtmimp.GetFuncName()
 	workflow.Register(gid, func(wf *workflow.Workflow, data []byte) error {
-		var req busi.BusiReq
+		var req busi.ReqGrpc
 		dtmgimp.MustProtoUnmarshal(data, &req)
 
 		wf.NewBranch().OnRollback(func(bb *dtmcli.BranchBarrier) error {
@@ -110,11 +110,11 @@ func TestWorkflowMixed(t *testing.T) {
 
 func TestWorkflowGrpcError(t *testing.T) {
 	workflow.SetProtocolForTest(dtmimp.ProtocolGRPC)
-	req := &busi.BusiReq{Amount: 30}
+	req := &busi.ReqGrpc{Amount: 30}
 	gid := dtmimp.GetFuncName()
 	busi.MainSwitch.TransOutResult.SetOnce("ERROR")
 	workflow.Register(gid, func(wf *workflow.Workflow, data []byte) error {
-		var req busi.BusiReq
+		var req busi.ReqGrpc
 		dtmgimp.MustProtoUnmarshal(data, &req)
 		_, err := busi.BusiCli.TransOut(wf.NewBranchCtx(), &req)
 		if err != nil {
