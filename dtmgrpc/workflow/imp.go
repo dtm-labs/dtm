@@ -18,7 +18,6 @@ type workflowImp struct {
 	currentActionAdded   bool                   //nolint
 	currentCommitAdded   bool                   //nolint
 	currentRollbackAdded bool                   //nolint
-	currentRollbackItem  *workflowPhase2Item    // nolint
 	progresses           map[string]*stepResult //nolint
 	currentOp            string
 	succeededOps         []workflowPhase2Item
@@ -161,10 +160,13 @@ func (wf *Workflow) callPhase2(branchID string, fn WfPhase2Func) error {
 
 func (wf *Workflow) recordedDo(fn func(bb *dtmcli.BranchBarrier) *stepResult) *stepResult {
 	sr := wf.recordedDoInner(fn)
-	if wf.currentRollbackItem != nil && (sr.Status == dtmcli.StatusSucceed || sr.Status == dtmcli.StatusFailed && wf.Options.CompensateErrorBranch) {
-		wf.failedOps = append(wf.failedOps, *wf.currentRollbackItem)
+	// donot compensate the failed branch if !CompensateErrorBranch
+	if !wf.Options.CompensateErrorBranch && sr.Status == dtmcli.StatusFailed {
+		lastFailed := len(wf.failedOps) - 1
+		if lastFailed >= 0 && wf.failedOps[lastFailed].branchID == wf.currentBranch {
+			wf.failedOps = wf.failedOps[:lastFailed]
+		}
 	}
-	wf.currentRollbackItem = nil
 	return sr
 }
 

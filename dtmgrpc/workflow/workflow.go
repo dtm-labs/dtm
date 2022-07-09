@@ -122,12 +122,11 @@ func (wf *Workflow) OnRollback(compensate WfPhase2Func) *Workflow {
 	branchID := wf.currentBranch
 	dtmimp.PanicIf(wf.currentRollbackAdded, fmt.Errorf("one branch can only add one rollback callback"))
 	wf.currentRollbackAdded = true
-	item := workflowPhase2Item{
+	wf.failedOps = append(wf.failedOps, workflowPhase2Item{
 		branchID: branchID,
-		op:       dtmimp.OpRollback,
+		op:       dtmimp.OpCommit,
 		fn:       compensate,
-	}
-	wf.currentRollbackItem = &item
+	})
 	return wf
 }
 
