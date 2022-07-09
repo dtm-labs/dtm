@@ -9,10 +9,10 @@ import (
 	// "sync"
 
 	// "github.com/dtm-labs/dtm/dtmsvr/config"
-	// "github.com/dtm-labs/dtm/dtmsvr/storage"
-	// "github.com/dtm-labs/dtm/dtmutil"
+	"github.com/dtm-labs/dtm/dtmsvr/storage"
 
 	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
@@ -156,6 +156,43 @@ func TestFindTransGlobalStore(t *testing.T) {
 	trans := ConvertMongoTransToTrans(&mggtrans)
 	fmt.Println(trans)
 	fmt.Println(trans.NextCronTime == mggtrans.NextCronTime)
+}
+func TestScan(t *testing.T) {
+	var limit int64 = 2
+	var position string = "62c93657cd2317b252c1f740"
+	filter := bson.D{{}}
+	opts := options.Find().SetLimit(limit).SetSort(bson.D{{"_id", 1}})
+	if position != "" {
+		lid, err := primitive.ObjectIDFromHex(position)
+		if err != nil {
+			panic(err)
+		}
+		filter = bson.D{{"_id", bson.D{{"$gt", lid}}}}
+	}
+	cursor, err := mongoGetForTest().Database("dtm").Collection("trans").Find(ctx, filter, opts)
+	if err != nil {
+		panic(err)
+	}
+	mggtrans := make([]MongoGlobalTrans, limit)
+	err = cursor.All(ctx, &mggtrans)
+	if err != nil {
+		panic(err)
+	}
+	len := len(mggtrans)
+	if len < int(limit) {
+		position = ""
+	} else {
+		position = mggtrans[len-1].ID.Hex()
+	}
+	err = cursor.Close(ctx)
+	if err != nil {
+		panic(err)
+	}
+	trans := make([]storage.TransGlobalStore, len)
+	for i, e := range mggtrans {
+		trans[i] = *ConvertMongoTransToTrans(&e)
+	}
+	fmt.Println(trans)
 }
 func mongoGetForTest() *mongo.Client {
 	uri := fmt.Sprintf("mongodb://%s:27017/?retryWrites=false&directConnection=true", "localhost")
