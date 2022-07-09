@@ -10,7 +10,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/dtm-labs/dtm/dtmcli/dtmimp"
+	"github.com/dtm-labs/dtm/client/dtmcli/dtmimp"
 	"github.com/dtm-labs/dtm/dtmsvr"
 	"github.com/dtm-labs/dtm/dtmsvr/config"
 	"github.com/dtm-labs/dtm/dtmutil"

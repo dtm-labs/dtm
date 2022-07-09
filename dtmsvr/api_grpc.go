@@ -9,9 +9,9 @@ package dtmsvr
 import (
 	"context"
 
-	"github.com/dtm-labs/dtm/dtmcli"
-	"github.com/dtm-labs/dtm/dtmgrpc"
-	pb "github.com/dtm-labs/dtm/dtmgrpc/dtmgpb"
+	"github.com/dtm-labs/dtm/client/dtmcli"
+	"github.com/dtm-labs/dtm/client/dtmgrpc"
+	pb "github.com/dtm-labs/dtm/client/dtmgrpc/dtmgpb"
 	"google.golang.org/protobuf/types/known/emptypb"
 )
 

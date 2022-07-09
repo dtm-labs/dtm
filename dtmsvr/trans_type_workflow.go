@@ -1,10 +1,10 @@
 package dtmsvr
 
 import (
-	"github.com/dtm-labs/dtm/dtmcli"
-	"github.com/dtm-labs/dtm/dtmcli/dtmimp"
-	"github.com/dtm-labs/dtm/dtmgrpc/dtmgimp"
-	"github.com/dtm-labs/dtm/workflow/wfpb"
+	"github.com/dtm-labs/dtm/client/dtmcli"
+	"github.com/dtm-labs/dtm/client/dtmcli/dtmimp"
+	"github.com/dtm-labs/dtm/client/dtmgrpc/dtmgimp"
+	"github.com/dtm-labs/dtm/client/workflow/wfpb"
 )
 
 type transWorkflowProcessor struct {

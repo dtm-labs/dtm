@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/dtm-labs/dtm/dtmcli"
-	"github.com/dtm-labs/dtm/dtmcli/logger"
+	"github.com/dtm-labs/dtm/client/dtmcli"
+	"github.com/dtm-labs/dtm/client/dtmcli/logger"
 	"github.com/dtm-labs/dtm/dtmsvr"
 	"github.com/dtm-labs/dtm/dtmsvr/config"
 	"github.com/dtm-labs/dtm/dtmsvr/storage/registry"

@@ -13,9 +13,9 @@ import (
 	"runtime/debug"
 	"time"
 
-	"github.com/dtm-labs/dtm/dtmcli"
-	"github.com/dtm-labs/dtm/dtmcli/dtmimp"
-	"github.com/dtm-labs/dtm/dtmcli/logger"
+	"github.com/dtm-labs/dtm/client/dtmcli"
+	"github.com/dtm-labs/dtm/client/dtmcli/dtmimp"
+	"github.com/dtm-labs/dtm/client/dtmcli/logger"
 )
 
 // NowForwardDuration will be set in test, trans may be timeout

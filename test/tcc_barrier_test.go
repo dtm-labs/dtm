@@ -12,9 +12,9 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/dtm-labs/dtm/dtmcli"
-	"github.com/dtm-labs/dtm/dtmcli/dtmimp"
-	"github.com/dtm-labs/dtm/dtmcli/logger"
+	"github.com/dtm-labs/dtm/client/dtmcli"
+	"github.com/dtm-labs/dtm/client/dtmcli/dtmimp"
+	"github.com/dtm-labs/dtm/client/dtmcli/logger"
 	"github.com/dtm-labs/dtm/test/busi"
 	"github.com/gin-gonic/gin"
 	"github.com/go-resty/resty/v2"
