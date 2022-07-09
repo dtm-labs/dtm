@@ -6,7 +6,7 @@ import (
 	"github.com/dtm-labs/dtm/dtmcli/dtmimp"
 	"github.com/dtm-labs/dtm/dtmgrpc"
 	"github.com/dtm-labs/dtm/dtmgrpc/dtmgimp"
-	"github.com/dtm-labs/dtm/dtmgrpc/workflow/wfpb"
+	"github.com/dtm-labs/dtm/workflow/wfpb"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/emptypb"

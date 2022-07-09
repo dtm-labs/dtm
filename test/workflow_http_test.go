@@ -13,8 +13,8 @@ import (
 	"github.com/dtm-labs/dtm/dtmcli"
 	"github.com/dtm-labs/dtm/dtmcli/dtmimp"
 	"github.com/dtm-labs/dtm/dtmcli/logger"
-	"github.com/dtm-labs/dtm/dtmgrpc/workflow"
 	"github.com/dtm-labs/dtm/test/busi"
+	"github.com/dtm-labs/dtm/workflow"
 	"github.com/stretchr/testify/assert"
 )
 

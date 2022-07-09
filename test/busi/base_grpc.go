@@ -21,7 +21,7 @@ import (
 
 	"github.com/dtm-labs/dtm/dtmgrpc/dtmgimp"
 	"github.com/dtm-labs/dtm/dtmgrpc/dtmgpb"
-	"github.com/dtm-labs/dtm/dtmgrpc/workflow"
+	"github.com/dtm-labs/dtm/workflow"
 	grpc "google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 	emptypb "google.golang.org/protobuf/types/known/emptypb"

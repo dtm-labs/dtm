@@ -11,7 +11,7 @@ import (
 	"github.com/dtm-labs/dtm/dtmcli/dtmimp"
 	"github.com/dtm-labs/dtm/dtmcli/logger"
 	"github.com/dtm-labs/dtm/dtmgrpc/dtmgimp"
-	"github.com/dtm-labs/dtm/dtmgrpc/workflow/wfpb"
+	"github.com/dtm-labs/dtm/workflow/wfpb"
 	"github.com/go-resty/resty/v2"
 	"google.golang.org/grpc"
 )
