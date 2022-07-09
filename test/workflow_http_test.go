@@ -12,6 +12,7 @@ import (
 
 	"github.com/dtm-labs/dtm/dtmcli"
 	"github.com/dtm-labs/dtm/dtmcli/dtmimp"
+	"github.com/dtm-labs/dtm/dtmcli/logger"
 	"github.com/dtm-labs/dtm/dtmgrpc/workflow"
 	"github.com/dtm-labs/dtm/test/busi"
 	"github.com/stretchr/testify/assert"
@@ -23,6 +24,10 @@ func TestWorkflowNormal(t *testing.T) {
 	gid := dtmimp.GetFuncName()
 
 	workflow.Register(gid, func(wf *workflow.Workflow, data []byte) error {
+		wf.NewBranch().OnFinish(func(bb *dtmcli.BranchBarrier, isRollback bool) error {
+			logger.Debugf("OnFinish isRollback: %v", isRollback)
+			return nil
+		})
 		var req busi.ReqHTTP
 		dtmimp.MustUnmarshal(data, &req)
 		_, err := wf.NewBranch().NewRequest().SetBody(req).Post(Busi + "/TransOut")
@@ -49,6 +54,10 @@ func TestWorkflowRollback(t *testing.T) {
 	gid := dtmimp.GetFuncName()
 
 	workflow.Register(gid, func(wf *workflow.Workflow, data []byte) error {
+		wf.NewBranch().OnFinish(func(bb *dtmcli.BranchBarrier, isRollback bool) error {
+			logger.Debugf("OnFinish isRollback: %v", isRollback)
+			return nil
+		})
 		var req busi.ReqHTTP
 		dtmimp.MustUnmarshal(data, &req)
 		_, err := wf.NewBranch().OnRollback(func(bb *dtmcli.BranchBarrier) error {

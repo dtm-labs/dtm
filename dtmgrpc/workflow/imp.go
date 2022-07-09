@@ -8,7 +8,6 @@ import (
 	"github.com/dtm-labs/dtm/dtmcli"
 	"github.com/dtm-labs/dtm/dtmcli/dtmimp"
 	"github.com/dtm-labs/dtm/dtmcli/logger"
-	"github.com/dtm-labs/dtm/dtmgrpc"
 	"github.com/go-resty/resty/v2"
 )
 
@@ -76,7 +75,7 @@ func (w *workflowFactory) newWorkflow(name string, gid string, data []byte) *Wor
 	})
 	wf.Context = context.WithValue(wf.Context, wfMeta{}, wf)
 	wf.Options.HTTPResp2DtmError = HTTPResp2DtmError
-	wf.Options.GRPCError2DtmError = dtmgrpc.GrpcError2DtmError
+	wf.Options.GRPCError2DtmError = GrpcError2DtmError
 	wf.initRestyClient()
 	return wf
 }
@@ -104,7 +103,7 @@ func (wf *Workflow) process(handler WfFunc, data []byte) (err error) {
 	err = wf.loadProgresses()
 	if err == nil {
 		err = handler(wf, data)
-		err = dtmgrpc.GrpcError2DtmError(err)
+		err = wf.Options.GRPCError2DtmError(err)
 		if err != nil && !errors.Is(err, dtmcli.ErrFailure) {
 			return err
 		}

@@ -11,6 +11,8 @@ import (
 	"github.com/dtm-labs/dtm/dtmcli"
 	"github.com/dtm-labs/dtm/dtmcli/dtmimp"
 	"github.com/dtm-labs/dtm/dtmgrpc/dtmgimp"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/reflect/protoreflect"
 )
 
@@ -80,6 +82,17 @@ func HTTPResp2DtmError(resp *http.Response) ([]byte, error) {
 		return data, errors.New(string(data))
 	}
 	return data, err
+}
+
+// GrpcError2DtmError translate grpc error to dtm error
+func GrpcError2DtmError(err error) error {
+	st, _ := status.FromError(err)
+	if st != nil && st.Code() == codes.Aborted {
+		return fmt.Errorf("%s. %w", st.Message(), dtmcli.ErrFailure)
+	} else if st != nil && st.Code() == codes.FailedPrecondition {
+		return fmt.Errorf("%s. %w", st.Message(), dtmcli.ErrOngoing)
+	}
+	return err
 }
 
 func (wf *Workflow) stepResultFromLocal(data []byte, err error) *stepResult {

@@ -61,10 +61,10 @@ func ExecuteByQS(qs url.Values, body []byte) error {
 // Options is for specifying workflow options
 type Options struct {
 
-	// Default: Code 409 => ErrFailure; Code 425 => ErrOngoing
+	// Default == HTTPResp2DtmError : Code 409 => ErrFailure; Code 425 => ErrOngoing
 	HTTPResp2DtmError func(*http.Response) ([]byte, error)
 
-	// Default: Code Aborted => ErrFailure; Code FailedPrecondition => ErrOngoing
+	// Default == GrpcError2DtmError: Code Aborted => ErrFailure; Code FailedPrecondition => ErrOngoing
 	GRPCError2DtmError func(error) error
 
 	// This Option specify whether a branch returning ErrFailure should be compensated on rollback.
@@ -143,6 +143,15 @@ func (wf *Workflow) OnCommit(fn WfPhase2Func) *Workflow {
 		fn:       fn,
 	})
 	return wf
+}
+
+// OnFinish will both set the callback for OnCommit and OnRollback
+func (wf *Workflow) OnFinish(fn func(bb *dtmcli.BranchBarrier, isRollback bool) error) *Workflow {
+	return wf.OnCommit(func(bb *dtmcli.BranchBarrier) error {
+		return fn(bb, false)
+	}).OnRollback(func(bb *dtmcli.BranchBarrier) error {
+		return fn(bb, true)
+	})
 }
 
 // Do will do an action which will be recored
