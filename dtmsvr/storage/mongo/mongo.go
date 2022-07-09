@@ -101,9 +101,41 @@ func (s *Store) FindTransGlobalStore(gid string) *storage.TransGlobalStore {
 }
 
 // ScanTransGlobalStores lists GlobalTrans data
-// func (s *Store) ScanTransGlobalStores(position *string, limit int64) []storage.TransGlobalStore {
-
-// }
+func (s *Store) ScanTransGlobalStores(position *string, limit int64) []storage.TransGlobalStore {
+	filter := bson.D{{}}
+	opts := options.Find().SetLimit(limit).SetSort(bson.D{{"_id", 1}})
+	if *position != "" {
+		lid, err := primitive.ObjectIDFromHex(*position)
+		if err != nil {
+			panic(err)
+		}
+		filter = bson.D{{"_id", bson.D{{"$gt", lid}}}}
+	}
+	cursor, err := MongoGet().Database("dtm").Collection("trans").Find(ctx, filter, opts)
+	if err != nil {
+		dtmimp.E2P(err)
+	}
+	mggtrans := make([]MongoGlobalTrans, limit)
+	err = cursor.All(ctx, &mggtrans)
+	if err != nil {
+		dtmimp.E2P(err)
+	}
+	len := len(mggtrans)
+	if len < int(limit) {
+		*position = ""
+	} else {
+		*position = mggtrans[len-1].ID.Hex()
+	}
+	err = cursor.Close(ctx)
+	if err != nil {
+		dtmimp.E2P(err)
+	}
+	trans := make([]storage.TransGlobalStore, len)
+	for i, e := range mggtrans {
+		trans[i] = *ConvertMongoTransToTrans(&e)
+	}
+	return trans
+}
 
 // FindBranches finds Branch data by gid
 // func (s *Store) FindBranches(gid string) []storage.TransBranchStore {
