@@ -69,9 +69,12 @@ func TestMain(m *testing.M) {
 	// WorkflowStarup 1
 	workflow.InitHTTP(dtmutil.DefaultHTTPServer, Busi+"/workflow/resume")
 	workflow.InitGrpc(dtmutil.DefaultGrpcServer, busi.BusiGrpc, gsvr)
-	go busi.RunHTTP(hsvr)
 	go busi.RunGrpc(gsvr)
-
+	go busi.RunHTTP(hsvr)
+	r := m.Run()
+	if r != 0 {
+		os.Exit(r)
+	}
 	close(dtmsvr.TransProcessedTestChan)
 	gid, more := <-dtmsvr.TransProcessedTestChan
 	logger.FatalfIf(more, "extra gid: %s in test chan", gid)

@@ -137,7 +137,7 @@ func (wf *Workflow) OnCommit(fn WfPhase2Func) *Workflow {
 	branchID := wf.currentBranch
 	dtmimp.PanicIf(wf.currentCommitAdded, fmt.Errorf("one branch can only add one commit callback"))
 	wf.currentCommitAdded = true
-	wf.failedOps = append(wf.succeededOps, workflowPhase2Item{
+	wf.succeededOps = append(wf.succeededOps, workflowPhase2Item{
 		branchID: branchID,
 		op:       dtmimp.OpCommit,
 		fn:       fn,
