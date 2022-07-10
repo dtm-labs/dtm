@@ -3,6 +3,7 @@ package mongo
 import (
 	"context"
 	"testing"
+	"time"
 
 	// "errors"
 	"fmt"
@@ -102,6 +103,12 @@ func TestPopulate(t *testing.T) {
 			},
 			Options: options.Index().SetName("gid_branchId_branchOp"),
 		},
+		{
+			Keys: bson.D{
+				{Key: "ext_data", Value: "text"},
+			},
+			Options: options.Index().SetSparse(true),
+		},
 	})
 	if err != nil {
 		t.Errorf("populate data failed")
@@ -158,8 +165,8 @@ func TestFindTransGlobalStore(t *testing.T) {
 	fmt.Println(trans.NextCronTime == mggtrans.NextCronTime)
 }
 func TestScan(t *testing.T) {
-	var limit int64 = 2
-	var position string = "62c93657cd2317b252c1f740"
+	var limit int64 = 3
+	var position string = ""
 	filter := bson.D{{}}
 	opts := options.Find().SetLimit(limit).SetSort(bson.D{{"_id", 1}})
 	if position != "" {
@@ -193,6 +200,69 @@ func TestScan(t *testing.T) {
 		trans[i] = *ConvertMongoTransToTrans(&e)
 	}
 	fmt.Println(trans)
+}
+
+func TestFindBranch(t *testing.T) {
+	gid := "lainlkno10923"
+	filter := bson.D{{"gid", gid}}
+	r := mongoGetForTest().Database(database).Collection(collection).FindOne(ctx, filter)
+	err := r.Err()
+	if err == mongo.ErrNoDocuments {
+		fmt.Println("no document found")
+		return
+	}
+	mggtrans := MongoGlobalTrans{}
+	err = r.Decode(&mggtrans)
+	if err != nil {
+		panic(err)
+	}
+	trans := ConvertMongoTransToBranch(&mggtrans)
+	fmt.Println(trans)
+}
+func TestInsertOne(t *testing.T) {
+	coll := mongoGetForTest().Database(database).Collection(collection)
+	data := bson.D{
+		{"gid", "lainlkno10923"},
+		{"create_time", time.Now()},
+		{"update_time", time.Now()},
+		{"trans_type", "saga"},
+		{"status", "prepared"},
+		{"query_prepared", "/api/query_prepared"},
+		{"protocol", "http"},
+		{"finish_time", time.Now()},
+		{"rollback_time", time.Now()},
+		{"options", "TimeoutToFail:1000"},
+		{"custom_data", "customData"},
+		{"next_cron_interval", 100},
+		{"next_cron_time", time.Now()},
+		{"owner", "owner1"},
+		{"ext_data", "extData"},
+		{"branch_trans", []bson.D{
+			{
+				{"url", "/api/branch1"},
+				{"branch_id", "branch1"},
+				{"op", "insert"},
+				{"branch_status", "status1"},
+				{"branch_finish_time", time.Now()},
+				{"branch_rollback_time", time.Now()},
+				{"branch_bin_data", []byte{1, 2, 3, 4}},
+				{"branch_create_time", time.Now()},
+				{"branch_update_time", time.Now()},
+			},
+			{
+				{"url", "/api/branch2"},
+				{"branch_id", "branch2"},
+				{"op", "delete"},
+				{"branch_status", "status2"},
+				{"branch_finish_time", time.Now()},
+				{"branch_rollback_time", time.Now()},
+				{"branch_bin_data", []byte{5, 6, 7, 8}},
+				{"branch_create_time", time.Now()},
+				{"branch_update_time", time.Now()},
+			},
+		}},
+	}
+	coll.InsertOne(ctx, data)
 }
 func mongoGetForTest() *mongo.Client {
 	uri := fmt.Sprintf("mongodb://%s:27017/?retryWrites=false&directConnection=true", "localhost")

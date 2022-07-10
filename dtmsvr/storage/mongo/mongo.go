@@ -35,6 +35,9 @@ var ctx = context.Background()
 type Store struct {
 }
 
+var database = "dtm"
+var collection = "trans"
+
 // Ping execs ping cmd to db
 func (s *Store) Ping() error {
 	err := MongoGet().Ping(ctx, nil)
@@ -46,8 +49,8 @@ func (s *Store) PopulateData(skipDrop bool) {
 	// skipDrop means keepData
 	if !skipDrop {
 		mongoc := MongoGet()
-		mongoc.Database("dtm").Drop(ctx)
-		coll := mongoc.Database("dtm").Collection("trans")
+		mongoc.Database(database).Drop(ctx)
+		coll := mongoc.Database(database).Collection(collection)
 		_, err := coll.Indexes().CreateMany(ctx, []mongo.IndexModel{
 			{
 				Keys: bson.D{
@@ -75,6 +78,12 @@ func (s *Store) PopulateData(skipDrop bool) {
 				},
 				Options: options.Index().SetName("gid_branchId_branchOp"),
 			},
+			{
+				Keys: bson.D{
+					{Key: "ext_data", Value: "text"},
+				},
+				Options: options.Index().SetSparse(true),
+			},
 		})
 		logger.Infof("call mongo PopulateData. result: %v", err)
 		dtmimp.PanicIf(err != nil, err)
@@ -84,7 +93,7 @@ func (s *Store) PopulateData(skipDrop bool) {
 // FindTransGlobalStore finds GlobalTrans data by gid
 func (s *Store) FindTransGlobalStore(gid string) *storage.TransGlobalStore {
 	var mggtrans MongoGlobalTrans
-	r := MongoGet().Database("dtm").Collection("trans").FindOne(ctx, bson.D{
+	r := MongoGet().Database(database).Collection(collection).FindOne(ctx, bson.D{
 		{Key: "gid", Value: gid},
 	})
 	err := r.Err()
@@ -111,7 +120,7 @@ func (s *Store) ScanTransGlobalStores(position *string, limit int64) []storage.T
 		}
 		filter = bson.D{{"_id", bson.D{{"$gt", lid}}}}
 	}
-	cursor, err := MongoGet().Database("dtm").Collection("trans").Find(ctx, filter, opts)
+	cursor, err := MongoGet().Database(database).Collection(collection).Find(ctx, filter, opts)
 	if err != nil {
 		dtmimp.E2P(err)
 	}
@@ -138,9 +147,21 @@ func (s *Store) ScanTransGlobalStores(position *string, limit int64) []storage.T
 }
 
 // FindBranches finds Branch data by gid
-// func (s *Store) FindBranches(gid string) []storage.TransBranchStore {
-
-// }
+func (s *Store) FindBranches(gid string) []storage.TransBranchStore {
+	filter := bson.D{{"gid", gid}}
+	r := MongoGet().Database(database).Collection(collection).FindOne(ctx, filter)
+	err := r.Err()
+	if err == mongo.ErrNoDocuments {
+		return nil
+	}
+	dtmimp.E2P(err)
+	mggtrans := MongoGlobalTrans{}
+	err = r.Decode(&mggtrans)
+	if err != nil {
+		dtmimp.E2P(err)
+	}
+	return ConvertMongoTransToBranch(&mggtrans)
+}
 
 // UpdateBranches update branches info
 // func (s *Store) UpdateBranches(branches []storage.TransBranchStore, updates []string) (int, error) {
@@ -236,9 +257,9 @@ type MongoBranchTrans struct {
 	Status       string     `bson:"branch_status,omitempty"`
 	FinishTime   *time.Time `bson:"branch_finish_time,omitempty"`
 	RollbackTime *time.Time `bson:"branch_rollback_time,omitempty"`
-
-	CreateTime *time.Time `bson:"branch_create_time"`
-	UpdateTime *time.Time `bson:"branch_update_time"`
+	BinData      []byte     `bson:"branch_bin_data,omitempty"`
+	CreateTime   *time.Time `bson:"branch_create_time,omitempty"`
+	UpdateTime   *time.Time `bson:"branch_update_time,omitempty"`
 }
 
 func ConvertMongoTransToTrans(mgt *MongoGlobalTrans) *storage.TransGlobalStore {
@@ -264,4 +285,23 @@ func ConvertMongoTransToTrans(mgt *MongoGlobalTrans) *storage.TransGlobalStore {
 	trans.Owner = mgt.Owner
 	trans.ExtData = mgt.ExtData
 	return trans
+}
+func ConvertMongoTransToBranch(mgt *MongoGlobalTrans) []storage.TransBranchStore {
+	branches := make([]storage.TransBranchStore, len(mgt.BranchTrans))
+	for i, e := range mgt.BranchTrans {
+		branch := storage.TransBranchStore{
+			Gid:          mgt.Gid,
+			URL:          e.URL,
+			BranchID:     e.BranchID,
+			BinData:      e.BinData,
+			Op:           e.Op,
+			Status:       e.Status,
+			FinishTime:   e.FinishTime,
+			RollbackTime: e.RollbackTime,
+		}
+		branch.CreateTime = e.CreateTime
+		branch.UpdateTime = e.UpdateTime
+		branches[i] = branch
+	}
+	return branches
 }
