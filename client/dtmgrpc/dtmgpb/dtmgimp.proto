@@ -51,7 +51,14 @@ message DtmBranchRequest {
 }
 
 message DtmProgressesReply {
-  repeated DtmProgress Progresses = 1;
+  DtmTransaction Transaction = 1;
+  repeated DtmProgress Progresses = 2;
+}
+
+message DtmTransaction {
+  string Gid = 1;
+  string Status = 2;
+  string RollbackReason = 3;
 }
 
 message DtmProgress {

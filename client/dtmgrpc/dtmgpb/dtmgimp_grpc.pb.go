@@ -2,7 +2,7 @@
 // versions:
 // - protoc-gen-go-grpc v1.2.0
 // - protoc             v3.17.3
-// source: dtmgrpc/dtmgpb/dtmgimp.proto
+// source: client/dtmgrpc/dtmgpb/dtmgimp.proto
 
 package dtmgpb
 
@@ -282,5 +282,5 @@ var Dtm_ServiceDesc = grpc.ServiceDesc{
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
-	Metadata: "dtmgrpc/dtmgpb/dtmgimp.proto",
+	Metadata: "client/dtmgrpc/dtmgpb/dtmgimp.proto",
 }

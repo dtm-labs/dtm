@@ -87,11 +87,11 @@ func query(c *gin.Context) interface{} {
 }
 
 func prepareWorkflow(c *gin.Context) interface{} {
-	branches, err := svcPrepareWorkflow(TransFromContext(c))
+	trans, branches, err := svcPrepareWorkflow(TransFromContext(c))
 	if err != nil {
 		return err
 	}
-	return branches
+	return map[string]interface{}{"Transaction": trans, "Progresses": branches}
 }
 
 func all(c *gin.Context) interface{} {

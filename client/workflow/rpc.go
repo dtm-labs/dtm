@@ -20,11 +20,11 @@ func (wf *Workflow) getProgress() ([]*dtmgpb.DtmProgress, error) {
 		return nil, err
 	}
 	resp, err := dtmimp.RestyClient.R().SetBody(wf.TransBase).Post(wf.Dtm + "/prepareWorkflow")
-	var progresses []*dtmgpb.DtmProgress
+	var reply dtmgpb.DtmProgressesReply
 	if err == nil {
-		dtmimp.MustUnmarshal(resp.Body(), &progresses)
+		dtmimp.MustUnmarshal(resp.Body(), &reply)
 	}
-	return progresses, err
+	return reply.Progresses, err
 }
 
 func (wf *Workflow) submit(status string) error {
