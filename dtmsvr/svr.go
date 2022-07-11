@@ -105,7 +105,6 @@ func updateBranchAsync() {
 			select {
 			case updateBranch := <-updateBranchAsyncChan:
 				updates = append(updates, TransBranch{
-					ModelBase:  dtmutil.ModelBase{ID: updateBranch.id},
 					Gid:        updateBranch.gid,
 					BranchID:   updateBranch.branchID,
 					Op:         updateBranch.op,

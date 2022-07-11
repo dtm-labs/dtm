@@ -8,6 +8,7 @@ package dtmsvr
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/dtm-labs/dtm/client/dtmcli"
 	"github.com/dtm-labs/dtm/client/dtmcli/dtmimp"
@@ -96,6 +97,17 @@ func svcRegisterBranch(transType string, branch *TransBranch, data map[string]st
 		branches[1].Op = dtmimp.OpCommit
 		branches[1].URL = data["url"]
 	} else if transType == "workflow" {
+		if data["sync"] == "" && conf.UpdateBranchSync == 0 {
+			now := time.Now()
+			updateBranchAsyncChan <- branchStatus{
+				gid:        branch.Gid,
+				branchID:   branch.BranchID,
+				op:         data["op"],
+				status:     data["status"],
+				finishTime: &now,
+			}
+			return nil
+		}
 		branches = []TransBranch{*branch}
 		branches[0].Status = data["status"]
 		branches[0].Op = data["op"]
