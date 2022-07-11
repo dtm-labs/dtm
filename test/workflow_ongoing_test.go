@@ -49,7 +49,6 @@ func TestWorkflowSimpleResume(t *testing.T) {
 
 	err := workflow.Execute(gid, gid, dtmimp.MustMarshal(req))
 	assert.Error(t, err)
-	go waitTransProcessed(gid)
 	cronTransOnceForwardNow(t, gid, 1000)
 	assert.Equal(t, StatusSucceed, getTransStatus(gid))
 }
@@ -105,8 +104,6 @@ func TestWorkflowGrpcRollbackResume(t *testing.T) {
 	assert.Equal(t, StatusPrepared, getTransStatus(gid))
 	cronTransOnceForwardNow(t, gid, 1000)
 	assert.Equal(t, StatusPrepared, getTransStatus(gid))
-	// next cron will make a workflow submit, and do an additional write to chan, so make an additional read chan
-	go waitTransProcessed(gid)
 	cronTransOnceForwardNow(t, gid, 1000)
 	assert.Equal(t, StatusFailed, getTransStatus(gid))
 }
@@ -147,8 +144,6 @@ func TestWorkflowXaResume(t *testing.T) {
 	assert.Equal(t, StatusPrepared, getTransStatus(gid))
 	cronTransOnceForwardNow(t, gid, 1000)
 	assert.Equal(t, StatusPrepared, getTransStatus(gid))
-	// next cron will make a workflow submit, and do an additional write to chan, so make an additional read chan
-	go waitTransProcessed(gid)
 	cronTransOnceForwardNow(t, gid, 1000)
 	assert.Equal(t, StatusSucceed, getTransStatus(gid))
 }

@@ -43,7 +43,6 @@ func TestWorkflowNormal(t *testing.T) {
 
 	err := workflow.Execute(gid, gid, dtmimp.MustMarshal(req))
 	assert.Nil(t, err)
-	waitTransProcessed(gid)
 	assert.Equal(t, StatusSucceed, getTransStatus(gid))
 }
 
@@ -85,7 +84,6 @@ func TestWorkflowRollback(t *testing.T) {
 	err := workflow.Execute(gid, gid, dtmimp.MustMarshal(req))
 	assert.Error(t, err, dtmcli.ErrFailure)
 	assert.Equal(t, StatusFailed, getTransStatus(gid))
-	waitTransProcessed(gid)
 }
 
 func TestWorkflowError(t *testing.T) {
@@ -103,7 +101,6 @@ func TestWorkflowError(t *testing.T) {
 
 	err := workflow.Execute(gid, gid, dtmimp.MustMarshal(req))
 	assert.Error(t, err)
-	go waitTransProcessed(gid)
 	cronTransOnceForwardCron(t, gid, 1000)
 	assert.Equal(t, StatusSucceed, getTransStatus(gid))
 }
@@ -123,7 +120,6 @@ func TestWorkflowOngoing(t *testing.T) {
 
 	err := workflow.Execute(gid, gid, dtmimp.MustMarshal(req))
 	assert.Error(t, err)
-	go waitTransProcessed(gid)
 	cronTransOnceForwardCron(t, gid, 1000)
 	assert.Equal(t, StatusSucceed, getTransStatus(gid))
 }

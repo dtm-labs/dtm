@@ -20,10 +20,12 @@ import (
 var Version = ""
 
 func svcSubmit(t *TransGlobal) interface{} {
-	t.Status = dtmcli.StatusSubmitted
-	if t.ReqExtra != nil && t.ReqExtra["status"] != "" {
-		t.Status = t.ReqExtra["status"]
+	if t.TransType == "workflow" {
+		t.Status = dtmcli.StatusPrepared
+		t.changeStatus(t.ReqExtra["status"])
+		return nil
 	}
+	t.Status = dtmcli.StatusSubmitted
 	branches, err := t.saveNew()
 
 	if err == storage.ErrUniqueConflict {

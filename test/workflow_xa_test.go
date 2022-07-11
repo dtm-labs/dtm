@@ -35,7 +35,6 @@ func TestWorkflowXaAction(t *testing.T) {
 	})
 	err := workflow.Execute(gid, gid, nil)
 	assert.Nil(t, err)
-	waitTransProcessed(gid)
 	assert.Equal(t, StatusSucceed, getTransStatus(gid))
 }
 
@@ -58,6 +57,5 @@ func TestWorkflowXaRollback(t *testing.T) {
 	})
 	err := workflow.Execute(gid, gid, nil)
 	assert.Equal(t, dtmcli.ErrFailure, err)
-	waitTransProcessed(gid)
 	assert.Equal(t, StatusFailed, getTransStatus(gid))
 }

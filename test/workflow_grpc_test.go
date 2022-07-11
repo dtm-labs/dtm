@@ -35,7 +35,6 @@ func TestWorkflowGrpcSimple(t *testing.T) {
 	err := workflow.Execute(gid, gid, dtmgimp.MustProtoMarshal(req))
 	assert.Error(t, err, dtmcli.ErrFailure)
 	assert.Equal(t, StatusFailed, getTransStatus(gid))
-	waitTransProcessed(gid)
 }
 
 func TestWorkflowGrpcNormal(t *testing.T) {
@@ -63,7 +62,6 @@ func TestWorkflowGrpcNormal(t *testing.T) {
 	err := workflow.Execute(gid, gid, dtmgimp.MustProtoMarshal(req))
 	assert.Error(t, err, dtmcli.ErrFailure)
 	assert.Equal(t, StatusFailed, getTransStatus(gid))
-	waitTransProcessed(gid)
 }
 
 func TestWorkflowMixed(t *testing.T) {
@@ -105,7 +103,6 @@ func TestWorkflowMixed(t *testing.T) {
 	err := workflow.Execute(gid, gid, dtmgimp.MustProtoMarshal(req))
 	assert.Nil(t, err)
 	assert.Equal(t, StatusSucceed, getTransStatus(gid))
-	waitTransProcessed(gid)
 }
 
 func TestWorkflowGrpcError(t *testing.T) {
@@ -125,7 +122,6 @@ func TestWorkflowGrpcError(t *testing.T) {
 	})
 	err := workflow.Execute(gid, gid, dtmgimp.MustProtoMarshal(req))
 	assert.Error(t, err)
-	go waitTransProcessed(gid)
 	cronTransOnceForwardCron(t, gid, 1000)
 	assert.Equal(t, StatusSucceed, getTransStatus(gid))
 }
