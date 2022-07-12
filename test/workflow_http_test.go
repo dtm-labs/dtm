@@ -80,10 +80,12 @@ func TestWorkflowRollback(t *testing.T) {
 		}
 		return nil
 	})
+	before := getBeforeBalances("mysql")
 
 	err := workflow.Execute(gid, gid, dtmimp.MustMarshal(req))
 	assert.Error(t, err, dtmcli.ErrFailure)
 	assert.Equal(t, StatusFailed, getTransStatus(gid))
+	assertSameBalance(t, before, "mysql")
 }
 
 func TestWorkflowError(t *testing.T) {

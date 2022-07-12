@@ -68,8 +68,9 @@ func (bb *BranchBarrier) Call(tx *sql.Tx, busiCall BarrierBusiFunc) (rerr error)
 		return tx.Rollback()
 	})
 	originOp := map[string]string{
-		dtmimp.OpCancel:     dtmimp.OpTry,
-		dtmimp.OpCompensate: dtmimp.OpAction,
+		dtmimp.OpCancel:     dtmimp.OpTry,    // tcc
+		dtmimp.OpCompensate: dtmimp.OpAction, // saga
+		dtmimp.OpRollback:   dtmimp.OpAction, // workflow
 	}[bb.Op]
 
 	originAffected, oerr := dtmimp.InsertBarrier(tx, bb.TransType, bb.Gid, bb.BranchID, originOp, bid, bb.Op, bb.DBType, bb.BarrierTableName)
@@ -84,7 +85,7 @@ func (bb *BranchBarrier) Call(tx *sql.Tx, busiCall BarrierBusiFunc) (rerr error)
 		rerr = oerr
 	}
 
-	if (bb.Op == dtmimp.OpCancel || bb.Op == dtmimp.OpCompensate) && originAffected > 0 || // null compensate
+	if (bb.Op == dtmimp.OpCancel || bb.Op == dtmimp.OpCompensate || bb.Op == dtmimp.OpRollback) && originAffected > 0 || // null compensate
 		currentAffected == 0 { // repeated request or dangled request
 		return
 	}

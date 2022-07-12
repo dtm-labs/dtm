@@ -86,7 +86,7 @@ func (wf *Workflow) initRestyClient() {
 			"gid":        wf.Gid,
 			"trans_type": wf.TransType,
 			"branch_id":  wf.currentBranch,
-			"op":         dtmimp.OpAction,
+			"op":         wf.currentOp,
 		})
 		err := dtmimp.BeforeRequest(c, r)
 		return err

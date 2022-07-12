@@ -37,7 +37,7 @@ func TestWorkflowGrpcSimple(t *testing.T) {
 	assert.Equal(t, StatusFailed, getTransStatus(gid))
 }
 
-func TestWorkflowGrpcNormal(t *testing.T) {
+func TestWorkflowGrpcRollback(t *testing.T) {
 	workflow.SetProtocolForTest(dtmimp.ProtocolGRPC)
 	req := &busi.ReqGrpc{Amount: 30, TransInResult: "FAILURE"}
 	gid := dtmimp.GetFuncName()
@@ -59,9 +59,11 @@ func TestWorkflowGrpcNormal(t *testing.T) {
 		_, err = busi.BusiCli.TransInBSaga(wf.Context, &req)
 		return err
 	})
+	before := getBeforeBalances("mysql")
 	err := workflow.Execute(gid, gid, dtmgimp.MustProtoMarshal(req))
 	assert.Error(t, err, dtmcli.ErrFailure)
 	assert.Equal(t, StatusFailed, getTransStatus(gid))
+	assertSameBalance(t, before, "mysql")
 }
 
 func TestWorkflowMixed(t *testing.T) {
