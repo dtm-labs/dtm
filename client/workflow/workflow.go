@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
+	"time"
 
 	"github.com/dtm-labs/dtm/client/dtmcli"
 	"github.com/dtm-labs/dtm/client/dtmcli/dtmimp"
@@ -14,6 +15,8 @@ import (
 	"github.com/dtm-labs/dtm/client/workflow/wfpb"
 	"github.com/go-resty/resty/v2"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 )
 
 // InitHTTP will init Workflow engine to use http
@@ -213,6 +216,15 @@ func Interceptor(ctx context.Context, method string, req, reply interface{}, cc 
 	origin := func() error {
 		ctx1 := dtmgimp.TransInfo2Ctx(ctx, wf.Gid, wf.TransType, wf.currentBranch, wf.currentOp, wf.Dtm)
 		err := invoker(ctx1, method, req, reply, cc, opts...)
+		if err != nil {
+			logger.Errorf("grpc client called: %s%s %s result: %s err: %v",
+				cc.Target(), method, dtmimp.MustMarshalString(req), dtmimp.MustMarshalString(reply), err)
+			st, _ := status.FromError(err)
+			if st != nil && st.Code() == codes.Unavailable {
+				time.Sleep(1 * time.Second)
+				err = invoker(ctx1, method, req, reply, cc, opts...)
+			}
+		}
 		res := fmt.Sprintf("grpc client called: %s%s %s result: %s err: %v",
 			cc.Target(), method, dtmimp.MustMarshalString(req), dtmimp.MustMarshalString(reply), err)
 		if err != nil {
