@@ -106,7 +106,7 @@ func updateBranchAsync() {
 			select {
 			case updateBranch := <-updateBranchAsyncChan:
 				k := updateBranch.gid + updateBranch.branchID + "-" + updateBranch.op
-				if !exists[k] {
+				if !exists[k] { // postgres does not allow
 					exists[k] = true
 					updates = append(updates, TransBranch{
 						Gid:        updateBranch.gid,
@@ -119,7 +119,7 @@ func updateBranchAsync() {
 			case <-time.After(checkInterval):
 			}
 		}
-		for len(updates) > 0 {
+		for i := 0; i < 3 && len(updates) > 0; i++ {
 			rowAffected, err := GetStore().UpdateBranches(updates, []string{"status", "finish_time", "update_time"})
 
 			if err != nil {
