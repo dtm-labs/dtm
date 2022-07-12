@@ -99,18 +99,23 @@ func updateBranchAsync() {
 	flushBranchs := func() {
 		defer dtmutil.RecoverPanic(nil)
 		updates := []TransBranch{}
+		exists := map[string]bool{}
 		started := time.Now()
 		checkInterval := 20 * time.Millisecond
 		for time.Since(started) < UpdateBranchAsyncInterval-checkInterval && len(updates) < 20 {
 			select {
 			case updateBranch := <-updateBranchAsyncChan:
-				updates = append(updates, TransBranch{
-					Gid:        updateBranch.gid,
-					BranchID:   updateBranch.branchID,
-					Op:         updateBranch.op,
-					Status:     updateBranch.status,
-					FinishTime: updateBranch.finishTime,
-				})
+				k := updateBranch.gid + updateBranch.branchID + "-" + updateBranch.op
+				if !exists[k] {
+					exists[k] = true
+					updates = append(updates, TransBranch{
+						Gid:        updateBranch.gid,
+						BranchID:   updateBranch.branchID,
+						Op:         updateBranch.op,
+						Status:     updateBranch.status,
+						FinishTime: updateBranch.finishTime,
+					})
+				}
 			case <-time.After(checkInterval):
 			}
 		}
