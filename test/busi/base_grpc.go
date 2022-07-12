@@ -58,6 +58,7 @@ func RunGrpc(server *grpc.Server) {
 	logger.FatalIfError(err)
 	logger.Debugf("busi grpc listening at %v", lis.Addr())
 	err = server.Serve(lis)
+	logger.Errorf("grpc server serve return: %v", err)
 	logger.FatalIfError(err)
 }
 
