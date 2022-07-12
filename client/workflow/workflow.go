@@ -223,6 +223,9 @@ func Interceptor(ctx context.Context, method string, req, reply interface{}, cc 
 			if st != nil && st.Code() == codes.Unavailable {
 				time.Sleep(1 * time.Second)
 				err = invoker(ctx1, method, req, reply, cc, opts...)
+				if err == nil {
+					logger.FatalfIf("after manually retry, err == nil")
+				}
 			}
 		}
 		res := fmt.Sprintf("grpc client called: %s%s %s result: %s err: %v",
