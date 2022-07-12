@@ -42,8 +42,19 @@ func GrpcStartup() *grpc.Server {
 	logger.FatalIfError(err)
 	DtmClient = dtmgpb.NewDtmClient(conn)
 	logger.Debugf("dtm client inited")
-
-	conn1, err := grpc.Dial(BusiGrpc, grpc.WithTransportCredentials(insecure.NewCredentials()), grpc.WithUnaryInterceptor(workflow.Interceptor))
+	retryPolicy := `{
+		"methodConfig": [{
+				"waitForReady": true,
+				"retryPolicy": {
+						"MaxAttempts": 2,
+						"InitialBackoff": ".01s",
+						"MaxBackoff": ".01s",
+						"BackoffMultiplier": 1.0,
+						"RetryableStatusCodes": [ "UNAVAILABLE" ]
+				}
+		}]
+}`
+	conn1, err := grpc.Dial(BusiGrpc, grpc.WithTransportCredentials(insecure.NewCredentials()), grpc.WithUnaryInterceptor(workflow.Interceptor), grpc.WithDefaultServiceConfig(retryPolicy))
 	logger.FatalIfError(err)
 	BusiCli = NewBusiClient(conn1)
 
