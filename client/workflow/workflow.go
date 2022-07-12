@@ -7,7 +7,6 @@ import (
 	"log"
 	"net/http"
 	"net/url"
-	"time"
 
 	"github.com/dtm-labs/dtm/client/dtmcli"
 	"github.com/dtm-labs/dtm/client/dtmcli/dtmimp"
@@ -222,7 +221,6 @@ func Interceptor(ctx context.Context, method string, req, reply interface{}, cc 
 				cc.Target(), method, dtmimp.MustMarshalString(req), dtmimp.MustMarshalString(reply), err)
 			st, _ := status.FromError(err)
 			if st != nil && st.Code() == codes.Unavailable {
-				time.Sleep(1 * time.Second)
 				err = invoker(ctx1, method, req, reply, cc, opts...)
 				if err == nil {
 					log.Fatalf("after manually retry, err == nil")
