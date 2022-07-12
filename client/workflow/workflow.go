@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"log"
 	"net/http"
 	"net/url"
 	"time"
@@ -224,7 +225,7 @@ func Interceptor(ctx context.Context, method string, req, reply interface{}, cc 
 				time.Sleep(1 * time.Second)
 				err = invoker(ctx1, method, req, reply, cc, opts...)
 				if err == nil {
-					logger.FatalfIf("after manually retry, err == nil")
+					log.Fatalf("after manually retry, err == nil")
 				}
 			}
 		}
