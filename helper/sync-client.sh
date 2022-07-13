@@ -19,8 +19,6 @@ rm -rf */*_test.go */*/*_test.go */*log */*/*log
 go mod tidy
 go build || exit 1
 
-echo "user exit"
-exit 0
 git add .
 git commit -m"update from dtm to version $ver"
 git push
