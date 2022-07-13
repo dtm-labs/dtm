@@ -12,6 +12,7 @@ import (
 	"errors"
 	"fmt"
 	"net"
+	"time"
 
 	"github.com/dtm-labs/dtm/client/dtmcli"
 	"github.com/dtm-labs/dtm/client/dtmcli/dtmimp"
@@ -23,7 +24,9 @@ import (
 	"github.com/dtm-labs/dtm/client/dtmgrpc/dtmgpb"
 	"github.com/dtm-labs/dtm/client/workflow"
 	grpc "google.golang.org/grpc"
+	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/credentials/insecure"
+	status "google.golang.org/grpc/status"
 	emptypb "google.golang.org/protobuf/types/known/emptypb"
 )
 
@@ -36,25 +39,25 @@ var DtmClient dtmgpb.DtmClient
 // BusiCli grpc client for busi
 var BusiCli BusiClient
 
+func retry(ctx context.Context, method string, req, reply interface{}, cc *grpc.ClientConn, invoker grpc.UnaryInvoker, opts ...grpc.CallOption) error {
+	logger.Debugf("in retry interceptor")
+	err := invoker(ctx, method, req, reply, cc, opts...)
+	if st, _ := status.FromError(err); st != nil && st.Code() == codes.Unavailable {
+		time.Sleep(10 * time.Millisecond)
+		logger.Errorf("invoker return err: %v", err)
+		err = invoker(ctx, method, req, reply, cc, opts...)
+	}
+	return err
+}
+
 // GrpcStartup for grpc
 func GrpcStartup() *grpc.Server {
 	conn, err := grpc.Dial(dtmutil.DefaultGrpcServer, grpc.WithTransportCredentials(insecure.NewCredentials()), grpc.WithUnaryInterceptor(dtmgimp.GrpcClientLog))
 	logger.FatalIfError(err)
 	DtmClient = dtmgpb.NewDtmClient(conn)
 	logger.Debugf("dtm client inited")
-	retryPolicy := `{
-		"methodConfig": [{
-				"waitForReady": true,
-				"retryPolicy": {
-						"MaxAttempts": 2,
-						"InitialBackoff": ".01s",
-						"MaxBackoff": ".01s",
-						"BackoffMultiplier": 1.0,
-						"RetryableStatusCodes": [ "UNAVAILABLE" ]
-				}
-		}]
-}`
-	conn1, err := grpc.Dial(BusiGrpc, grpc.WithTransportCredentials(insecure.NewCredentials()), grpc.WithUnaryInterceptor(workflow.Interceptor), grpc.WithDefaultServiceConfig(retryPolicy))
+	// in github actions, the call is failed sometime, so add a retry
+	conn1, err := grpc.Dial(BusiGrpc, grpc.WithTransportCredentials(insecure.NewCredentials()), grpc.WithChainUnaryInterceptor(workflow.Interceptor, retry))
 	logger.FatalIfError(err)
 	BusiCli = NewBusiClient(conn1)
 
