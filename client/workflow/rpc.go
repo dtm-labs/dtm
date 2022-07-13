@@ -27,13 +27,19 @@ func (wf *Workflow) getProgress() ([]*dtmgpb.DtmProgress, error) {
 	return reply.Progresses, err
 }
 
-func (wf *Workflow) submit(status string) error {
+func (wf *Workflow) submit(err error) error {
+	status := wfErrorToStatus(err)
+	reason := ""
+	if err != nil {
+		reason = err.Error()
+	}
 	if wf.Protocol == dtmimp.ProtocolHTTP {
 		m := map[string]interface{}{
 			"gid":        wf.Gid,
 			"trans_type": wf.TransType,
 			"req_extra": map[string]string{
-				"status": status,
+				"status":          status,
+				"rollback_reason": reason,
 			},
 		}
 		_, err := dtmimp.TransCallDtmExt(wf.TransBase, m, "submit")
@@ -41,7 +47,8 @@ func (wf *Workflow) submit(status string) error {
 	}
 	req := dtmgimp.GetDtmRequest(wf.TransBase)
 	req.ReqExtra = map[string]string{
-		"status": status,
+		"status":          status,
+		"rollback_reason": reason,
 	}
 	reply := emptypb.Empty{}
 	return dtmgimp.MustGetGrpcConn(wf.Dtm, false).Invoke(wf.Context, "/dtmgimp.Dtm/"+"Submit", req, &reply)

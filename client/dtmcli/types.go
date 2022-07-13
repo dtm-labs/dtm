@@ -30,16 +30,6 @@ func GetCurrentDBType() string {
 	return dtmimp.GetCurrentDBType()
 }
 
-// SetXaSQLTimeoutMs set XaSQLTimeoutMs
-func SetXaSQLTimeoutMs(ms int) {
-	dtmimp.XaSQLTimeoutMs = ms
-}
-
-// GetXaSQLTimeoutMs get XaSQLTimeoutMs
-func GetXaSQLTimeoutMs() int {
-	return dtmimp.XaSQLTimeoutMs
-}
-
 // SetBarrierTableName sets barrier table name
 func SetBarrierTableName(tablename string) {
 	dtmimp.BarrierTableName = tablename

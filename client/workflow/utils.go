@@ -3,7 +3,6 @@ package workflow
 import (
 	"bytes"
 	"errors"
-	"fmt"
 	"io/ioutil"
 	"net/http"
 	"strconv"
@@ -75,9 +74,9 @@ func HTTPResp2DtmError(resp *http.Response) ([]byte, error) {
 	data, err := ioutil.ReadAll(resp.Body)
 	resp.Body = ioutil.NopCloser(bytes.NewBuffer(data))
 	if code == http.StatusTooEarly {
-		return data, fmt.Errorf("%s. %w", string(data), dtmcli.ErrOngoing)
+		return data, dtmcli.ErrorMessage2Error(string(data), dtmcli.ErrOngoing)
 	} else if code == http.StatusConflict {
-		return data, fmt.Errorf("%s. %w", string(data), dtmcli.ErrFailure)
+		return data, dtmcli.ErrorMessage2Error(string(data), dtmcli.ErrFailure)
 	} else if err == nil && code != http.StatusOK {
 		return data, errors.New(string(data))
 	}
@@ -88,9 +87,9 @@ func HTTPResp2DtmError(resp *http.Response) ([]byte, error) {
 func GrpcError2DtmError(err error) error {
 	st, _ := status.FromError(err)
 	if st != nil && st.Code() == codes.Aborted {
-		return fmt.Errorf("%s. %w", st.Message(), dtmcli.ErrFailure)
+		return dtmcli.ErrorMessage2Error(st.Message(), dtmcli.ErrFailure)
 	} else if st != nil && st.Code() == codes.FailedPrecondition {
-		return fmt.Errorf("%s. %w", st.Message(), dtmcli.ErrOngoing)
+		return dtmcli.ErrorMessage2Error(st.Message(), dtmcli.ErrOngoing)
 	}
 	return err
 }
@@ -113,7 +112,7 @@ func (wf *Workflow) stepResultFromGrpc(reply interface{}, err error) *stepResult
 	if sr.Error == nil {
 		sr.Data = dtmgimp.MustProtoMarshal(reply.(protoreflect.ProtoMessage))
 	} else if sr.Status == dtmcli.StatusFailed {
-		sr.Data = []byte(sr.Error.Error())
+		sr.Data = []byte(err.Error())
 	}
 	return sr
 }

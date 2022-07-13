@@ -22,7 +22,7 @@ var Version = ""
 func svcSubmit(t *TransGlobal) interface{} {
 	if t.TransType == "workflow" {
 		t.Status = dtmcli.StatusPrepared
-		t.changeStatus(t.ReqExtra["status"])
+		t.changeStatus(t.ReqExtra["status"], withRollbackReason(t.ReqExtra["rollback_reason"]))
 		return nil
 	}
 	t.Status = dtmcli.StatusSubmitted

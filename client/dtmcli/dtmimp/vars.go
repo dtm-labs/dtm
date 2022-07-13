@@ -24,9 +24,6 @@ var ErrOngoing = errors.New("ONGOING")
 // if QueryPrepared executed before call. then DoAndSubmit return this error
 var ErrDuplicated = errors.New("DUPLICATED")
 
-// XaSQLTimeoutMs milliseconds for Xa sql to timeout
-var XaSQLTimeoutMs = 15000
-
 // MapSuccess HTTP result of SUCCESS
 var MapSuccess = map[string]interface{}{"dtm_result": ResultSuccess}
 
