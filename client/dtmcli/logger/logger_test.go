@@ -4,6 +4,7 @@ import (
 	"os"
 	"testing"
 
+	"github.com/stretchr/testify/assert"
 	"go.uber.org/zap"
 )
 
@@ -36,4 +37,10 @@ func TestWithLogger(t *testing.T) {
 	Errorf("a error msg")
 	FatalfIf(false, "nothing")
 	FatalIfError(nil)
+}
+
+func TestCover(t *testing.T) {
+	sin := lumberjackSink{}
+	err := sin.Sync()
+	assert.Nil(t, err)
 }

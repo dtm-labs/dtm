@@ -25,10 +25,7 @@ type cWorkflowCustom struct {
 }
 
 func (t *transWorkflowProcessor) ProcessOnce(branches []TransBranch) error {
-	if t.Status == dtmcli.StatusSubmitted { // client workflow finished
-		t.changeStatus(dtmcli.StatusSucceed)
-		return nil
-	} else if t.Status == dtmcli.StatusFailed || t.Status == dtmcli.StatusSucceed {
+	if t.Status == dtmcli.StatusFailed || t.Status == dtmcli.StatusSucceed {
 		return nil
 	}
 
