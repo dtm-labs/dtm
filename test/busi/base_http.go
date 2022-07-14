@@ -125,7 +125,7 @@ func BaseAddRoute(app *gin.Engine) {
 
 	app.GET(BusiAPI+"/QueryPrepared", dtmutil.WrapHandler(func(c *gin.Context) interface{} {
 		logger.Debugf("%s QueryPrepared", c.Query("gid"))
-		return dtmcli.String2DtmError(dtmimp.OrString(MainSwitch.QueryPreparedResult.Fetch(), dtmcli.ResultSuccess))
+		return string2DtmError(dtmimp.OrString(MainSwitch.QueryPreparedResult.Fetch(), dtmcli.ResultSuccess))
 	}))
 	app.GET(BusiAPI+"/QueryPreparedB", dtmutil.WrapHandler(func(c *gin.Context) interface{} {
 		logger.Debugf("%s QueryPreparedB", c.Query("gid"))

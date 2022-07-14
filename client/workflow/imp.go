@@ -39,7 +39,7 @@ func (wf *Workflow) loadProgresses() error {
 				Data:   p.BinData,
 			}
 			if sr.Status == dtmcli.StatusFailed {
-				sr.Error = fmt.Errorf("%s. %w", string(p.BinData), dtmcli.ErrFailure)
+				sr.Error = dtmcli.ErrorMessage2Error(string(p.BinData), dtmcli.ErrFailure)
 			}
 			wf.progresses[p.BranchID+"-"+p.Op] = sr
 		}

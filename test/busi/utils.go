@@ -72,6 +72,16 @@ func MustBarrierFromGrpc(ctx context.Context) *dtmcli.BranchBarrier {
 	return ti
 }
 
+// string2DtmError translate string to dtm error
+func string2DtmError(str string) error {
+	return map[string]error{
+		dtmcli.ResultFailure: dtmcli.ErrFailure,
+		dtmcli.ResultOngoing: dtmcli.ErrOngoing,
+		dtmcli.ResultSuccess: nil,
+		"":                   nil,
+	}[str]
+}
+
 // SetGrpcHeaderForHeadersYes interceptor to set head for HeadersYes
 func SetGrpcHeaderForHeadersYes(ctx context.Context, method string, req, reply interface{}, cc *grpc.ClientConn, invoker grpc.UnaryInvoker, opts ...grpc.CallOption) error {
 	if r, ok := req.(*dtmgpb.DtmRequest); ok && strings.HasSuffix(r.Gid, "HeadersYes") {

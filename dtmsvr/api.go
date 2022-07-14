@@ -123,7 +123,7 @@ func svcRegisterBranch(transType string, branch *TransBranch, data map[string]st
 	if err == storage.ErrNotFound {
 		msg := fmt.Sprintf("no trans with gid: %s status: %s found", branch.Gid, dtmcli.StatusPrepared)
 		logger.Errorf(msg)
-		return fmt.Errorf("message: %s %w", msg, dtmcli.ErrFailure)
+		return dtmcli.ErrorMessage2Error(msg, dtmcli.ErrFailure)
 	}
 	logger.Infof("LockGlobalSaveBranches result: %v: gid: %s old status: %s branches: %s",
 		err, branch.Gid, dtmcli.StatusPrepared, dtmimp.MustMarshalString(branches))

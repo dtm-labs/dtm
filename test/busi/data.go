@@ -67,7 +67,7 @@ func handleGeneralBusiness(c *gin.Context, result1 string, result2 string, busi 
 	if res == dtmimp.ResultFailure {
 		return fmt.Errorf("reason:%s. %w", MainSwitch.FailureReason.Fetch(), dtmimp.ErrFailure)
 	}
-	return dtmcli.String2DtmError(res)
+	return string2DtmError(res)
 }
 
 // old business handler. for compatible usage

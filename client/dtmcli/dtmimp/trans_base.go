@@ -152,9 +152,6 @@ func TransRequestBranch(t *TransBase, method string, body interface{}, branchID 
 		SetQueryParams(query).
 		SetHeaders(t.BranchHeaders).
 		Execute(method, url)
-	if err == nil {
-		err = RespAsErrorCompatible(resp)
-	}
 	return resp, err
 }
 

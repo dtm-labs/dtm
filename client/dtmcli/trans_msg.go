@@ -69,7 +69,7 @@ func (s *Msg) DoAndSubmit(queryPrepared string, busiCall func(bb *BranchBarrier)
 		errb := busiCall(bb)
 		if errb != nil && !errors.Is(errb, ErrFailure) {
 			// if busicall return an error other than failure, we will query the result
-			_, err = dtmimp.TransRequestBranch(&s.TransBase, "GET", nil, bb.BranchID, bb.Op, queryPrepared)
+			_, err = requestBranch(&s.TransBase, "GET", nil, bb.BranchID, bb.Op, queryPrepared)
 		}
 		if errors.Is(errb, ErrFailure) || errors.Is(err, ErrFailure) {
 			_ = dtmimp.TransCallDtm(&s.TransBase, "abort")

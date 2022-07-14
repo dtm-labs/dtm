@@ -20,22 +20,27 @@ func MustGenGid(server string) string {
 	return res["gid"]
 }
 
-// String2DtmError translate string to dtm error
-func String2DtmError(str string) error {
-	return map[string]error{
-		ResultFailure: ErrFailure,
-		ResultOngoing: ErrOngoing,
-		ResultSuccess: nil,
-		"":            nil,
-	}[str]
-}
-
-// ErrorMessage2Error return an error fmt.Errorf("%s. %w", errMsg, err) but trim out duplicate wrap
+// ErrorMessage2Error return an error fmt.Errorf("%s %w", errMsg, err) but trim out duplicate wrap
 // eg. ErrorMessage2Error("an error. FAILURE", ErrFailure) return an error with message: "an error. FAILURE",
 // no additional ". FAILURE" added
 func ErrorMessage2Error(errMsg string, err error) error {
-	errMsg = strings.TrimSuffix(errMsg, ". "+err.Error())
-	return fmt.Errorf("%s. %w", errMsg, err)
+	errMsg = strings.TrimSuffix(errMsg, " "+err.Error())
+	return fmt.Errorf("%s %w", errMsg, err)
+}
+
+// HTTPResp2DtmError translate a resty response to error
+// compatible with version < v1.10
+func HTTPResp2DtmError(resp *resty.Response) error {
+	code := resp.StatusCode()
+	str := resp.String()
+	if code == http.StatusTooEarly || strings.Contains(str, ResultOngoing) {
+		return ErrorMessage2Error(str, ErrOngoing)
+	} else if code == http.StatusConflict || strings.Contains(str, ResultFailure) {
+		return ErrorMessage2Error(str, ErrFailure)
+	} else if code != http.StatusOK {
+		return errors.New(str)
+	}
+	return nil
 }
 
 // Result2HttpJSON return the http code and json result
@@ -60,12 +65,10 @@ func Result2HttpJSON(result interface{}) (code int, res interface{}) {
 	return
 }
 
-// IsRollback returns whether the result is indicating rollback
-func IsRollback(resp *resty.Response, err error) bool {
-	return err == ErrFailure || dtmimp.RespAsErrorCompatible(resp) == ErrFailure
-}
-
-// IsOngoing returns whether the result is indicating ongoing
-func IsOngoing(resp *resty.Response, err error) bool {
-	return err == ErrOngoing || dtmimp.RespAsErrorCompatible(resp) == ErrOngoing
+func requestBranch(t *dtmimp.TransBase, method string, body interface{}, branchID string, op string, url string) (*resty.Response, error) {
+	resp, err := dtmimp.TransRequestBranch(t, method, body, branchID, op, url)
+	if err == nil {
+		err = HTTPResp2DtmError(resp)
+	}
+	return resp, err
 }

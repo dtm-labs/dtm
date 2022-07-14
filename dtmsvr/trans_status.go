@@ -135,7 +135,7 @@ func (t *TransGlobal) getHTTPResult(uri string, branchID, op string, branchPaylo
 	if err != nil {
 		return err
 	}
-	return dtmimp.RespAsErrorCompatible(resp)
+	return dtmcli.HTTPResp2DtmError(resp)
 }
 
 func (t *TransGlobal) getJSONRPCResult(uri string, branchID, op string, branchPayload []byte) error {
@@ -158,7 +158,7 @@ func (t *TransGlobal) getJSONRPCResult(uri string, branchID, op string, branchPa
 		SetHeaders(t.TransOptions.BranchHeaders).
 		Post(uri)
 	if err == nil {
-		err = dtmimp.RespAsErrorCompatible(resp)
+		err = dtmcli.HTTPResp2DtmError(resp)
 	}
 	if err == nil {
 		err = dtmimp.RespAsErrorByJSONRPC(resp)

@@ -71,5 +71,5 @@ func (t *Tcc) CallBranch(body interface{}, tryURL string, confirmURL string, can
 	if err != nil {
 		return nil, err
 	}
-	return dtmimp.TransRequestBranch(&t.TransBase, "POST", body, branchID, dtmimp.OpTry, tryURL)
+	return requestBranch(&t.TransBase, "POST", body, branchID, dtmimp.OpTry, tryURL)
 }

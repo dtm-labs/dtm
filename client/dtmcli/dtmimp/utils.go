@@ -11,7 +11,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"net/http"
 	"net/url"
 	"os"
 	"runtime"
@@ -216,21 +215,6 @@ func GetDsn(conf DBConf) string {
 	}[driver]
 	PanicIf(dsn == "", fmt.Errorf("unknow driver: %s", driver))
 	return dsn
-}
-
-// RespAsErrorCompatible translate a resty response to error
-// compatible with version < v1.10
-func RespAsErrorCompatible(resp *resty.Response) error {
-	code := resp.StatusCode()
-	str := resp.String()
-	if code == http.StatusTooEarly || strings.Contains(str, ResultOngoing) {
-		return fmt.Errorf("%s. %w", str, ErrOngoing)
-	} else if code == http.StatusConflict || strings.Contains(str, ResultFailure) {
-		return fmt.Errorf("%s. %w", str, ErrFailure)
-	} else if code != http.StatusOK {
-		return errors.New(str)
-	}
-	return nil
 }
 
 // RespAsErrorByJSONRPC  translate json rpc resty response to error

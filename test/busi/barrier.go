@@ -10,7 +10,6 @@ import (
 	"context"
 	"database/sql"
 
-	"github.com/dtm-labs/dtm/client/dtmcli"
 	"github.com/dtm-labs/dtm/client/dtmgrpc"
 	"github.com/dtm-labs/dtm/dtmutil"
 	"github.com/gin-gonic/gin"
@@ -80,7 +79,7 @@ func init() {
 		app.POST(BusiAPI+"/TccBTransInTry", dtmutil.WrapHandler(func(c *gin.Context) interface{} {
 			req := reqFrom(c)
 			if req.TransInResult != "" {
-				return dtmcli.String2DtmError(req.TransInResult)
+				return string2DtmError(req.TransInResult)
 			}
 			return MustBarrierFromGin(c).CallWithDB(pdbGet(), func(tx *sql.Tx) error {
 				return tccAdjustTrading(tx, TransInUID, req.Amount)
@@ -159,7 +158,7 @@ func init() {
 		app.POST(BusiAPI+"/TccBTransOutTry", dtmutil.WrapHandler(func(c *gin.Context) interface{} {
 			req := reqFrom(c)
 			if req.TransOutResult != "" {
-				return dtmcli.String2DtmError(req.TransOutResult)
+				return string2DtmError(req.TransOutResult)
 			}
 			bb := MustBarrierFromGin(c)
 			if req.Store == Redis {
