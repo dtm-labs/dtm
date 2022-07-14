@@ -42,8 +42,8 @@ func retry(ctx context.Context, method string, req, reply interface{}, cc *grpc.
 	logger.Debugf("in retry interceptor")
 	err := invoker(ctx, method, req, reply, cc, opts...)
 	if st, _ := status.FromError(err); st != nil && st.Code() == codes.Unavailable {
-		time.Sleep(10 * time.Millisecond)
 		logger.Errorf("invoker return err: %v", err)
+		time.Sleep(50 * time.Millisecond)
 		err = invoker(ctx, method, req, reply, cc, opts...)
 	}
 	return err
