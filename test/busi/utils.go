@@ -42,7 +42,8 @@ func txGet() *sql.Tx {
 	return tx
 }
 
-func resetXaData() {
+// ResetXaData will rollback all pending xa transaction
+func ResetXaData() {
 	if BusiConf.Driver != "mysql" {
 		return
 	}
