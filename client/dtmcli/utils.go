@@ -22,7 +22,7 @@ func MustGenGid(server string) string {
 
 // ErrorMessage2Error return an error fmt.Errorf("%s %w", errMsg, err) but trim out duplicate wrap
 // eg. ErrorMessage2Error("an error. FAILURE", ErrFailure) return an error with message: "an error. FAILURE",
-// no additional ". FAILURE" added
+// no additional " FAILURE" added
 func ErrorMessage2Error(errMsg string, err error) error {
 	errMsg = strings.TrimSuffix(errMsg, " "+err.Error())
 	return fmt.Errorf("%s %w", errMsg, err)
