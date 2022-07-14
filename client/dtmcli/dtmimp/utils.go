@@ -185,7 +185,7 @@ func XaDB(conf DBConf) (*sql.DB, error) {
 	return sql.Open(conf.Driver, dsn)
 }
 
-// XaClose
+// XaClose will log and close the db
 func XaClose(db *sql.DB) {
 	logger.Infof("closing xa db")
 	_ = db.Close()
