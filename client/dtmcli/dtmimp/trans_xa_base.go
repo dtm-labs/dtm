@@ -37,7 +37,7 @@ func XaHandleLocalTrans(xa *TransBase, dbConf DBConf, cb func(*sql.DB) error) (r
 	if rerr != nil {
 		return
 	}
-	defer func() { _ = db.Close() }()
+	defer XaClose(db)
 	defer DeferDo(&rerr, func() error {
 		_, err := DBExec(dbConf.Driver, db, GetDBSpecial(dbConf.Driver).GetXaSQL("prepare", xaBranch))
 		return err

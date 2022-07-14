@@ -181,8 +181,14 @@ func XaDB(conf DBConf) (*sql.DB, error) {
 	if conf.Driver == DBTypeMysql {
 		dsn += "&autocommit=0"
 	}
-	logger.Infof("opening standalone %s: %s", conf.Driver, strings.Replace(dsn, conf.Password, "****", 1))
+	logger.Infof("opening xa standalone %s: %s", conf.Driver, strings.Replace(dsn, conf.Password, "****", 1))
 	return sql.Open(conf.Driver, dsn)
+}
+
+// XaClose
+func XaClose(db *sql.DB) {
+	logger.Infof("closing xa db")
+	_ = db.Close()
 }
 
 // DBExec use raw db to exec
