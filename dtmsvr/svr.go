@@ -22,6 +22,8 @@ import (
 	"github.com/dtm-labs/dtm/dtmutil"
 	"github.com/dtm-labs/dtmdriver"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 )
 
 // StartSvr StartSvr
@@ -56,7 +58,7 @@ func StartSvr() *gin.Engine {
 	// start grpc server
 	lis, err := net.Listen("tcp", fmt.Sprintf(":%d", conf.GrpcPort))
 	logger.FatalIfError(err)
-	s := grpc.NewServer(grpc.ChainUnaryInterceptor(grpcMetrics, dtmgimp.GrpcServerLog))
+	s := grpc.NewServer(grpc.ChainUnaryInterceptor(grpcRecover, grpcMetrics, dtmgimp.GrpcServerLog))
 	dtmgpb.RegisterDtmServer(s, &dtmServer{})
 	logger.Infof("grpc listening at %v", lis.Addr())
 	go func() {
@@ -135,4 +137,14 @@ func updateBranchAsync() {
 	for { // flush branches every 200ms
 		flushBranchs()
 	}
+}
+
+func grpcRecover(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (res interface{}, rerr error) {
+	defer func() {
+		if x := recover(); x != nil {
+			rerr = status.Errorf(codes.Internal, "%v", x)
+		}
+	}()
+	res, rerr = handler(ctx, req)
+	return
 }

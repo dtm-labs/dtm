@@ -19,7 +19,7 @@ import (
 )
 
 func TestWorkflowGrpcSimple(t *testing.T) {
-	workflow.SetProtocolForTest(dtmimp.ProtocolHTTP)
+	workflow.SetProtocolForTest(dtmimp.ProtocolGRPC)
 	req := &busi.ReqGrpc{Amount: 30, TransInResult: "FAILURE"}
 	gid := dtmimp.GetFuncName()
 	workflow.Register(gid, func(wf *workflow.Workflow, data []byte) error {
@@ -33,7 +33,7 @@ func TestWorkflowGrpcSimple(t *testing.T) {
 		return err
 	})
 	err := workflow.Execute(gid, gid, dtmgimp.MustProtoMarshal(req))
-	assert.Error(t, err, dtmcli.ErrFailure)
+	assert.Error(t, err)
 	assert.Equal(t, StatusFailed, getTransStatus(gid))
 }
 
