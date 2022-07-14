@@ -5,7 +5,9 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"time"
 
+	"github.com/dtm-labs/dtm/client/dtmcli/dtmimp"
 	"github.com/dtm-labs/dtm/client/dtmcli/logger"
 	"github.com/dtm-labs/dtm/dtmsvr"
 	"github.com/dtm-labs/dtm/dtmsvr/config"
@@ -43,6 +45,9 @@ func Main(version *string) (*gin.Engine, *config.Type) {
 	}
 	logger.Infof("dtm version is: %s", *version)
 	config.MustLoadConfig(*confFile)
+	if config.Config.TimeZoneOffset != "" {
+		time.Local = time.FixedZone("UTC", dtmimp.MustAtoi(config.Config.TimeZoneOffset)*3600)
+	}
 	conf := &config.Config
 	if *isDebug {
 		conf.LogLevel = "debug"
