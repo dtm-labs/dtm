@@ -10,10 +10,10 @@ import (
 	"database/sql"
 	"testing"
 
-	"github.com/dtm-labs/dtm/dtmcli"
-	"github.com/dtm-labs/dtm/dtmcli/dtmimp"
-	"github.com/dtm-labs/dtm/dtmcli/logger"
-	"github.com/dtm-labs/dtm/dtmgrpc/workflow"
+	"github.com/dtm-labs/dtm/client/dtmcli"
+	"github.com/dtm-labs/dtm/client/dtmcli/dtmimp"
+	"github.com/dtm-labs/dtm/client/dtmcli/logger"
+	"github.com/dtm-labs/dtm/client/workflow"
 	"github.com/dtm-labs/dtm/test/busi"
 	"github.com/stretchr/testify/assert"
 )
@@ -33,10 +33,11 @@ func TestWorkflowXaAction(t *testing.T) {
 		})
 		return err
 	})
+	before := getBeforeBalances("mysql")
 	err := workflow.Execute(gid, gid, nil)
 	assert.Nil(t, err)
-	waitTransProcessed(gid)
 	assert.Equal(t, StatusSucceed, getTransStatus(gid))
+	assertNotSameBalance(t, before, "mysql")
 }
 
 func TestWorkflowXaRollback(t *testing.T) {
@@ -56,8 +57,9 @@ func TestWorkflowXaRollback(t *testing.T) {
 		})
 		return err
 	})
+	before := getBeforeBalances("mysql")
 	err := workflow.Execute(gid, gid, nil)
 	assert.Equal(t, dtmcli.ErrFailure, err)
-	waitTransProcessed(gid)
 	assert.Equal(t, StatusFailed, getTransStatus(gid))
+	assertSameBalance(t, before, "mysql")
 }

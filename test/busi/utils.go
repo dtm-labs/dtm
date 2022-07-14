@@ -9,11 +9,11 @@ import (
 	sync "sync"
 	"time"
 
-	"github.com/dtm-labs/dtm/dtmcli"
-	"github.com/dtm-labs/dtm/dtmcli/dtmimp"
-	"github.com/dtm-labs/dtm/dtmcli/logger"
-	"github.com/dtm-labs/dtm/dtmgrpc"
-	"github.com/dtm-labs/dtm/dtmgrpc/dtmgpb"
+	"github.com/dtm-labs/dtm/client/dtmcli"
+	"github.com/dtm-labs/dtm/client/dtmcli/dtmimp"
+	"github.com/dtm-labs/dtm/client/dtmcli/logger"
+	"github.com/dtm-labs/dtm/client/dtmgrpc"
+	"github.com/dtm-labs/dtm/client/dtmgrpc/dtmgpb"
 	"github.com/dtm-labs/dtm/dtmutil"
 	"github.com/gin-gonic/gin"
 	"github.com/go-redis/redis/v8"
@@ -70,6 +70,16 @@ func MustBarrierFromGrpc(ctx context.Context) *dtmcli.BranchBarrier {
 	ti, err := dtmgrpc.BarrierFromGrpc(ctx)
 	logger.FatalIfError(err)
 	return ti
+}
+
+// string2DtmError translate string to dtm error
+func string2DtmError(str string) error {
+	return map[string]error{
+		dtmcli.ResultFailure: dtmcli.ErrFailure,
+		dtmcli.ResultOngoing: dtmcli.ErrOngoing,
+		dtmcli.ResultSuccess: nil,
+		"":                   nil,
+	}[str]
 }
 
 // SetGrpcHeaderForHeadersYes interceptor to set head for HeadersYes

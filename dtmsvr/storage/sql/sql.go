@@ -11,7 +11,7 @@ import (
 	"math"
 	"time"
 
-	"github.com/dtm-labs/dtm/dtmcli/dtmimp"
+	"github.com/dtm-labs/dtm/client/dtmcli/dtmimp"
 	"github.com/dtm-labs/dtm/dtmsvr/config"
 	"github.com/dtm-labs/dtm/dtmsvr/storage"
 	"github.com/dtm-labs/dtm/dtmutil"
@@ -77,7 +77,7 @@ func (s *Store) FindBranches(gid string) []storage.TransBranchStore {
 // UpdateBranches update branches info
 func (s *Store) UpdateBranches(branches []storage.TransBranchStore, updates []string) (int, error) {
 	db := dbGet().Clauses(clause.OnConflict{
-		OnConstraint: "trans_branch_op_pkey",
+		OnConstraint: "gid_branch_uniq",
 		DoUpdates:    clause.AssignmentColumns(updates),
 	}).Create(branches)
 	return int(db.RowsAffected), db.Error

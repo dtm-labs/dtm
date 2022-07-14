@@ -7,11 +7,11 @@ import (
 	"strings"
 	"time"
 
-	"github.com/dtm-labs/dtm/dtmcli"
-	"github.com/dtm-labs/dtm/dtmcli/dtmimp"
-	"github.com/dtm-labs/dtm/dtmcli/logger"
-	"github.com/dtm-labs/dtm/dtmgrpc"
-	"github.com/dtm-labs/dtm/dtmgrpc/dtmgimp"
+	"github.com/dtm-labs/dtm/client/dtmcli"
+	"github.com/dtm-labs/dtm/client/dtmcli/dtmimp"
+	"github.com/dtm-labs/dtm/client/dtmcli/logger"
+	"github.com/dtm-labs/dtm/client/dtmgrpc"
+	"github.com/dtm-labs/dtm/client/dtmgrpc/dtmgimp"
 	"github.com/dtm-labs/dtm/dtmutil"
 	"github.com/dtm-labs/dtmdriver"
 	"github.com/lithammer/shortuuid/v3"
@@ -81,7 +81,7 @@ func (t *TransGlobal) changeBranchStatus(b *TransBranch, status string, branchPo
 		logger.Infof("LockGlobalSaveBranches ok: gid: %s old status: %s branches: %s",
 			b.Gid, dtmcli.StatusPrepared, b.String())
 	} else { // for better performance, batch the updates of branch status
-		updateBranchAsyncChan <- branchStatus{id: b.ID, gid: t.Gid, branchID: b.BranchID, op: b.Op, status: status, finishTime: &now}
+		updateBranchAsyncChan <- branchStatus{gid: t.Gid, branchID: b.BranchID, op: b.Op, status: status, finishTime: &now}
 	}
 }
 
@@ -135,7 +135,7 @@ func (t *TransGlobal) getHTTPResult(uri string, branchID, op string, branchPaylo
 	if err != nil {
 		return err
 	}
-	return dtmimp.RespAsErrorCompatible(resp)
+	return dtmcli.HTTPResp2DtmError(resp)
 }
 
 func (t *TransGlobal) getJSONRPCResult(uri string, branchID, op string, branchPayload []byte) error {
@@ -158,7 +158,7 @@ func (t *TransGlobal) getJSONRPCResult(uri string, branchID, op string, branchPa
 		SetHeaders(t.TransOptions.BranchHeaders).
 		Post(uri)
 	if err == nil {
-		err = dtmimp.RespAsErrorCompatible(resp)
+		err = dtmcli.HTTPResp2DtmError(resp)
 	}
 	if err == nil {
 		err = dtmimp.RespAsErrorByJSONRPC(resp)

@@ -1,10 +1,10 @@
 package dtmsvr
 
 import (
-	"github.com/dtm-labs/dtm/dtmcli"
-	"github.com/dtm-labs/dtm/dtmcli/dtmimp"
-	"github.com/dtm-labs/dtm/dtmgrpc/dtmgimp"
-	"github.com/dtm-labs/dtm/dtmgrpc/workflow/wfpb"
+	"github.com/dtm-labs/dtm/client/dtmcli"
+	"github.com/dtm-labs/dtm/client/dtmcli/dtmimp"
+	"github.com/dtm-labs/dtm/client/dtmgrpc/dtmgimp"
+	"github.com/dtm-labs/dtm/client/workflow/wfpb"
 )
 
 type transWorkflowProcessor struct {
@@ -25,10 +25,7 @@ type cWorkflowCustom struct {
 }
 
 func (t *transWorkflowProcessor) ProcessOnce(branches []TransBranch) error {
-	if t.Status == dtmcli.StatusSubmitted { // client workflow finished
-		t.changeStatus(dtmcli.StatusSucceed)
-		return nil
-	} else if t.Status == dtmcli.StatusFailed || t.Status == dtmcli.StatusSucceed {
+	if t.Status == dtmcli.StatusFailed || t.Status == dtmcli.StatusSucceed {
 		return nil
 	}
 

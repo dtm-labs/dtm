@@ -11,9 +11,9 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/dtm-labs/dtm/dtmcli"
-	"github.com/dtm-labs/dtm/dtmcli/dtmimp"
-	"github.com/dtm-labs/dtm/dtmcli/logger"
+	"github.com/dtm-labs/dtm/client/dtmcli"
+	"github.com/dtm-labs/dtm/client/dtmcli/dtmimp"
+	"github.com/dtm-labs/dtm/client/dtmcli/logger"
 	"github.com/dtm-labs/dtm/dtmutil"
 )
 
@@ -49,7 +49,7 @@ func (t *TransGlobal) process(branches []TransBranch) error {
 
 	if submitting && t.Status != dtmcli.StatusSucceed {
 		if t.RollbackReason != "" {
-			return fmt.Errorf("%s. %w", t.RollbackReason, dtmcli.ErrFailure)
+			return dtmcli.ErrorMessage2Error(t.RollbackReason, dtmcli.ErrFailure)
 		}
 		return fmt.Errorf("wait result not return success: %w", dtmcli.ErrFailure)
 	}

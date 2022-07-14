@@ -10,11 +10,11 @@ import (
 	"database/sql"
 	"testing"
 
-	"github.com/dtm-labs/dtm/dtmcli"
-	"github.com/dtm-labs/dtm/dtmcli/dtmimp"
-	"github.com/dtm-labs/dtm/dtmcli/logger"
-	"github.com/dtm-labs/dtm/dtmgrpc/dtmgimp"
-	"github.com/dtm-labs/dtm/dtmgrpc/workflow"
+	"github.com/dtm-labs/dtm/client/dtmcli"
+	"github.com/dtm-labs/dtm/client/dtmcli/dtmimp"
+	"github.com/dtm-labs/dtm/client/dtmcli/logger"
+	"github.com/dtm-labs/dtm/client/dtmgrpc/dtmgimp"
+	"github.com/dtm-labs/dtm/client/workflow"
 	"github.com/dtm-labs/dtm/test/busi"
 	"github.com/stretchr/testify/assert"
 )
@@ -49,7 +49,6 @@ func TestWorkflowSimpleResume(t *testing.T) {
 
 	err := workflow.Execute(gid, gid, dtmimp.MustMarshal(req))
 	assert.Error(t, err)
-	go waitTransProcessed(gid)
 	cronTransOnceForwardNow(t, gid, 1000)
 	assert.Equal(t, StatusSucceed, getTransStatus(gid))
 }
@@ -93,6 +92,7 @@ func TestWorkflowGrpcRollbackResume(t *testing.T) {
 	}, func(wf *workflow.Workflow) {
 		wf.Options.CompensateErrorBranch = true
 	})
+	before := getBeforeBalances("mysql")
 	req := &busi.ReqGrpc{Amount: 30, TransInResult: "FAILURE"}
 	err := workflow.Execute(gid, gid, dtmgimp.MustProtoMarshal(req))
 	assert.Error(t, err, dtmcli.ErrOngoing)
@@ -105,10 +105,9 @@ func TestWorkflowGrpcRollbackResume(t *testing.T) {
 	assert.Equal(t, StatusPrepared, getTransStatus(gid))
 	cronTransOnceForwardNow(t, gid, 1000)
 	assert.Equal(t, StatusPrepared, getTransStatus(gid))
-	// next cron will make a workflow submit, and do an additional write to chan, so make an additional read chan
-	go waitTransProcessed(gid)
 	cronTransOnceForwardNow(t, gid, 1000)
 	assert.Equal(t, StatusFailed, getTransStatus(gid))
+	assertSameBalance(t, before, "mysql")
 }
 
 func TestWorkflowXaResume(t *testing.T) {
@@ -140,6 +139,7 @@ func TestWorkflowXaResume(t *testing.T) {
 
 		return err
 	})
+	before := getBeforeBalances("mysql")
 	err := workflow.Execute(gid, gid, nil)
 	assert.Equal(t, dtmcli.ErrOngoing, err)
 
@@ -147,8 +147,7 @@ func TestWorkflowXaResume(t *testing.T) {
 	assert.Equal(t, StatusPrepared, getTransStatus(gid))
 	cronTransOnceForwardNow(t, gid, 1000)
 	assert.Equal(t, StatusPrepared, getTransStatus(gid))
-	// next cron will make a workflow submit, and do an additional write to chan, so make an additional read chan
-	go waitTransProcessed(gid)
 	cronTransOnceForwardNow(t, gid, 1000)
 	assert.Equal(t, StatusSucceed, getTransStatus(gid))
+	assertNotSameBalance(t, before, "mysql")
 }

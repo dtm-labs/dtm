@@ -9,9 +9,9 @@ package dtmsvr
 import (
 	"context"
 
-	"github.com/dtm-labs/dtm/dtmcli"
-	"github.com/dtm-labs/dtm/dtmgrpc"
-	pb "github.com/dtm-labs/dtm/dtmgrpc/dtmgpb"
+	"github.com/dtm-labs/dtm/client/dtmcli"
+	"github.com/dtm-labs/dtm/client/dtmgrpc"
+	pb "github.com/dtm-labs/dtm/client/dtmgrpc/dtmgpb"
 	"google.golang.org/protobuf/types/known/emptypb"
 )
 
@@ -50,8 +50,13 @@ func (s *dtmServer) RegisterBranch(ctx context.Context, in *pb.DtmBranchRequest)
 }
 
 func (s *dtmServer) PrepareWorkflow(ctx context.Context, in *pb.DtmRequest) (*pb.DtmProgressesReply, error) {
-	branches, err := svcPrepareWorkflow(TransFromDtmRequest(ctx, in))
+	trans, branches, err := svcPrepareWorkflow(TransFromDtmRequest(ctx, in))
 	reply := &pb.DtmProgressesReply{
+		Transaction: &pb.DtmTransaction{
+			Gid:            trans.Gid,
+			Status:         trans.Status,
+			RollbackReason: trans.RollbackReason,
+		},
 		Progresses: []*pb.DtmProgress{},
 	}
 	for _, b := range branches {

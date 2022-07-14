@@ -12,16 +12,18 @@ import (
 	"net"
 	"time"
 
-	"github.com/dtm-labs/dtm/dtmgrpc"
+	"github.com/dtm-labs/dtm/client/dtmgrpc"
 	"github.com/gin-gonic/gin"
 
-	"github.com/dtm-labs/dtm/dtmcli"
-	"github.com/dtm-labs/dtm/dtmcli/logger"
-	"github.com/dtm-labs/dtm/dtmgrpc/dtmgimp"
-	"github.com/dtm-labs/dtm/dtmgrpc/dtmgpb"
+	"github.com/dtm-labs/dtm/client/dtmcli"
+	"github.com/dtm-labs/dtm/client/dtmcli/logger"
+	"github.com/dtm-labs/dtm/client/dtmgrpc/dtmgimp"
+	"github.com/dtm-labs/dtm/client/dtmgrpc/dtmgpb"
 	"github.com/dtm-labs/dtm/dtmutil"
 	"github.com/dtm-labs/dtmdriver"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 )
 
 // StartSvr StartSvr
@@ -56,7 +58,7 @@ func StartSvr() *gin.Engine {
 	// start grpc server
 	lis, err := net.Listen("tcp", fmt.Sprintf(":%d", conf.GrpcPort))
 	logger.FatalIfError(err)
-	s := grpc.NewServer(grpc.ChainUnaryInterceptor(grpcMetrics, dtmgimp.GrpcServerLog))
+	s := grpc.NewServer(grpc.ChainUnaryInterceptor(grpcRecover, grpcMetrics, dtmgimp.GrpcServerLog))
 	dtmgpb.RegisterDtmServer(s, &dtmServer{})
 	logger.Infof("grpc listening at %v", lis.Addr())
 	go func() {
@@ -99,23 +101,27 @@ func updateBranchAsync() {
 	flushBranchs := func() {
 		defer dtmutil.RecoverPanic(nil)
 		updates := []TransBranch{}
+		exists := map[string]bool{}
 		started := time.Now()
 		checkInterval := 20 * time.Millisecond
 		for time.Since(started) < UpdateBranchAsyncInterval-checkInterval && len(updates) < 20 {
 			select {
 			case updateBranch := <-updateBranchAsyncChan:
-				updates = append(updates, TransBranch{
-					ModelBase:  dtmutil.ModelBase{ID: updateBranch.id},
-					Gid:        updateBranch.gid,
-					BranchID:   updateBranch.branchID,
-					Op:         updateBranch.op,
-					Status:     updateBranch.status,
-					FinishTime: updateBranch.finishTime,
-				})
+				k := updateBranch.gid + updateBranch.branchID + "-" + updateBranch.op
+				if !exists[k] { // postgres does not allow
+					exists[k] = true
+					updates = append(updates, TransBranch{
+						Gid:        updateBranch.gid,
+						BranchID:   updateBranch.branchID,
+						Op:         updateBranch.op,
+						Status:     updateBranch.status,
+						FinishTime: updateBranch.finishTime,
+					})
+				}
 			case <-time.After(checkInterval):
 			}
 		}
-		for len(updates) > 0 {
+		for i := 0; i < 3 && len(updates) > 0; i++ {
 			rowAffected, err := GetStore().UpdateBranches(updates, []string{"status", "finish_time", "update_time"})
 
 			if err != nil {
@@ -131,4 +137,15 @@ func updateBranchAsync() {
 	for { // flush branches every 200ms
 		flushBranchs()
 	}
+}
+
+func grpcRecover(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (res interface{}, rerr error) {
+	defer func() {
+		if x := recover(); x != nil {
+			rerr = status.Errorf(codes.Internal, "%v", x)
+			logger.Errorf("dtm server panic: %v", x)
+		}
+	}()
+	res, rerr = handler(ctx, req)
+	return
 }

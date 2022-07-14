@@ -14,7 +14,7 @@ import (
 	. "github.com/onsi/gomega"
 	bolt "go.etcd.io/bbolt"
 
-	"github.com/dtm-labs/dtm/dtmcli/dtmimp"
+	"github.com/dtm-labs/dtm/client/dtmcli/dtmimp"
 	"github.com/dtm-labs/dtm/dtmsvr/storage"
 )
 

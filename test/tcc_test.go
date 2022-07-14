@@ -9,8 +9,8 @@ package test
 import (
 	"testing"
 
-	"github.com/dtm-labs/dtm/dtmcli"
-	"github.com/dtm-labs/dtm/dtmcli/dtmimp"
+	"github.com/dtm-labs/dtm/client/dtmcli"
+	"github.com/dtm-labs/dtm/client/dtmcli/dtmimp"
 	"github.com/dtm-labs/dtm/dtmutil"
 	"github.com/dtm-labs/dtm/test/busi"
 	"github.com/go-resty/resty/v2"
@@ -46,7 +46,7 @@ func TestTccRollback(t *testing.T) {
 	cronTransOnce(t, gid)
 	assert.Equal(t, StatusFailed, getTransStatus(gid))
 	assert.Equal(t, []string{StatusSucceed, StatusPrepared, StatusSucceed, StatusPrepared}, getBranchesStatus(gid))
-	assert.Equal(t, "{\"error\":\"reason:. FAILURE\"}. FAILURE", getTrans(gid).RollbackReason)
+	assert.Contains(t, getTrans(gid).RollbackReason, dtmcli.ResultFailure)
 }
 
 func TestTccTimeout(t *testing.T) {

@@ -10,10 +10,10 @@ import (
 	"database/sql"
 	"testing"
 
-	"github.com/dtm-labs/dtm/dtmcli"
-	"github.com/dtm-labs/dtm/dtmcli/dtmimp"
-	"github.com/dtm-labs/dtm/dtmcli/logger"
-	"github.com/dtm-labs/dtm/dtmgrpc/workflow"
+	"github.com/dtm-labs/dtm/client/dtmcli"
+	"github.com/dtm-labs/dtm/client/dtmcli/dtmimp"
+	"github.com/dtm-labs/dtm/client/dtmcli/logger"
+	"github.com/dtm-labs/dtm/client/workflow"
 	"github.com/dtm-labs/dtm/test/busi"
 	"github.com/stretchr/testify/assert"
 )
@@ -43,7 +43,6 @@ func TestWorkflowNormal(t *testing.T) {
 
 	err := workflow.Execute(gid, gid, dtmimp.MustMarshal(req))
 	assert.Nil(t, err)
-	waitTransProcessed(gid)
 	assert.Equal(t, StatusSucceed, getTransStatus(gid))
 }
 
@@ -81,11 +80,88 @@ func TestWorkflowRollback(t *testing.T) {
 		}
 		return nil
 	})
+	before := getBeforeBalances("mysql")
 
 	err := workflow.Execute(gid, gid, dtmimp.MustMarshal(req))
 	assert.Error(t, err, dtmcli.ErrFailure)
 	assert.Equal(t, StatusFailed, getTransStatus(gid))
-	waitTransProcessed(gid)
+	assertSameBalance(t, before, "mysql")
+}
+
+func TestWorkflowTcc(t *testing.T) {
+	workflow.SetProtocolForTest(dtmimp.ProtocolHTTP)
+	req := busi.GenReqHTTP(30, false, false)
+	gid := dtmimp.GetFuncName()
+
+	workflow.Register(gid, func(wf *workflow.Workflow, data []byte) error {
+		var req busi.ReqHTTP
+		dtmimp.MustUnmarshal(data, &req)
+		_, err := wf.NewBranch().OnRollback(func(bb *dtmcli.BranchBarrier) error {
+			_, err := wf.NewRequest().SetBody(req).Post(Busi + "/TccBTransOutCancel")
+			return err
+		}).OnCommit(func(bb *dtmcli.BranchBarrier) error {
+			_, err := wf.NewRequest().SetBody(req).Post(Busi + "/TccBTransOutConfirm")
+			return err
+		}).NewRequest().SetBody(req).Post(Busi + "/TccBTransOutTry")
+		if err != nil {
+			return err
+		}
+		_, err = wf.NewBranch().OnRollback(func(bb *dtmcli.BranchBarrier) error {
+			_, err := wf.NewRequest().SetBody(req).Post(Busi + "/TccBTransInCancel")
+			return err
+		}).OnCommit(func(bb *dtmcli.BranchBarrier) error {
+			_, err := wf.NewRequest().SetBody(req).Post(Busi + "/TccBTransInConfirm")
+			return err
+		}).NewRequest().SetBody(req).Post(Busi + "/TccBTransInTry")
+		if err != nil {
+			return err
+		}
+		return nil
+	})
+
+	before := getBeforeBalances("mysql")
+	err := workflow.Execute(gid, gid, dtmimp.MustMarshal(req))
+	assert.Nil(t, err)
+	assert.Equal(t, StatusSucceed, getTransStatus(gid))
+	assertNotSameBalance(t, before, "mysql")
+}
+
+func TestWorkflowTccRollback(t *testing.T) {
+	workflow.SetProtocolForTest(dtmimp.ProtocolHTTP)
+	req := busi.GenReqHTTP(30, false, true)
+	gid := dtmimp.GetFuncName()
+
+	workflow.Register(gid, func(wf *workflow.Workflow, data []byte) error {
+		var req busi.ReqHTTP
+		dtmimp.MustUnmarshal(data, &req)
+		_, err := wf.NewBranch().OnRollback(func(bb *dtmcli.BranchBarrier) error {
+			_, err := wf.NewRequest().SetBody(req).Post(Busi + "/TccBTransOutCancel")
+			return err
+		}).OnCommit(func(bb *dtmcli.BranchBarrier) error {
+			_, err := wf.NewRequest().SetBody(req).Post(Busi + "/TccBTransOutConfirm")
+			return err
+		}).NewRequest().SetBody(req).Post(Busi + "/TccBTransOutTry")
+		if err != nil {
+			return err
+		}
+		_, err = wf.NewBranch().OnRollback(func(bb *dtmcli.BranchBarrier) error {
+			_, err := wf.NewRequest().SetBody(req).Post(Busi + "/TccBTransInCancel")
+			return err
+		}).OnCommit(func(bb *dtmcli.BranchBarrier) error {
+			_, err := wf.NewRequest().SetBody(req).Post(Busi + "/TccBTransInConfirm")
+			return err
+		}).NewRequest().SetBody(req).Post(Busi + "/TccBTransInTry")
+		if err != nil {
+			return err
+		}
+		return nil
+	})
+
+	before := getBeforeBalances("mysql")
+	err := workflow.Execute(gid, gid, dtmimp.MustMarshal(req))
+	assert.Error(t, err)
+	assert.Equal(t, StatusFailed, getTransStatus(gid))
+	assertSameBalance(t, before, "mysql")
 }
 
 func TestWorkflowError(t *testing.T) {
@@ -103,7 +179,6 @@ func TestWorkflowError(t *testing.T) {
 
 	err := workflow.Execute(gid, gid, dtmimp.MustMarshal(req))
 	assert.Error(t, err)
-	go waitTransProcessed(gid)
 	cronTransOnceForwardCron(t, gid, 1000)
 	assert.Equal(t, StatusSucceed, getTransStatus(gid))
 }
@@ -123,7 +198,6 @@ func TestWorkflowOngoing(t *testing.T) {
 
 	err := workflow.Execute(gid, gid, dtmimp.MustMarshal(req))
 	assert.Error(t, err)
-	go waitTransProcessed(gid)
 	cronTransOnceForwardCron(t, gid, 1000)
 	assert.Equal(t, StatusSucceed, getTransStatus(gid))
 }

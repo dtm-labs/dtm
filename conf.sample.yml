@@ -68,3 +68,4 @@
 
 ### advanced options
 # UpdateBranchAsyncGoroutineNum: 1 # num of async goroutine to update branch status
+# TimeZoneOffset: '' #default '' using system default. '+8': Asia/Shanghai; '0': GMT

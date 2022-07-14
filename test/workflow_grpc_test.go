@@ -10,16 +10,16 @@ import (
 	"database/sql"
 	"testing"
 
-	"github.com/dtm-labs/dtm/dtmcli"
-	"github.com/dtm-labs/dtm/dtmcli/dtmimp"
-	"github.com/dtm-labs/dtm/dtmgrpc/dtmgimp"
-	"github.com/dtm-labs/dtm/dtmgrpc/workflow"
+	"github.com/dtm-labs/dtm/client/dtmcli"
+	"github.com/dtm-labs/dtm/client/dtmcli/dtmimp"
+	"github.com/dtm-labs/dtm/client/dtmgrpc/dtmgimp"
+	"github.com/dtm-labs/dtm/client/workflow"
 	"github.com/dtm-labs/dtm/test/busi"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestWorkflowGrpcSimple(t *testing.T) {
-	workflow.SetProtocolForTest(dtmimp.ProtocolHTTP)
+	workflow.SetProtocolForTest(dtmimp.ProtocolGRPC)
 	req := &busi.ReqGrpc{Amount: 30, TransInResult: "FAILURE"}
 	gid := dtmimp.GetFuncName()
 	workflow.Register(gid, func(wf *workflow.Workflow, data []byte) error {
@@ -33,12 +33,11 @@ func TestWorkflowGrpcSimple(t *testing.T) {
 		return err
 	})
 	err := workflow.Execute(gid, gid, dtmgimp.MustProtoMarshal(req))
-	assert.Error(t, err, dtmcli.ErrFailure)
+	assert.Error(t, err)
 	assert.Equal(t, StatusFailed, getTransStatus(gid))
-	waitTransProcessed(gid)
 }
 
-func TestWorkflowGrpcNormal(t *testing.T) {
+func TestWorkflowGrpcRollback(t *testing.T) {
 	workflow.SetProtocolForTest(dtmimp.ProtocolGRPC)
 	req := &busi.ReqGrpc{Amount: 30, TransInResult: "FAILURE"}
 	gid := dtmimp.GetFuncName()
@@ -60,52 +59,55 @@ func TestWorkflowGrpcNormal(t *testing.T) {
 		_, err = busi.BusiCli.TransInBSaga(wf.Context, &req)
 		return err
 	})
+	before := getBeforeBalances("mysql")
 	err := workflow.Execute(gid, gid, dtmgimp.MustProtoMarshal(req))
 	assert.Error(t, err, dtmcli.ErrFailure)
 	assert.Equal(t, StatusFailed, getTransStatus(gid))
-	waitTransProcessed(gid)
+	assertSameBalance(t, before, "mysql")
 }
 
 func TestWorkflowMixed(t *testing.T) {
 	workflow.SetProtocolForTest(dtmimp.ProtocolHTTP)
-	req := &busi.ReqGrpc{Amount: 30}
 	gid := dtmimp.GetFuncName()
-	workflow.Register(gid, func(wf *workflow.Workflow, data []byte) error {
+	err := workflow.Register(gid, func(wf *workflow.Workflow, data []byte) error {
 		var req busi.ReqGrpc
 		dtmgimp.MustProtoUnmarshal(data, &req)
 
-		wf.NewBranch().OnRollback(func(bb *dtmcli.BranchBarrier) error {
+		_, err := wf.NewBranch().OnRollback(func(bb *dtmcli.BranchBarrier) error {
 			_, err := busi.BusiCli.TransOutRevertBSaga(wf.Context, &req)
 			return err
+		}).Do(func(bb *dtmcli.BranchBarrier) ([]byte, error) {
+			return nil, bb.CallWithDB(dbGet().ToSQLDB(), func(tx *sql.Tx) error {
+				return busi.SagaAdjustBalance(tx, busi.TransOutUID, int(-req.Amount), "")
+			})
 		})
-		_, err := busi.BusiCli.TransOutBSaga(wf.Context, &req)
 		if err != nil {
 			return err
 		}
 
+		req2 := &busi.ReqHTTP{Amount: int(req.Amount / 2)}
 		_, err = wf.NewBranch().OnCommit(func(bb *dtmcli.BranchBarrier) error {
-			_, err := busi.BusiCli.TransInConfirm(wf.Context, &req)
+			_, err := wf.NewRequest().SetBody(req2).Post(Busi + "/TccBTransInConfirm")
 			return err
 		}).OnRollback(func(bb *dtmcli.BranchBarrier) error {
-			req2 := &busi.ReqHTTP{Amount: 30}
-			_, err := wf.NewRequest().SetBody(req2).Post(Busi + "/TransInRevert")
+			_, err := wf.NewRequest().SetBody(req2).Post(Busi + "/TccBTransInCancel")
 			return err
-		}).Do(func(bb *dtmcli.BranchBarrier) ([]byte, error) {
-			err := busi.SagaAdjustBalance(dbGet().ToSQLDB(), busi.TransInUID, int(req.Amount), "")
-			return nil, err
-		})
+		}).NewRequest().SetBody(req2).Post(Busi + "/TccBTransInTry")
 		if err != nil {
 			return err
 		}
 		_, err = wf.NewBranch().DoXa(busi.BusiConf, func(db *sql.DB) ([]byte, error) {
-			return nil, busi.SagaAdjustBalance(db, busi.TransInUID, 0, dtmcli.ResultSuccess)
+			return nil, busi.SagaAdjustBalance(db, busi.TransInUID, int(req.Amount/2), dtmcli.ResultSuccess)
 		})
 		return err
 	})
-	err := workflow.Execute(gid, gid, dtmgimp.MustProtoMarshal(req))
+	assert.Nil(t, err)
+	before := getBeforeBalances("mysql")
+	req := &busi.ReqGrpc{Amount: 30}
+	err = workflow.Execute(gid, gid, dtmgimp.MustProtoMarshal(req))
 	assert.Nil(t, err)
 	assert.Equal(t, StatusSucceed, getTransStatus(gid))
-	waitTransProcessed(gid)
+	assertNotSameBalance(t, before, "mysql")
 }
 
 func TestWorkflowGrpcError(t *testing.T) {
@@ -125,7 +127,6 @@ func TestWorkflowGrpcError(t *testing.T) {
 	})
 	err := workflow.Execute(gid, gid, dtmgimp.MustProtoMarshal(req))
 	assert.Error(t, err)
-	go waitTransProcessed(gid)
 	cronTransOnceForwardCron(t, gid, 1000)
 	assert.Equal(t, StatusSucceed, getTransStatus(gid))
 }

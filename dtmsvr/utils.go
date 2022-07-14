@@ -10,7 +10,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/dtm-labs/dtm/dtmcli/dtmimp"
+	"github.com/dtm-labs/dtm/client/dtmcli/dtmimp"
 	"github.com/dtm-labs/dtm/dtmsvr/config"
 	"github.com/dtm-labs/dtm/dtmsvr/storage"
 	"github.com/dtm-labs/dtm/dtmsvr/storage/registry"
@@ -18,7 +18,6 @@ import (
 )
 
 type branchStatus struct {
-	id         uint64
 	gid        string
 	branchID   string
 	op         string
