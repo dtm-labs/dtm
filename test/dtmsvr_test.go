@@ -7,10 +7,13 @@
 package test
 
 import (
+	"context"
 	"testing"
 	"time"
 
 	"github.com/dtm-labs/dtm/client/dtmcli/dtmimp"
+	"github.com/dtm-labs/dtm/client/dtmgrpc/dtmgimp"
+	"github.com/dtm-labs/dtm/client/dtmgrpc/dtmgpb"
 	"github.com/dtm-labs/dtm/client/workflow"
 	"github.com/dtm-labs/dtm/dtmsvr"
 	"github.com/dtm-labs/dtm/dtmsvr/config"
@@ -79,4 +82,13 @@ func TestUpdateBranchAsync(t *testing.T) {
 	assert.Equal(t, StatusSucceed, getTransStatus(gid))
 
 	conf.UpdateBranchSync = 1
+}
+
+func TestGrpcPanic(t *testing.T) {
+	gid := dtmimp.GetFuncName()
+	req := dtmgpb.DtmRequest{
+		Gid: gid,
+	}
+	err := dtmgimp.MustGetGrpcConn(DtmGrpcServer, false).Invoke(context.Background(), "/dtmgimp.Dtm/"+"Submit", &req, nil)
+	assert.Error(t, err)
 }

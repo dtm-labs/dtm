@@ -143,6 +143,7 @@ func grpcRecover(ctx context.Context, req interface{}, info *grpc.UnaryServerInf
 	defer func() {
 		if x := recover(); x != nil {
 			rerr = status.Errorf(codes.Internal, "%v", x)
+			logger.Errorf("dtm server panic: %v", x)
 		}
 	}()
 	res, rerr = handler(ctx, req)
