@@ -108,6 +108,8 @@ go run main.go
 在转入操作失败的情况下，TransIn和TransOut的补偿操作被执行，保证了最终的余额和转账前是一样的。
 
 ### 更多示例
+关于更多quick start的例子，可以参考 [dtm-labs/quick-start-sample](https://github.com/dtm-labs/quick-start-sample)
+
 上述示例主要演示了分布式事务的流程，更多的内容，包括如何与实际的数据库对接，如何做补偿，如何做回滚等实际的例子，请参考[dtm-labs/dtm-examples](https://github.com/dtm-labs/dtm-examples)
 
 ## 联系我们

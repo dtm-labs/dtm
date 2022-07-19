@@ -19,7 +19,7 @@ import (
 
 // PopulateDB populate example mysql data
 func PopulateDB(skipDrop bool) {
-	resetXaData()
+	ResetXaData()
 	file := fmt.Sprintf("%s/busi.%s.sql", dtmutil.GetSQLDir(), BusiConf.Driver)
 	dtmutil.RunSQLScript(BusiConf, file, skipDrop)
 	file = fmt.Sprintf("%s/dtmcli.barrier.%s.sql", dtmutil.GetSQLDir(), BusiConf.Driver)
