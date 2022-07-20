@@ -164,13 +164,18 @@ func (s *Store) FindBranches(gid string) []storage.TransBranchStore {
 }
 
 // UpdateBranches update branches info
-// func (s *Store) UpdateBranches(branches []storage.TransBranchStore, updates []string) (int, error) {
-
-// }
+func (s *Store) UpdateBranches(branches []storage.TransBranchStore, updates []string) (int, error) {
+	return 0, nil // not implemented
+}
 
 // LockGlobalSaveBranches creates branches
 func (s *Store) LockGlobalSaveBranches(gid string, status string, branches []storage.TransBranchStore, branchStart int) {
-
+	if branchStart == -1{
+		// 原子插入
+		
+	}else{
+		//原子更新
+	}
 }
 
 // MaySaveNewTrans creates a new trans
