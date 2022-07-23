@@ -88,14 +88,11 @@ func (wf *Workflow) initRestyClient() {
 			"branch_id":  wf.currentBranch,
 			"op":         wf.currentOp,
 		})
-		err := dtmimp.BeforeRequest(c, r)
-		return err
+		return nil
 	})
+	dtmimp.AddRestyMiddlewares(wf.restyClient)
 	old := wf.restyClient.GetClient().Transport
 	wf.restyClient.GetClient().Transport = newRoundTripper(old, wf)
-	wf.restyClient.OnAfterResponse(func(c *resty.Client, r *resty.Response) error {
-		return dtmimp.AfterResponse(c, r)
-	})
 }
 
 func (wf *Workflow) process(handler WfFunc, data []byte) (err error) {

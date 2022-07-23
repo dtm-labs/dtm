@@ -39,23 +39,25 @@ var PassthroughHeaders = []string{}
 // BarrierTableName the table name of barrier table
 var BarrierTableName = "dtm_barrier.barrier"
 
-// BeforeRequest is the middleware for default resty.Client
-func BeforeRequest(c *resty.Client, r *resty.Request) error {
-	r.URL = MayReplaceLocalhost(r.URL)
-	u, err := dtmdriver.GetHTTPDriver().ResolveURL(r.URL)
-	logger.Debugf("requesting: %s %s %s resolved: %s", r.Method, r.URL, MustMarshalString(r.Body), u)
-	r.URL = u
-	return err
-}
-
-// AfterResponse is the middleware for default resty.Client
-func AfterResponse(c *resty.Client, resp *resty.Response) error {
-	r := resp.Request
-	logger.Debugf("requested: %d %s %s %s", resp.StatusCode(), r.Method, r.URL, resp.String())
-	return nil
+// AddRestyMiddlewares will add the middlewares used by dtm
+func AddRestyMiddlewares(client *resty.Client) {
+	client.OnBeforeRequest(func(c *resty.Client, r *resty.Request) error {
+		logger.Debugf("requesting: %s %s %s resolved: %s", r.Method, r.URL, MustMarshalString(r.Body), r.URL)
+		r.URL = MayReplaceLocalhost(r.URL)
+		ms := dtmdriver.Middlewares.HTTP
+		var err error
+		for i := 0; i < len(ms) && err == nil; i++ {
+			err = ms[i](c, r)
+		}
+		return err
+	})
+	client.OnAfterResponse(func(c *resty.Client, resp *resty.Response) error {
+		r := resp.Request
+		logger.Debugf("requested: %d %s %s %s", resp.StatusCode(), r.Method, r.URL, resp.String())
+		return nil
+	})
 }
 
 func init() {
-	RestyClient.OnBeforeRequest(BeforeRequest)
-	RestyClient.OnAfterResponse(AfterResponse)
+	AddRestyMiddlewares(RestyClient)
 }

@@ -42,13 +42,10 @@
 #   Target: 'etcd://localhost:2379/dtmservice' # register dtm server to this url
 #   EndPoint: 'localhost:36790'
 
-# HttpMicroService: # http based microservice config
-#   Driver: 'dtm-driver-http' # name of the driver to handle register/discover
-#   RegistryType: 'nacos'
-#   RegistryAddress: '127.0.0.1:8848,127.0.0.1:8848'
-#   RegistryOptions: '{"namespaceId":"a6843d66-cf5b-43ab-b7e7-461200dfe76c","UserName":"nacos","Password":"nacos","NotLoadCacheAtStart":true}'
-#   Target: '{"ServiceName":"dtmService","Enable":true,"Healthy":true,"Weight":10}' # target and options
-#   EndPoint: '127.0.0.1:36789'
+# MicroService: # grpc based microservice config
+#   Driver: 'dtm-driver-springcloud' # name of the driver to handle register/discover
+#   Target: '{"Addr":"127.0.0.1:8848,127.0.0.1:8848","Type":"nacos", "InstanceConfig":{"ServiceName":"dtmService","Enable":true,"Healthy":true,"Weight":10},"ClientConfig":{"NamespaceId":"c3dc917d-906a-429d-90a9-85012b41014e","UserName":"nacos","Password":"nacos","NotLoadCacheAtStart":true}}'
+#   EndPoint: 'localhost:36789'
 
 ### the unit of following configurations is second
 # TransCronInterval: 3 # the interval to poll unfinished global transaction for every dtm process
