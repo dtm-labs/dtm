@@ -71,14 +71,14 @@ go run main.go
   // The address where DtmServer serves DTM, which is a url
   DtmServer := "http://localhost:36789/api/dtmsvr"
   req := &gin.H{"amount": 30} // micro-service payload
-	// DtmServer is the address of DTM micro-service
-	saga := dtmcli.NewSaga(DtmServer, shortuuid.New()).
-		// add a TransOut sub-transaction，forward operation with url: qsBusi+"/TransOut", reverse compensation operation with url: qsBusi+"/TransOutCom"
-		Add(qsBusi+"/TransOut", qsBusi+"/TransOutCom", req).
-		// add a TransIn sub-transaction, forward operation with url: qsBusi+"/TransIn", reverse compensation operation with url: qsBusi+"/TransInCom"
-		Add(qsBusi+"/TransIn", qsBusi+"/TransInCom", req)
-	// submit the created saga transaction，dtm ensures all sub-transactions either complete or get revoked
-	err := saga.Submit()
+  // DtmServer is the address of DTM micro-service
+  saga := dtmcli.NewSaga(DtmServer, shortuuid.New()).
+	// add a TransOut sub-transaction，forward operation with url: qsBusi+"/TransOut", reverse compensation operation with url: qsBusi+"/TransOutCom"
+	Add(qsBusi+"/TransOut", qsBusi+"/TransOutCom", req).
+	// add a TransIn sub-transaction, forward operation with url: qsBusi+"/TransIn", reverse compensation operation with url: qsBusi+"/TransInCom"
+	Add(qsBusi+"/TransIn", qsBusi+"/TransInCom", req)
+  // submit the created saga transaction，dtm ensures all sub-transactions either complete or get revoked
+  err := saga.Submit()
 ```
 
 When the above code runs, we can see in the console that services TransOut, TransIn has been called.
