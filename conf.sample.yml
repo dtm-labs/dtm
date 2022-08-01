@@ -37,15 +37,10 @@
 #   FinishedDataExpire: 86400 # finished Trans data will expire in 1 days. only for redis.
 #   RedisPrefix: '{a}' # default value is '{a}'. Redis storage prefix. store data to only one slot in cluster
 
-# MicroService: # grpc based microservice config
+# MicroService: # gRPC/HTTP based microservice config
 #   Driver: 'dtm-driver-gozero' # name of the driver to handle register/discover
 #   Target: 'etcd://localhost:2379/dtmservice' # register dtm server to this url
 #   EndPoint: 'localhost:36790'
-
-# MicroService: # grpc based microservice config
-#   Driver: 'dtm-driver-springcloud' # name of the driver to handle register/discover
-#   Target: '{"Addr":"127.0.0.1:8848,127.0.0.1:8848","Type":"nacos", "InstanceConfig":{"ServiceName":"dtmService","Enable":true,"Healthy":true,"Weight":10},"ClientConfig":{"NamespaceId":"c3dc917d-906a-429d-90a9-85012b41014e","UserName":"nacos","Password":"nacos","NotLoadCacheAtStart":true}}'
-#   EndPoint: 'localhost:36789'
 
 ### the unit of following configurations is second
 # TransCronInterval: 3 # the interval to poll unfinished global transaction for every dtm process
