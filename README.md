@@ -26,11 +26,11 @@ DTM is a distributed transaction framework which provides cross-service eventual
 [More](https://en.dtm.pub/other/using.html)
 
 ## Features
-* Multiple languages support: SDK for Go, Java, PHP, C#, Python, Nodejs
 * Support for multiple transaction modes: SAGA, TCC, XA, Workflow, Outbox
+* Multiple languages support: SDK for Go, Java, PHP, C#, Python, Nodejs
 * Better Outbox: 2-phase messages, a more elegant solution than Outbox, support multi-databases
 * Multiple database transaction support: Mysql, Redis, MongoDB, Postgres, TDSQL, etc.
-* Support for multiple storage engines: Mysql (common), Redis (high performance), MongoDB (under planning)
+* Support for multiple storage engines: Mysql (common), Redis (high performance), BoltDB (dev&test), MongoDB (under planning)
 * Support for multiple microservices architectures: [go-zero](https://github.com/zeromicro/go-zero), go-kratos/kratos, polarismesh/polaris
 * Support for high availability and easy horizontal scaling
 
@@ -58,57 +58,65 @@ Suppose we want to perform an inter-bank transfer. The operations of transfer ou
 Here is an example to illustrate a solution of dtm to this problem:
 
 ``` bash
-git clone https://github.com/dtm-labs/dtmcli-go-sample && cd dtmcli-go-sample
+git clone https://github.com/dtm-labs/quick-start-sample.git && cd quick-start-sample/workflow-grpc
 go run main.go
 ```
 
 ## Code
 
-### Use
+### Usage
 ``` go
-  // business micro-service address
-  const qsBusi = "http://localhost:8081/api/busi_saga"
-  // The address where DtmServer serves DTM, which is a url
-  DtmServer := "http://localhost:36789/api/dtmsvr"
-  req := &gin.H{"amount": 30} // micro-service payload
-  // DtmServer is the address of DTM micro-service
-  saga := dtmcli.NewSaga(DtmServer, shortuuid.New()).
-	// add a TransOut sub-transaction，forward operation with url: qsBusi+"/TransOut", reverse compensation operation with url: qsBusi+"/TransOutCom"
-	Add(qsBusi+"/TransOut", qsBusi+"/TransOutCom", req).
-	// add a TransIn sub-transaction, forward operation with url: qsBusi+"/TransIn", reverse compensation operation with url: qsBusi+"/TransInCom"
-	Add(qsBusi+"/TransIn", qsBusi+"/TransInCom", req)
-  // submit the created saga transaction，dtm ensures all sub-transactions either complete or get revoked
-  err := saga.Submit()
+wfName := "workflow-grpc"
+err = workflow.Register(wfName, func(wf *workflow.Workflow, data []byte) error {
+  // ...
+  // Define a transaction branch for TransOut
+  wf.NewBranch().OnRollback(func(bb *dtmcli.BranchBarrier) error {
+    // compensation for TransOut
+    _, err := busiCli.TransOutRevert(wf.Context, &req)
+    return err
+  })
+  _, err = busiCli.TransOut(wf.Context, &req)
+  // check error
+
+  // Define another transaction branch for TransIn
+  wf.NewBranch().OnRollback(func(bb *dtmcli.BranchBarrier) error {
+    _, err := busiCli.TransInRevert(wf.Context, &req)
+    return err
+  })
+  _, err = busiCli.TransIn(wf.Context, &req)
+  return err
+}
+
+// ...
+req := busi.BusiReq{Amount: 30, TransInResult: ""}
+data, err := proto.Marshal(&req)
+
+// Execute workflow
+err = workflow.Execute(wfName, shortuuid.New(), data)
+logger.Infof("result of workflow.Execute is: %v", err)
+
 ```
 
-When the above code runs, we can see in the console that services TransOut, TransIn has been called.
-
-#### Timing diagram
-A timing diagram for a successfully completed SAGA transaction would be as follows:
-
-<img alt="saga-success" src="https://en.dtm.pub/assets/saga_normal.59a75c01.jpg" height=450/>
+When the above code runs, we can see in the console that services `TransOut`, `TransIn` has been called.
 
 #### Rollback upon failure
 If any forward operation fails, DTM invokes the corresponding compensating operation of each sub-transaction to roll back, after which the transaction is successfully rolled back.
 
-Let's purposely fail the forward operation of the second sub-transaction and watch what happens
+Let's purposely trigger the failure of the second sub-transaction and watch what happens
 
 ``` go
-app.POST(qsBusiAPI+"/TransIn", func(c *gin.Context) {
-  log.Printf("TransIn")
-  // c.JSON(200, "")
-  c.JSON(409, "") // Status 409 for Failure. Won't be retried
+// req := busi.BusiReq{Amount: 30, TransInResult: ""}
+req := busi.BusiReq{Amount: 30, TransInResult: "FAILURE"}
 })
 ```
 
+we can see in the console that services `TransOut`, `TransIn`, `TransOutRevert` has been called
 The timing diagram for the intended failure is as follows:
-
-<img alt="saga-failed" src="https://en.dtm.pub/assets/saga_rollback.7989c866.jpg" height=550>
 
 ## More examples
 If you want more quick start examples, please refer to [dtm-labs/quick-start-sample](https://github.com/dtm-labs/quick-start-sample)
 
-The above example mainly demonstrates the flow of a distributed transaction. More on this, including practical examples of how to interface with an actual database, how to do compensation, how to do rollback, etc. please refer to [dtm-examples](https://github.com/dtm-labs/dtm-examples) for more examples.
+The above example mainly demonstrates the flow of a distributed transaction. More on this, including practical examples of how to interact with an actual database, how to do compensation, how to do rollback, etc. please refer to [dtm-examples](https://github.com/dtm-labs/dtm-examples) for more examples.
 
 ## Chat Group
 
