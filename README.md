@@ -39,7 +39,7 @@ DTM can be applied to data consistency issues in a large number of scenarios, he
 * [cache management](https://en.dtm.pub/app/cache.html): thoroughly guarantee the cache final consistency and strong consistency
 * [flash-sales to deduct inventory](https://en.dtm.pub/app/flash.html): in extreme cases, it is also possible to ensure that the precise inventory in Redis is exactly the same as the final order created, without the need for manual adjustment
 * [Non-monolithic order system](https://en.dtm.pub/app/order.html): Dramatically simplifies the architecture
-* [Event publishing/subscription](https://en.dtm.pub/practice/msg.html): better outbox model
+* [Event publishing/subscription](https://en.dtm.pub/practice/msg.html): better outbox pattern
 
 ## [Cook Book](https://en.dtm.pub)
 
@@ -111,7 +111,6 @@ req := busi.BusiReq{Amount: 30, TransInResult: "FAILURE"}
 ```
 
 we can see in the console that services `TransOut`, `TransIn`, `TransOutRevert` has been called
-The timing diagram for the intended failure is as follows:
 
 ## More examples
 If you want more quick start examples, please refer to [dtm-labs/quick-start-sample](https://github.com/dtm-labs/quick-start-sample)
