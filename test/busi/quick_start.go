@@ -37,8 +37,8 @@ func QsStartSvr() {
 func qsAddRoute(app *gin.Engine) {
 	app.POST(qsBusiAPI+"/TransIn", func(c *gin.Context) {
 		log.Printf("TransIn")
-		// c.JSON(200, "")
-		c.JSON(409, "") // Status 409 for Failure. Won't be retried
+		c.JSON(200, "")
+		// c.JSON(409, "") // Status 409 for Failure. Won't be retried
 	})
 	app.POST(qsBusiAPI+"/TransInCompensate", func(c *gin.Context) {
 		log.Printf("TransInCompensate")
