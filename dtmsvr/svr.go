@@ -73,17 +73,8 @@ func StartSvr() *gin.Engine {
 	time.Sleep(100 * time.Millisecond)
 	err = dtmdriver.Use(conf.MicroService.Driver)
 	logger.FatalIfError(err)
-	logger.Infof("RegisterGrpcService: %s", conf.MicroService.Driver)
-	err = dtmdriver.GetDriver().RegisterGrpcService(conf.MicroService.Target, conf.MicroService.EndPoint)
-	logger.FatalIfError(err)
-
-	err = dtmdriver.UseHTTP(conf.HTTPMicroService.Driver)
-	logger.FatalIfError(err)
-	c := &conf.HTTPMicroService
-	logger.Infof("RegisterHTTPService: %s", conf.HTTPMicroService.Driver)
-	err = dtmdriver.GetHTTPDriver().Init(c.RegistryType, c.RegistryAddress, c.RegistryOptions)
-	logger.FatalIfError(err)
-	err = dtmdriver.GetHTTPDriver().RegisterService(c.Target, c.EndPoint)
+	logger.Infof("RegisterService: %s", conf.MicroService.Driver)
+	err = dtmdriver.GetDriver().RegisterService(conf.MicroService.Target, conf.MicroService.EndPoint)
 	logger.FatalIfError(err)
 	return app
 }

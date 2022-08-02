@@ -13,6 +13,7 @@ import (
 	"github.com/dtm-labs/dtm/client/dtmcli/dtmimp"
 	"github.com/dtm-labs/dtm/client/dtmcli/logger"
 	"github.com/dtm-labs/dtm/client/dtmgrpc/dtmgpb"
+	"github.com/dtm-labs/dtmdriver"
 	grpc "google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 )
@@ -58,6 +59,7 @@ func GetGrpcConn(grpcServer string, isRaw bool) (conn *grpc.ClientConn, rerr err
 		}
 		logger.Debugf("grpc client connecting %s", grpcServer)
 		interceptors := append(ClientInterceptors, GrpcClientLog)
+		interceptors = append(interceptors, dtmdriver.Middlewares.Grpc...)
 		inOpt := grpc.WithChainUnaryInterceptor(interceptors...)
 		conn, rerr := grpc.Dial(grpcServer, inOpt, grpc.WithTransportCredentials(insecure.NewCredentials()), opts)
 		if rerr == nil {

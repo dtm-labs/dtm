@@ -5,32 +5,30 @@ go 1.16
 require (
 	bou.ke/monkey v1.0.2
 	github.com/BurntSushi/toml v0.4.1 // indirect
-	github.com/dtm-labs/dtmdriver v0.0.3
-	github.com/dtm-labs/dtmdriver-gozero v0.0.5
-	github.com/dtm-labs/dtmdriver-http v1.2.2
-	github.com/dtm-labs/dtmdriver-kratos v0.0.8
-	github.com/dtm-labs/dtmdriver-polaris v0.0.4
-	github.com/dtm-labs/dtmdriver-protocol1 v0.0.1
+	github.com/dtm-labs/dtmdriver v0.0.6
+	github.com/dtm-labs/dtmdriver-gozero v0.0.7
+	github.com/dtm-labs/dtmdriver-kratos v0.0.9
+	github.com/dtm-labs/dtmdriver-polaris v0.0.5
+	github.com/dtm-labs/dtmdriver-springcloud v1.2.3
 	github.com/gin-gonic/gin v1.7.7
 	github.com/go-playground/validator/v10 v10.11.0 // indirect
-	github.com/go-redis/redis/v8 v8.11.4
+	github.com/go-redis/redis/v8 v8.11.5
 	github.com/go-resty/resty/v2 v2.7.0
 	github.com/go-sql-driver/mysql v1.6.0
-	github.com/lib/pq v1.10.4
+	github.com/lib/pq v1.10.6
 	github.com/lithammer/shortuuid v2.0.3+incompatible
 	github.com/lithammer/shortuuid/v3 v3.0.7
 	github.com/natefinch/lumberjack v2.0.0+incompatible
-	github.com/onsi/gomega v1.16.0
-	github.com/prometheus/client_golang v1.11.0
-	github.com/stretchr/testify v1.7.1
+	github.com/onsi/gomega v1.18.1
+	github.com/prometheus/client_golang v1.12.2
+	github.com/stretchr/testify v1.8.0
 	github.com/ugorji/go v1.2.7 // indirect
 	go.etcd.io/bbolt v1.3.6
-	go.mongodb.org/mongo-driver v1.9.0
+	go.mongodb.org/mongo-driver v1.9.1
 	go.uber.org/automaxprocs v1.5.1
 	go.uber.org/zap v1.21.0
 	golang.org/x/crypto v0.0.0-20220525230936-793ad666bf5e // indirect
-	golang.org/x/sys v0.0.0-20220520151302-bc2c85ada10a // indirect
-	google.golang.org/grpc v1.46.2
+	google.golang.org/grpc v1.48.0
 	google.golang.org/protobuf v1.28.0
 	gopkg.in/yaml.v3 v3.0.1
 	gorm.io/driver/mysql v1.0.3

@@ -14,14 +14,13 @@ import (
 	"github.com/dtm-labs/dtm/client/dtmcli"
 	"github.com/dtm-labs/dtm/client/dtmcli/dtmimp"
 	"github.com/dtm-labs/dtm/client/dtmcli/logger"
-	"github.com/dtm-labs/dtm/client/dtmgrpc"
 	"github.com/dtm-labs/dtm/client/workflow"
 	"github.com/dtm-labs/dtm/dtmsvr"
 	"github.com/dtm-labs/dtm/dtmsvr/config"
 	"github.com/dtm-labs/dtm/dtmsvr/storage/registry"
 	"github.com/dtm-labs/dtm/dtmutil"
 	"github.com/dtm-labs/dtm/test/busi"
-	"github.com/go-resty/resty/v2"
+	"github.com/dtm-labs/dtmdriver"
 )
 
 func TestMain(m *testing.M) {
@@ -32,9 +31,8 @@ func TestMain(m *testing.M) {
 	dtmsvr.CronForwardDuration = 180 * time.Second
 	conf.UpdateBranchSync = 1
 
-	dtmgrpc.AddUnaryInterceptor(busi.SetGrpcHeaderForHeadersYes)
-	dtmcli.GetRestyClient().OnBeforeRequest(busi.SetHTTPHeaderForHeadersYes)
-	dtmcli.GetRestyClient().OnAfterResponse(func(c *resty.Client, resp *resty.Response) error { return nil })
+	dtmdriver.Middlewares.HTTP = append(dtmdriver.Middlewares.HTTP, busi.SetHTTPHeaderForHeadersYes)
+	dtmdriver.Middlewares.Grpc = append(dtmdriver.Middlewares.Grpc, busi.SetGrpcHeaderForHeadersYes)
 
 	tenv := dtmimp.OrString(os.Getenv("TEST_STORE"), config.Redis)
 	conf.Store.Host = "localhost"
