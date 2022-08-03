@@ -9,8 +9,8 @@ package dtmimp
 import (
 	"errors"
 
-	"github.com/dtm-labs/dtm/client/dtmcli/logger"
 	"github.com/dtm-labs/dtmdriver"
+	"github.com/dtm-labs/logger"
 	"github.com/go-resty/resty/v2"
 )
 

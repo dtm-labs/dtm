@@ -4,8 +4,8 @@ import (
 	"fmt"
 
 	"github.com/dtm-labs/dtm/client/dtmcli/dtmimp"
-	"github.com/dtm-labs/dtm/client/dtmcli/logger"
 	"github.com/dtm-labs/dtm/dtmutil"
+	"github.com/dtm-labs/logger"
 	"github.com/gin-gonic/gin"
 )
 

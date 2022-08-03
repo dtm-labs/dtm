@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"net/url"
 
-	"github.com/dtm-labs/dtm/client/dtmcli/logger"
+	"github.com/dtm-labs/logger"
 )
 
 type workflowFactory struct {

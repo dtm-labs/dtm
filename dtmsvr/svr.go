@@ -16,11 +16,11 @@ import (
 	"github.com/gin-gonic/gin"
 
 	"github.com/dtm-labs/dtm/client/dtmcli"
-	"github.com/dtm-labs/dtm/client/dtmcli/logger"
 	"github.com/dtm-labs/dtm/client/dtmgrpc/dtmgimp"
 	"github.com/dtm-labs/dtm/client/dtmgrpc/dtmgpb"
 	"github.com/dtm-labs/dtm/dtmutil"
 	"github.com/dtm-labs/dtmdriver"
+	"github.com/dtm-labs/logger"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"

@@ -12,7 +12,7 @@ import (
 	"net/url"
 
 	"github.com/dtm-labs/dtm/client/dtmcli/dtmimp"
-	"github.com/dtm-labs/dtm/client/dtmcli/logger"
+	"github.com/dtm-labs/logger"
 )
 
 // BarrierBusiFunc type for busi func
