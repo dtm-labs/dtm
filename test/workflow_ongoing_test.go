@@ -12,10 +12,10 @@ import (
 
 	"github.com/dtm-labs/dtm/client/dtmcli"
 	"github.com/dtm-labs/dtm/client/dtmcli/dtmimp"
-	"github.com/dtm-labs/dtm/client/dtmcli/logger"
 	"github.com/dtm-labs/dtm/client/dtmgrpc/dtmgimp"
 	"github.com/dtm-labs/dtm/client/workflow"
 	"github.com/dtm-labs/dtm/test/busi"
+	"github.com/dtm-labs/logger"
 	"github.com/stretchr/testify/assert"
 )
 

@@ -14,9 +14,9 @@ import (
 
 	"github.com/dtm-labs/dtm/client/dtmcli"
 	"github.com/dtm-labs/dtm/client/dtmcli/dtmimp"
-	"github.com/dtm-labs/dtm/client/dtmcli/logger"
 	"github.com/dtm-labs/dtm/client/workflow"
 	"github.com/dtm-labs/dtm/dtmutil"
+	"github.com/dtm-labs/logger"
 	"github.com/gin-gonic/gin"
 	"gorm.io/driver/mysql"
 	"gorm.io/driver/postgres"

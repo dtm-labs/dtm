@@ -8,7 +8,7 @@ import (
 
 	"github.com/dtm-labs/dtm/client/dtmcli"
 	"github.com/dtm-labs/dtm/client/dtmcli/dtmimp"
-	"github.com/dtm-labs/dtm/client/dtmcli/logger"
+	"github.com/dtm-labs/logger"
 	_ "github.com/go-sql-driver/mysql" // register mysql driver
 	_ "github.com/lib/pq"              // register postgres driver
 	"gorm.io/driver/mysql"

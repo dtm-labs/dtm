@@ -12,9 +12,9 @@ import (
 	"time"
 
 	"github.com/dtm-labs/dtm/client/dtmcli/dtmimp"
-	"github.com/dtm-labs/dtm/client/dtmcli/logger"
 	"github.com/dtm-labs/dtm/dtmsvr/storage"
 	"github.com/dtm-labs/dtm/dtmutil"
+	"github.com/dtm-labs/logger"
 	bolt "go.etcd.io/bbolt"
 )
 

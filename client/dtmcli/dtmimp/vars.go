@@ -9,8 +9,8 @@ package dtmimp
 import (
 	"errors"
 
-	"github.com/dtm-labs/dtm/client/dtmcli/logger"
 	"github.com/dtm-labs/dtmdriver"
+	"github.com/dtm-labs/logger"
 	"github.com/go-resty/resty/v2"
 )
 
@@ -42,13 +42,14 @@ var BarrierTableName = "dtm_barrier.barrier"
 // AddRestyMiddlewares will add the middlewares used by dtm
 func AddRestyMiddlewares(client *resty.Client) {
 	client.OnBeforeRequest(func(c *resty.Client, r *resty.Request) error {
-		logger.Debugf("requesting: %s %s %s resolved: %s", r.Method, r.URL, MustMarshalString(r.Body), r.URL)
+		old := r.URL
 		r.URL = MayReplaceLocalhost(r.URL)
 		ms := dtmdriver.Middlewares.HTTP
 		var err error
 		for i := 0; i < len(ms) && err == nil; i++ {
 			err = ms[i](c, r)
 		}
+		logger.Debugf("requesting: %s %s %s resolved: %s err: %v", r.Method, old, MustMarshalString(r.Body), r.URL, err)
 		return err
 	})
 	client.OnAfterResponse(func(c *resty.Client, resp *resty.Response) error {

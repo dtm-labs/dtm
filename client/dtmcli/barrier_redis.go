@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	"github.com/dtm-labs/dtm/client/dtmcli/dtmimp"
-	"github.com/dtm-labs/dtm/client/dtmcli/logger"
+	"github.com/dtm-labs/logger"
 	"github.com/go-redis/redis/v8"
 )
 
