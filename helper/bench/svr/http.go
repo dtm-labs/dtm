@@ -22,7 +22,7 @@ import (
 	"github.com/dtm-labs/dtm/test/busi"
 	"github.com/dtm-labs/logger"
 	"github.com/gin-gonic/gin"
-	"github.com/lithammer/shortuuid"
+	"github.com/lithammer/shortuuid/v3"
 )
 
 // launch command：go run app/main.go qs

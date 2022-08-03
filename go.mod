@@ -16,7 +16,6 @@ require (
 	github.com/go-resty/resty/v2 v2.7.0
 	github.com/go-sql-driver/mysql v1.6.0
 	github.com/lib/pq v1.10.6
-	github.com/lithammer/shortuuid v2.0.3+incompatible
 	github.com/lithammer/shortuuid/v3 v3.0.7
 	github.com/onsi/gomega v1.18.1
 	github.com/prometheus/client_golang v1.12.2
