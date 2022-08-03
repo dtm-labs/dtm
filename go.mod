@@ -4,12 +4,12 @@ go 1.16
 
 require (
 	bou.ke/monkey v1.0.2
-	github.com/BurntSushi/toml v0.4.1 // indirect
 	github.com/dtm-labs/dtmdriver v0.0.6
 	github.com/dtm-labs/dtmdriver-gozero v0.0.7
 	github.com/dtm-labs/dtmdriver-kratos v0.0.9
 	github.com/dtm-labs/dtmdriver-polaris v0.0.5
 	github.com/dtm-labs/dtmdriver-springcloud v1.2.3
+	github.com/dtm-labs/logger v0.0.1 // indirect
 	github.com/gin-gonic/gin v1.7.7
 	github.com/go-playground/validator/v10 v10.11.0 // indirect
 	github.com/go-redis/redis/v8 v8.11.5
