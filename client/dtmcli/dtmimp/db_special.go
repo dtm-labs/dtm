@@ -28,6 +28,9 @@ func (*mysqlDBSpecial) GetPlaceHoldSQL(sql string) string {
 }
 
 func (*mysqlDBSpecial) GetXaSQL(command string, xid string) string {
+	if command == "abort" {
+		command = "rollback"
+	}
 	return fmt.Sprintf("xa %s '%s'", command, xid)
 }
 
@@ -45,6 +48,7 @@ func (*postgresDBSpecial) GetXaSQL(command string, xid string) string {
 	return map[string]string{
 		"end":      "",
 		"start":    "begin",
+		"abort":    "rollback",
 		"prepare":  fmt.Sprintf("prepare transaction '%s'", xid),
 		"commit":   fmt.Sprintf("commit prepared '%s'", xid),
 		"rollback": fmt.Sprintf("rollback prepared '%s'", xid),
