@@ -2,11 +2,13 @@ package workflow
 
 import (
 	"context"
+	"encoding/base64"
 	"errors"
 	"fmt"
 
 	"github.com/dtm-labs/dtm/client/dtmcli"
 	"github.com/dtm-labs/dtm/client/dtmcli/dtmimp"
+	"github.com/dtm-labs/dtm/client/dtmgrpc/dtmgpb"
 	"github.com/dtm-labs/logger"
 	"github.com/go-resty/resty/v2"
 )
@@ -29,22 +31,18 @@ type workflowPhase2Item struct {
 	fn           WfPhase2Func
 }
 
-func (wf *Workflow) loadProgresses() error {
-	progresses, err := wf.getProgress()
-	if err == nil {
-		wf.progresses = map[string]*stepResult{}
-		for _, p := range progresses {
-			sr := &stepResult{
-				Status: p.Status,
-				Data:   p.BinData,
-			}
-			if sr.Status == dtmcli.StatusFailed {
-				sr.Error = dtmcli.ErrorMessage2Error(string(p.BinData), dtmcli.ErrFailure)
-			}
-			wf.progresses[p.BranchID+"-"+p.Op] = sr
+func (wf *Workflow) initProgress(progresses []*dtmgpb.DtmProgress) {
+	wf.progresses = map[string]*stepResult{}
+	for _, p := range progresses {
+		sr := &stepResult{
+			Status: p.Status,
+			Data:   p.BinData,
 		}
+		if sr.Status == dtmcli.StatusFailed {
+			sr.Error = dtmcli.ErrorMessage2Error(string(p.BinData), dtmcli.ErrFailure)
+		}
+		wf.progresses[p.BranchID+"-"+p.Op] = sr
 	}
-	return err
 }
 
 type wfMeta struct{}
@@ -95,24 +93,33 @@ func (wf *Workflow) initRestyClient() {
 	wf.restyClient.GetClient().Transport = newRoundTripper(old, wf)
 }
 
-func (wf *Workflow) process(handler WfFunc, data []byte) (err error) {
-	err = wf.loadProgresses()
-	if err == nil {
-		err = handler(wf, data)
-		err = wf.Options.GRPCError2DtmError(err)
-		if err != nil && !errors.Is(err, dtmcli.ErrFailure) {
-			return err
-		}
-		err = wf.processPhase2(err)
+func (wf *Workflow) process(handler WfFunc2, data []byte) (res []byte, err error) {
+	reply, err2 := wf.getProgress()
+	if err2 != nil {
+		return nil, err2
 	}
-	if err == nil || errors.Is(err, dtmcli.ErrFailure) {
-		err1 := wf.submit(err)
-		if err1 != nil {
-			return err1
-		}
-	}
-	return err
 
+	status := reply.Transaction.Status
+	if status == dtmcli.StatusSucceed {
+		return base64.StdEncoding.DecodeString(reply.Transaction.Result)
+	} else if status == dtmcli.StatusFailed {
+		return nil, dtmcli.ErrorMessage2Error(reply.Transaction.RollbackReason, dtmcli.ErrFailure)
+	}
+	wf.initProgress(reply.Progresses)
+	res, err = handler(wf, data)
+	err = wf.Options.GRPCError2DtmError(err)
+	if err != nil && !errors.Is(err, dtmcli.ErrFailure) {
+		return
+	}
+	err = wf.processPhase2(err)
+
+	if err == nil || errors.Is(err, dtmcli.ErrFailure) {
+		err1 := wf.submit(res, err)
+		if err1 != nil {
+			return nil, err1
+		}
+	}
+	return
 }
 
 func (wf *Workflow) saveResult(branchID string, op string, sr *stepResult) error {

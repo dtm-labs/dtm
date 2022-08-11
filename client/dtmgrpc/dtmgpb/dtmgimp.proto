@@ -59,6 +59,7 @@ message DtmTransaction {
   string Gid = 1;
   string Status = 2;
   string RollbackReason = 3;
+  string Result = 4;
 }
 
 message DtmProgress {

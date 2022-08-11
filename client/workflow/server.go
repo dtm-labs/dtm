@@ -21,6 +21,6 @@ func (s *workflowServer) Execute(ctx context.Context, wd *wfpb.WorkflowData) (*e
 		return nil, status.Errorf(codes.Internal, "workflow server not inited. please call workflow.InitGrpc first")
 	}
 	tb := dtmgimp.TransBaseFromGrpc(ctx)
-	err := defaultFac.execute(tb.Op, tb.Gid, wd.Data)
+	_, err := defaultFac.execute(tb.Op, tb.Gid, wd.Data)
 	return &emptypb.Empty{}, dtmgrpc.DtmError2GrpcError(err)
 }

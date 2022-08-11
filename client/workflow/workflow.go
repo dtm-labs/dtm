@@ -43,6 +43,13 @@ func SetProtocolForTest(protocol string) {
 
 // Register will register a workflow with the specified name
 func Register(name string, handler WfFunc, custom ...func(wf *Workflow)) error {
+	return defaultFac.register(name, func(wf *Workflow, data []byte) ([]byte, error) {
+		return nil, handler(wf, data)
+	}, custom...)
+}
+
+// Register2 is the same as Register, but workflow func can return result
+func Register2(name string, handler WfFunc2, custom ...func(wf *Workflow)) error {
 	return defaultFac.register(name, handler, custom...)
 }
 
@@ -50,12 +57,21 @@ func Register(name string, handler WfFunc, custom ...func(wf *Workflow)) error {
 // if the workflow with the gid does not exist, then create a new workflow and execute it
 // if the workflow with the gid exists, resume to execute it
 func Execute(name string, gid string, data []byte) error {
+	_, err := defaultFac.execute(name, gid, data)
+	return err
+}
+
+// Execute2 is the same as Execute, but workflow func can return result
+func Execute2(name string, gid string, data []byte) ([]byte, error) {
 	return defaultFac.execute(name, gid, data)
 }
 
 // ExecuteByQS is like Execute, but name and gid will be obtained from qs
 func ExecuteByQS(qs url.Values, body []byte) error {
-	return defaultFac.executeByQS(qs, body)
+	name := qs.Get("op")
+	gid := qs.Get("gid")
+	_, err := defaultFac.execute(name, gid, body)
+	return err
 }
 
 // Options is for specifying workflow options
@@ -83,12 +99,15 @@ type Workflow struct {
 }
 
 type wfItem struct {
-	fn     WfFunc
+	fn     WfFunc2
 	custom []func(*Workflow)
 }
 
 // WfFunc is the type for workflow function
 type WfFunc func(wf *Workflow, data []byte) error
+
+// WfFunc2 is the type for workflow function with return value
+type WfFunc2 func(wf *Workflow, data []byte) ([]byte, error)
 
 // WfPhase2Func is the type for phase 2 function
 // param bb is a BranchBarrier, which is introduced by http://d.dtm.pub/practice/barrier.html

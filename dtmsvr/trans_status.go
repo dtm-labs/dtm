@@ -38,12 +38,20 @@ func (t *TransGlobal) touchCronTime(ctype cronType, delay uint64) {
 
 type changeStatusParams struct {
 	rollbackReason string
+	result         string
 }
+
 type changeStatusOption func(c *changeStatusParams)
 
 func withRollbackReason(rollbackReason string) changeStatusOption {
 	return func(c *changeStatusParams) {
 		c.rollbackReason = rollbackReason
+	}
+}
+
+func withResult(result string) changeStatusOption {
+	return func(c *changeStatusParams) {
+		c.result = result
 	}
 }
 
@@ -64,6 +72,10 @@ func (t *TransGlobal) changeStatus(status string, opts ...changeStatusOption) {
 	if statusParams.rollbackReason != "" {
 		t.RollbackReason = statusParams.rollbackReason
 		updates = append(updates, "rollback_reason")
+	}
+	if statusParams.result != "" {
+		t.Result = statusParams.result
+		updates = append(updates, "result")
 	}
 	t.UpdateTime = &now
 	GetStore().ChangeGlobalStatus(&t.TransGlobalStore, status, updates, status == dtmcli.StatusSucceed || status == dtmcli.StatusFailed)
