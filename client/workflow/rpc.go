@@ -2,6 +2,7 @@ package workflow
 
 import (
 	"context"
+	"encoding/base64"
 
 	"github.com/dtm-labs/dtm/client/dtmcli"
 	"github.com/dtm-labs/dtm/client/dtmcli/dtmimp"
@@ -10,47 +11,43 @@ import (
 	"google.golang.org/protobuf/types/known/emptypb"
 )
 
-func (wf *Workflow) getProgress() ([]*dtmgpb.DtmProgress, error) {
+func (wf *Workflow) getProgress() (*dtmgpb.DtmProgressesReply, error) {
 	if wf.Protocol == dtmimp.ProtocolGRPC {
 		var reply dtmgpb.DtmProgressesReply
 		err := dtmgimp.MustGetGrpcConn(wf.Dtm, false).Invoke(wf.Context, "/dtmgimp.Dtm/PrepareWorkflow",
 			dtmgimp.GetDtmRequest(wf.TransBase), &reply)
-		if err == nil {
-			return reply.Progresses, nil
-		}
-		return nil, err
+		return &reply, err
 	}
 	resp, err := dtmcli.GetRestyClient().R().SetBody(wf.TransBase).Post(wf.Dtm + "/prepareWorkflow")
 	var reply dtmgpb.DtmProgressesReply
 	if err == nil {
 		dtmimp.MustUnmarshal(resp.Body(), &reply)
 	}
-	return reply.Progresses, err
+	return &reply, err
 }
 
-func (wf *Workflow) submit(err error) error {
+func (wf *Workflow) submit(result []byte, err error) error {
 	status := wfErrorToStatus(err)
 	reason := ""
 	if err != nil {
 		reason = err.Error()
 	}
+	extra := map[string]string{
+		"status":          status,
+		"rollback_reason": reason,
+		"result":          base64.StdEncoding.EncodeToString(result),
+	}
 	if wf.Protocol == dtmimp.ProtocolHTTP {
 		m := map[string]interface{}{
 			"gid":        wf.Gid,
 			"trans_type": wf.TransType,
-			"req_extra": map[string]string{
-				"status":          status,
-				"rollback_reason": reason,
-			},
+			"req_extra":  extra,
 		}
 		_, err := dtmimp.TransCallDtmExt(wf.TransBase, m, "submit")
 		return err
 	}
 	req := dtmgimp.GetDtmRequest(wf.TransBase)
-	req.ReqExtra = map[string]string{
-		"status":          status,
-		"rollback_reason": reason,
-	}
+	req.ReqExtra = extra
 	reply := emptypb.Empty{}
 	return dtmgimp.MustGetGrpcConn(wf.Dtm, false).Invoke(wf.Context, "/dtmgimp.Dtm/"+"Submit", req, &reply)
 }

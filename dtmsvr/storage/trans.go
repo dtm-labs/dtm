@@ -32,6 +32,7 @@ type TransGlobalStore struct {
 	Protocol         string              `json:"protocol,omitempty"`
 	FinishTime       *time.Time          `json:"finish_time,omitempty"`
 	RollbackTime     *time.Time          `json:"rollback_time,omitempty"`
+	Result           string              `json:"result,omitempty"`
 	RollbackReason   string              `json:"rollback_reason,omitempty"`
 	Options          string              `json:"options,omitempty"`
 	CustomData       string              `json:"custom_data,omitempty"`
