@@ -99,10 +99,8 @@ func TransCallDtmExt(tb *TransBase, body interface{}, operation string) (*resty.
 	if tb.Protocol == Jrpc {
 		return transCallDtmJrpc(tb, body, operation)
 	}
-	if tb.RequestTimeout != 0 {
-		RestyClient.SetTimeout(time.Duration(tb.RequestTimeout) * time.Second)
-	}
-	resp, err := RestyClient.R().
+	rc := GetRestyClient2(time.Duration(tb.RequestTimeout) * time.Second)
+	resp, err := rc.R().
 		SetBody(body).Post(fmt.Sprintf("%s/%s", tb.Dtm, operation))
 	if err != nil {
 		return nil, err
@@ -147,7 +145,7 @@ func TransRequestBranch(t *TransBase, method string, body interface{}, branchID 
 	if t.TransType == "xa" { // xa trans will add notify_url
 		query["phase2_url"] = url
 	}
-	resp, err := RestyClient.R().
+	resp, err := GetRestyClient2(0).R().
 		SetBody(body).
 		SetQueryParams(query).
 		SetHeaders(t.BranchHeaders).
@@ -156,11 +154,9 @@ func TransRequestBranch(t *TransBase, method string, body interface{}, branchID 
 }
 
 func transCallDtmJrpc(tb *TransBase, body interface{}, operation string) (*resty.Response, error) {
-	if tb.RequestTimeout != 0 {
-		RestyClient.SetTimeout(time.Duration(tb.RequestTimeout) * time.Second)
-	}
+	rc := GetRestyClient2(time.Duration(tb.RequestTimeout) * time.Second)
 	var result map[string]interface{}
-	resp, err := RestyClient.R().
+	resp, err := rc.R().
 		SetBody(map[string]interface{}{
 			"jsonrpc": "2.0",
 			"id":      "no-use",

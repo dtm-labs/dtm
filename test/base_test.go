@@ -61,10 +61,10 @@ func TestBaseSqlDB(t *testing.T) {
 }
 
 func TestBaseHttp(t *testing.T) {
-	resp, err := dtmimp.RestyClient.R().SetQueryParam("panic_string", "1").Post(busi.Busi + "/TestPanic")
+	resp, err := dtmcli.GetRestyClient().R().SetQueryParam("panic_string", "1").Post(busi.Busi + "/TestPanic")
 	assert.Nil(t, err)
 	assert.Contains(t, resp.String(), "panic_string")
-	resp, err = dtmimp.RestyClient.R().SetQueryParam("panic_error", "1").Post(busi.Busi + "/TestPanic")
+	resp, err = dtmcli.GetRestyClient().R().SetQueryParam("panic_error", "1").Post(busi.Busi + "/TestPanic")
 	assert.Nil(t, err)
 	assert.Contains(t, resp.String(), "panic_error")
 }

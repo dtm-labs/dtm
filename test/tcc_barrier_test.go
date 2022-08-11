@@ -85,7 +85,7 @@ func runTestTccBarrierDisorder(t *testing.T, store string) {
 			return res
 		})
 		// register tcc branch
-		resp, err := dtmimp.RestyClient.R().
+		resp, err := dtmcli.GetRestyClient().R().
 			SetBody(map[string]interface{}{
 				"gid":            tcc.Gid,
 				"branch_id":      branchID,
@@ -113,7 +113,7 @@ func runTestTccBarrierDisorder(t *testing.T, store string) {
 		cancelCanReturnChan <- "1"
 		logger.Debugf("after cancelCanRetrun 2 write")
 		// after cancel then run try
-		r, _ := dtmimp.RestyClient.R().
+		r, _ := dtmcli.GetRestyClient().R().
 			SetBody(body).
 			SetQueryParams(map[string]string{
 				"dtm":        tcc.Dtm,
