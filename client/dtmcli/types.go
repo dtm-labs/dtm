@@ -42,6 +42,7 @@ func GetRestyClient() *resty.Client {
 	return dtmimp.GetRestyClient2(0)
 }
 
+// GetRestyClient2 get the resty.Client with the specified timeout set
 func GetRestyClient2(timeout time.Duration) *resty.Client {
 	return dtmimp.GetRestyClient2(timeout)
 }

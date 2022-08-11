@@ -40,10 +40,14 @@ var BarrierTableName = "dtm_barrier.barrier"
 
 var restyClients sync.Map
 
+// GetRestyClient2 will return a resty client with timeout set
 func GetRestyClient2(timeout time.Duration) *resty.Client {
 	cli, ok := restyClients.Load(timeout)
 	if !ok {
 		client := resty.New()
+		if timeout != 0 {
+			client.SetTimeout(timeout)
+		}
 		AddRestyMiddlewares(client)
 		restyClients.Store(timeout, client)
 		cli = client
