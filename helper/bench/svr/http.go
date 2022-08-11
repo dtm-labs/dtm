@@ -175,9 +175,9 @@ func benchAddRoute(app *gin.Engine) {
 			err := saga.Submit()
 			dtmimp.E2P(err)
 		} else {
-			_, err := dtmimp.RestyClient.R().SetBody(gin.H{}).SetQueryParam("uid", suid2).Post(benchBusi + "/TransOut")
+			_, err := dtmcli.GetRestyClient().R().SetBody(gin.H{}).SetQueryParam("uid", suid2).Post(benchBusi + "/TransOut")
 			dtmimp.E2P(err)
-			_, err = dtmimp.RestyClient.R().SetBody(gin.H{}).SetQueryParam("uid", suid).Post(benchBusi + "/TransIn")
+			_, err = dtmcli.GetRestyClient().R().SetBody(gin.H{}).SetQueryParam("uid", suid).Post(benchBusi + "/TransIn")
 			dtmimp.E2P(err)
 		}
 		return nil

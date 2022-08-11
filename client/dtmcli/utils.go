@@ -13,7 +13,7 @@ import (
 // MustGenGid generate a new gid
 func MustGenGid(server string) string {
 	res := map[string]string{}
-	resp, err := dtmimp.RestyClient.R().SetResult(&res).Get(server + "/newGid")
+	resp, err := GetRestyClient().R().SetResult(&res).Get(server + "/newGid")
 	if err != nil || res["gid"] == "" {
 		panic(fmt.Errorf("newGid error: %v, resp: %s", err, resp))
 	}

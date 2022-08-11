@@ -7,6 +7,8 @@
 package dtmcli
 
 import (
+	"time"
+
 	"github.com/dtm-labs/dtm/client/dtmcli/dtmimp"
 	"github.com/go-resty/resty/v2"
 )
@@ -37,7 +39,11 @@ func SetBarrierTableName(tablename string) {
 
 // GetRestyClient get the resty.Client for http request
 func GetRestyClient() *resty.Client {
-	return dtmimp.RestyClient
+	return dtmimp.GetRestyClient2(0)
+}
+
+func GetRestyClient2(timeout time.Duration) *resty.Client {
+	return dtmimp.GetRestyClient2(timeout)
 }
 
 // SetPassthroughHeaders experimental.

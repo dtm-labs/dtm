@@ -3,6 +3,7 @@ package workflow
 import (
 	"context"
 
+	"github.com/dtm-labs/dtm/client/dtmcli"
 	"github.com/dtm-labs/dtm/client/dtmcli/dtmimp"
 	"github.com/dtm-labs/dtm/client/dtmgrpc/dtmgimp"
 	"github.com/dtm-labs/dtm/client/dtmgrpc/dtmgpb"
@@ -19,7 +20,7 @@ func (wf *Workflow) getProgress() ([]*dtmgpb.DtmProgress, error) {
 		}
 		return nil, err
 	}
-	resp, err := dtmimp.RestyClient.R().SetBody(wf.TransBase).Post(wf.Dtm + "/prepareWorkflow")
+	resp, err := dtmcli.GetRestyClient().R().SetBody(wf.TransBase).Post(wf.Dtm + "/prepareWorkflow")
 	var reply dtmgpb.DtmProgressesReply
 	if err == nil {
 		dtmimp.MustUnmarshal(resp.Body(), &reply)

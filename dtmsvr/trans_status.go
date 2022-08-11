@@ -109,9 +109,6 @@ func (t *TransGlobal) getURLResult(uri string, branchID, op string, branchPayloa
 		return nil
 	}
 	if t.Protocol == dtmimp.ProtocolHTTP || strings.HasPrefix(uri, "http://") || strings.HasPrefix(uri, "https://") {
-		if t.RequestTimeout != 0 {
-			dtmimp.RestyClient.SetTimeout(time.Duration(t.RequestTimeout) * time.Second)
-		}
 		if t.Protocol == "json-rpc" && strings.Contains(uri, "method") {
 			return t.getJSONRPCResult(uri, branchID, op, branchPayload)
 		}
@@ -121,7 +118,8 @@ func (t *TransGlobal) getURLResult(uri string, branchID, op string, branchPayloa
 }
 
 func (t *TransGlobal) getHTTPResult(uri string, branchID, op string, branchPayload []byte) error {
-	resp, err := dtmimp.RestyClient.R().SetBody(string(branchPayload)).
+	rc := dtmimp.GetRestyClient2(time.Duration(t.RequestTimeout) * time.Second)
+	resp, err := rc.R().SetBody(string(branchPayload)).
 		SetQueryParams(map[string]string{
 			"gid":        t.Gid,
 			"trans_type": t.TransType,
@@ -147,7 +145,8 @@ func (t *TransGlobal) getJSONRPCResult(uri string, branchID, op string, branchPa
 	params["trans_type"] = t.TransType
 	params["branch_id"] = branchID
 	params["op"] = op
-	resp, err := dtmimp.RestyClient.R().SetBody(map[string]interface{}{
+	rc := dtmimp.GetRestyClient2(time.Duration(t.RequestTimeout) * time.Second)
+	resp, err := rc.R().SetBody(map[string]interface{}{
 		"params":  params,
 		"jsonrpc": "2.0",
 		"method":  u.Query().Get("method"),

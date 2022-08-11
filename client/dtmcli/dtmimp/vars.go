@@ -8,6 +8,8 @@ package dtmimp
 
 import (
 	"errors"
+	"sync"
+	"time"
 
 	"github.com/dtm-labs/dtmdriver"
 	"github.com/dtm-labs/logger"
@@ -30,14 +32,24 @@ var MapSuccess = map[string]interface{}{"dtm_result": ResultSuccess}
 // MapFailure HTTP result of FAILURE
 var MapFailure = map[string]interface{}{"dtm_result": ResultFailure}
 
-// RestyClient the resty object
-var RestyClient = resty.New()
-
 // PassthroughHeaders will be passed to every sub-trans call
 var PassthroughHeaders = []string{}
 
 // BarrierTableName the table name of barrier table
 var BarrierTableName = "dtm_barrier.barrier"
+
+var restyClients sync.Map
+
+func GetRestyClient2(timeout time.Duration) *resty.Client {
+	cli, ok := restyClients.Load(timeout)
+	if !ok {
+		client := resty.New()
+		AddRestyMiddlewares(client)
+		restyClients.Store(timeout, client)
+		cli = client
+	}
+	return cli.(*resty.Client)
+}
 
 // AddRestyMiddlewares will add the middlewares used by dtm
 func AddRestyMiddlewares(client *resty.Client) {
@@ -57,8 +69,4 @@ func AddRestyMiddlewares(client *resty.Client) {
 		logger.Debugf("requested: %d %s %s %s", resp.StatusCode(), r.Method, r.URL, resp.String())
 		return nil
 	})
-}
-
-func init() {
-	AddRestyMiddlewares(RestyClient)
 }
