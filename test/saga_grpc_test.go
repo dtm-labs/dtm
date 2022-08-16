@@ -101,17 +101,6 @@ func genSagaGrpc(gid string, outFailed bool, inFailed bool) *dtmgrpc.SagaGrpc {
 	return saga
 }
 
-func TestSagaGrpcPassthroughHeadersYes(t *testing.T) {
-	gidYes := dtmimp.GetFuncName()
-	sagaYes := dtmgrpc.NewSagaGrpc(dtmutil.DefaultGrpcServer, gidYes)
-	sagaYes.WaitResult = true
-	sagaYes.PassthroughHeaders = []string{"test_header"}
-	sagaYes.Add(busi.BusiGrpc+"/busi.Busi/TransOutHeaderYes", "", nil)
-	err := sagaYes.Submit()
-	assert.Nil(t, err)
-	waitTransProcessed(gidYes)
-}
-
 func TestSagaGrpcWithGlobalTransRequestTimeout(t *testing.T) {
 	gid := dtmimp.GetFuncName()
 	saga := dtmgrpc.NewSagaGrpc(dtmutil.DefaultGrpcServer, gid)
@@ -135,30 +124,6 @@ func TestSagaGrpcOptionsRollbackWait(t *testing.T) {
 	assert.Equal(t, StatusFailed, getTransStatus(saga.Gid))
 	assert.Equal(t, []string{StatusSucceed, StatusSucceed, StatusSucceed, StatusFailed}, getBranchesStatus(saga.Gid))
 	assert.Contains(t, getTrans(saga.Gid).RollbackReason, "Insufficient balance")
-}
-
-func TestSagaGrpcCronPassthroughHeadersYes(t *testing.T) {
-	gidYes := dtmimp.GetFuncName()
-	sagaYes := dtmgrpc.NewSagaGrpc(dtmutil.DefaultGrpcServer, gidYes)
-	sagaYes.PassthroughHeaders = []string{"test_header"}
-	sagaYes.Add(busi.BusiGrpc+"/busi.Busi/TransOutHeaderYes", "", nil)
-	busi.MainSwitch.TransOutResult.SetOnce("ONGOING")
-	err := sagaYes.Submit()
-	assert.Nil(t, err)
-	waitTransProcessed(gidYes)
-	assert.Equal(t, StatusSubmitted, getTransStatus(gidYes))
-	cronTransOnce(t, gidYes)
-	assert.Equal(t, StatusSucceed, getTransStatus(gidYes))
-}
-
-func TestSagaGrpcPassthroughHeadersNo(t *testing.T) {
-	gidNo := dtmimp.GetFuncName()
-	sagaNo := dtmgrpc.NewSagaGrpc(dtmutil.DefaultGrpcServer, gidNo)
-	sagaNo.WaitResult = true
-	sagaNo.Add(busi.BusiGrpc+"/busi.Busi/TransOutHeaderNo", "", nil)
-	err := sagaNo.Submit()
-	assert.Nil(t, err)
-	waitTransProcessed(gidNo)
 }
 
 func TestSagaGrpcHeaders(t *testing.T) {

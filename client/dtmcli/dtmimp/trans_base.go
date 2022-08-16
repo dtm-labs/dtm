@@ -43,13 +43,12 @@ func (g *BranchIDGen) CurrentSubBranchID() string {
 
 // TransOptions transaction options
 type TransOptions struct {
-	WaitResult         bool              `json:"wait_result,omitempty" gorm:"-"`
-	TimeoutToFail      int64             `json:"timeout_to_fail,omitempty" gorm:"-"`     // for trans type: xa, tcc, unit: second
-	RequestTimeout     int64             `json:"request_timeout,omitempty" gorm:"-"`     // for global trans resets request timeout, unit: second
-	RetryInterval      int64             `json:"retry_interval,omitempty" gorm:"-"`      // for trans type: msg saga xa tcc, unit: second
-	PassthroughHeaders []string          `json:"passthrough_headers,omitempty" gorm:"-"` // for inherit the specified gin context headers
-	BranchHeaders      map[string]string `json:"branch_headers,omitempty" gorm:"-"`      // custom branch headers,  dtm server => service api
-	Concurrent         bool              `json:"concurrent" gorm:"-"`                    // for trans type: saga msg
+	WaitResult     bool              `json:"wait_result,omitempty" gorm:"-"`
+	TimeoutToFail  int64             `json:"timeout_to_fail,omitempty" gorm:"-"` // for trans type: xa, tcc, unit: second
+	RequestTimeout int64             `json:"request_timeout,omitempty" gorm:"-"` // for global trans resets request timeout, unit: second
+	RetryInterval  int64             `json:"retry_interval,omitempty" gorm:"-"`  // for trans type: msg saga xa tcc, unit: second
+	BranchHeaders  map[string]string `json:"branch_headers,omitempty" gorm:"-"`  // custom branch headers,  dtm server => service api
+	Concurrent     bool              `json:"concurrent" gorm:"-"`                // for trans type: saga msg
 }
 
 // TransBase base for all trans
@@ -75,12 +74,11 @@ type TransBase struct {
 // NewTransBase new a TransBase
 func NewTransBase(gid string, transType string, dtm string, branchID string) *TransBase {
 	return &TransBase{
-		Gid:          gid,
-		TransType:    transType,
-		BranchIDGen:  BranchIDGen{BranchID: branchID},
-		Dtm:          dtm,
-		TransOptions: TransOptions{PassthroughHeaders: PassthroughHeaders},
-		Context:      context.Background(),
+		Gid:         gid,
+		TransType:   transType,
+		BranchIDGen: BranchIDGen{BranchID: branchID},
+		Dtm:         dtm,
+		Context:     context.Background(),
 	}
 }
 

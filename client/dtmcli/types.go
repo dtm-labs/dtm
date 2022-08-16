@@ -46,11 +46,3 @@ func GetRestyClient() *resty.Client {
 func GetRestyClient2(timeout time.Duration) *resty.Client {
 	return dtmimp.GetRestyClient2(timeout)
 }
-
-// SetPassthroughHeaders experimental.
-// apply to http header and grpc metadata
-// dtm server will save these headers in trans creating request.
-// and then passthrough them to sub-trans
-func SetPassthroughHeaders(headers []string) {
-	dtmimp.PassthroughHeaders = headers
-}

@@ -109,41 +109,6 @@ func TestSagaOptionsRollbackWait(t *testing.T) {
 	assert.Contains(t, getTrans(saga.Gid).RollbackReason, "Insufficient balance")
 }
 
-func TestSagaPassthroughHeadersYes(t *testing.T) {
-	gidYes := dtmimp.GetFuncName()
-	sagaYes := dtmcli.NewSaga(dtmutil.DefaultHTTPServer, gidYes)
-	sagaYes.WaitResult = true
-	sagaYes.PassthroughHeaders = []string{"test_header"}
-	sagaYes.Add(busi.Busi+"/TransOutHeaderYes", "", nil)
-	err := sagaYes.Submit()
-	assert.Nil(t, err)
-	waitTransProcessed(gidYes)
-}
-
-func TestSagaCronPassthroughHeadersYes(t *testing.T) {
-	gidYes := dtmimp.GetFuncName()
-	sagaYes := dtmcli.NewSaga(dtmutil.DefaultHTTPServer, gidYes)
-	sagaYes.PassthroughHeaders = []string{"test_header"}
-	sagaYes.Add(busi.Busi+"/TransOutHeaderYes", "", nil)
-	busi.MainSwitch.TransOutResult.SetOnce("ONGOING")
-	err := sagaYes.Submit()
-	assert.Nil(t, err)
-	waitTransProcessed(gidYes)
-	assert.Equal(t, StatusSubmitted, getTransStatus(gidYes))
-	cronTransOnce(t, gidYes)
-	assert.Equal(t, StatusSucceed, getTransStatus(gidYes))
-}
-
-func TestSagaPassthroughHeadersNo(t *testing.T) {
-	gidNo := dtmimp.GetFuncName()
-	sagaNo := dtmcli.NewSaga(dtmutil.DefaultHTTPServer, gidNo)
-	sagaNo.WaitResult = true
-	sagaNo.Add(busi.Busi+"/TransOutHeaderNo", "", nil)
-	err := sagaNo.Submit()
-	assert.Nil(t, err)
-	waitTransProcessed(gidNo)
-}
-
 func TestSagaHeaders(t *testing.T) {
 	gidYes := dtmimp.GetFuncName()
 	sagaYes := dtmcli.NewSaga(dtmutil.DefaultHTTPServer, gidYes)

@@ -19,7 +19,7 @@ message DtmTransOptions {
   bool WaitResult = 1;
   int64 TimeoutToFail = 2;
   int64 RetryInterval = 3;
-  repeated string PassthroughHeaders = 4;
+  // repeated string PassthroughHeaders = 4; // depreceated
   map<string, string> BranchHeaders = 5;
   int64 RequestTimeout = 6;
 }
