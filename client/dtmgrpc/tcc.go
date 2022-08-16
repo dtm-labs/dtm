@@ -13,6 +13,7 @@ import (
 	"github.com/dtm-labs/dtm/client/dtmcli/dtmimp"
 	"github.com/dtm-labs/dtm/client/dtmgrpc/dtmgimp"
 	"github.com/dtm-labs/dtm/client/dtmgrpc/dtmgpb"
+	grpc "google.golang.org/grpc"
 	"google.golang.org/protobuf/proto"
 )
 
@@ -61,7 +62,7 @@ func TccFromGrpc(ctx context.Context) (*TccGrpc, error) {
 }
 
 // CallBranch call a tcc branch
-func (t *TccGrpc) CallBranch(busiMsg proto.Message, tryURL string, confirmURL string, cancelURL string, reply interface{}) error {
+func (t *TccGrpc) CallBranch(busiMsg proto.Message, tryURL string, confirmURL string, cancelURL string, reply interface{}, opts ...grpc.CallOption) error {
 	branchID := t.NewSubBranchID()
 	bd, err := proto.Marshal(busiMsg)
 	if err == nil {
@@ -76,5 +77,5 @@ func (t *TccGrpc) CallBranch(busiMsg proto.Message, tryURL string, confirmURL st
 	if err != nil {
 		return err
 	}
-	return dtmgimp.InvokeBranch(&t.TransBase, false, busiMsg, tryURL, reply, branchID, "try")
+	return dtmgimp.InvokeBranch(&t.TransBase, false, busiMsg, tryURL, reply, branchID, "try", opts...)
 }
