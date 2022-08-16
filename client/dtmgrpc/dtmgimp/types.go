@@ -55,7 +55,7 @@ func GrpcClientLog(ctx context.Context, method string, req, reply interface{}, c
 }
 
 // InvokeBranch invoke a url for trans
-func InvokeBranch(t *dtmimp.TransBase, isRaw bool, msg proto.Message, url string, reply interface{}, branchID string, op string) error {
+func InvokeBranch(t *dtmimp.TransBase, isRaw bool, msg proto.Message, url string, reply interface{}, branchID string, op string, opts ...grpc.CallOption) error {
 	server, method, err := dtmdriver.GetDriver().ParseServerMethod(url)
 	if err != nil {
 		return err
@@ -65,5 +65,5 @@ func InvokeBranch(t *dtmimp.TransBase, isRaw bool, msg proto.Message, url string
 	if t.TransType == "xa" { // xa branch need additional phase2_url
 		ctx = metadata.AppendToOutgoingContext(ctx, Map2Kvs(map[string]string{dtmpre + "phase2_url": url})...)
 	}
-	return MustGetGrpcConn(server, isRaw).Invoke(ctx, method, msg, reply)
+	return MustGetGrpcConn(server, isRaw).Invoke(ctx, method, msg, reply, opts...)
 }
