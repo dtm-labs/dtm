@@ -137,3 +137,34 @@ func TestSagaHeadersYes1(t *testing.T) {
 	cronTransOnce(t, gidYes)
 	assert.Equal(t, StatusSucceed, getTransStatus(gidYes))
 }
+
+func TestSagaGlobalTransWithRetryLimitYes(t *testing.T) {
+	gid := dtmimp.GetFuncName()
+	saga := dtmcli.NewSaga(dtmutil.DefaultHTTPServer, gid)
+	req := busi.GenReqHTTP(30, false, false)
+	saga.Add(busi.Busi+"/TransOut", busi.Busi+"/TransOutRevert", &req)
+	saga.Add(busi.Busi+"/TransInRetry", busi.Busi+"/TransInRevert", &req)
+	saga.WaitResult = true
+	saga.WithRetryLimit(3)
+	err := saga.Submit()
+	assert.Nil(t, err)
+	waitTransProcessed(gid)
+	assert.Equal(t, StatusSucceed, getTransStatus(saga.Gid))
+	assert.Equal(t, []string{StatusPrepared, StatusSucceed, StatusPrepared, StatusSucceed}, getBranchesStatus(saga.Gid))
+}
+
+func TestSagaGlobalTransWithRetryLimitNo(t *testing.T) {
+	gid := dtmimp.GetFuncName()
+	saga := dtmcli.NewSaga(dtmutil.DefaultHTTPServer, gid)
+	req := busi.GenReqHTTP(30, false, false)
+	saga.Add(busi.Busi+"/TransOut", busi.Busi+"/TransOutRevert", &req)
+	saga.Add(busi.Busi+"/TransInRetry", busi.Busi+"/TransInRevert", &req)
+	saga.WaitResult = true
+	saga.WithRetryLimit(1)
+	err := saga.Submit()
+	assert.NotNil(t, err)
+	waitTransProcessed(gid)
+	assert.Equal(t, StatusFailed, getTransStatus(saga.Gid))
+	assert.Equal(t, []string{StatusSucceed, StatusSucceed, StatusSucceed, StatusPrepared}, getBranchesStatus(saga.Gid))
+	assert.Equal(t, `RetryCount is greater than RetryLimit, RetryLimit: 1`, getTrans(gid).RollbackReason)
+}

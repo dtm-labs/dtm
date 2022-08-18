@@ -171,6 +171,20 @@ func (t *transSagaProcessor) ProcessOnce(branches []TransBranch) error {
 			br := &branchResults[r.index]
 			br.status = r.status
 			if r.op == dtmimp.OpAction {
+				// if t.RetryLimit > 0, should check the retry count
+				if t.RetryLimit > 0 && (r.status == dtmcli.StatusPrepared || r.status == dtmcli.StatusSubmitted) {
+					// if t.RetryCount < t.RetryLimit, branch will be retried util RetryLimit = 0
+					if t.RetryCount < t.RetryLimit {
+						t.RetryCount++
+						logger.Infof("Retrying branch %s %s %s, t.RetryLimit: %d, t.RetryCount: %d",
+							branches[r.index].BranchID, branches[r.index].Op, branches[r.index].URL, t.RetryLimit, t.RetryCount)
+						go asyncExecBranch(r.index)
+						break
+					}
+					// if t.RetryCount = t.RetryLimit, trans will be aborted
+					t.changeStatus(dtmcli.StatusAborting, withRollbackReason(fmt.Sprintf("RetryCount is greater than RetryLimit, RetryLimit: %v", t.RetryLimit)))
+					break
+				}
 				rsADone++
 				if r.status == dtmcli.StatusFailed {
 					rsAFailed++

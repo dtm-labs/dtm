@@ -49,6 +49,8 @@ type TransOptions struct {
 	RetryInterval  int64             `json:"retry_interval,omitempty" gorm:"-"`  // for trans type: msg saga xa tcc, unit: second
 	BranchHeaders  map[string]string `json:"branch_headers,omitempty" gorm:"-"`  // custom branch headers,  dtm server => service api
 	Concurrent     bool              `json:"concurrent" gorm:"-"`                // for trans type: saga msg
+	RetryLimit     int64             `json:"retry_limit,omitempty" gorm:"-"`     // for trans type: saga
+	RetryCount     int64             `json:"retry_count,omitempty" gorm:"-"`     // for trans type: saga
 }
 
 // TransBase base for all trans
@@ -85,6 +87,11 @@ func NewTransBase(gid string, transType string, dtm string, branchID string) *Tr
 // WithGlobalTransRequestTimeout defines global trans request timeout
 func (t *TransBase) WithGlobalTransRequestTimeout(timeout int64) {
 	t.RequestTimeout = timeout
+}
+
+// WithRetryLimit defines global trans retry limit
+func (t *TransBase) WithRetryLimit(retryLimit int64) {
+	t.RetryLimit = retryLimit
 }
 
 // TransBaseFromQuery construct transaction info from request
