@@ -216,7 +216,7 @@ func BaseAddRoute(app *gin.Engine) {
 	app.POST(BusiAPI+"/TransInRetry", dtmutil.WrapHandler(func(c *gin.Context) interface{} {
 		if retryNums != 0 {
 			retryNums--
-			return dtmcli.ErrOngoing
+			return fmt.Errorf(("should be retried"))
 		}
 		retryNums = 3
 		return nil
