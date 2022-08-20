@@ -207,7 +207,7 @@ func (t *TransGlobal) getBranchResult(branch *TransBranch) (string, error) {
 	} else if errors.Is(err, dtmcli.ErrOngoing) {
 		return "", dtmcli.ErrOngoing
 	}
-	return "", fmt.Errorf("Your http/grpc result should be specified as in:\nhttp://d.dtm.pub/practice/arch.html#proto\nunkown result will be retried: %s", err)
+	return "", fmt.Errorf("Your http/grpc result should be specified as in:\nhttp://d.dtm.pub/practice/arch.html#proto\nunkown result will be retried: %w", err)
 }
 
 func (t *TransGlobal) execBranch(branch *TransBranch, branchPos int) error {
