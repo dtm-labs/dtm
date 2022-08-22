@@ -32,9 +32,6 @@ var MapSuccess = map[string]interface{}{"dtm_result": ResultSuccess}
 // MapFailure HTTP result of FAILURE
 var MapFailure = map[string]interface{}{"dtm_result": ResultFailure}
 
-// PassthroughHeaders will be passed to every sub-trans call
-var PassthroughHeaders = []string{}
-
 // BarrierTableName the table name of barrier table
 var BarrierTableName = "dtm_barrier.barrier"
 

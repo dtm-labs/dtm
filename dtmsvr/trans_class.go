@@ -6,7 +6,6 @@ import (
 
 	"github.com/dtm-labs/dtm/client/dtmcli"
 	"github.com/dtm-labs/dtm/client/dtmcli/dtmimp"
-	"github.com/dtm-labs/dtm/client/dtmgrpc/dtmgimp"
 	"github.com/dtm-labs/dtm/client/dtmgrpc/dtmgpb"
 	"github.com/dtm-labs/dtm/dtmsvr/storage"
 	"github.com/dtm-labs/logger"
@@ -77,14 +76,6 @@ func TransFromContext(c *gin.Context) *TransGlobal {
 	logger.Debugf("creating trans in prepare")
 	m.setupPayloads()
 	m.Ext.Headers = map[string]string{}
-	if len(m.PassthroughHeaders) > 0 {
-		for _, h := range m.PassthroughHeaders {
-			v := c.GetHeader(h)
-			if v != "" {
-				m.Ext.Headers[h] = v
-			}
-		}
-	}
 	return &m
 }
 
@@ -103,26 +94,16 @@ func TransFromDtmRequest(ctx context.Context, c *dtmgpb.DtmRequest) *TransGlobal
 		CustomData:     c.CustomedData,
 		RollbackReason: c.RollbackReason,
 		TransOptions: dtmcli.TransOptions{
-			WaitResult:         o.WaitResult,
-			TimeoutToFail:      o.TimeoutToFail,
-			RetryInterval:      o.RetryInterval,
-			PassthroughHeaders: o.PassthroughHeaders,
-			BranchHeaders:      o.BranchHeaders,
-			RequestTimeout:     o.RequestTimeout,
+			WaitResult:     o.WaitResult,
+			TimeoutToFail:  o.TimeoutToFail,
+			RetryInterval:  o.RetryInterval,
+			BranchHeaders:  o.BranchHeaders,
+			RequestTimeout: o.RequestTimeout,
 		},
 	}}
 	r.ReqExtra = c.ReqExtra
 	if c.Steps != "" {
 		dtmimp.MustUnmarshalString(c.Steps, &r.Steps)
-	}
-	if len(o.PassthroughHeaders) > 0 {
-		r.Ext.Headers = map[string]string{}
-		for _, h := range o.PassthroughHeaders {
-			v := dtmgimp.GetMetaFromContext(ctx, h)
-			if v != "" {
-				r.Ext.Headers[h] = v
-			}
-		}
 	}
 	return &r
 }
