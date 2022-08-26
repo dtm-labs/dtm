@@ -99,6 +99,7 @@ func TransFromDtmRequest(ctx context.Context, c *dtmgpb.DtmRequest) *TransGlobal
 			RetryInterval:  o.RetryInterval,
 			BranchHeaders:  o.BranchHeaders,
 			RequestTimeout: o.RequestTimeout,
+			RetryLimit:     o.RetryLimit,
 		},
 	}}
 	r.ReqExtra = c.ReqExtra

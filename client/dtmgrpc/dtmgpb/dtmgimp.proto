@@ -22,6 +22,7 @@ message DtmTransOptions {
   // repeated string PassthroughHeaders = 4; // depreceated
   map<string, string> BranchHeaders = 5;
   int64 RequestTimeout = 6;
+  int64 RetryLimit = 7;
 }
 
 // DtmRequest request sent to dtm server
