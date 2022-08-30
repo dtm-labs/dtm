@@ -41,6 +41,7 @@ func GetDtmRequest(s *dtmimp.TransBase) *dtmgpb.DtmRequest {
 			RetryInterval:  s.RetryInterval,
 			BranchHeaders:  s.BranchHeaders,
 			RequestTimeout: s.RequestTimeout,
+			RetryLimit:     s.RetryLimit,
 		},
 		QueryPrepared:  s.QueryPrepared,
 		CustomedData:   s.CustomData,
