@@ -237,7 +237,11 @@ func (t *transSagaProcessor) ProcessOnce(branches []TransBranch) error {
 		return nil
 	}
 	if t.Status == dtmcli.StatusSubmitted && rsAFailed > 0 {
-		t.changeStatus(dtmcli.StatusAborting, withRollbackReason(failureError.Error()))
+		msg := "fail message lost"
+		if failureError != nil { // handle the case if branch failed and saved, and then crash
+			msg = failureError.Error()
+		}
+		t.changeStatus(dtmcli.StatusAborting, withRollbackReason(msg))
 	}
 	if t.Status == dtmcli.StatusSubmitted && t.isTimeout() {
 		t.changeStatus(dtmcli.StatusAborting, withRollbackReason(fmt.Sprintf("Timeout after %d seconds", t.TimeoutToFail)))
