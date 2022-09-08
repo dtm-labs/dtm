@@ -12,6 +12,7 @@ require (
 	github.com/dtm-labs/dtmdriver-springcloud v1.2.3
 	github.com/dtm-labs/logger v0.0.1
 	github.com/gin-gonic/gin v1.7.7
+	github.com/go-errors/errors v1.4.2
 	github.com/go-redis/redis/v8 v8.11.5
 	github.com/go-resty/resty/v2 v2.7.0
 	github.com/go-sql-driver/mysql v1.6.0

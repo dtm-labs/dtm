@@ -46,7 +46,21 @@ export const allowRouter: Array<IMenubarList> = [
             //   meta: { title: 'Unfinished Transactions' },
           }
         ]
-      }
+      },{
+        name: 'KVPairs',
+        path: '/admin/kv',
+        component: Components['LayoutMain'],
+        meta: { title: 'Key-Value Pairs' },
+        children: [
+          {
+            name: 'Topics',
+            path: '/admin/kv/topics',
+            component: Components['Topics'],
+            meta: { title: 'Topics' },
+          }
+        ]
+      },
+
     ]
   }
 ]

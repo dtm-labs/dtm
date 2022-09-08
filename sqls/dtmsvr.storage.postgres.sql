@@ -44,3 +44,17 @@ CREATE TABLE IF NOT EXISTS trans_branch_op (
   PRIMARY KEY (id),
   CONSTRAINT gid_branch_uniq UNIQUE (gid, branch_id, op)
 );
+drop table IF EXISTS kv;
+
+CREATE SEQUENCE if not EXISTS kv_seq;
+CREATE TABLE IF NOT EXISTS kv (
+    id bigint NOT NULL DEFAULT NEXTVAL ('kv_seq'),
+    cat varchar(45) NOT NULL,
+    k varchar(128) NOT NULL,
+    v TEXT,
+    version bigint default 1,
+    create_time timestamp(0) with time zone DEFAULT NULL,
+    update_time timestamp(0) with time zone DEFAULT  NULL,
+    PRIMARY KEY (id),
+    CONSTRAINT uniq_k UNIQUE(cat, k)
+);

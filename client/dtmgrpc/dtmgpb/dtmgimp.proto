@@ -13,6 +13,9 @@ service Dtm {
   rpc Abort(DtmRequest) returns (google.protobuf.Empty) {}
   rpc RegisterBranch(DtmBranchRequest) returns (google.protobuf.Empty) {}
   rpc PrepareWorkflow(DtmRequest) returns (DtmProgressesReply) {}
+  rpc Subscribe(DtmTopicRequest) returns (google.protobuf.Empty){}
+  rpc UnSubscribe(DtmTopicRequest) returns (google.protobuf.Empty){}
+  rpc DeleteTopic(DtmTopicRequest) returns (google.protobuf.Empty){}
 }
 
 message DtmTransOptions {
@@ -68,4 +71,10 @@ message DtmProgress {
   bytes BinData = 2;
   string BranchID = 3;
   string Op = 4;
+}
+
+message DtmTopicRequest {
+  string Topic = 1;
+  string URL = 2;
+  string Remark = 3;
 }

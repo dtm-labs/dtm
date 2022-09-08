@@ -69,3 +69,15 @@ func (s *dtmServer) PrepareWorkflow(ctx context.Context, in *pb.DtmRequest) (*pb
 	}
 	return reply, dtmgrpc.DtmError2GrpcError(err)
 }
+
+func (s *dtmServer) Subscribe(ctx context.Context, in *pb.DtmTopicRequest) (*emptypb.Empty, error) {
+	return &emptypb.Empty{}, dtmgrpc.DtmError2GrpcError(Subscribe(in.Topic, in.URL, in.Remark))
+}
+
+func (s *dtmServer) UnSubscribe(ctx context.Context, in *pb.DtmTopicRequest) (*emptypb.Empty, error) {
+	return &emptypb.Empty{}, dtmgrpc.DtmError2GrpcError(Unsubscribe(in.Topic, in.URL))
+}
+
+func (s *dtmServer) DeleteTopic(ctx context.Context, in *pb.DtmTopicRequest) (*emptypb.Empty, error) {
+	return &emptypb.Empty{}, dtmgrpc.DtmError2GrpcError(GetStore().DeleteKV(topicsCat, in.Topic))
+}

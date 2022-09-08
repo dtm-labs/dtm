@@ -135,7 +135,7 @@ const handleTransactionStop = async (gid: string) => {
 }
 .pager .ant-btn-text {
     font-weight: 500;
-}1
+}
 .pager .ant-btn {
     padding: 6px;
 }

@@ -69,6 +69,8 @@ func StartSvr() *gin.Engine {
 	for i := 0; i < int(conf.UpdateBranchAsyncGoroutineNum); i++ {
 		go updateBranchAsync()
 	}
+	updateTopicsMap()
+	go CronUpdateTopicsMap()
 
 	time.Sleep(100 * time.Millisecond)
 	err = dtmdriver.Use(conf.MicroService.Driver)

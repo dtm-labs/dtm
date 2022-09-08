@@ -181,6 +181,81 @@ func (s *Store) ResetCronTime(after time.Duration, limit int64) (succeedCount in
 	return affected, affected == limit, err
 }
 
+// ScanKV lists KV pairs
+func (s *Store) ScanKV(cat string, position *string, limit int64) []storage.KVStore {
+	kvs := []storage.KVStore{}
+	lid := math.MaxInt64
+	if *position != "" {
+		lid = dtmimp.MustAtoi(*position)
+	}
+	dbr := dbGet().Must().Where("cat = ? and id < ?", cat, lid).Order("id desc").Limit(int(limit)).Find(&kvs)
+	if dbr.RowsAffected < limit {
+		*position = ""
+	} else {
+		*position = fmt.Sprintf("%d", kvs[len(kvs)-1].ID)
+	}
+	return kvs
+}
+
+// FindKV finds key-value pairs
+func (s *Store) FindKV(cat, key string) []storage.KVStore {
+	kvs := []storage.KVStore{}
+	db := dbGet().Model(&storage.KVStore{})
+	if cat != "" {
+		db = db.Where("cat=?", cat)
+	}
+	if key != "" {
+		db = db.Where("k=?", key)
+	}
+	db.Find(&kvs)
+	return kvs
+}
+
+// UpdateKV updates key-value pair
+func (s *Store) UpdateKV(kv *storage.KVStore) error {
+	now := time.Now()
+	kv.UpdateTime = &now
+	oldVersion := kv.Version
+	kv.Version = oldVersion + 1
+	dbr := dbGet().Model(&storage.KVStore{}).Where("id=? and version=?", kv.ID, oldVersion).
+		Updates(kv)
+	if dbr.Error == nil && dbr.RowsAffected == 0 {
+		return storage.ErrNotFound
+	}
+	return dbr.Error
+}
+
+// DeleteKV deletes key-value pair
+func (s *Store) DeleteKV(cat, key string) error {
+	dbr := dbGet().Where("cat=? and k=?", cat, key).Delete(&storage.KVStore{})
+	if dbr.Error == nil && dbr.RowsAffected == 0 {
+		return storage.ErrNotFound
+	}
+	return dbr.Error
+}
+
+// CreateKV creates key-value pair
+func (s *Store) CreateKV(cat, key, value string) error {
+	now := time.Now()
+	kv := &storage.KVStore{
+		ModelBase: dtmutil.ModelBase{
+			CreateTime: &now,
+			UpdateTime: &now,
+		},
+		Cat:     cat,
+		K:       key,
+		V:       value,
+		Version: 1,
+	}
+	dbr := dbGet().Clauses(clause.OnConflict{
+		DoNothing: true,
+	}).Create(kv)
+	if dbr.Error == nil && dbr.RowsAffected == 0 {
+		return storage.ErrUniqueConflict
+	}
+	return dbr.Error
+}
+
 // SetDBConn sets db conn pool
 func SetDBConn(db *gorm.DB) {
 	sqldb, _ := db.DB()

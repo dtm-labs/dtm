@@ -96,6 +96,7 @@ type Type struct {
 	LogLevel                      string           `yaml:"LogLevel" default:"info"`
 	Log                           Log              `yaml:"Log"`
 	TimeZoneOffset                string           `yaml:"TimeZoneOffset"`
+	ConfigUpdateInterval          int64            `yaml:"ConfigUpdateInterval" default:"3"`
 }
 
 // Config config

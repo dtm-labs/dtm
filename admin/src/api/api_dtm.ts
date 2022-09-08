@@ -1,7 +1,13 @@
-import { AxiosResponse } from 'axios'
+import {AxiosResponse} from 'axios'
 import request from '/@/utils/request'
 
 export interface IListAllTransactionsReq {
+    limit: number
+    position?: string
+}
+
+export interface IListAllKVReq {
+    cat: string
     limit: number
     position?: string
 }
@@ -18,7 +24,46 @@ export function forceStopTransaction(gid: string): Promise<AxiosResponse> {
     return request({
         url: '/api/dtmsvr/forceStop',
         method: 'post',
-        data: { gid },
+        data: {gid},
+    })
+}
+
+export function queryKVPair<T>(payload: { "cat": string, "key": string }): Promise<AxiosResponse<T>> {
+    return request({
+        url: '/api/dtmsvr/queryKV',
+        method: 'get',
+        params: payload
+    })
+}
+
+export function listKVPairs<T>(payload: IListAllKVReq): Promise<AxiosResponse<T>> {
+    return request({
+        url: '/api/dtmsvr/scanKV',
+        method: 'get',
+        params: payload
+    })
+}
+
+export function deleteTopic<T>(topicName: string): Promise<AxiosResponse<T>> {
+    return request({
+        url: '/api/dtmsvr/topic/' + topicName,
+        method: 'delete'
+    })
+}
+
+export function subscribe<T>(payload: { topic: string, url: string, remark: string }): Promise<AxiosResponse<T>> {
+    return request({
+        url: '/api/dtmsvr/subscribe',
+        method: 'get',
+        params: payload
+    })
+}
+
+export function unsubscribe(payload: { topic: string, url: string }): Promise<AxiosResponse> {
+    return request({
+        url: '/api/dtmsvr/unsubscribe',
+        method: 'get',
+        params: payload
     })
 }
 
