@@ -14,7 +14,7 @@ service Dtm {
   rpc RegisterBranch(DtmBranchRequest) returns (google.protobuf.Empty) {}
   rpc PrepareWorkflow(DtmRequest) returns (DtmProgressesReply) {}
   rpc Subscribe(DtmTopicRequest) returns (google.protobuf.Empty){}
-  rpc UnSubscribe(DtmTopicRequest) returns (google.protobuf.Empty){}
+  rpc Unsubscribe(DtmTopicRequest) returns (google.protobuf.Empty){}
   rpc DeleteTopic(DtmTopicRequest) returns (google.protobuf.Empty){}
 }
 

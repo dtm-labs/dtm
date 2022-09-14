@@ -136,7 +136,7 @@ func grpcSubscribe(topic, url string) error {
 }
 
 func grpcUnsubscribe(topic, url string) error {
-	_, err := dtmgimp.MustGetDtmClient(dtmutil.DefaultGrpcServer).UnSubscribe(context.Background(),
+	_, err := dtmgimp.MustGetDtmClient(dtmutil.DefaultGrpcServer).Unsubscribe(context.Background(),
 		&dtmgpb.DtmTopicRequest{
 			Topic: topic,
 			URL:   url})

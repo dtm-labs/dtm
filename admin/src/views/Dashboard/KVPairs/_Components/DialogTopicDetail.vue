@@ -5,7 +5,7 @@
         <template #bodyCell="{column, record}">
           <template v-if="column.key === 'action'">
             <span>
-              <a class="text-red-400 font-medium" @click="handleUnsubscribe(record.url)">UnSubscribe</a>
+              <a class="text-red-400 font-medium" @click="handleUnsubscribe(record.url)">Unsubscribe</a>
             </span>
           </template>
         </template>

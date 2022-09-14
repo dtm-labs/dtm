@@ -30,7 +30,7 @@ type DtmClient interface {
 	RegisterBranch(ctx context.Context, in *DtmBranchRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
 	PrepareWorkflow(ctx context.Context, in *DtmRequest, opts ...grpc.CallOption) (*DtmProgressesReply, error)
 	Subscribe(ctx context.Context, in *DtmTopicRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
-	UnSubscribe(ctx context.Context, in *DtmTopicRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
+	Unsubscribe(ctx context.Context, in *DtmTopicRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
 	DeleteTopic(ctx context.Context, in *DtmTopicRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
 }
 
@@ -105,9 +105,9 @@ func (c *dtmClient) Subscribe(ctx context.Context, in *DtmTopicRequest, opts ...
 	return out, nil
 }
 
-func (c *dtmClient) UnSubscribe(ctx context.Context, in *DtmTopicRequest, opts ...grpc.CallOption) (*emptypb.Empty, error) {
+func (c *dtmClient) Unsubscribe(ctx context.Context, in *DtmTopicRequest, opts ...grpc.CallOption) (*emptypb.Empty, error) {
 	out := new(emptypb.Empty)
-	err := c.cc.Invoke(ctx, "/dtmgimp.Dtm/UnSubscribe", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/dtmgimp.Dtm/Unsubscribe", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -134,7 +134,7 @@ type DtmServer interface {
 	RegisterBranch(context.Context, *DtmBranchRequest) (*emptypb.Empty, error)
 	PrepareWorkflow(context.Context, *DtmRequest) (*DtmProgressesReply, error)
 	Subscribe(context.Context, *DtmTopicRequest) (*emptypb.Empty, error)
-	UnSubscribe(context.Context, *DtmTopicRequest) (*emptypb.Empty, error)
+	Unsubscribe(context.Context, *DtmTopicRequest) (*emptypb.Empty, error)
 	DeleteTopic(context.Context, *DtmTopicRequest) (*emptypb.Empty, error)
 	mustEmbedUnimplementedDtmServer()
 }
@@ -164,8 +164,8 @@ func (UnimplementedDtmServer) PrepareWorkflow(context.Context, *DtmRequest) (*Dt
 func (UnimplementedDtmServer) Subscribe(context.Context, *DtmTopicRequest) (*emptypb.Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Subscribe not implemented")
 }
-func (UnimplementedDtmServer) UnSubscribe(context.Context, *DtmTopicRequest) (*emptypb.Empty, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method UnSubscribe not implemented")
+func (UnimplementedDtmServer) Unsubscribe(context.Context, *DtmTopicRequest) (*emptypb.Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Unsubscribe not implemented")
 }
 func (UnimplementedDtmServer) DeleteTopic(context.Context, *DtmTopicRequest) (*emptypb.Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method DeleteTopic not implemented")
@@ -309,20 +309,20 @@ func _Dtm_Subscribe_Handler(srv interface{}, ctx context.Context, dec func(inter
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Dtm_UnSubscribe_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _Dtm_Unsubscribe_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(DtmTopicRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(DtmServer).UnSubscribe(ctx, in)
+		return srv.(DtmServer).Unsubscribe(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/dtmgimp.Dtm/UnSubscribe",
+		FullMethod: "/dtmgimp.Dtm/Unsubscribe",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(DtmServer).UnSubscribe(ctx, req.(*DtmTopicRequest))
+		return srv.(DtmServer).Unsubscribe(ctx, req.(*DtmTopicRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -381,8 +381,8 @@ var Dtm_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _Dtm_Subscribe_Handler,
 		},
 		{
-			MethodName: "UnSubscribe",
-			Handler:    _Dtm_UnSubscribe_Handler,
+			MethodName: "Unsubscribe",
+			Handler:    _Dtm_Unsubscribe_Handler,
 		},
 		{
 			MethodName: "DeleteTopic",
