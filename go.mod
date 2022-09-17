@@ -21,6 +21,7 @@ require (
 	github.com/prometheus/client_golang v1.12.2
 	github.com/stretchr/testify v1.8.0
 	github.com/ugorji/go v1.2.7 // indirect
+	github.com/vicnoah/dtmdriver-ego v0.1.7
 	go.etcd.io/bbolt v1.3.6
 	go.mongodb.org/mongo-driver v1.9.1
 	go.uber.org/automaxprocs v1.5.1
