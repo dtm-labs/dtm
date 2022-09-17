@@ -141,7 +141,7 @@ func (t *TransGlobal) getHTTPResult(uri string, branchID, op string, branchPaylo
 		SetHeader("Content-type", "application/json").
 		SetHeaders(t.Ext.Headers).
 		SetHeaders(t.TransOptions.BranchHeaders).
-		Execute(dtmimp.If(!dtmutil.IsEmptyBinPayload(branchPayload) || t.TransType == "xa", "POST", "GET").(string), uri)
+		Execute(dtmimp.If(!dtmutil.IsEmptyBinData(branchPayload) || t.TransType == "xa", "POST", "GET").(string), uri)
 	if err != nil {
 		return err
 	}
