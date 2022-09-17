@@ -173,3 +173,8 @@ func RunSQLScript(conf dtmcli.DBConf, script string, skipDrop bool) {
 		logger.Infof("sql scripts finished: %s", s)
 	}
 }
+
+// IsEmptyBinPayload returns true if the bin data is nil or empty
+func IsEmptyBinPayload(binPayload []byte) bool {
+	return binPayload == nil || len(binPayload) == 0
+}
