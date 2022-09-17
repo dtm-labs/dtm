@@ -141,11 +141,15 @@ func (t *TransGlobal) getHTTPResult(uri string, branchID, op string, branchPaylo
 		SetHeader("Content-type", "application/json").
 		SetHeaders(t.Ext.Headers).
 		SetHeaders(t.TransOptions.BranchHeaders).
-		Execute(dtmimp.If(!dtmutil.IsEmptyBinData(branchPayload) || t.TransType == "xa", "POST", "GET").(string), uri)
+		Execute(t.determineHttpRequestMethod(branchPayload), uri)
 	if err != nil {
 		return err
 	}
 	return dtmcli.HTTPResp2DtmError(resp)
+}
+
+func (t *TransGlobal) determineHttpRequestMethod(branchPayload []byte) string {
+	return dtmimp.If(len(branchPayload) != 0 || t.TransType == "xa", "POST", "GET").(string)
 }
 
 func (t *TransGlobal) getJSONRPCResult(uri string, branchID, op string, branchPayload []byte) error {
