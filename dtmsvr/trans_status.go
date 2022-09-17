@@ -141,14 +141,14 @@ func (t *TransGlobal) getHTTPResult(uri string, branchID, op string, branchPaylo
 		SetHeader("Content-type", "application/json").
 		SetHeaders(t.Ext.Headers).
 		SetHeaders(t.TransOptions.BranchHeaders).
-		Execute(t.determineHttpRequestMethod(branchPayload), uri)
+		Execute(t.determineHTTPRequestMethod(branchPayload), uri)
 	if err != nil {
 		return err
 	}
 	return dtmcli.HTTPResp2DtmError(resp)
 }
 
-func (t *TransGlobal) determineHttpRequestMethod(branchPayload []byte) string {
+func (t *TransGlobal) determineHTTPRequestMethod(branchPayload []byte) string {
 	return dtmimp.If(len(branchPayload) != 0 || t.TransType == "xa", "POST", "GET").(string)
 }
 
