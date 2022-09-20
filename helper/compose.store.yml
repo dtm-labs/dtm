@@ -4,7 +4,6 @@ services:
     image: 'mysql:5.7'
     volumes:
       - /etc/localtime:/etc/localtime:ro
-      - /etc/timezone:/etc/timezone:ro
     environment:
       MYSQL_ALLOW_EMPTY_PASSWORD: 1
     command:
@@ -19,7 +18,6 @@ services:
     command: postgres --max_prepared_transactions=1000
     volumes:
       - /etc/localtime:/etc/localtime:ro
-      - /etc/timezone:/etc/timezone:ro
     environment:
       POSTGRES_PASSWORD: mysecretpassword
       POSTGRES_DB: dtm
@@ -30,13 +28,11 @@ services:
     image: 'redis'
     volumes:
       - /etc/localtime:/etc/localtime:ro
-      - /etc/timezone:/etc/timezone:ro
     ports:
       - '6379:6379'
   mongo:
     image: yedf/mongo-rs
     volumes:
       - /etc/localtime:/etc/localtime:ro
-      - /etc/timezone:/etc/timezone:ro
     ports:
       - '27017:27017'
