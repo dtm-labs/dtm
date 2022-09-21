@@ -3,7 +3,7 @@ module github.com/dtm-labs/dtm
 go 1.16
 
 require (
-	github.com/agiledragon/gomonkey v2.0.2+incompatible // indirect
+	github.com/agiledragon/gomonkey v2.0.2+incompatible
 	github.com/dtm-labs/dtmdriver v0.0.6
 	github.com/dtm-labs/dtmdriver-dapr v0.0.1
 	github.com/dtm-labs/dtmdriver-gozero v0.0.7
