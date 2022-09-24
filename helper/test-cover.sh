@@ -10,4 +10,4 @@ done
 
 # go tool cover -html=coverage.txt
 
-curl -s https://codecov.io/bash | bash
+# curl -s https://codecov.io/bash | bash
