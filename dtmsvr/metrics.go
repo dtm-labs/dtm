@@ -94,18 +94,18 @@ func grpcMetrics(ctx context.Context, req interface{}, info *grpc.UnaryServerInf
 
 func transactionMetrics(global *TransGlobal, status bool) {
 	if status {
-		transactionTotal.WithLabelValues(global.TransType, global.Gid, "ok").Inc()
+		transactionTotal.WithLabelValues(global.TransType, "ok").Inc()
 	} else {
-		transactionTotal.WithLabelValues(global.TransType, global.Gid, "fail").Inc()
+		transactionTotal.WithLabelValues(global.TransType, "fail").Inc()
 	}
-	transactionHandledTime.WithLabelValues(global.TransType, global.Gid).Observe(time.Since(*global.CreateTime).Seconds())
+	transactionHandledTime.WithLabelValues(global.TransType).Observe(time.Since(*global.CreateTime).Seconds())
 }
 
 func branchMetrics(global *TransGlobal, branch *TransBranch, status bool) {
 	if status {
-		branchTotal.WithLabelValues(global.TransType, global.Gid, branch.BranchID, branch.Op, "ok").Inc()
+		branchTotal.WithLabelValues(global.TransType, branch.BranchID, branch.Op, "ok").Inc()
 	} else {
-		branchTotal.WithLabelValues(global.TransType, global.Gid, branch.BranchID, branch.Op, "fail").Inc()
+		branchTotal.WithLabelValues(global.TransType, branch.BranchID, branch.Op, "fail").Inc()
 	}
 }
 
