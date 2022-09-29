@@ -40,19 +40,19 @@ var (
 		Name: "dtm_transaction_process_total",
 		Help: "All transactions processed by dtm",
 	},
-		[]string{"model", "gid", "status"})
+		[]string{"model", "status"})
 
 	transactionHandledTime = promauto.NewHistogramVec(prometheus.HistogramOpts{
 		Name: "dtm_transaction_handled_duration",
 		Help: "Histogram of handling latency of the transaction that handled by the server.",
 	},
-		[]string{"model", "gid"})
+		[]string{"model"})
 
 	branchTotal = promauto.NewCounterVec(prometheus.CounterOpts{
 		Name: "dtm_branch_process_total",
 		Help: "All branches processed by dtm",
 	},
-		[]string{"model", "gid", "branchid", "branchtype", "status"})
+		[]string{"model", "branchid", "branchtype", "status"})
 )
 
 func setServerInfoMetrics() {
