@@ -6,6 +6,7 @@ require (
 	github.com/agiledragon/gomonkey v2.0.2+incompatible
 	github.com/dtm-labs/dtmdriver v0.0.6
 	github.com/dtm-labs/dtmdriver-dapr v0.0.1
+	github.com/dtm-labs/dtmdriver-ego v0.1.8
 	github.com/dtm-labs/dtmdriver-gozero v0.0.7
 	github.com/dtm-labs/dtmdriver-kratos v0.0.9
 	github.com/dtm-labs/dtmdriver-polaris v0.0.5
@@ -21,7 +22,6 @@ require (
 	github.com/prometheus/client_golang v1.12.2
 	github.com/stretchr/testify v1.8.0
 	github.com/ugorji/go v1.2.7 // indirect
-	github.com/vicnoah/dtmdriver-ego v0.1.7
 	go.etcd.io/bbolt v1.3.6
 	go.mongodb.org/mongo-driver v1.9.1
 	go.uber.org/automaxprocs v1.5.1

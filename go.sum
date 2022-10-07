@@ -598,6 +598,8 @@ github.com/dtm-labs/dtmdriver v0.0.6 h1:Iz6xnO+hE2TKDHI2TX4BKCzMtgXYgeQFBEGvvaNh
 github.com/dtm-labs/dtmdriver v0.0.6/go.mod h1:V5E1uFsExb6Do32ezpB8bMX6be+izLhkcboniLP5shU=
 github.com/dtm-labs/dtmdriver-dapr v0.0.1 h1:r+D52Sq51o1w69mo/3GsPC2yHTet142EeDomKRMxHNw=
 github.com/dtm-labs/dtmdriver-dapr v0.0.1/go.mod h1:lvNzE3KEMYFtu8ZAJ7kxZ6s2E4yuHN/F8nPJ14OEtXU=
+github.com/dtm-labs/dtmdriver-ego v0.1.8 h1:nS8euCVSg5BSl3QHDIb89uDoRJqjtvcGvWyiPllYji8=
+github.com/dtm-labs/dtmdriver-ego v0.1.8/go.mod h1:vvYMNetDVNUtiCAVRy3OutRCiQRT0fEwdWzouCPL9JY=
 github.com/dtm-labs/dtmdriver-gozero v0.0.7 h1:EmbP0tFjczBfk+FJaPbK2Ikzyb3V5f0rn2JH1eHCVRo=
 github.com/dtm-labs/dtmdriver-gozero v0.0.7/go.mod h1:OLz0vfGkWTWK24V1Ed69lWRqu5ROXNhQM7p/oRxgdgs=
 github.com/dtm-labs/dtmdriver-kratos v0.0.9 h1:X9gF0yGrPefq7PH1Yy+RJwUvXY+kyZeiZPofD46Y8dw=
@@ -1861,8 +1863,6 @@ github.com/valyala/fasttemplate v1.1.0/go.mod h1:UQGH1tvbgY+Nz5t2n7tXsz52dQxojPU
 github.com/valyala/fasttemplate v1.2.1/go.mod h1:KHLXt3tVN2HBp8eijSv/kGJopbvo7S+qRAEEKiv+SiQ=
 github.com/valyala/tcplisten v0.0.0-20161114210144-ceec8f93295a/go.mod h1:v3UYOV9WzVtRmSR+PDvWpU/qWl4Wa5LApYYX4ZtKbio=
 github.com/valyala/tcplisten v1.0.0/go.mod h1:T0xQ8SeCZGxckz9qRXTfG43PvQ/mcWh7FwZEA7Ioqkc=
-github.com/vicnoah/dtmdriver-ego v0.1.7 h1:w8BRdvhp7EmFQKO8L8gVXoiLSKA2VOppL8HtXaJsDE4=
-github.com/vicnoah/dtmdriver-ego v0.1.7/go.mod h1:x1PgmeE0byvzwTKvn5/RojUXiD39Uf4HRdzYT2NQW18=
 github.com/vishvananda/netlink v0.0.0-20181108222139-023a6dafdcdf/go.mod h1:+SR5DhBJrl6ZM7CoCKvpw5BKroDKQ+PJqOg65H/2ktk=
 github.com/vishvananda/netlink v1.1.0/go.mod h1:cTgwzPIzzgDAYoQrMm0EdrjRUBkTqKYppBueQtXaqoE=
 github.com/vishvananda/netlink v1.1.1-0.20201029203352-d40f9887b852/go.mod h1:twkDnbuQxJYemMlGd4JFIcuhgX83tXhKS2B/PRMpOho=
