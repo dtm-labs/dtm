@@ -20,6 +20,8 @@ const (
 	BoltDb = "boltdb"
 	// Postgres is postgres driver
 	Postgres = "postgres"
+	// Mongo is mongodb driver
+	Mongo = "mongo"
 )
 
 // MicroService config type for microservice based grpc

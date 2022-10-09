@@ -85,6 +85,13 @@ func checkConfig(conf *Type) error {
 		if conf.Store.Port == 0 {
 			return errors.New("Redis port not valid")
 		}
+	case Mongo:
+		if conf.Store.Host == "" {
+			return errors.New("Mongo host not valid")
+		}
+		if conf.Store.Port == 0 {
+			return errors.New("Mongo port not valid")
+		}
 	}
 	return nil
 }
