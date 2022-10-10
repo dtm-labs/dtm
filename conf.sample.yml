@@ -26,6 +26,8 @@
 #   User: 'postgres'
 #   Password: 'mysecretpassword'
 #   Port: '5432'
+#   Db: 'postgres'
+#   Schema: 'myschema'
 
 ### following config is for only Driver postgres/mysql
 #   MaxOpenConns: 500
