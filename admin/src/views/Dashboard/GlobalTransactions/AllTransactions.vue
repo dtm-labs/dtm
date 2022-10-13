@@ -18,6 +18,7 @@
       </a-form-item>
     </a-form>
   </div>
+  <a-divider />
   <div>
     <a-table :columns="columns" :data-source="dataSource" :loading="loading" :pagination="false">
       <template #bodyCell="{column, record}">
