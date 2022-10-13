@@ -51,10 +51,6 @@ import {computed, ref} from 'vue-demi'
 import {usePagination} from 'vue-request'
 import DialogTransactionDetail from './_Components/DialogTransactionDetail.vue';
 
-interface FormState {
-  gid: string;
-}
-
 const gid = ref("")
 
 const searchFinish = function () {
