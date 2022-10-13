@@ -1,7 +1,8 @@
-import { AxiosResponse } from 'axios'
+import {AxiosResponse} from 'axios'
 import request from '/@/utils/request'
 
 export interface IListAllTransactionsReq {
+    gid?: string,
     limit: number
     position?: string
 }
@@ -18,7 +19,7 @@ export function forceStopTransaction(gid: string): Promise<AxiosResponse> {
     return request({
         url: '/api/dtmsvr/forceStop',
         method: 'post',
-        data: { gid },
+        data: {gid},
     })
 }
 
