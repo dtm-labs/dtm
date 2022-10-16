@@ -30,6 +30,7 @@ func TestMain(m *testing.M) {
 	dtmsvr.NowForwardDuration = 0 * time.Second
 	dtmsvr.CronForwardDuration = 180 * time.Second
 	conf.UpdateBranchSync = 1
+	conf.ConfigUpdateInterval = 1
 
 	dtmdriver.Middlewares.HTTP = append(dtmdriver.Middlewares.HTTP, busi.SetHTTPHeaderForHeadersYes)
 	dtmdriver.Middlewares.Grpc = append(dtmdriver.Middlewares.Grpc, busi.SetGrpcHeaderForHeadersYes)
@@ -69,6 +70,10 @@ func TestMain(m *testing.M) {
 	workflow.InitGrpc(dtmutil.DefaultGrpcServer, busi.BusiGrpc, gsvr)
 	go busi.RunGrpc(gsvr)
 	go busi.RunHTTP(hsvr)
+
+	subscribeTopic()
+	subscribeGrpcTopic()
+
 	r := m.Run()
 	if r != 0 {
 		os.Exit(r)

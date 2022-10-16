@@ -49,6 +49,19 @@ func CronExpiredTrans(num int) {
 	}
 }
 
+// CronUpdateTopicsMap cron updates topics map
+func CronUpdateTopicsMap() {
+	for {
+		time.Sleep(time.Duration(conf.ConfigUpdateInterval) * time.Second)
+		cronUpdateTopicsMapOnce()
+	}
+}
+
+func cronUpdateTopicsMapOnce() {
+	defer handlePanic(nil)
+	updateTopicsMap()
+}
+
 func lockOneTrans(expireIn time.Duration) *TransGlobal {
 	global := GetStore().LockOneGlobalTrans(expireIn)
 	if global == nil {

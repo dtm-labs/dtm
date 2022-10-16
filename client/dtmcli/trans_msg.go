@@ -9,6 +9,7 @@ package dtmcli
 import (
 	"database/sql"
 	"errors"
+	"fmt"
 
 	"github.com/dtm-labs/dtm/client/dtmcli/dtmimp"
 )
@@ -29,6 +30,11 @@ func (s *Msg) Add(action string, postData interface{}) *Msg {
 	s.Steps = append(s.Steps, map[string]string{"action": action})
 	s.Payloads = append(s.Payloads, dtmimp.MustMarshalString(postData))
 	return s
+}
+
+// AddTopic add a new topic step
+func (s *Msg) AddTopic(topic string, postData interface{}) *Msg {
+	return s.Add(fmt.Sprintf("%s%s", dtmimp.MsgTopicPrefix, topic), postData)
 }
 
 // SetDelay delay call branch, unit second

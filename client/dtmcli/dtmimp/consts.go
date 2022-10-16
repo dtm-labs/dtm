@@ -52,6 +52,8 @@ const (
 	MsgDoBarrier1 = "01"
 	// MsgDoOp const for DoAndSubmit barrier op
 	MsgDoOp = "msg"
+	//MsgTopicPrefix const for Add topic msg
+	MsgTopicPrefix = "topic://"
 
 	// XaBarrier1 const for xa barrier id
 	XaBarrier1 = "01"

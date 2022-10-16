@@ -3,6 +3,7 @@ package dtmsvr
 import (
 	"errors"
 	"fmt"
+	"strings"
 
 	"github.com/dtm-labs/dtm/client/dtmcli"
 	"github.com/dtm-labs/dtm/client/dtmcli/dtmimp"
@@ -20,15 +21,22 @@ func init() {
 func (t *transMsgProcessor) GenBranches() []TransBranch {
 	branches := []TransBranch{}
 	for i, step := range t.Steps {
-		b := &TransBranch{
-			Gid:      t.Gid,
-			BranchID: fmt.Sprintf("%02d", i+1),
-			BinData:  t.BinPayloads[i],
-			URL:      step[dtmimp.OpAction],
-			Op:       dtmimp.OpAction,
-			Status:   dtmcli.StatusPrepared,
+		mayTopic := strings.TrimPrefix(step[dtmimp.OpAction], dtmimp.MsgTopicPrefix)
+		urls := dtmimp.If(mayTopic == step[dtmimp.OpAction], []string{mayTopic}, topic2urls(mayTopic)).([]string)
+		if len(urls) == 0 {
+			e2p(errors.New("topic not found"))
 		}
-		branches = append(branches, *b)
+		for j, url := range urls {
+			b := TransBranch{
+				Gid:      t.Gid,
+				BranchID: fmt.Sprintf("%02d%s", i+1, dtmimp.If(len(urls) == 1, "", fmt.Sprintf("-%02d", j+1)).(string)),
+				BinData:  t.BinPayloads[i],
+				URL:      url,
+				Op:       dtmimp.OpAction,
+				Status:   dtmcli.StatusPrepared,
+			}
+			branches = append(branches, b)
+		}
 	}
 	return branches
 }

@@ -7,7 +7,9 @@
 package test
 
 import (
+	"strings"
 	"testing"
+	"time"
 
 	"github.com/dtm-labs/dtm/client/dtmcli"
 	"github.com/dtm-labs/dtm/client/dtmcli/dtmimp"
@@ -67,11 +69,27 @@ func TestMsgAbnormal(t *testing.T) {
 	assert.Error(t, err)
 }
 
+func TestMsgTopicNotFoundFailed(t *testing.T) {
+	req := busi.GenReqHTTP(30, false, false)
+	msg := dtmcli.NewMsg(dtmutil.DefaultHTTPServer, dtmimp.GetFuncName()).
+		AddTopic("non_existent_topic_TestMsgTopicNotFoundFailed", &req)
+	msg.QueryPrepared = busi.Busi + "/QueryPrepared"
+	assert.True(t, strings.Contains(msg.Submit().Error(), "topic not found"))
+}
+
 func genMsg(gid string) *dtmcli.Msg {
 	req := busi.GenReqHTTP(30, false, false)
 	msg := dtmcli.NewMsg(dtmutil.DefaultHTTPServer, gid).
-		Add(busi.Busi+"/TransOut", &req).
-		Add(busi.Busi+"/TransIn", &req)
+		AddTopic("http_trans", &req)
+
 	msg.QueryPrepared = busi.Busi + "/QueryPrepared"
 	return msg
+}
+
+func subscribeTopic() {
+	e2p(httpSubscribe("http_trans", busi.Busi+"/TransOut"))
+	e2p(httpSubscribe("http_trans", busi.Busi+"/TransIn"))
+
+	// wait for the topic configuration to take effect
+	time.Sleep(time.Second * time.Duration(conf.ConfigUpdateInterval+1))
 }

@@ -9,6 +9,7 @@ package test
 import (
 	"fmt"
 	"testing"
+	"time"
 
 	"github.com/dtm-labs/dtm/client/dtmcli"
 	"github.com/dtm-labs/dtm/client/dtmcli/dtmimp"
@@ -61,8 +62,15 @@ func TestMsgGrpcTimeoutFailed(t *testing.T) {
 func genGrpcMsg(gid string) *dtmgrpc.MsgGrpc {
 	req := &busi.ReqGrpc{Amount: 30}
 	msg := dtmgrpc.NewMsgGrpc(dtmutil.DefaultGrpcServer, gid).
-		Add(busi.BusiGrpc+"/busi.Busi/TransOut", req).
-		Add(busi.BusiGrpc+"/busi.Busi/TransIn", req)
+		AddTopic("grpc_trans", req)
 	msg.QueryPrepared = fmt.Sprintf("%s/busi.Busi/QueryPrepared", busi.BusiGrpc)
 	return msg
+}
+
+func subscribeGrpcTopic() {
+	e2p(grpcSubscribe("grpc_trans", busi.BusiGrpc+"/busi.Busi/TransOut"))
+	e2p(grpcSubscribe("grpc_trans", busi.BusiGrpc+"/busi.Busi/TransIn"))
+
+	// wait for the topic configuration to take effect
+	time.Sleep(time.Second * time.Duration(conf.ConfigUpdateInterval+1))
 }

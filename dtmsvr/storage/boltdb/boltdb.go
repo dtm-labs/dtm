@@ -174,10 +174,12 @@ func cleanupIndexWithGids(t *bolt.Tx, gids map[string]struct{}) {
 var bucketGlobal = []byte("global")
 var bucketBranches = []byte("branches")
 var bucketIndex = []byte("index")
+var bucketKV = []byte("kv")
 var allBuckets = [][]byte{
 	bucketBranches,
 	bucketGlobal,
 	bucketIndex,
+	bucketKV,
 }
 
 func tGetGlobal(t *bolt.Tx, gid string) *storage.TransGlobalStore {
@@ -246,6 +248,30 @@ func tPutIndex(t *bolt.Tx, unix int64, gid string) {
 	dtmimp.E2P(err)
 }
 
+func tGetKV(t *bolt.Tx, cat, key string) *storage.KVStore {
+	k := fmt.Sprintf("%s-%s", cat, key)
+	kv := storage.KVStore{}
+	res := t.Bucket(bucketKV).Get([]byte(k))
+	if res == nil {
+		return nil
+	}
+	dtmimp.MustUnmarshal(res, &kv)
+	return &kv
+}
+
+func tPutKV(t *bolt.Tx, kv *storage.KVStore) {
+	k := fmt.Sprintf("%s-%s", kv.Cat, kv.K)
+	kvJSON := dtmimp.MustMarshal(kv)
+	err := t.Bucket(bucketKV).Put([]byte(k), kvJSON)
+	dtmimp.E2P(err)
+}
+
+func tDelKV(t *bolt.Tx, cat, key string) {
+	k := fmt.Sprintf("%s-%s", cat, key)
+	err := t.Bucket(bucketKV).Delete([]byte(k))
+	dtmimp.E2P(err)
+}
+
 // Ping execs ping cmd to boltdb
 func (s *Store) Ping() error {
 	return nil
@@ -258,13 +284,15 @@ func (s *Store) PopulateData(skipDrop bool) {
 			dtmimp.E2P(t.DeleteBucket(bucketIndex))
 			dtmimp.E2P(t.DeleteBucket(bucketBranches))
 			dtmimp.E2P(t.DeleteBucket(bucketGlobal))
+			dtmimp.E2P(t.DeleteBucket(bucketKV))
 			_, err := t.CreateBucket(bucketIndex)
 			dtmimp.E2P(err)
 			_, err = t.CreateBucket(bucketBranches)
 			dtmimp.E2P(err)
 			_, err = t.CreateBucket(bucketGlobal)
 			dtmimp.E2P(err)
-
+			_, err = t.CreateBucket(bucketKV)
+			dtmimp.E2P(err)
 			return nil
 		})
 		dtmimp.E2P(err)
@@ -446,4 +474,116 @@ func (s *Store) ResetCronTime(after time.Duration, limit int64) (succeedCount in
 		return nil
 	})
 	return
+}
+
+// ScanKV lists KV pairs
+func (s *Store) ScanKV(cat string, position *string, limit int64) []storage.KVStore {
+	kvs := []storage.KVStore{}
+	err := s.boltDb.View(func(t *bolt.Tx) error {
+		cursor := t.Bucket(bucketKV).Cursor()
+		for k, v := cursor.Seek([]byte(*position)); k != nil; k, v = cursor.Next() {
+			if string(k) == *position {
+				continue
+			}
+			if !strings.HasPrefix(string(k), cat) {
+				continue
+			}
+			kv := storage.KVStore{}
+			dtmimp.MustUnmarshal(v, &kv)
+			kvs = append(kvs, kv)
+			if len(kvs) == int(limit) {
+				break
+			}
+		}
+		return nil
+	})
+	dtmimp.E2P(err)
+	if len(kvs) < int(limit) {
+		*position = ""
+	} else {
+		*position = fmt.Sprintf("%s-%s", cat, kvs[len(kvs)-1].K)
+	}
+	return kvs
+}
+
+// FindKV finds key-value pairs
+func (s *Store) FindKV(cat, key string) []storage.KVStore {
+	kvs := []storage.KVStore{}
+	if cat != "" && key != "" {
+		err := s.boltDb.View(func(t *bolt.Tx) error {
+			kv := tGetKV(t, cat, key)
+			if kv != nil {
+				kvs = append(kvs, *kv)
+			}
+			return nil
+		})
+		dtmimp.E2P(err)
+		return kvs
+	}
+	err := s.boltDb.View(func(t *bolt.Tx) error {
+		cursor := t.Bucket(bucketKV).Cursor()
+		for k, v := cursor.First(); k != nil; k, v = cursor.Next() {
+			if !strings.HasPrefix(string(k), cat) {
+				continue
+			}
+			kv := storage.KVStore{}
+			dtmimp.MustUnmarshal(v, &kv)
+			kvs = append(kvs, kv)
+		}
+		return nil
+	})
+	dtmimp.E2P(err)
+	return kvs
+}
+
+// UpdateKV updates key-value pair
+func (s *Store) UpdateKV(kv *storage.KVStore) error {
+	now := time.Now()
+	kv.UpdateTime = &now
+	oldVersion := kv.Version
+	kv.Version = oldVersion + 1
+
+	return s.boltDb.Update(func(t *bolt.Tx) error {
+		res := tGetKV(t, kv.Cat, kv.K)
+		if res == nil || res.Version != oldVersion {
+			return storage.ErrNotFound
+		}
+		tPutKV(t, kv)
+		return nil
+	})
+}
+
+// DeleteKV deletes key-value pair
+func (s *Store) DeleteKV(cat, key string) error {
+	return s.boltDb.Update(func(t *bolt.Tx) error {
+		res := tGetKV(t, cat, key)
+		if res == nil {
+			return storage.ErrNotFound
+		}
+		tDelKV(t, cat, key)
+		return nil
+	})
+}
+
+// CreateKV creates key-value pair
+func (s *Store) CreateKV(cat, key, value string) error {
+	now := time.Now()
+	kv := &storage.KVStore{
+		ModelBase: dtmutil.ModelBase{
+			CreateTime: &now,
+			UpdateTime: &now,
+		},
+		Cat:     cat,
+		K:       key,
+		V:       value,
+		Version: 1,
+	}
+	return s.boltDb.Update(func(t *bolt.Tx) error {
+		res := tGetKV(t, cat, key)
+		if res != nil {
+			return storage.ErrUniqueConflict
+		}
+		tPutKV(t, kv)
+		return nil
+	})
 }

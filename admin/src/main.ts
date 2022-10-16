@@ -5,6 +5,7 @@ import { pinia } from '/@/store'
 import { useLayoutStore } from '/@/store/modules/layout'
 import '/@/permission'
 
+import 'ant-design-vue/dist/antd.css'
 import '/@/assets/css/index.css'
 import 'virtual:svg-icons-register'
 
@@ -13,10 +14,8 @@ app.use(router)
 app.use(pinia)
 app.mount('#app')
 
-
 window.onunhandledrejection = (ev: PromiseRejectionEvent) => {
   showAlert(ev.reason.stack || ev.reason.message)
-
 }
 window.onerror = err => {
   if (typeof err === "string") {
