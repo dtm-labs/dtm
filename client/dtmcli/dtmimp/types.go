@@ -22,4 +22,5 @@ type DBConf struct {
 	User     string `yaml:"User"`
 	Password string `yaml:"Password"`
 	Db       string `yaml:"Db"`
+	Schema   string `yaml:"Schema"`
 }

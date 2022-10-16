@@ -6,7 +6,7 @@ import (
 	"reflect"
 	"testing"
 
-	"bou.ke/monkey"
+	"github.com/agiledragon/gomonkey"
 	"github.com/dtm-labs/dtm/client/dtmcli"
 	"github.com/dtm-labs/dtm/client/dtmcli/dtmimp"
 	"github.com/dtm-labs/dtm/test/busi"
@@ -88,16 +88,16 @@ func TestMsgDoAndSubmitCommitFailed(t *testing.T) {
 	req := busi.GenReqHTTP(30, false, false)
 	msg := dtmcli.NewMsg(DtmServer, gid).
 		Add(busi.Busi+"/SagaBTransIn", req)
-	var g *monkey.PatchGuard
+	var g *gomonkey.Patches
 	err := msg.DoAndSubmitDB(Busi+"/QueryPreparedB", dbGet().ToSQLDB(), func(tx *sql.Tx) error {
-		g = monkey.PatchInstanceMethod(reflect.TypeOf(tx), "Commit", func(tx *sql.Tx) error {
+		g = gomonkey.ApplyMethod(reflect.TypeOf(tx), "Commit", func(tx *sql.Tx) error {
 			logger.Debugf("tx.Commit rollback and return error in test")
 			_ = tx.Rollback()
 			return errors.New("test error for patch")
 		})
 		return busi.SagaAdjustBalance(tx, busi.TransOutUID, -req.Amount, "SUCCESS")
 	})
-	g.Unpatch()
+	g.Reset()
 	assert.Error(t, err)
 	assertSameBalance(t, before, "mysql")
 }
@@ -111,11 +111,11 @@ func TestMsgDoAndSubmitCommitAfterFailed(t *testing.T) {
 	req := busi.GenReqHTTP(30, false, false)
 	msg := dtmcli.NewMsg(DtmServer, gid).
 		Add(busi.Busi+"/SagaBTransIn", req)
-	var guard *monkey.PatchGuard
+	var guard *gomonkey.Patches
 	err := msg.DoAndSubmitDB(Busi+"/QueryPreparedB", dbGet().ToSQLDB(), func(tx *sql.Tx) error {
 		err := busi.SagaAdjustBalance(tx, busi.TransOutUID, -req.Amount, "SUCCESS")
-		guard = monkey.PatchInstanceMethod(reflect.TypeOf(tx), "Commit", func(tx *sql.Tx) error {
-			guard.Unpatch()
+		guard = gomonkey.ApplyMethod(reflect.TypeOf(tx), "Commit", func(tx *sql.Tx) error {
+			guard.Reset()
 			_ = tx.Commit()
 			return errors.New("test error for patch")
 		})

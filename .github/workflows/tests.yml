@@ -63,3 +63,9 @@ jobs:
 
       - name: Run test cover
         run: sh helper/test-cover.sh
+      - name: Upload to codecov
+        uses: codecov/codecov-action@v3
+        with:
+          files: ./coverage.txt # optional
+          fail_ci_if_error: true # optional (default = false)
+          verbose: true # optional (default = false)

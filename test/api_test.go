@@ -64,6 +64,12 @@ func TestAPIAll(t *testing.T) {
 	nextPos := m["next_position"].(string)
 	assert.NotEqual(t, "", nextPos)
 
+	resp, err = dtmcli.GetRestyClient().R().SetQueryParam("gid", dtmimp.GetFuncName()+"1").Get(dtmutil.DefaultHTTPServer + "/all")
+	assert.Nil(t, err)
+	m = map[string]interface{}{}
+	dtmimp.MustUnmarshalString(resp.String(), &m)
+	assert.Equal(t, 1, len(m["transactions"].([]interface{})))
+
 	resp, err = dtmcli.GetRestyClient().R().SetQueryParams(map[string]string{
 		"limit":    "1",
 		"position": nextPos,

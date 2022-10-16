@@ -78,6 +78,9 @@ func checkConfig(conf *Type) error {
 		if conf.Store.User == "" {
 			return errors.New("Db user not valid ")
 		}
+		if conf.Store.Schema == "" {
+			return errors.New("Postgres schema not valid")
+		}
 	case Redis:
 		if conf.Store.Host == "" {
 			return errors.New("Redis host not valid")

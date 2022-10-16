@@ -100,9 +100,19 @@ func prepareWorkflow(c *gin.Context) interface{} {
 }
 
 func all(c *gin.Context) interface{} {
+	gid := c.Query("gid")
 	position := c.Query("position")
 	sLimit := dtmimp.OrString(c.Query("limit"), "100")
-	globals := GetStore().ScanTransGlobalStores(&position, int64(dtmimp.MustAtoi(sLimit)))
+
+	var globals interface{}
+	if len(gid) > 0 {
+		find := GetStore().FindTransGlobalStore(gid)
+		if find != nil {
+			globals = []interface{}{*find}
+		}
+	} else {
+		globals = GetStore().ScanTransGlobalStores(&position, int64(dtmimp.MustAtoi(sLimit)))
+	}
 	return map[string]interface{}{"transactions": globals, "next_position": position}
 }
 

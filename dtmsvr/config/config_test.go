@@ -52,6 +52,11 @@ func TestCheckConfig(t *testing.T) {
 	userExpect := errors.New("Db user not valid ")
 	assert.Equal(t, userErr, userExpect)
 
+	conf.Store = Store{Driver: Postgres, Host: "127.0.0.1", Port: 8686, User: "postgres", Schema: ""}
+	schemaErr := checkConfig(&conf)
+	schemaExpect := errors.New("Postgres schema not valid")
+	assert.Equal(t, schemaErr, schemaExpect)
+
 	conf.Store = Store{Driver: Redis, Host: "", Port: 8686}
 	assert.Equal(t, errors.New("Redis host not valid"), checkConfig(&conf))
 

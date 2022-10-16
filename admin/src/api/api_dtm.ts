@@ -2,6 +2,7 @@ import {AxiosResponse} from 'axios'
 import request from '/@/utils/request'
 
 export interface IListAllTransactionsReq {
+    gid?: string,
     limit: number
     position?: string
 }

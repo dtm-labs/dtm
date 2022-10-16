@@ -3,9 +3,10 @@ module github.com/dtm-labs/dtm
 go 1.16
 
 require (
-	bou.ke/monkey v1.0.2
+	github.com/agiledragon/gomonkey v2.0.2+incompatible
 	github.com/dtm-labs/dtmdriver v0.0.6
 	github.com/dtm-labs/dtmdriver-dapr v0.0.1
+	github.com/dtm-labs/dtmdriver-ego v0.1.8
 	github.com/dtm-labs/dtmdriver-gozero v0.0.7
 	github.com/dtm-labs/dtmdriver-kratos v0.0.9
 	github.com/dtm-labs/dtmdriver-polaris v0.0.5
