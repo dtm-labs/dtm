@@ -31,6 +31,7 @@ func TestMain(m *testing.M) {
 	dtmsvr.CronForwardDuration = 180 * time.Second
 	conf.UpdateBranchSync = 1
 	conf.ConfigUpdateInterval = 1
+	conf.AlertWebHook = busi.Busi + "/AlertWebHook"
 
 	dtmdriver.Middlewares.HTTP = append(dtmdriver.Middlewares.HTTP, busi.SetHTTPHeaderForHeadersYes)
 	dtmdriver.Middlewares.Grpc = append(dtmdriver.Middlewares.Grpc, busi.SetGrpcHeaderForHeadersYes)

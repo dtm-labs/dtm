@@ -65,3 +65,7 @@
 # TimeZoneOffset: '' #default '' using system default. '+8': Asia/Shanghai; '0': GMT
 
 # ConfigUpdateInterval: 10   # the interval to update configuration in memory such as topics map... (seconds)
+# TimeZoneOffset: '' # default '' using system default. '+8': Asia/Shanghai; '0': GMT
+# AlertRetryLimit: 3 # default 3; if a transaction branch has been retried 3 times, the AlertHook will be called
+# AlertWebHook: '' # default ''; sample: 'http://localhost:8080/dtm-hook'. this hook will be called like this:
+## curl -H "Content-Type: application/json" -d '{"gid":"xxxx","status":"submitted","retry_count":3}' http://localhost:8080/dtm-hook
