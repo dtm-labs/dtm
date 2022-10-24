@@ -99,6 +99,8 @@ type Type struct {
 	Log                           Log              `yaml:"Log"`
 	TimeZoneOffset                string           `yaml:"TimeZoneOffset"`
 	ConfigUpdateInterval          int64            `yaml:"ConfigUpdateInterval" default:"3"`
+	AlertRetryLimit               int64            `yaml:"AlertRetryLimit" default:"3"`
+	AlertWebHook                  string           `yaml:"AlertWebHook"`
 }
 
 // Config config

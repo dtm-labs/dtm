@@ -11,6 +11,7 @@ import (
 	"errors"
 	"fmt"
 	"io/ioutil"
+	"strings"
 
 	"github.com/dtm-labs/dtm/client/dtmcli"
 	"github.com/dtm-labs/dtm/client/dtmcli/dtmimp"
@@ -48,6 +49,9 @@ var sleepCancelHandler SleepCancelHandler
 func SetSleepCancelHandler(handler SleepCancelHandler) {
 	sleepCancelHandler = handler
 }
+
+// WebHookResult 1
+var WebHookResult gin.H
 
 // BaseAppStartup base app startup
 func BaseAppStartup() *gin.Engine {
@@ -219,6 +223,14 @@ func BaseAddRoute(app *gin.Engine) {
 			return fmt.Errorf(("should be retried"))
 		}
 		retryNums = 3
+		return nil
+	}))
+	app.POST(BusiAPI+"/AlertWebHook", dtmutil.WrapHandler(func(ctx *gin.Context) interface{} {
+		err := ctx.BindJSON(&WebHookResult)
+		dtmimp.FatalIfError(err)
+		if strings.Contains(WebHookResult["gid"].(string), "Error") {
+			return errors.New("gid contains 'Error', so return error")
+		}
 		return nil
 	}))
 }

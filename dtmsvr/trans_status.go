@@ -3,6 +3,7 @@ package dtmsvr
 import (
 	"errors"
 	"fmt"
+	"math"
 	"net/url"
 	"strings"
 	"time"
@@ -14,6 +15,7 @@ import (
 	"github.com/dtm-labs/dtm/dtmutil"
 	"github.com/dtm-labs/dtmdriver"
 	"github.com/dtm-labs/logger"
+	"github.com/gin-gonic/gin"
 	"github.com/lithammer/shortuuid/v3"
 	"google.golang.org/grpc/metadata"
 )
@@ -221,13 +223,28 @@ func (t *TransGlobal) execBranch(branch *TransBranch, branchPos int) error {
 	}
 	branchMetrics(t, branch, status == dtmcli.StatusSucceed)
 	// if time pass 1500ms and NextCronInterval is not default, then reset NextCronInterval
-	if err == nil && time.Since(t.lastTouched)+NowForwardDuration >= 1500*time.Millisecond ||
-		t.NextCronInterval > conf.RetryInterval && t.NextCronInterval > t.RetryInterval {
+	if err == nil && (time.Since(t.lastTouched)+NowForwardDuration >= 1500*time.Millisecond ||
+		t.NextCronInterval > conf.RetryInterval && t.NextCronInterval > t.RetryInterval) {
 		t.touchCronTime(cronReset, 0)
 	} else if err == dtmimp.ErrOngoing {
 		t.touchCronTime(cronKeep, 0)
 	} else if err != nil {
 		t.touchCronTime(cronBackoff, 0)
+		v := t.NextCronInterval / t.getNextCronInterval(cronReset)
+		retryCount := int64(math.Log2(float64(v)))
+		logger.Debugf("origin: %d v: %d retryCount: %d", t.getNextCronInterval(cronReset), v, retryCount)
+		if retryCount >= conf.AlertRetryLimit && conf.AlertWebHook != "" {
+			_, err2 := dtmcli.GetRestyClient().R().SetBody(gin.H{
+				"gid":         t.Gid,
+				"status":      t.Status,
+				"branch":      branch.URL,
+				"error":       err.Error(),
+				"retry_count": retryCount,
+			}).Post(conf.AlertWebHook)
+			if err2 != nil {
+				logger.Errorf("alerting webhook error: %v", err2)
+			}
+		}
 	}
 	return err
 }
