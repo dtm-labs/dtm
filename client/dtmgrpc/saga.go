@@ -18,8 +18,14 @@ type SagaGrpc struct {
 }
 
 // NewSagaGrpc create a saga
-func NewSagaGrpc(server string, gid string) *SagaGrpc {
-	return &SagaGrpc{Saga: *dtmcli.NewSaga(server, gid)}
+func NewSagaGrpc(server string, gid string, opts ...TransBaseOption) *SagaGrpc {
+	sg := &SagaGrpc{Saga: *dtmcli.NewSaga(server, gid)}
+
+	for _, opt := range opts {
+		opt(&sg.TransBase)
+	}
+
+	return sg
 }
 
 // Add add a saga step
