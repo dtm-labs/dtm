@@ -24,8 +24,14 @@ type MsgGrpc struct {
 }
 
 // NewMsgGrpc create new msg
-func NewMsgGrpc(server string, gid string) *MsgGrpc {
-	return &MsgGrpc{Msg: *dtmcli.NewMsg(server, gid)}
+func NewMsgGrpc(server string, gid string, opts ...TransBaseOption) *MsgGrpc {
+	mg := &MsgGrpc{Msg: *dtmcli.NewMsg(server, gid)}
+
+	for _, opt := range opts {
+		opt(&mg.TransBase)
+	}
+
+	return mg
 }
 
 // Add add a new step
