@@ -16,6 +16,7 @@ import (
 	"github.com/dtm-labs/dtm/client/workflow"
 	"github.com/dtm-labs/dtm/test/busi"
 	"github.com/stretchr/testify/assert"
+	"google.golang.org/grpc/metadata"
 )
 
 func TestWorkflowGrpcSimple(t *testing.T) {
@@ -84,6 +85,7 @@ func TestWorkflowMixed(t *testing.T) {
 		if err != nil {
 			return err
 		}
+		wf.Context = metadata.NewOutgoingContext(wf.Context, metadata.Pairs("k1", "v1"))
 
 		req2 := &busi.ReqHTTP{Amount: int(req.Amount / 2)}
 		_, err = wf.NewBranch().OnCommit(func(bb *dtmcli.BranchBarrier) error {
