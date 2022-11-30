@@ -1,8 +1,8 @@
 name: Build Docker
 on:
   push:
-    tags:
-      - 'v*.*.*'
+    branches:
+      - "main"
 
 jobs:
   docker:
