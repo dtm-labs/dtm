@@ -54,7 +54,7 @@ type Store struct {
 	User               string `yaml:"User"`
 	Password           string `yaml:"Password"`
 	Db                 string `yaml:"Db" default:"dtm"`
-	SslMode            string `yaml:"SslMode"`
+	SslMode            string `yaml:"SslMode" default:"disable"`
 	Schema             string `yaml:"Schema" default:"public"`
 	MaxOpenConns       int64  `yaml:"MaxOpenConns" default:"500"`
 	MaxIdleConns       int64  `yaml:"MaxIdleConns" default:"500"`
