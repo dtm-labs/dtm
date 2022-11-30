@@ -12,6 +12,7 @@
 #   Password: ''
 #   Port: 3306
 #   Db: 'dtm'
+#   SslMode: 
 
 #   Driver: 'boltdb' # default store engine
 
@@ -28,6 +29,7 @@
 #   Port: '5432'
 #   Db: 'postgres'
 #   Schema: 'public' # default value is 'public'
+#   SslMode: 
 
 ### following config is for only Driver postgres/mysql
 #   MaxOpenConns: 500
