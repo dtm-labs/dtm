@@ -11,7 +11,7 @@ require (
 	github.com/dtm-labs/dtmdriver-kratos v0.0.9
 	github.com/dtm-labs/dtmdriver-polaris v0.0.5
 	github.com/dtm-labs/dtmdriver-springcloud v1.2.3
-	github.com/dtm-labs/logger v0.0.1
+	github.com/dtm-labs/logger v0.0.2
 	github.com/gin-gonic/gin v1.7.7
 	github.com/go-errors/errors v1.4.2
 	github.com/go-redis/redis/v8 v8.11.5

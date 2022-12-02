@@ -610,6 +610,8 @@ github.com/dtm-labs/dtmdriver-springcloud v1.2.3 h1:AutSnngy+inr0PYoAT6pY/4Cw4aU
 github.com/dtm-labs/dtmdriver-springcloud v1.2.3/go.mod h1:sswcxoTofararER63EhBu9O0Ab55w20fYp1KsE1HXww=
 github.com/dtm-labs/logger v0.0.1 h1:187UPkYviyOXelmkbew+Q94mg/BFjxJEsHfyHawu5YQ=
 github.com/dtm-labs/logger v0.0.1/go.mod h1:0woMQZ6ljx9wZIl7hW8cuV2PRQmwEKxhqYtab7zVNWg=
+github.com/dtm-labs/logger v0.0.2 h1:UQQTjDHnZhSbAHwXO9ISva1/AGO+MW9MjztAIzqJ1Tw=
+github.com/dtm-labs/logger v0.0.2/go.mod h1:WgJjaTSJ0WmITqMGEWDiaamrxgMkAH8TmwIhykuGugY=
 github.com/dubbogo/go-zookeeper v1.0.3/go.mod h1:fn6n2CAEer3novYgk9ULLwAjuV8/g4DdC2ENwRb6E+c=
 github.com/dubbogo/go-zookeeper v1.0.4-0.20211212162352-f9d2183d89d5/go.mod h1:fn6n2CAEer3novYgk9ULLwAjuV8/g4DdC2ENwRb6E+c=
 github.com/dubbogo/gost v1.9.0/go.mod h1:pPTjVyoJan3aPxBPNUX0ADkXjPibLo+/Ib0/fADXSG8=
