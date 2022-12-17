@@ -13,14 +13,14 @@ const (
 
 var topicsMap = map[string]Topic{}
 
-//Topic define topic info
+// Topic define topic info
 type Topic struct {
 	Name        string       `json:"k"`
 	Subscribers []Subscriber `json:"v"`
 	Version     uint64       `json:"version"`
 }
 
-//Subscriber define subscriber info
+// Subscriber define subscriber info
 type Subscriber struct {
 	URL    string `json:"url"`
 	Remark string `json:"remark"`
@@ -111,5 +111,5 @@ func updateTopicsMap() {
 		topicsMap[kv.K] = newTopic
 		logger.Infof("topic updated. old topic:%v new topic:%v", topicsMap[kv.K], newTopic)
 	}
-	logger.Infof("all topic updated. topic:%v", topicsMap)
+	logger.Debugf("all topic updated. topic:%v", topicsMap)
 }
