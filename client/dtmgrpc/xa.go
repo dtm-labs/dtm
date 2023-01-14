@@ -79,10 +79,7 @@ func XaGlobalTransaction2(server string, gid string, custom func(*XaGrpc), xaFun
 	xa := &XaGrpc{TransBase: *dtmimp.NewTransBase(gid, "xa", server, "")}
 	custom(xa)
 	dc := dtmgimp.MustGetDtmClient(xa.Dtm)
-	req := &dtmgpb.DtmRequest{
-		Gid:       gid,
-		TransType: xa.TransType,
-	}
+	req := dtmgimp.GetDtmRequest(&xa.TransBase)
 	return dtmimp.XaHandleGlobalTrans(&xa.TransBase, func(action string) error {
 		f := map[string]func(context.Context, *dtmgpb.DtmRequest, ...grpc.CallOption) (*emptypb.Empty, error){
 			"prepare": dc.Prepare,
