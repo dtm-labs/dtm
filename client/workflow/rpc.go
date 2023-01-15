@@ -6,6 +6,7 @@ import (
 
 	"github.com/dtm-labs/dtm/client/dtmcli"
 	"github.com/dtm-labs/dtm/client/dtmcli/dtmimp"
+	"github.com/dtm-labs/dtm/client/dtmcli/logger"
 	"github.com/dtm-labs/dtm/client/dtmgrpc/dtmgimp"
 	"github.com/dtm-labs/dtm/client/dtmgrpc/dtmgpb"
 	"google.golang.org/protobuf/encoding/protojson"
@@ -27,6 +28,7 @@ func (wf *Workflow) getProgress() (*dtmgpb.DtmProgressesReply, error) {
 		}
 		err = uo.Unmarshal(resp.Body(), &reply)
 	}
+	logger.Infof(resp.String())
 	return &reply, err
 }
 
