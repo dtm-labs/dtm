@@ -6,8 +6,10 @@ import (
 
 	"github.com/dtm-labs/dtm/client/dtmcli"
 	"github.com/dtm-labs/dtm/client/dtmcli/dtmimp"
+	"github.com/dtm-labs/dtm/client/dtmcli/logger"
 	"github.com/dtm-labs/dtm/client/dtmgrpc/dtmgimp"
 	"github.com/dtm-labs/dtm/client/dtmgrpc/dtmgpb"
+	"google.golang.org/protobuf/encoding/protojson"
 	"google.golang.org/protobuf/types/known/emptypb"
 )
 
@@ -21,8 +23,12 @@ func (wf *Workflow) getProgress() (*dtmgpb.DtmProgressesReply, error) {
 	resp, err := dtmcli.GetRestyClient().R().SetBody(wf.TransBase).Post(wf.Dtm + "/prepareWorkflow")
 	var reply dtmgpb.DtmProgressesReply
 	if err == nil {
-		dtmimp.MustUnmarshal(resp.Body(), &reply)
+		uo := protojson.UnmarshalOptions{
+			DiscardUnknown: true,
+		}
+		err = uo.Unmarshal(resp.Body(), &reply)
 	}
+	logger.Infof(resp.String())
 	return &reply, err
 }
 

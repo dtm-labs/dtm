@@ -55,22 +55,22 @@ message DtmBranchRequest {
 }
 
 message DtmProgressesReply {
-  DtmTransaction Transaction = 1;
-  repeated DtmProgress Progresses = 2;
+  DtmTransaction Transaction = 1 [json_name="transaction"];
+  repeated DtmProgress Progresses = 2 [json_name="progresses"];
 }
 
 message DtmTransaction {
-  string Gid = 1;
-  string Status = 2;
-  string RollbackReason = 3;
-  string Result = 4;
+  string Gid = 1 [json_name="gid"];
+  string Status = 2 [json_name="status"];
+  string RollbackReason = 3 [json_name="rollback_reason"];
+  string Result = 4 [json_name="result"];
 }
 
 message DtmProgress {
-  string Status = 1;
-  bytes BinData = 2;
-  string BranchID = 3;
-  string Op = 4;
+  string Status = 1 [json_name="status"];
+  bytes BinData = 2 [json_name="bin_data"];
+  string BranchID = 3 [json_name="branch_id"];
+  string Op = 4 [json_name="op"];
 }
 
 message DtmTopicRequest {
