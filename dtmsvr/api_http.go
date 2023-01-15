@@ -47,7 +47,7 @@ func addRoute(engine *gin.Engine) {
 	})
 }
 
-//  NOTE: unique in storage, can customize the generation rules instead of using server-side generation, it will help with the tracking
+// NOTE: unique in storage, can customize the generation rules instead of using server-side generation, it will help with the tracking
 func newGid(c *gin.Context) interface{} {
 	return map[string]interface{}{"gid": GenGid(), "dtm_result": dtmcli.ResultSuccess}
 }
@@ -96,7 +96,7 @@ func prepareWorkflow(c *gin.Context) interface{} {
 	if err != nil {
 		return err
 	}
-	return map[string]interface{}{"Transaction": trans, "Progresses": branches}
+	return map[string]interface{}{"transaction": trans, "progresses": branches}
 }
 
 func all(c *gin.Context) interface{} {
