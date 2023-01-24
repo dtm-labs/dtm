@@ -3,7 +3,7 @@ module github.com/dtm-labs/dtm
 go 1.16
 
 require (
-	github.com/agiledragon/gomonkey v2.0.2+incompatible
+	github.com/agiledragon/gomonkey/v2 v2.2.0
 	github.com/dtm-labs/dtmdriver v0.0.6
 	github.com/dtm-labs/dtmdriver-dapr v0.0.1
 	github.com/dtm-labs/dtmdriver-ego v0.1.8
@@ -11,15 +11,15 @@ require (
 	github.com/dtm-labs/dtmdriver-kratos v0.0.9
 	github.com/dtm-labs/dtmdriver-polaris v0.0.5
 	github.com/dtm-labs/dtmdriver-springcloud v1.2.3
-	github.com/dtm-labs/logger v0.0.1
+	github.com/dtm-labs/logger v0.0.2
 	github.com/gin-gonic/gin v1.7.7
-	github.com/go-errors/errors v1.4.2
 	github.com/go-redis/redis/v8 v8.11.5
 	github.com/go-resty/resty/v2 v2.7.0
 	github.com/go-sql-driver/mysql v1.6.0
 	github.com/lib/pq v1.10.6
 	github.com/lithammer/shortuuid/v3 v3.0.7
 	github.com/onsi/gomega v1.18.1
+	github.com/pkg/errors v0.9.1
 	github.com/prometheus/client_golang v1.12.2
 	github.com/stretchr/testify v1.8.0
 	github.com/ugorji/go v1.2.7 // indirect

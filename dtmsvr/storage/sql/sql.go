@@ -148,6 +148,14 @@ func (s *Store) LockOneGlobalTrans(expireIn time.Duration) *storage.TransGlobalS
 		dtmimp.DBTypePostgres: fmt.Sprintf(`id in (select id from trans_global where next_cron_time < '%s' and status in ('prepared', 'aborting', 'submitted') limit 1 )`, nextCronTime),
 	}[conf.Store.Driver]
 
+	ssql := fmt.Sprintf(`select count(1) from trans_global where %s`, where)
+	var cnt int64
+	err := db.ToSQLDB().QueryRow(ssql).Scan(&cnt)
+	dtmimp.PanicIf(err != nil, err)
+	if cnt == 0 {
+		return nil
+	}
+
 	sql := fmt.Sprintf(`UPDATE trans_global SET update_time='%s',next_cron_time='%s', owner='%s' WHERE %s`,
 		getTimeStr(0),
 		getTimeStr(conf.RetryInterval),

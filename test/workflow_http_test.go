@@ -201,3 +201,32 @@ func TestWorkflowOngoing(t *testing.T) {
 	cronTransOnceForwardCron(t, gid, 1000)
 	assert.Equal(t, StatusSucceed, getTransStatus(gid))
 }
+
+var resumeCounter int
+
+func TestWorkflowResumeSkip(t *testing.T) {
+	workflow.SetProtocolForTest(dtmimp.ProtocolHTTP)
+	req := busi.GenReqHTTP(30, false, false)
+	gid := dtmimp.GetFuncName()
+
+	resumeCounter = 0
+	busi.MainSwitch.TransOutResult.SetOnce("ONGOING")
+
+	workflow.Register(gid, func(wf *workflow.Workflow, data []byte) error {
+		wf.NewBranch().Do(func(bb *dtmcli.BranchBarrier) ([]byte, error) {
+			logger.Infof("increase resume counter")
+			resumeCounter += 1
+			return nil, nil
+		})
+		var req busi.ReqHTTP
+		dtmimp.MustUnmarshal(data, &req)
+		_, err := wf.NewBranch().NewRequest().SetBody(req).Post(Busi + "/TransOut")
+		return err
+	})
+
+	err := workflow.Execute(gid, gid, dtmimp.MustMarshal(req))
+	assert.Error(t, err)
+	cronTransOnceForwardCron(t, gid, 1000)
+	assert.Equal(t, StatusSucceed, getTransStatus(gid))
+	assert.Equal(t, 1, resumeCounter)
+}
