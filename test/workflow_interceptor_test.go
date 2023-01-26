@@ -11,7 +11,7 @@ import (
 
 func TestWorkflowInterceptorOutsideSaga(t *testing.T) {
 	called := false
-	workflow.Interceptor(context.TODO(), "method", nil, nil, nil, func(ctx context.Context, method string, req, reply interface{}, cc *grpc.ClientConn, opts ...grpc.CallOption) error {
+	workflow.Interceptor(context.TODO(), "method", nil, nil, &grpc.ClientConn{}, func(ctx context.Context, method string, req, reply interface{}, cc *grpc.ClientConn, opts ...grpc.CallOption) error {
 		called = true
 		return nil
 	})
