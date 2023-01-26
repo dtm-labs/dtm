@@ -229,7 +229,7 @@ func Interceptor(ctx context.Context, method string, req, reply interface{}, cc 
 	logger.Debugf("grpc client calling: %s%s %v", cc.Target(), method, dtmimp.MustMarshalString(req))
 	wf, _ := ctx.Value(wfMeta{}).(*Workflow)
 	if wf == nil {
-		return nil
+		return invoker(ctx, method, req, reply, cc, opts...)
 	}
 
 	origin := func() error {
