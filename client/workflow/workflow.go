@@ -227,9 +227,9 @@ func (wf *Workflow) DoXa(dbConf dtmcli.DBConf, fn func(db *sql.DB) ([]byte, erro
 // Interceptor is the middleware for workflow to capture grpc call result
 func Interceptor(ctx context.Context, method string, req, reply interface{}, cc *grpc.ClientConn, invoker grpc.UnaryInvoker, opts ...grpc.CallOption) error {
 	logger.Debugf("grpc client calling: %s%s %v", cc.Target(), method, dtmimp.MustMarshalString(req))
-	wf := ctx.Value(wfMeta{}).(*Workflow)
+	wf, _ := ctx.Value(wfMeta{}).(*Workflow)
 	if wf == nil {
-		return nil
+		return invoker(ctx, method, req, reply, cc, opts...)
 	}
 
 	origin := func() error {
