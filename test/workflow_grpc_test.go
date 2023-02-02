@@ -7,6 +7,7 @@
 package test
 
 import (
+	"context"
 	"database/sql"
 	"testing"
 
@@ -33,7 +34,7 @@ func TestWorkflowGrpcSimple(t *testing.T) {
 		_, err = busi.BusiCli.TransInBSaga(wf.NewBranchCtx(), &req)
 		return err
 	})
-	err := workflow.Execute(gid, gid, dtmgimp.MustProtoMarshal(req))
+	err := workflow.Execute(context.Background(), gid, gid, dtmgimp.MustProtoMarshal(req))
 	assert.Error(t, err)
 	assert.Equal(t, StatusFailed, getTransStatus(gid))
 }
@@ -61,7 +62,7 @@ func TestWorkflowGrpcRollback(t *testing.T) {
 		return err
 	})
 	before := getBeforeBalances("mysql")
-	err := workflow.Execute(gid, gid, dtmgimp.MustProtoMarshal(req))
+	err := workflow.Execute(context.Background(), gid, gid, dtmgimp.MustProtoMarshal(req))
 	assert.Error(t, err, dtmcli.ErrFailure)
 	assert.Equal(t, StatusFailed, getTransStatus(gid))
 	assertSameBalance(t, before, "mysql")
@@ -106,7 +107,7 @@ func TestWorkflowMixed(t *testing.T) {
 	assert.Nil(t, err)
 	before := getBeforeBalances("mysql")
 	req := &busi.ReqGrpc{Amount: 30}
-	err = workflow.Execute(gid, gid, dtmgimp.MustProtoMarshal(req))
+	err = workflow.Execute(context.Background(), gid, gid, dtmgimp.MustProtoMarshal(req))
 	assert.Nil(t, err)
 	assert.Equal(t, StatusSucceed, getTransStatus(gid))
 	assertNotSameBalance(t, before, "mysql")
@@ -127,7 +128,7 @@ func TestWorkflowGrpcError(t *testing.T) {
 		_, err = busi.BusiCli.TransIn(wf.NewBranchCtx(), &req)
 		return err
 	})
-	err := workflow.Execute(gid, gid, dtmgimp.MustProtoMarshal(req))
+	err := workflow.Execute(context.Background(), gid, gid, dtmgimp.MustProtoMarshal(req))
 	assert.Error(t, err)
 	cronTransOnceForwardCron(t, gid, 1000)
 	assert.Equal(t, StatusSucceed, getTransStatus(gid))

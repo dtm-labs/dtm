@@ -7,6 +7,7 @@
 package test
 
 import (
+	"context"
 	"database/sql"
 	"testing"
 
@@ -41,7 +42,7 @@ func TestWorkflowNormal(t *testing.T) {
 		return nil
 	})
 
-	err := workflow.Execute(gid, gid, dtmimp.MustMarshal(req))
+	err := workflow.Execute(context.Background(), gid, gid, dtmimp.MustMarshal(req))
 	assert.Nil(t, err)
 	assert.Equal(t, StatusSucceed, getTransStatus(gid))
 }
@@ -82,7 +83,7 @@ func TestWorkflowRollback(t *testing.T) {
 	})
 	before := getBeforeBalances("mysql")
 
-	err := workflow.Execute(gid, gid, dtmimp.MustMarshal(req))
+	err := workflow.Execute(context.Background(), gid, gid, dtmimp.MustMarshal(req))
 	assert.Error(t, err, dtmcli.ErrFailure)
 	assert.Equal(t, StatusFailed, getTransStatus(gid))
 	assertSameBalance(t, before, "mysql")
@@ -120,7 +121,7 @@ func TestWorkflowTcc(t *testing.T) {
 	})
 
 	before := getBeforeBalances("mysql")
-	err := workflow.Execute(gid, gid, dtmimp.MustMarshal(req))
+	err := workflow.Execute(context.Background(), gid, gid, dtmimp.MustMarshal(req))
 	assert.Nil(t, err)
 	assert.Equal(t, StatusSucceed, getTransStatus(gid))
 	assertNotSameBalance(t, before, "mysql")
@@ -158,7 +159,7 @@ func TestWorkflowTccRollback(t *testing.T) {
 	})
 
 	before := getBeforeBalances("mysql")
-	err := workflow.Execute(gid, gid, dtmimp.MustMarshal(req))
+	err := workflow.Execute(context.Background(), gid, gid, dtmimp.MustMarshal(req))
 	assert.Error(t, err)
 	assert.Equal(t, StatusFailed, getTransStatus(gid))
 	assertSameBalance(t, before, "mysql")
@@ -177,7 +178,7 @@ func TestWorkflowError(t *testing.T) {
 		return err
 	})
 
-	err := workflow.Execute(gid, gid, dtmimp.MustMarshal(req))
+	err := workflow.Execute(context.Background(), gid, gid, dtmimp.MustMarshal(req))
 	assert.Error(t, err)
 	cronTransOnceForwardCron(t, gid, 1000)
 	assert.Equal(t, StatusSucceed, getTransStatus(gid))
@@ -196,7 +197,7 @@ func TestWorkflowOngoing(t *testing.T) {
 		return err
 	})
 
-	err := workflow.Execute(gid, gid, dtmimp.MustMarshal(req))
+	err := workflow.Execute(context.Background(), gid, gid, dtmimp.MustMarshal(req))
 	assert.Error(t, err)
 	cronTransOnceForwardCron(t, gid, 1000)
 	assert.Equal(t, StatusSucceed, getTransStatus(gid))
@@ -224,7 +225,7 @@ func TestWorkflowResumeSkip(t *testing.T) {
 		return err
 	})
 
-	err := workflow.Execute(gid, gid, dtmimp.MustMarshal(req))
+	err := workflow.Execute(context.Background(), gid, gid, dtmimp.MustMarshal(req))
 	assert.Error(t, err)
 	cronTransOnceForwardCron(t, gid, 1000)
 	assert.Equal(t, StatusSucceed, getTransStatus(gid))

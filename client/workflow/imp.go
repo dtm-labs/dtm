@@ -47,7 +47,7 @@ func (wf *Workflow) initProgress(progresses []*dtmgpb.DtmProgress) {
 
 type wfMeta struct{}
 
-func (w *workflowFactory) newWorkflow(name string, gid string, data []byte) *Workflow {
+func (w *workflowFactory) newWorkflow(ctx context.Context, name string, gid string, data []byte) *Workflow {
 	wf := &Workflow{
 		TransBase: dtmimp.NewTransBase(gid, "workflow", "not inited", ""),
 		Name:      name,
@@ -58,6 +58,7 @@ func (w *workflowFactory) newWorkflow(name string, gid string, data []byte) *Wor
 			currentOp:    dtmimp.OpAction,
 		},
 	}
+	wf.Context = ctx
 	wf.Protocol = w.protocol
 	if w.protocol == dtmimp.ProtocolGRPC {
 		wf.Dtm = w.grpcDtm

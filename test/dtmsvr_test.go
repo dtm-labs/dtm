@@ -70,7 +70,7 @@ func TestUpdateBranchAsync(t *testing.T) {
 		return err
 	})
 	assert.Nil(t, err)
-	err = workflow.Execute(gid, gid, nil)
+	err = workflow.Execute(context.Background(), gid, gid, nil)
 	assert.Nil(t, err)
 
 	time.Sleep(dtmsvr.UpdateBranchAsyncInterval)

@@ -56,21 +56,21 @@ func Register2(name string, handler WfFunc2, custom ...func(wf *Workflow)) error
 // Execute will execute a workflow with the gid and specified params
 // if the workflow with the gid does not exist, then create a new workflow and execute it
 // if the workflow with the gid exists, resume to execute it
-func Execute(name string, gid string, data []byte) error {
-	_, err := defaultFac.execute(name, gid, data)
+func Execute(ctx context.Context, name string, gid string, data []byte) error {
+	_, err := defaultFac.execute(ctx, name, gid, data)
 	return err
 }
 
 // Execute2 is the same as Execute, but workflow func can return result
-func Execute2(name string, gid string, data []byte) ([]byte, error) {
-	return defaultFac.execute(name, gid, data)
+func Execute2(ctx context.Context, name string, gid string, data []byte) ([]byte, error) {
+	return defaultFac.execute(ctx, name, gid, data)
 }
 
 // ExecuteByQS is like Execute, but name and gid will be obtained from qs
-func ExecuteByQS(qs url.Values, body []byte) error {
+func ExecuteByQS(ctx context.Context, qs url.Values, body []byte) error {
 	name := qs.Get("op")
 	gid := qs.Get("gid")
-	_, err := defaultFac.execute(name, gid, body)
+	_, err := defaultFac.execute(ctx, name, gid, body)
 	return err
 }
 

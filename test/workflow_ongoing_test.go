@@ -7,6 +7,7 @@
 package test
 
 import (
+	"context"
 	"database/sql"
 	"testing"
 
@@ -47,7 +48,7 @@ func TestWorkflowSimpleResume(t *testing.T) {
 		return err
 	})
 
-	err := workflow.Execute(gid, gid, dtmimp.MustMarshal(req))
+	err := workflow.Execute(context.Background(), gid, gid, dtmimp.MustMarshal(req))
 	assert.Error(t, err)
 	cronTransOnceForwardNow(t, gid, 1000)
 	assert.Equal(t, StatusSucceed, getTransStatus(gid))
@@ -94,7 +95,7 @@ func TestWorkflowGrpcRollbackResume(t *testing.T) {
 	})
 	before := getBeforeBalances("mysql")
 	req := &busi.ReqGrpc{Amount: 30, TransInResult: "FAILURE"}
-	err := workflow.Execute(gid, gid, dtmgimp.MustProtoMarshal(req))
+	err := workflow.Execute(context.Background(), gid, gid, dtmgimp.MustProtoMarshal(req))
 	assert.Error(t, err, dtmcli.ErrOngoing)
 	assert.Equal(t, StatusPrepared, getTransStatus(gid))
 	cronTransOnceForwardNow(t, gid, 1000)
@@ -140,7 +141,7 @@ func TestWorkflowXaResume(t *testing.T) {
 		return err
 	})
 	before := getBeforeBalances("mysql")
-	err := workflow.Execute(gid, gid, nil)
+	err := workflow.Execute(context.Background(), gid, gid, nil)
 	assert.Equal(t, dtmcli.ErrOngoing, err)
 
 	cronTransOnceForwardNow(t, gid, 1000)

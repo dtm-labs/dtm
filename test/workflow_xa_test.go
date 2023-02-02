@@ -7,6 +7,7 @@
 package test
 
 import (
+	"context"
 	"database/sql"
 	"testing"
 
@@ -34,7 +35,7 @@ func TestWorkflowXaAction(t *testing.T) {
 		return err
 	})
 	before := getBeforeBalances("mysql")
-	err := workflow.Execute(gid, gid, nil)
+	err := workflow.Execute(context.Background(), gid, gid, nil)
 	assert.Nil(t, err)
 	assert.Equal(t, StatusSucceed, getTransStatus(gid))
 	assertNotSameBalance(t, before, "mysql")
@@ -58,7 +59,7 @@ func TestWorkflowXaRollback(t *testing.T) {
 		return err
 	})
 	before := getBeforeBalances("mysql")
-	err := workflow.Execute(gid, gid, nil)
+	err := workflow.Execute(context.Background(), gid, gid, nil)
 	assert.Equal(t, dtmcli.ErrFailure, err)
 	assert.Equal(t, StatusFailed, getTransStatus(gid))
 	assertSameBalance(t, before, "mysql")
