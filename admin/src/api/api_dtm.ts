@@ -1,19 +1,21 @@
-import {AxiosResponse} from 'axios'
+import { AxiosResponse } from 'axios'
 import request from '/@/utils/request'
 
 export interface IListAllTransactionsReq {
-    gid?: string,
-    limit: number
-    position?: string
+    gid?: string;
+    limit: number;
+    position?: string;
 }
 
 export interface IListAllKVReq {
-    cat: string
-    limit: number
-    position?: string
+    cat: string;
+    limit: number;
+    position?: string;
 }
 
-export function listAllTransactions<T>(payload: IListAllTransactionsReq): Promise<AxiosResponse<T>> {
+export function listAllTransactions<T>(
+    payload: IListAllTransactionsReq
+): Promise<AxiosResponse<T>> {
     return request({
         url: '/api/dtmsvr/all',
         method: 'get',
@@ -25,11 +27,14 @@ export function forceStopTransaction(gid: string): Promise<AxiosResponse> {
     return request({
         url: '/api/dtmsvr/forceStop',
         method: 'post',
-        data: {gid},
+        data: { gid }
     })
 }
 
-export function queryKVPair<T>(payload: { "cat": string, "key": string }): Promise<AxiosResponse<T>> {
+export function queryKVPair<T>(payload: {
+    cat: string;
+    key: string;
+}): Promise<AxiosResponse<T>> {
     return request({
         url: '/api/dtmsvr/queryKV',
         method: 'get',
@@ -37,7 +42,9 @@ export function queryKVPair<T>(payload: { "cat": string, "key": string }): Promi
     })
 }
 
-export function listKVPairs<T>(payload: IListAllKVReq): Promise<AxiosResponse<T>> {
+export function listKVPairs<T>(
+    payload: IListAllKVReq
+): Promise<AxiosResponse<T>> {
     return request({
         url: '/api/dtmsvr/scanKV',
         method: 'get',
@@ -47,12 +54,16 @@ export function listKVPairs<T>(payload: IListAllKVReq): Promise<AxiosResponse<T>
 
 export function deleteTopic<T>(topicName: string): Promise<AxiosResponse<T>> {
     return request({
-        url: '/api/dtmsvr/topic/' + topicName,
+        url: `/api/dtmsvr/topic/${topicName}`,
         method: 'delete'
     })
 }
 
-export function subscribe<T>(payload: { topic: string, url: string, remark: string }): Promise<AxiosResponse<T>> {
+export function subscribe<T>(payload: {
+    topic: string;
+    url: string;
+    remark: string;
+}): Promise<AxiosResponse<T>> {
     return request({
         url: '/api/dtmsvr/subscribe',
         method: 'get',
@@ -60,7 +71,10 @@ export function subscribe<T>(payload: { topic: string, url: string, remark: stri
     })
 }
 
-export function unsubscribe(payload: { topic: string, url: string }): Promise<AxiosResponse> {
+export function unsubscribe(payload: {
+    topic: string;
+    url: string;
+}): Promise<AxiosResponse> {
     return request({
         url: '/api/dtmsvr/unsubscribe',
         method: 'get',
@@ -68,7 +82,9 @@ export function unsubscribe(payload: { topic: string, url: string }): Promise<Ax
     })
 }
 
-export function getTransaction<T>(payload: { gid: string }): Promise<AxiosResponse<T>> {
+export function getTransaction<T>(payload: {
+    gid: string;
+}): Promise<AxiosResponse<T>> {
     return request({
         url: '/api/dtmsvr/query',
         method: 'get',
@@ -79,6 +95,6 @@ export function getTransaction<T>(payload: { gid: string }): Promise<AxiosRespon
 export function getDtmVersion(): Promise<AxiosResponse<any>> {
     return request({
         url: '/api/dtmsvr/version',
-        method: 'get',
+        method: 'get'
     })
 }
