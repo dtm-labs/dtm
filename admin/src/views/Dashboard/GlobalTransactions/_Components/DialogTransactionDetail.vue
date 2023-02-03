@@ -16,6 +16,7 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { getTransaction } from '/@/api/api_dtm'
+import screenfull from '/@/components/Screenfull/index.vue'
 // import VueJsonPretty from 'vue-json-pretty';
 // import 'vue-json-pretty/lib/styles.css'
 

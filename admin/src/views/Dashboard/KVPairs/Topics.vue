@@ -25,6 +25,8 @@
     </div>
 </template>
 <script setup lang="ts">
+import DialogTopicDetail from './_Components/DialogTopicDetail.vue'
+import DialogTopicSubscribe from './_Components/DialogTopicSubscribe.vue'
 import { deleteTopic, IListAllKVReq, listKVPairs } from '/@/api/api_dtm'
 import { computed, ref } from 'vue-demi'
 import { usePagination } from 'vue-request'

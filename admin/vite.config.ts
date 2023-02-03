@@ -5,11 +5,14 @@ import { createSvgIconsPlugin } from 'vite-plugin-svg-icons'
 import Components from 'unplugin-vue-components/vite'
 import { AntDesignVueResolver } from 'unplugin-vue-components/resolvers'
 import { ViteEjsPlugin } from 'vite-plugin-ejs'
+import dns from 'dns'
 
 const setAlias = (alias: [string, string][]) =>
     alias.map((v) => {
         return { find: v[0], replacement: path.resolve(__dirname, v[1]) }
     })
+// https://cn.vitejs.dev/config/server-options.html#server-host
+dns.setDefaultResultOrder('verbatim')
 
 export default ({ mode }: ConfigEnv): UserConfigExport => {
     return {
@@ -51,11 +54,14 @@ export default ({ mode }: ConfigEnv): UserConfigExport => {
             }
         },
         server: {
+            host: 'localhost',
             port: 6789,
             base: 'admin',
             proxy: {
                 '/api': {
+                    changeOrigin: true,
                     target: 'http://localhost:36789'
+
                 }
             }
         },

@@ -56,6 +56,7 @@
 import { forceStopTransaction, IListAllTransactionsReq, listAllTransactions } from '/@/api/api_dtm'
 import { computed, ref } from 'vue-demi'
 import { usePagination } from 'vue-request'
+import DialogTransactionDetail from './_Components/DialogTransactionDetail.vue'
 
 const gid = ref('')
 

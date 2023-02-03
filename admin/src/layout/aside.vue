@@ -20,6 +20,8 @@
 </template>
 
 <script setup lang='ts'>
+import Sidebar from './components/sidebar.vue'
+import Content from './components/content.vue'
 import { useRoute } from 'vue-router'
 import { useLayoutStore } from '../store/modules/layout'
 import { findCurrentMenubar } from '../utils/util'
