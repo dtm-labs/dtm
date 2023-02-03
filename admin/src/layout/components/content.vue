@@ -9,8 +9,8 @@
                         closable
                         @close="onClose"
                     >
-                        <template v-slot:description>
-                            <span v-for="ln of errLines">{{ln}} <br/> </span>
+                        <template #description>
+                            <span v-for="(ln, index) of errLines" :key="index">{{ ln }} <br> </span>
                         </template>
                     </a-alert>
                     <component :is="Component" :key="key" />
@@ -30,10 +30,10 @@ const route = useRoute()
 const key = computed(() => route.path)
 
 const layoutStore = useLayoutStore()
-const errLines = computed(() => layoutStore.globalError.split("\n"))
-const onClose = async (e: MouseEvent) => {
+const errLines = computed(() => layoutStore.globalError.split('\n'))
+const onClose = async() => {
     await sleep(1000)
-    layoutStore.setGlobalError("")
+    layoutStore.setGlobalError('')
 }
 
 </script>

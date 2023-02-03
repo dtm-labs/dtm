@@ -18,7 +18,7 @@
 </template>
 
 <script setup lang='ts'>
-import { ref, computed } from 'vue'
+import { computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useLayoutStore } from '/@/store/modules/layout'
 import { IMenubarList } from '/@/type/store/layout'
@@ -36,6 +36,7 @@ const activeMenu = computed({
     get: () => {
         return [route.path]
     },
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     set: (val) => {
         // do nothing, just for eliminate warn
     }
@@ -46,6 +47,7 @@ const openKeys = computed({
         const pos = route.path.lastIndexOf('/')
         return [route.path.substring(0, pos)]
     }, 
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     set: (val) => {
         // do onthing, just for eliminate warn
     }

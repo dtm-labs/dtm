@@ -5,7 +5,7 @@
     </div>
 </template>
 <script setup lang='ts'>
-import { notification } from 'ant-design-vue';
+import { notification } from 'ant-design-vue'
 import { onMounted, onUnmounted, ref } from 'vue'
 import screenfull from 'screenfull'
 

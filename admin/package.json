@@ -5,7 +5,9 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build && echo > dist/placeholder",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "lint": "eslint --ext .tsx,.ts,vue src/",
+    "lint:fix": "eslint --ext .tsx,.ts,vue src/ --fix"
   },
   "dependencies": {
     "ant-design-vue": "^3.1.1",
