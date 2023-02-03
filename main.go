@@ -58,23 +58,35 @@ func addAdmin(app *gin.Engine, conf *config.Type) {
 	// for testing users, proxy admin to target because the build output has not been embed
 	dist := getSub(admin, "admin", "dist")
 	index, err := dist.Open("index.html")
+
+	var router gin.IRoutes = app
+	if len(conf.AdminBasePath) > 0 {
+		router = app.Group(conf.AdminBasePath)
+	}
 	if err == nil {
 		cont, err := ioutil.ReadAll(index)
 		logger.FatalIfError(err)
 		_ = index.Close()
 		sfile := string(cont)
+
+		//replace base path
+		sfile = strings.Replace(sfile, "\"assets/", "\""+conf.AdminBasePath+"/assets/", -1)
+		sfile = strings.Replace(sfile, "PUBLIC-PATH-VARIABLE", conf.AdminBasePath, -1)
 		renderIndex := func(c *gin.Context) {
 			c.Header("content-type", "text/html;charset=utf-8")
 			c.String(200, sfile)
 		}
-		app.StaticFS("/assets", http.FS(getSub(dist, "assets")))
-		app.GET("/admin/*name", renderIndex)
-		app.GET("/", renderIndex)
+		router.StaticFS("/assets", http.FS(getSub(dist, "assets")))
+		router.GET("/admin/*name", renderIndex)
+		router.GET("/", renderIndex)
+		router.GET("/favicon.ico", func(ctx *gin.Context) {
+			http.StripPrefix(conf.AdminBasePath, http.FileServer(http.FS(dist))).ServeHTTP(ctx.Writer, ctx.Request)
+		})
 		logger.Infof("admin is served from dir 'admin/dist/'")
 	} else {
-		app.GET("/", proxyAdmin)
-		app.GET("/assets/*name", proxyAdmin)
-		app.GET("/admin/*name", proxyAdmin)
+		router.GET("/", proxyAdmin)
+		router.GET("/assets/*name", proxyAdmin)
+		router.GET("/admin/*name", proxyAdmin)
 		lang := os.Getenv("LANG")
 		if strings.HasPrefix(lang, "zh_CN") {
 			target = "cn-admin.dtm.pub"
@@ -83,7 +95,7 @@ func addAdmin(app *gin.Engine, conf *config.Type) {
 		}
 		logger.Infof("admin is proxied to %s", target)
 	}
-	logger.Infof("admin is running at: http://localhost:%d", conf.HTTPPort)
+	logger.Infof("admin is running at: http://localhost:%d%s", conf.HTTPPort, conf.AdminBasePath)
 }
 
 func proxyAdmin(c *gin.Context) {
