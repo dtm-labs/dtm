@@ -4,6 +4,7 @@ import { useLayoutStore } from './store/modules/layout'
 
 configure({ showSpinner: false })
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const defaultRoutePath = '/'
 
 router.beforeEach((to) => {

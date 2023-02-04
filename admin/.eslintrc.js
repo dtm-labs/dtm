@@ -1,32 +1,32 @@
 module.exports = {
-    parser: "vue-eslint-parser",
-    "env": {
-        "browser": true,
-        "es2021": true
+    parser: 'vue-eslint-parser',
+    env: {
+        browser: true,
+        es2021: true
     },
-    "extends": [
-        "plugin:@typescript-eslint/recommended",
-        "plugin:vue/vue3-recommended"
+    extends: [
+        'plugin:@typescript-eslint/recommended',
+        'plugin:vue/vue3-recommended'
     ],
-    "parserOptions": {
-        "parser": "@typescript-eslint/parser",
-        "sourceType": "module",
+    parserOptions: {
+        parser: '@typescript-eslint/parser',
+        sourceType: 'module',
         ecmaFeature: {
             jsx: true,
             tsx: true
         }
     },
-    "plugins": [
-        "@typescript-eslint"
+    plugins: [
+        '@typescript-eslint'
     ],
-    "rules": {
+    rules: {
         'vue/max-attributes-per-line': ['error', {
             singleline: 10,
             multiline: {
-                max: 1,
-                allowFirstLine: false
+                max: 1
             }
         }],
+        'vue/multi-word-component-names': 0,
         'vue/singleline-html-element-content-newline': 'off',
         'vue/multiline-html-element-content-newline': 'off',
         'vue/html-indent': ['error', 4],
@@ -35,7 +35,9 @@ module.exports = {
         quotes: ['error', 'single'], // 单引号
         // 'vue/html-quotes': ['error', 'single'],
         semi: ['error', 'never'], // 禁止使用分号
-        'space-infix-ops': ['error', { int32Hint: false }], // 要求操作符周围有空格
+        'space-infix-ops': ['error', {
+            int32Hint: false
+        }], // 要求操作符周围有空格
         'no-multi-spaces': 'error', // 禁止多个空格
         'no-whitespace-before-property': 'error', // 禁止在属性前使用空格
         'space-before-blocks': 'error', // 在块之前强制保持一致的间距
@@ -48,8 +50,8 @@ module.exports = {
             array: true,
             object: true
         }, {
-                enforceForRenamedProperties: false
-            }],
+            enforceForRenamedProperties: false
+        }],
         'comma-dangle': ['error', 'never'], // 最后一个属性不允许有逗号
         'arrow-spacing': 'error', // 箭头函数空格
         'prefer-template': 'error',
@@ -59,7 +61,9 @@ module.exports = {
         'no-unneeded-ternary': 'error', // 禁止可以表达为更简单结构的三元操作符
         'no-restricted-syntax': ['error', 'WithStatement', 'BinaryExpression[operator="in"]'], // 禁止with/in语句
         'no-lonely-if': 'error', // 禁止 if 语句作为唯一语句出现在 else 语句块中
-        'newline-per-chained-call': ['error', { ignoreChainWithDepth: 2 }], // 要求方法链中每个调用都有一个换行符
+        'newline-per-chained-call': ['error', {
+            ignoreChainWithDepth: 2
+        }], // 要求方法链中每个调用都有一个换行符
         // 路径别名设置
         'no-submodule-imports': ['off', '/@'],
         'no-implicit-dependencies': ['off', ['/@']],

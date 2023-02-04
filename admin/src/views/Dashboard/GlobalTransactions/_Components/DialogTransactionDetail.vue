@@ -2,21 +2,21 @@
     <div>
         <a-modal v-model:visible="visible" title="Transaction Detail" width="100%" wrap-class-name="full-modal">
             <a-table :columns="columns" :data-source="dataSource" :pagination="false">
-                <template #bodyCell="{column, record}">
-                </template>
+                <!-- eslint-disable-next-line vue/no-unused-vars -->
+                <template #bodyCell="{column, record}" />
             </a-table>
-            <div class="mt-10 relative">
+            <div class="relative mt-10">
                 <a-textarea id="qs" v-model:value="textVal" :auto-size="{ minRows: 10, maxRows: 10 }" />
-                <screenfull class="absolute right-2 top-3 z-50" identity="qs" />
+                <screenfull class="absolute z-50 right-2 top-3" identity="qs" />
             </div>
         </a-modal>
     </div>
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue';
-import { getTransaction } from '/@/api/api_dtm';
-import screenfull from '/@/components/Screenfull/index.vue';
+import { ref } from 'vue'
+import { getTransaction } from '/@/api/api_dtm'
+import screenfull from '/@/components/Screenfull/index.vue'
 // import VueJsonPretty from 'vue-json-pretty';
 // import 'vue-json-pretty/lib/styles.css'
 
@@ -25,7 +25,7 @@ const visible = ref(false)
 const textVal = ref('')
 
 const open = async(gid: string) => {
-    const d = await getTransaction<Data>({gid: gid})
+    const d = await getTransaction<Data>({ gid: gid })
     dataSource.value = d.data.branches
     textVal.value = JSON.stringify(d.data, null, 2)
     visible.value = true

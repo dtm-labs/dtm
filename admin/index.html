@@ -1,13 +1,23 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
+
+<head>
     <meta charset="UTF-8" />
-    <link rel="icon" href="/favicon.ico" />
+    <link rel="icon" href="<%= PUBLIC_PATH %>/favicon.ico" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Vite App</title>
-  </head>
-  <body>
+    <title>Dtm</title>
+    <script type="text/javascript">
+        window.basePath = '<%= PUBLIC_PATH %>';
+
+        window.__assetsPathBuilder = function (importer) {
+            return window.basePath + "/" + importer;
+        };
+    </script>
+</head>
+
+<body>
     <div id="app"></div>
     <script type="module" src="/src/main.ts"></script>
-  </body>
+</body>
+
 </html>

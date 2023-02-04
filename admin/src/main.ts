@@ -15,18 +15,18 @@ app.use(pinia)
 app.mount('#app')
 
 window.onunhandledrejection = (ev: PromiseRejectionEvent) => {
-  showAlert(ev.reason.stack || ev.reason.message)
+    showAlert(ev.reason.stack || ev.reason.message)
 }
 window.onerror = err => {
-  if (typeof err === "string") {
-    return showAlert(err)
-  }
-  showAlert(JSON.stringify(err))
+    if (typeof err === 'string') {
+        return showAlert(err)
+    }
+    showAlert(JSON.stringify(err))
 }
 
 function showAlert(msg: string) {
-  let layout = useLayoutStore()
-  if (!layout.globalError) {
-    layout.setGlobalError(msg)
-  }
+    const layout = useLayoutStore()
+    if (!layout.globalError) {
+        layout.setGlobalError(msg)
+    }
 }

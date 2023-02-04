@@ -14,4 +14,7 @@ declare global {
     next_position: number,
     size: number
   }
+  interface Window {
+    basePath: string;
+  }
 }

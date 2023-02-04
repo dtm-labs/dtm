@@ -101,6 +101,7 @@ type Type struct {
 	ConfigUpdateInterval          int64            `yaml:"ConfigUpdateInterval" default:"3"`
 	AlertRetryLimit               int64            `yaml:"AlertRetryLimit" default:"3"`
 	AlertWebHook                  string           `yaml:"AlertWebHook"`
+	AdminBasePath                 string           `yaml:"AdminBasePath"`
 }
 
 // Config config
