@@ -53,21 +53,36 @@ func Register2(name string, handler WfFunc2, custom ...func(wf *Workflow)) error
 	return defaultFac.register(name, handler, custom...)
 }
 
-// Execute will execute a workflow with the gid and specified params
+// Execute is the same as ExecuteCtx, but with context.Background
+func Execute(name string, gid string, data []byte) error {
+	return ExecuteCtx(context.Background(), name, gid, data)
+}
+
+// ExecuteCtx will execute a workflow with the gid and specified params
 // if the workflow with the gid does not exist, then create a new workflow and execute it
 // if the workflow with the gid exists, resume to execute it
-func Execute(ctx context.Context, name string, gid string, data []byte) error {
+func ExecuteCtx(ctx context.Context, name string, gid string, data []byte) error {
 	_, err := defaultFac.execute(ctx, name, gid, data)
 	return err
 }
 
 // Execute2 is the same as Execute, but workflow func can return result
-func Execute2(ctx context.Context, name string, gid string, data []byte) ([]byte, error) {
+func Execute2(name string, gid string, data []byte) ([]byte, error) {
+	return Execute2Ctx(context.Background(), name, gid, data)
+}
+
+// Execute2Ctx is the same as Execute2, but with context.Background
+func Execute2Ctx(ctx context.Context, name string, gid string, data []byte) ([]byte, error) {
 	return defaultFac.execute(ctx, name, gid, data)
 }
 
 // ExecuteByQS is like Execute, but name and gid will be obtained from qs
-func ExecuteByQS(ctx context.Context, qs url.Values, body []byte) error {
+func ExecuteByQS(qs url.Values, body []byte) error {
+	return ExecuteByQSCtx(context.Background(), qs, body)
+}
+
+// ExecuteByQSCtx is the same as ExecuteByQS, but with context.Background
+func ExecuteByQSCtx(ctx context.Context, qs url.Values, body []byte) error {
 	name := qs.Get("op")
 	gid := qs.Get("gid")
 	_, err := defaultFac.execute(ctx, name, gid, body)

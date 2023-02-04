@@ -1,7 +1,6 @@
 package test
 
 import (
-	"context"
 	"testing"
 
 	"github.com/dtm-labs/dtm/client/dtmcli/dtmimp"
@@ -22,13 +21,13 @@ func TestWorkflowRet(t *testing.T) {
 		return []byte("result of workflow"), err
 	})
 
-	ret, err := workflow.Execute2(context.Background(), gid, gid, dtmimp.MustMarshal(req))
+	ret, err := workflow.Execute2(gid, gid, dtmimp.MustMarshal(req))
 	assert.Nil(t, err)
 	assert.Equal(t, "result of workflow", string(ret))
 	assert.Equal(t, StatusSucceed, getTransStatus(gid))
 
 	// the second execute will return result directly
-	ret, err = workflow.Execute2(context.Background(), gid, gid, dtmimp.MustMarshal(req))
+	ret, err = workflow.Execute2(gid, gid, dtmimp.MustMarshal(req))
 	assert.Nil(t, err)
 	assert.Equal(t, "result of workflow", string(ret))
 	assert.Equal(t, StatusSucceed, getTransStatus(gid))

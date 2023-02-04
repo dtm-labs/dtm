@@ -88,7 +88,7 @@ func BaseAddRoute(app *gin.Engine) {
 	app.POST(BusiAPI+"/workflow/resume", dtmutil.WrapHandler(func(ctx *gin.Context) interface{} {
 		data, err := ioutil.ReadAll(ctx.Request.Body)
 		logger.FatalIfError(err)
-		return workflow.ExecuteByQS(ctx, ctx.Request.URL.Query(), data)
+		return workflow.ExecuteByQS(ctx.Request.URL.Query(), data)
 	}))
 	app.POST(BusiAPI+"/TransIn", dtmutil.WrapHandler(func(c *gin.Context) interface{} {
 		return handleGeneralBusiness(c, MainSwitch.TransInResult.Fetch(), reqFrom(c).TransInResult, "transIn")
