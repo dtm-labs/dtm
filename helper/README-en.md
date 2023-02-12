@@ -92,7 +92,7 @@ req := busi.BusiReq{Amount: 30, TransInResult: ""}
 data, err := proto.Marshal(&req)
 
 // Execute workflow
-err = workflow.Execute(wfName, shortuuid.New(), data)
+_, err = workflow.ExecuteCtx(wfName, shortuuid.New(), data)
 logger.Infof("result of workflow.Execute is: %v", err)
 
 ```
