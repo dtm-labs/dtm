@@ -149,7 +149,9 @@ func (t *transport) RoundTrip(req *http.Request) (resp *http.Response, err error
 	switch resp.Header.Get("Content-Encoding") {
 	case "gzip":
 		reader, err = gzip.NewReader(resp.Body)
-		defer reader.Close()
+		defer func() {
+			err = reader.Close()
+		}()
 	default:
 		reader = resp.Body
 	}
