@@ -10,7 +10,7 @@ import (
 
 func TestAbnormal(t *testing.T) {
 	fname := dtmimp.GetFuncName()
-	_, err := defaultFac.execute(fname, fname, nil)
+	_, err := defaultFac.execute(context.Background(), fname, fname, nil)
 	assert.Error(t, err)
 
 	err = defaultFac.register(fname, func(wf *Workflow, data []byte) ([]byte, error) { return nil, nil })
