@@ -14,7 +14,7 @@ replicaCount: 1
 # dtm image version
 image:
   repository: yedf/dtm
-  tag: "1.12.2"
+  tag: "latest"
   pullPolicy: IfNotPresent
 
 imagePullSecrets: []
