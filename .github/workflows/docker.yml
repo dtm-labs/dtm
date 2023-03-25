@@ -1,8 +1,8 @@
 name: Build Docker
 on:
   push:
-    tags:
-      - 'v*.*.*'
+    branches:
+      - "main"
 
 jobs:
   docker:
@@ -23,7 +23,7 @@ jobs:
         uses: docker/metadata-action@v3
         with:
           images: |
-            yedf/dtm
+            feelguuds/dtx-manager
           tags: |
             type=semver,pattern={{version}}
             type=semver,pattern={{major}}.{{minor}}
