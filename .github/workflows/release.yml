@@ -1,8 +1,8 @@
 name: Release
 on:
   push:
-    tags:
-      - 'v*.*.*'
+    branches:
+      - "main"
 
 jobs:
   release:
@@ -24,6 +24,7 @@ jobs:
           args: check
 
       - name: Create release on GitHub
+        continue-on-error: true
         uses: docker://goreleaser/goreleaser:v1.7.0
         with:
           args: release -f helper/.goreleaser.yml --rm-dist
