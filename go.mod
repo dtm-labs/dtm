@@ -154,6 +154,8 @@ require (
 	sigs.k8s.io/yaml v1.3.0 // indirect
 )
 
+retract v1.18.7
+
 // replace github.com/dtm-labs/dtmdriver v0.0.2 => /Users/wangxi/dtm/dtmdriver
 
 // replace github.com/dtm-labs/dtmdriver-http => /Users/wangxi/dtm/dtmdriver-http-nacos
