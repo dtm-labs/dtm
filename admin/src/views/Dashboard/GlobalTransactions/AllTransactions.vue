@@ -9,6 +9,20 @@
                 <a-input v-model:value="gid" placeholder="gid" />
             </a-form-item>
             <a-form-item>
+                <a-select
+                    ref="select"
+                    v-model:value="status"
+                    style="width: 120px"
+                >
+                    <a-select-option value="">--All--</a-select-option>
+                    <a-select-option value="prepared">prepared</a-select-option>
+                    <a-select-option value="submitted">submitted</a-select-option>
+                    <a-select-option value="succeed">succeed</a-select-option>
+                    <a-select-option value="failed">failed</a-select-option>
+                    <a-select-option value="aborting">aborting</a-select-option>
+                </a-select>
+            </a-form-item>           
+            <a-form-item>
                 <a-button
                     type="primary"
                     html-type="submit"
@@ -59,11 +73,14 @@ import { usePagination } from 'vue-request'
 import DialogTransactionDetail from './_Components/DialogTransactionDetail.vue'
 
 const gid = ref('')
+const status = ref('')
+const limit = ref('')
 
 const searchFinish = function() {
     curPage.value = 1
     const params = {
         gid: gid.value,
+        status: status.value,
         limit: pageSize.value
     }
     run(params)

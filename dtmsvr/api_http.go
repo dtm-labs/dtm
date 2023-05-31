@@ -101,6 +101,7 @@ func prepareWorkflow(c *gin.Context) interface{} {
 
 func all(c *gin.Context) interface{} {
 	gid := c.Query("gid")
+	// status := c.Query("status")
 	position := c.Query("position")
 	sLimit := dtmimp.OrString(c.Query("limit"), "100")
 
