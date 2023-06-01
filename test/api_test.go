@@ -51,43 +51,53 @@ func TestAPIQuery(t *testing.T) {
 }
 
 func TestAPIAll(t *testing.T) {
-	for i := 0; i < 3; i++ { // add three
+	for i := 0; i < 5; i++ { // init five trans
 		gid := dtmimp.GetFuncName() + fmt.Sprintf("%d", i)
 		err := genMsg(gid).Submit()
 		assert.Nil(t, err)
 		waitTransProcessed(gid)
 	}
-	resp, err := dtmcli.GetRestyClient().R().SetQueryParam("limit", "1").Get(dtmutil.DefaultHTTPServer + "/all")
+
+	// fetch by gid, only 1.
+	resp, err := dtmcli.GetRestyClient().R().SetQueryParam("gid", dtmimp.GetFuncName()+"1").Get(dtmutil.DefaultHTTPServer + "/all")
 	assert.Nil(t, err)
 	m := map[string]interface{}{}
 	dtmimp.MustUnmarshalString(resp.String(), &m)
-	nextPos := m["next_position"].(string)
-	assert.NotEqual(t, "", nextPos)
+	assert.Equal(t, 1, len(m["transactions"].([]interface{})))
+	assert.Empty(t, m["next_position"].(string))
 
-	resp, err = dtmcli.GetRestyClient().R().SetQueryParam("gid", dtmimp.GetFuncName()+"1").Get(dtmutil.DefaultHTTPServer + "/all")
+	// fetch 2
+	resp, err = dtmcli.GetRestyClient().R().SetQueryParam("limit", "2").Get(dtmutil.DefaultHTTPServer + "/all")
 	assert.Nil(t, err)
 	m = map[string]interface{}{}
 	dtmimp.MustUnmarshalString(resp.String(), &m)
-	assert.Equal(t, 1, len(m["transactions"].([]interface{})))
+	nextPos1 := m["next_position"].(string)
+	assert.Equal(t, 2, len(m["transactions"].([]interface{})))
+	assert.NotEmpty(t, nextPos1) // is not over
 
+	// continue fetch 2 from nextPos1
 	resp, err = dtmcli.GetRestyClient().R().SetQueryParams(map[string]string{
-		"limit":    "1",
-		"position": nextPos,
+		"limit":    "2",
+		"position": nextPos1,
 	}).Get(dtmutil.DefaultHTTPServer + "/all")
 	assert.Nil(t, err)
 	dtmimp.MustUnmarshalString(resp.String(), &m)
 	nextPos2 := m["next_position"].(string)
-	assert.NotEqual(t, "", nextPos2)
-	assert.NotEqual(t, nextPos, nextPos2)
+	assert.Equal(t, 2, len(m["transactions"].([]interface{})))
+	assert.NotEmpty(t, nextPos2) // is not over
+	assert.NotEqual(t, nextPos1, nextPos2)
 
+	// continue fetch 1000 from nextPos1
 	resp, err = dtmcli.GetRestyClient().R().SetQueryParams(map[string]string{
 		"limit":    "1000",
-		"position": nextPos,
+		"position": nextPos1,
 	}).Get(dtmutil.DefaultHTTPServer + "/all")
 	assert.Nil(t, err)
 	dtmimp.MustUnmarshalString(resp.String(), &m)
 	nextPos3 := m["next_position"].(string)
-	assert.Equal(t, "", nextPos3)
+	assert.Equal(t, 3, len(m["transactions"].([]interface{}))) // the left 3
+	assert.Empty(t, nextPos3)                                  // is over
+	assert.NotEqual(t, nextPos2, nextPos3)
 
 	//fmt.Printf("pos1:%s,pos2:%s,pos3:%s", nextPos, nextPos2, nextPos3)
 }
