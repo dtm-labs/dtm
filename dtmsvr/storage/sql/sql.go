@@ -52,7 +52,7 @@ func (s *Store) FindTransGlobalStore(gid string) *storage.TransGlobalStore {
 }
 
 // ScanTransGlobalStores lists GlobalTrans data
-func (s *Store) ScanTransGlobalStores(position *string, status *string, limit int64) []storage.TransGlobalStore {
+func (s *Store) ScanTransGlobalStores(position *string, status *string, transType *string, limit int64) []storage.TransGlobalStore {
 	globals := []storage.TransGlobalStore{}
 	lid := math.MaxInt64
 	if *position != "" {
@@ -61,6 +61,9 @@ func (s *Store) ScanTransGlobalStores(position *string, status *string, limit in
 	query := dbGet().Must().Where("id < ?", lid)
 	if *status != "" {
 		query = query.Where("status = ?", &status)
+	}
+	if *transType != "" {
+		query = query.Where("trans_type = ?", &transType)
 	}
 	dbr := query.Order("id desc").Limit(int(limit)).Find(&globals)
 	if dbr.RowsAffected < limit {

@@ -12,16 +12,30 @@
                 <a-select
                     ref="select"
                     v-model:value="status"
-                    style="width: 120px"
+                    style="width: 200px"
                 >
-                    <a-select-option value="">--All--</a-select-option>
+                    <a-select-option value="">-- Status --</a-select-option>
                     <a-select-option value="prepared">prepared</a-select-option>
                     <a-select-option value="submitted">submitted</a-select-option>
                     <a-select-option value="succeed">succeed</a-select-option>
                     <a-select-option value="failed">failed</a-select-option>
                     <a-select-option value="aborting">aborting</a-select-option>
                 </a-select>
-            </a-form-item>           
+            </a-form-item>
+            <a-form-item>
+                <a-select
+                    ref="select"
+                    v-model:value="transType"
+                    style="width: 200px"
+                >
+                    <a-select-option value="">-- Trans Type --</a-select-option>
+                    <a-select-option value="workflow">workflow</a-select-option>
+                    <a-select-option value="saga">saga</a-select-option>     
+                    <a-select-option value="tcc">tcc</a-select-option>       
+                    <a-select-option value="msg">msg</a-select-option>   
+                    <a-select-option value="xa">xa</a-select-option>                    
+                </a-select>
+            </a-form-item>        
             <a-form-item>
                 <a-button
                     type="primary"
@@ -74,13 +88,14 @@ import DialogTransactionDetail from './_Components/DialogTransactionDetail.vue'
 
 const gid = ref('')
 const status = ref('')
-const limit = ref('')
+const transType = ref('')
 
 const searchFinish = function() {
     curPage.value = 1
     const params = {
         gid: gid.value,
         status: status.value,
+        transType: transType.value,
         limit: pageSize.value
     }
     run(params)
