@@ -35,7 +35,14 @@
                     <a-select-option value="msg">msg</a-select-option>   
                     <a-select-option value="xa">xa</a-select-option>                    
                 </a-select>
-            </a-form-item>        
+            </a-form-item>  
+            <a-form-item>
+                <a-range-picker
+                    v-model:value="createTimeRange"
+                    format="YYYY-MM-DD HH:mm:ss"
+                    :placeholder ="['CreateTime Start', 'CreateTime End']"                    
+                />
+            </a-form-item>              
             <a-form-item>
                 <a-button
                     type="primary"
@@ -48,7 +55,7 @@
     </div>
     <a-divider />
     <div>
-        <a-table :columns="columns" :data-source="dataSource" :loading="loading" :pagination="false">
+        <a-table :columns="columns" :data-source="dataSource" :loading="loading" :pagination="false" :scroll="{ x: true }">
             <template #bodyCell="{column, record}">
                 <template v-if="column.key === 'status'">
                     <span>
@@ -84,11 +91,13 @@
 import { forceStopTransaction, IListAllTransactionsReq, listAllTransactions } from '/@/api/api_dtm'
 import { computed, ref } from 'vue-demi'
 import { usePagination } from 'vue-request'
+// import {} from moent
 import DialogTransactionDetail from './_Components/DialogTransactionDetail.vue'
 
 const gid = ref('')
 const status = ref('')
 const transType = ref('')
+const createTimeRange = ref()
 
 const searchFinish = function() {
     curPage.value = 1
@@ -96,6 +105,8 @@ const searchFinish = function() {
         gid: gid.value,
         status: status.value,
         transType: transType.value,
+        createTimeStart: createTimeRange.value? createTimeRange.value[0].valueOf(): '',
+        createTimeEnd: createTimeRange.value? createTimeRange.value[1].valueOf(): '',
         limit: pageSize.value
     }
     run(params)
@@ -103,6 +114,9 @@ const searchFinish = function() {
 
 const columns = [
     {
+        title: 'Action',
+        key: 'action'
+    }, {
         title: 'GID',
         dataIndex: 'gid',
         key: 'gid'
@@ -122,10 +136,27 @@ const columns = [
         title: 'CreateTime',
         dataIndex: 'create_time',
         key: 'create_time'
+    },{
+        title: 'UpdateTime',
+        dataIndex: 'update_time',
+        key: 'update_time'
+    },{
+        title: 'FinishTime',
+        dataIndex: 'finish_time',
+        key: 'finish_time'
+    },{
+        title: 'RollbackTime',
+        dataIndex: 'rollback_time',
+        key: 'rollback_time'
     }, {
-        title: 'Action',
-        key: 'action'
-    }
+        title: 'NextCronInterval',
+        dataIndex: 'next_cron_interval',
+        key: 'next_cron_interval'
+    }, {
+        title: 'NextCronTime',
+        dataIndex: 'next_cron_time',
+        key: 'next_cron_time'
+    },
 ]
 
 const pages = ref([''])

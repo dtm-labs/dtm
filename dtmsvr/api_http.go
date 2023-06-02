@@ -104,6 +104,8 @@ func all(c *gin.Context) interface{} {
 	status := c.Query("status")
 	transType := c.Query("transType")
 	position := c.Query("position")
+	createTimeStart := c.Query("createTimeStart")
+	createTimeEnd := c.Query("createTimeEnd")
 	sLimit := dtmimp.OrString(c.Query("limit"), "100")
 
 	var globals interface{}
@@ -113,7 +115,7 @@ func all(c *gin.Context) interface{} {
 			globals = []interface{}{*find}
 		}
 	} else {
-		globals = GetStore().ScanTransGlobalStores(&position, &status, &transType, int64(dtmimp.MustAtoi(sLimit)))
+		globals = GetStore().ScanTransGlobalStores(&position, &status, &transType, &createTimeStart, &createTimeEnd, int64(dtmimp.MustAtoi(sLimit)))
 	}
 	return map[string]interface{}{"transactions": globals, "next_position": position}
 }

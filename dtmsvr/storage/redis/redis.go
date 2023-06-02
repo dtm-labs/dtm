@@ -60,7 +60,7 @@ func (s *Store) FindTransGlobalStore(gid string) *storage.TransGlobalStore {
 }
 
 // ScanTransGlobalStores lists GlobalTrans data
-func (s *Store) ScanTransGlobalStores(position *string, status *string, transType *string, limit int64) []storage.TransGlobalStore {
+func (s *Store) ScanTransGlobalStores(position *string, status *string, transType *string, createTimeStart *string, createTimeEnd *string, limit int64) []storage.TransGlobalStore {
 	logger.Debugf("calling ScanTransGlobalStores: %s %d", *position, limit)
 	cursor := uint64(0)
 	if *position != "" {
@@ -81,7 +81,10 @@ func (s *Store) ScanTransGlobalStores(position *string, status *string, transTyp
 			for _, v := range values {
 				global := storage.TransGlobalStore{}
 				dtmimp.MustUnmarshalString(v.(string), &global)
-				if (*status == "" || global.Status == *status) && (*transType == "" || global.TransType == *transType) {
+				if (*status == "" || global.Status == *status) &&
+					(*transType == "" || global.TransType == *transType) &&
+					(*createTimeStart == "" || global.CreateTime.After(time.Unix(int64(dtmimp.MustAtoi(*createTimeStart))/1000, 0))) &&
+					(*createTimeEnd == "" || global.CreateTime.Before(time.Unix(int64(dtmimp.MustAtoi(*createTimeEnd))/1000, 0))) {
 					globals = append(globals, global)
 				}
 				if len(globals) == int(limit) {

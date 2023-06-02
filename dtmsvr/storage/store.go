@@ -22,7 +22,7 @@ type Store interface {
 	Ping() error
 	PopulateData(skipDrop bool)
 	FindTransGlobalStore(gid string) *TransGlobalStore
-	ScanTransGlobalStores(position *string, status *string, transType *string, limit int64) []TransGlobalStore
+	ScanTransGlobalStores(position *string, status *string, transType *string, createTimeStart *string, createTimeEnd *string, limit int64) []TransGlobalStore
 	FindBranches(gid string) []TransBranchStore
 	UpdateBranches(branches []TransBranchStore, updates []string) (int, error)
 	LockGlobalSaveBranches(gid string, status string, branches []TransBranchStore, branchStart int)
