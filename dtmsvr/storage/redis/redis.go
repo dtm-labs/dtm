@@ -62,22 +62,39 @@ func (s *Store) FindTransGlobalStore(gid string) *storage.TransGlobalStore {
 // ScanTransGlobalStores lists GlobalTrans data
 func (s *Store) ScanTransGlobalStores(position *string, limit int64) []storage.TransGlobalStore {
 	logger.Debugf("calling ScanTransGlobalStores: %s %d", *position, limit)
-	lid := uint64(0)
+	cursor := uint64(0)
 	if *position != "" {
-		lid = uint64(dtmimp.MustAtoi(*position))
+		cursor = uint64(dtmimp.MustAtoi(*position))
 	}
-	keys, cursor, err := redisGet().Scan(ctx, lid, conf.Store.RedisPrefix+"_g_*", limit).Result()
-	dtmimp.E2P(err)
+
 	globals := []storage.TransGlobalStore{}
-	if len(keys) > 0 {
-		values, err := redisGet().MGet(ctx, keys...).Result()
+	redis := redisGet()
+	for {
+		keys, nextCursor, err := redis.Scan(ctx, uint64(cursor), conf.Store.RedisPrefix+"_g_*", limit).Result()
+		logger.Debugf("calling redis scan: SCAN %d MATCH %s COUNT %d ,scan result: nextCursor:%d keys_len:%d", cursor, conf.Store.RedisPrefix+"_g_*", limit, nextCursor, len(keys))
+
 		dtmimp.E2P(err)
-		for _, v := range values {
-			global := storage.TransGlobalStore{}
-			dtmimp.MustUnmarshalString(v.(string), &global)
-			globals = append(globals, global)
+
+		if len(keys) > 0 {
+			values, err := redis.MGet(ctx, keys...).Result()
+			dtmimp.E2P(err)
+			for _, v := range values {
+				global := storage.TransGlobalStore{}
+				dtmimp.MustUnmarshalString(v.(string), &global)
+				globals = append(globals, global)
+				if len(globals) == int(limit) {
+					break
+				}
+			}
 		}
+
+		if len(globals) == int(limit) || nextCursor == 0 {
+			cursor = nextCursor
+			break
+		}
+		cursor = uint64(nextCursor)
 	}
+
 	if cursor > 0 {
 		*position = fmt.Sprintf("%d", cursor)
 	} else {
