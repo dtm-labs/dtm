@@ -100,8 +100,13 @@ const transType = ref('')
 const createTimeRange = ref()
 
 const searchFinish = function() {
-    curPage.value = 1
+    curPage.value = 1;    
+    innerSearch('');
+}
+
+const innerSearch = function(position: string) {
     const params = {
+        position: position,
         gid: gid.value,
         status: status.value,
         transType: transType.value,
@@ -201,21 +206,16 @@ const dataSource = computed(() => data.value?.data.transactions || [])
 
 const handlePrevPage = () => {
     curPage.value -= 1
-    const params = {
-        limit: pageSize.value,
-        position: pages.value[curPage.value] as string
-    }
-    run(params)
+    let position = pages.value[curPage.value] as string;
+    innerSearch(position);
 }
 
 const handleNextPage = () => {
     curPage.value += 1
     pages.value[curPage.value] = data.value?.data.next_position as string
 
-    run({
-        position: data.value?.data.next_position,
-        limit: pageSize.value
-    })
+    let position = data.value?.data.next_position || '';
+    innerSearch(position);  
 }
 
 const transactionDetail = ref<null | { open: (gid: string) => null }>(null)
@@ -224,11 +224,9 @@ const handleTransactionDetail = (gid: string) => {
 }
 
 const handleTransactionStop = async(gid: string) => {
-    await forceStopTransaction(gid)
-    run({
-        position: data.value?.data.next_position,
-        limit: pageSize.value
-    })
+    await forceStopTransaction(gid)   
+    let position = data.value?.data.next_position || '';
+    innerSearch(position);  
 }
 
 </script>
