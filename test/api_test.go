@@ -11,6 +11,7 @@ import (
 	"net/http"
 	"strconv"
 	"testing"
+	"time"
 
 	"github.com/dtm-labs/dtm/client/dtmcli"
 	"github.com/dtm-labs/dtm/client/dtmcli/dtmimp"
@@ -51,25 +52,40 @@ func TestAPIQuery(t *testing.T) {
 }
 
 func TestAPIAll(t *testing.T) {
-	for i := 0; i < 5; i++ { // init five trans
+	gidList := []string{}
+	for i := 0; i < 5; i++ { // init five trans.
 		gid := dtmimp.GetFuncName() + fmt.Sprintf("%d", i)
-		err := genMsg(gid).Submit()
+		gidList = append(gidList, gid)
+		var err error
+		if i%2 == 0 {
+			if i == 4 {
+				time.Sleep(2 * time.Second)
+				err = genSaga(gid, false, false).Submit() // 4, saga succeed
+			} else {
+				err = genMsg(gid).Submit() // 0，2, msg succeed
+			}
+
+		} else {
+			err = genSubmittedMsg(gid).Submit() // 1, 3, msg submitted
+		}
 		assert.Nil(t, err)
 		waitTransProcessed(gid)
 	}
 
 	// fetch by gid, only 1.
-	resp, err := dtmcli.GetRestyClient().R().SetQueryParam("gid", dtmimp.GetFuncName()+"1").Get(dtmutil.DefaultHTTPServer + "/all")
-	assert.Nil(t, err)
-	m := map[string]interface{}{}
-	dtmimp.MustUnmarshalString(resp.String(), &m)
-	assert.Equal(t, 1, len(m["transactions"].([]interface{})))
-	assert.Empty(t, m["next_position"].(string))
+	for _, gid := range gidList {
+		resp, err := dtmcli.GetRestyClient().R().SetQueryParam("gid", gid).Get(dtmutil.DefaultHTTPServer + "/all")
+		assert.Nil(t, err)
+		m := map[string]interface{}{}
+		dtmimp.MustUnmarshalString(resp.String(), &m)
+		assert.Equal(t, 1, len(m["transactions"].([]interface{})))
+		assert.Empty(t, m["next_position"].(string))
+	}
 
 	// fetch 2
-	resp, err = dtmcli.GetRestyClient().R().SetQueryParam("limit", "2").Get(dtmutil.DefaultHTTPServer + "/all")
+	resp, err := dtmcli.GetRestyClient().R().SetQueryParam("limit", "2").Get(dtmutil.DefaultHTTPServer + "/all")
 	assert.Nil(t, err)
-	m = map[string]interface{}{}
+	m := map[string]interface{}{}
 	dtmimp.MustUnmarshalString(resp.String(), &m)
 	nextPos1 := m["next_position"].(string)
 	assert.Equal(t, 2, len(m["transactions"].([]interface{})))
@@ -104,6 +120,48 @@ func TestAPIAll(t *testing.T) {
 	}
 	assert.Empty(t, nextPos3) // is over
 	assert.NotEqual(t, nextPos2, nextPos3)
+
+	// filter status
+	resp, err = dtmcli.GetRestyClient().R().SetQueryParams(map[string]string{
+		"limit":  "10",
+		"status": "submitted",
+	}).Get(dtmutil.DefaultHTTPServer + "/all")
+	assert.Nil(t, err)
+	dtmimp.MustUnmarshalString(resp.String(), &m)
+	assert.Equal(t, 2, len(m["transactions"].([]interface{})))
+	for _, trans := range m["transactions"].([]interface{}) {
+		m := trans.(map[string]interface{})
+		assert.Equal(t, "submitted", m["status"])
+	}
+
+	// filter transType
+	var sagaTransCreateTime time.Time
+	resp, err = dtmcli.GetRestyClient().R().SetQueryParams(map[string]string{
+		"limit":     "10",
+		"status":    "succeed",
+		"transType": "saga",
+	}).Get(dtmutil.DefaultHTTPServer + "/all")
+	assert.Nil(t, err)
+	dtmimp.MustUnmarshalString(resp.String(), &m)
+	nextPos1 = m["next_position"].(string)
+	assert.Equal(t, 1, len(m["transactions"].([]interface{})))
+	assert.Empty(t, nextPos1) // is  over
+	trans := m["transactions"].([]interface{})[0]
+	g := trans.(map[string]interface{})
+	assert.Equal(t, "saga", g["trans_type"])
+	assert.Nil(t, err)
+
+	// filter CreateTime
+	resp, err = dtmcli.GetRestyClient().R().SetQueryParams(map[string]string{
+		"limit":           "10",
+		"createTimeStart": string(rune(sagaTransCreateTime.Unix() * 1000)),
+		"createTimeEnd":   string(rune(sagaTransCreateTime.Unix()*1000 + 1)),
+	}).Get(dtmutil.DefaultHTTPServer + "/all")
+	assert.Nil(t, err)
+	dtmimp.MustUnmarshalString(resp.String(), &m)
+	nextPos1 = m["next_position"].(string)
+	assert.Empty(t, nextPos1) // is  over
+	assert.Equal(t, 1, len(m["transactions"].([]interface{})))
 
 	//fmt.Printf("pos1:%s,pos2:%s,pos3:%s", nextPos, nextPos2, nextPos3)
 }

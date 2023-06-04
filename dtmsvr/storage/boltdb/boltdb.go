@@ -321,10 +321,10 @@ func (s *Store) ScanTransGlobalStores(position *string, status *string, transTyp
 			}
 			g := storage.TransGlobalStore{}
 			dtmimp.MustUnmarshal(v, &g)
-			if (*status != "" && g.Status != *status) ||
-				(*transType != "" && g.TransType != *transType) ||
-				(*createTimeStart != "" && g.CreateTime.After(time.Unix(int64(dtmimp.MustAtoi(*createTimeStart))/1000, 0))) ||
-				(*createTimeEnd != "" && g.CreateTime.Before(time.Unix(int64(dtmimp.MustAtoi(*createTimeEnd))/1000, 0))) {
+			if !((*status == "" || g.Status == *status) &&
+				(*transType == "" || g.TransType == *transType) &&
+				(*createTimeStart == "" || g.CreateTime.After(time.Unix(int64(dtmimp.MustAtoi(*createTimeStart))/1000, 0))) &&
+				(*createTimeEnd == "" || g.CreateTime.Before(time.Unix(int64(dtmimp.MustAtoi(*createTimeEnd))/1000, 0)))) {
 				continue
 			}
 			globals = append(globals, g)
