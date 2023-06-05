@@ -86,15 +86,6 @@ func genMsg(gid string) *dtmcli.Msg {
 	return msg
 }
 
-func genSubmittedMsg(gid string) *dtmcli.Msg {
-	req := busi.GenReqHTTP(30, true, false)
-	msg := dtmcli.NewMsg(dtmutil.DefaultHTTPServer, gid).
-		AddTopic("http_trans", &req)
-
-	msg.QueryPrepared = busi.Busi + "/QueryPrepared"
-	return msg
-}
-
 func subscribeTopic() {
 	e2p(httpSubscribe("http_trans", busi.Busi+"/TransOut"))
 	e2p(httpSubscribe("http_trans", busi.Busi+"/TransIn"))
