@@ -15,6 +15,7 @@ import (
 
 	"github.com/dtm-labs/dtm/client/dtmcli"
 	"github.com/dtm-labs/dtm/client/dtmcli/dtmimp"
+	"github.com/dtm-labs/dtm/dtmsvr" // Avoid import srv
 	"github.com/dtm-labs/dtm/dtmutil"
 	"github.com/dtm-labs/dtm/test/busi"
 	"github.com/stretchr/testify/assert"
@@ -52,25 +53,23 @@ func TestAPIQuery(t *testing.T) {
 }
 
 func TestAPIAll(t *testing.T) {
+	dtmsvr.PopulateDB(false)
+
 	gidList := []string{}
+	startTime := time.Now()
 	for i := 0; i < 5; i++ { // init five trans.
 		gid := dtmimp.GetFuncName() + fmt.Sprintf("%d", i)
 		gidList = append(gidList, gid)
 		var err error
 		if i%2 == 0 {
-			if i == 4 {
-				time.Sleep(2 * time.Second)
-				err = genSaga(gid, false, false).Submit() // 4, saga succeed
-			} else {
-				err = genMsg(gid).Submit() // 0，2, msg succeed
-			}
-
+			err = genMsg(gid).Submit() // 0，2, msg succeed
 		} else {
 			err = genSubmittedMsg(gid).Submit() // 1, 3, msg submitted
 		}
 		assert.Nil(t, err)
 		waitTransProcessed(gid)
 	}
+	endTime := time.Now()
 
 	// fetch by gid, only 1.
 	for _, gid := range gidList {
@@ -112,57 +111,63 @@ func TestAPIAll(t *testing.T) {
 	dtmimp.MustUnmarshalString(resp.String(), &m)
 	nextPos3 := m["next_position"].(string)
 	transCount := len(m["transactions"].([]interface{}))
-	if transCount == 3 {
-		assert.Equal(t, 3, transCount) // the left 3
-	} else {
-		fmt.Printf(" disturbed by others redis keys whitch is producted in other testcase")
-		assert.GreaterOrEqual(t, transCount, 3) // at least the left 3 (may be disturbed by others redis keys whitch is producted in other testcase)
-	}
-	assert.Empty(t, nextPos3) // is over
+	assert.Equal(t, 3, transCount) // the left 3
+	assert.Empty(t, nextPos3)      // is over
 	assert.NotEqual(t, nextPos2, nextPos3)
 
-	// filter status
-	resp, err = dtmcli.GetRestyClient().R().SetQueryParams(map[string]string{
-		"limit":  "10",
-		"status": "submitted",
-	}).Get(dtmutil.DefaultHTTPServer + "/all")
-	assert.Nil(t, err)
-	dtmimp.MustUnmarshalString(resp.String(), &m)
-	assert.Equal(t, 2, len(m["transactions"].([]interface{})))
-	for _, trans := range m["transactions"].([]interface{}) {
-		m := trans.(map[string]interface{})
-		assert.Equal(t, "submitted", m["status"])
-	}
-
-	// filter transType
-	var sagaTransCreateTime time.Time
-	resp, err = dtmcli.GetRestyClient().R().SetQueryParams(map[string]string{
-		"limit":     "10",
-		"status":    "succeed",
-		"transType": "saga",
-	}).Get(dtmutil.DefaultHTTPServer + "/all")
-	assert.Nil(t, err)
-	dtmimp.MustUnmarshalString(resp.String(), &m)
-	nextPos1 = m["next_position"].(string)
-	assert.Equal(t, 1, len(m["transactions"].([]interface{})))
-	assert.Empty(t, nextPos1) // is  over
-	trans := m["transactions"].([]interface{})[0]
-	g := trans.(map[string]interface{})
-	assert.Equal(t, "saga", g["trans_type"])
-	assert.Nil(t, err)
-
-	// filter CreateTime
+	// filter succeed msg, #1, 3, 5
 	resp, err = dtmcli.GetRestyClient().R().SetQueryParams(map[string]string{
 		"limit":           "10",
-		"createTimeStart": string(rune(sagaTransCreateTime.Unix() * 1000)),
-		"createTimeEnd":   string(rune(sagaTransCreateTime.Unix()*1000 + 1)),
+		"status":          "succeed",
+		"transType":       "msg",
+		"createTimeStart": strconv.Itoa(int(startTime.Add(time.Minute*-1).Unix() * 1000)),
+		"createTimeEnd":   strconv.Itoa(int(endTime.Add(time.Minute*1).Unix() * 1000)),
 	}).Get(dtmutil.DefaultHTTPServer + "/all")
 	assert.Nil(t, err)
 	dtmimp.MustUnmarshalString(resp.String(), &m)
 	nextPos1 = m["next_position"].(string)
+	assert.Equal(t, 3, len(m["transactions"].([]interface{})))
 	assert.Empty(t, nextPos1) // is  over
-	assert.Equal(t, 1, len(m["transactions"].([]interface{})))
+	for _, item := range m["transactions"].([]interface{}) {
+		g := item.(map[string]interface{})
+		assert.Equal(t, "msg", g["trans_type"])
+		assert.Equal(t, "succeed", g["status"])
+	}
 
+	// filter submitted msg  #2,4
+	resp, err = dtmcli.GetRestyClient().R().SetQueryParams(map[string]string{
+		"limit":           "10",
+		"status":          "submitted",
+		"transType":       "msg",
+		"createTimeStart": strconv.Itoa(int(startTime.Add(time.Minute*-1).Unix() * 1000)),
+		"createTimeEnd":   strconv.Itoa(int(endTime.Add(time.Minute*1).Unix() * 1000)),
+	}).Get(dtmutil.DefaultHTTPServer + "/all")
+	assert.Nil(t, err)
+	dtmimp.MustUnmarshalString(resp.String(), &m)
+	nextPos1 = m["next_position"].(string)
+	assert.Equal(t, 2, len(m["transactions"].([]interface{})))
+	assert.Empty(t, nextPos1) // is  over
+	for _, item := range m["transactions"].([]interface{}) {
+		g := item.(map[string]interface{})
+		assert.Equal(t, "msg", g["trans_type"])
+		assert.Equal(t, "submitted", g["status"])
+	}
+
+	// filter, five minutes ago
+	resp, err = dtmcli.GetRestyClient().R().SetQueryParams(map[string]string{
+		"limit":           "10",
+		"status":          "submitted",
+		"transType":       "msg",
+		"createTimeStart": strconv.Itoa(int(startTime.Add(time.Minute*-10).Unix() * 1000)),
+		"createTimeEnd":   strconv.Itoa(int(endTime.Add(time.Minute*-5).Unix() * 1000)),
+	}).Get(dtmutil.DefaultHTTPServer + "/all")
+	assert.Nil(t, err)
+	dtmimp.MustUnmarshalString(resp.String(), &m)
+	nextPos1 = m["next_position"].(string)
+	assert.Equal(t, 0, len(m["transactions"].([]interface{})))
+	assert.Empty(t, nextPos1) // is  over
+
+	dtmsvr.PopulateDB(false)
 	//fmt.Printf("pos1:%s,pos2:%s,pos3:%s", nextPos, nextPos2, nextPos3)
 }
 
@@ -231,6 +236,8 @@ func TestDtmMetrics(t *testing.T) {
 }
 
 func TestAPIResetCronTime(t *testing.T) {
+	// dtmsvr.PopulateDB(false)
+
 	testStoreResetCronTime(t, dtmimp.GetFuncName(), func(timeout int64, limit int64) (int64, bool, error) {
 		sTimeout := strconv.FormatInt(timeout, 10)
 		sLimit := strconv.FormatInt(limit, 10)
