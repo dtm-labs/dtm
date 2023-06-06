@@ -63,6 +63,7 @@ func TestAPIAll(t *testing.T) {
 	dtmimp.MustUnmarshalString(resp.String(), &m)
 	nextPos := m["next_position"].(string)
 	assert.NotEqual(t, "", nextPos)
+	// assert.Equal(t, 1, len(m["transactions"].([]interface{})))
 
 	resp, err = dtmcli.GetRestyClient().R().SetQueryParam("gid", dtmimp.GetFuncName()+"1").Get(dtmutil.DefaultHTTPServer + "/all")
 	assert.Nil(t, err)
@@ -79,6 +80,7 @@ func TestAPIAll(t *testing.T) {
 	nextPos2 := m["next_position"].(string)
 	assert.NotEqual(t, "", nextPos2)
 	assert.NotEqual(t, nextPos, nextPos2)
+	// assert.Equal(t, 1, len(m["transactions"].([]interface{})))
 
 	resp, err = dtmcli.GetRestyClient().R().SetQueryParams(map[string]string{
 		"limit":    "1000",
@@ -88,6 +90,7 @@ func TestAPIAll(t *testing.T) {
 	dtmimp.MustUnmarshalString(resp.String(), &m)
 	nextPos3 := m["next_position"].(string)
 	assert.Equal(t, "", nextPos3)
+	// assert.Equal(t, 2, len(m["transactions"].([]interface{}))) // the left 2.
 
 	//fmt.Printf("pos1:%s,pos2:%s,pos3:%s", nextPos, nextPos2, nextPos3)
 }
@@ -105,6 +108,7 @@ func TestAPIScanKV(t *testing.T) {
 	dtmimp.MustUnmarshalString(resp.String(), &m)
 	nextPos := m["next_position"].(string)
 	assert.NotEqual(t, "", nextPos)
+	// assert.Equal(t, 1, len(m["kv"].([]interface{})))
 
 	resp, err = dtmcli.GetRestyClient().R().SetQueryParams(map[string]string{
 		"cat":      "topics",
@@ -116,6 +120,7 @@ func TestAPIScanKV(t *testing.T) {
 	nextPos2 := m["next_position"].(string)
 	assert.NotEqual(t, "", nextPos2)
 	assert.NotEqual(t, nextPos, nextPos2)
+	// assert.Equal(t, 1, len(m["kv"].([]interface{})))
 
 	resp, err = dtmcli.GetRestyClient().R().SetQueryParams(map[string]string{
 		"cat":      "topics",
@@ -126,6 +131,7 @@ func TestAPIScanKV(t *testing.T) {
 	dtmimp.MustUnmarshalString(resp.String(), &m)
 	nextPos3 := m["next_position"].(string)
 	assert.Equal(t, "", nextPos3)
+	// assert.Equal(t, 2, len(m["kv"].([]interface{}))) // the left 2.
 }
 
 func TestAPIQueryKV(t *testing.T) {
