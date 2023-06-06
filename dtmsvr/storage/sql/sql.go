@@ -52,12 +52,13 @@ func (s *Store) FindTransGlobalStore(gid string) *storage.TransGlobalStore {
 }
 
 // ScanTransGlobalStores lists GlobalTrans data
-func (s *Store) ScanTransGlobalStores(position *string, limit int64) []storage.TransGlobalStore {
+func (s *Store) ScanTransGlobalStores(position *string, limit int64, condition storage.TransGlobalScanCondition) []storage.TransGlobalStore {
 	globals := []storage.TransGlobalStore{}
 	lid := math.MaxInt64
 	if *position != "" {
 		lid = dtmimp.MustAtoi(*position)
 	}
+	// todo condition
 	dbr := dbGet().Must().Where("id < ?", lid).Order("id desc").Limit(int(limit)).Find(&globals)
 	if dbr.RowsAffected < limit {
 		*position = ""

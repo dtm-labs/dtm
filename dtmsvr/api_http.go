@@ -13,6 +13,7 @@ import (
 
 	"github.com/dtm-labs/dtm/client/dtmcli"
 	"github.com/dtm-labs/dtm/client/dtmcli/dtmimp"
+	"github.com/dtm-labs/dtm/dtmsvr/storage"
 	"github.com/dtm-labs/dtm/dtmutil"
 	"github.com/gin-gonic/gin"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
@@ -111,9 +112,22 @@ func all(c *gin.Context) interface{} {
 			globals = []interface{}{*find}
 		}
 	} else {
-		globals = GetStore().ScanTransGlobalStores(&position, int64(dtmimp.MustAtoi(sLimit)))
+		condition := storage.TransGlobalScanCondition{
+			Status:          c.Query("status"),
+			TransType:       c.Query("transType"),
+			CreateTimeStart: stringTotime(c.Query("createTimeStart")),
+			CreateTimeEnd:   stringTotime(c.Query("createTimeEnd")),
+		}
+		globals = GetStore().ScanTransGlobalStores(&position, int64(dtmimp.MustAtoi(sLimit)), condition)
 	}
 	return map[string]interface{}{"transactions": globals, "next_position": position}
+}
+
+func stringTotime(timeStr string) time.Time {
+	if timeStr == "" {
+		return time.Time{}
+	}
+	return time.Unix(int64(dtmimp.MustAtoi(timeStr))/1000, 0)
 }
 
 // unfinished transactions need to be retried as soon as possible after business downtime is recovered

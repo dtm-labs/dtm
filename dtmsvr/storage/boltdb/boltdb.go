@@ -311,7 +311,7 @@ func (s *Store) FindTransGlobalStore(gid string) (trans *storage.TransGlobalStor
 }
 
 // ScanTransGlobalStores lists GlobalTrans data
-func (s *Store) ScanTransGlobalStores(position *string, limit int64) []storage.TransGlobalStore {
+func (s *Store) ScanTransGlobalStores(position *string, limit int64, condition storage.TransGlobalScanCondition) []storage.TransGlobalStore {
 	globals := []storage.TransGlobalStore{}
 	err := s.boltDb.View(func(t *bolt.Tx) error {
 		cursor := t.Bucket(bucketGlobal).Cursor()
@@ -322,6 +322,7 @@ func (s *Store) ScanTransGlobalStores(position *string, limit int64) []storage.T
 			g := storage.TransGlobalStore{}
 			dtmimp.MustUnmarshal(v, &g)
 			globals = append(globals, g)
+			// todo condition
 			if len(globals) == int(limit) {
 				break
 			}
