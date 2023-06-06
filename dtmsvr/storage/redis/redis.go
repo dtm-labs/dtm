@@ -80,8 +80,12 @@ func (s *Store) ScanTransGlobalStores(position *string, limit int64, condition s
 			for _, v := range values {
 				global := storage.TransGlobalStore{}
 				dtmimp.MustUnmarshalString(v.(string), &global)
-				// todo condition
-				globals = append(globals, global)
+				if (condition.Status == "" || global.Status == condition.Status) &&
+					(condition.TransType == "" || global.TransType == condition.TransType) &&
+					(condition.CreateTimeStart.IsZero() || global.CreateTime.After(condition.CreateTimeStart)) &&
+					(condition.CreateTimeEnd.IsZero() || global.CreateTime.Before(condition.CreateTimeEnd)) {
+					globals = append(globals, global)
+				}
 				if len(globals) == int(limit) {
 					break
 				}
