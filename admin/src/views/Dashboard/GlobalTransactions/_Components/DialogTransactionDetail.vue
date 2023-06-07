@@ -1,7 +1,10 @@
 <template>
     <div>
         <a-modal v-model:visible="visible" title="Transaction Detail" width="100%" wrap-class-name="full-modal">
-            <a-table :columns="columns" :data-source="dataSource" :pagination="false">
+            <template #footer>
+                <a-button type="primary" @click="close">Close</a-button>
+            </template>            
+            <a-table :columns="columns" :data-source="dataSource" :pagination="false" :scroll="{ x: true}">
                 <!-- eslint-disable-next-line vue/no-unused-vars -->
                 <template #bodyCell="{column, record}" />
             </a-table>
@@ -31,6 +34,10 @@ const open = async(gid: string) => {
     visible.value = true
 }
 
+const close = async() => {    
+    visible.value = false;
+}
+
 const columns = [
     {
         title: 'GID',
@@ -56,7 +63,7 @@ const columns = [
         title: 'UpdateTime',
         dataIndex: 'update_time',
         key: 'update_time'
-    }
+    }  
 ]
 
 type Data = {
