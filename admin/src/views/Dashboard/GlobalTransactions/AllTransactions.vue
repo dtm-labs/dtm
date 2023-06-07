@@ -33,12 +33,19 @@
                 <template v-else-if="column.key === 'action'">
                     <span>
                         <a class="mr-2 font-medium" @click="handleTransactionDetail(record.gid)">Detail</a>
-                        <a-button
-                            danger
-                            type="link"
-                            :disabled="record.status==='failed' || record.status==='succeed'"
-                            @click="handleTransactionStop(record.gid)"
-                        >ForceStop</a-button>
+                        <a-popconfirm
+                            title="Force stop it?"
+                            ok-text="Yes, stop it"
+                            ok-type="danger"
+                            cancel-text="No"
+                            @confirm="handleTransactionStop(record.gid)"                            
+                        >
+                            <a-button
+                                danger
+                                type="link"
+                                :disabled="record.status==='failed' || record.status==='succeed'"                                
+                            >ForceStop</a-button>
+                        </a-popconfirm>                        
                         <!-- <a class="font-medium text-red-400"  @click="handleTransactionStop(record.gid)">ForceStop</a> -->
                     </span>
                 </template>
