@@ -9,6 +9,41 @@
                 <a-input v-model:value="gid" placeholder="gid" />
             </a-form-item>
             <a-form-item>
+                <a-select
+                    ref="select"
+                    v-model:value="status"
+                    style="width: 200px"
+                >
+                    <a-select-option value="">-- Status --</a-select-option>
+                    <a-select-option value="prepared">prepared</a-select-option>
+                    <a-select-option value="submitted">submitted</a-select-option>
+                    <a-select-option value="succeed">succeed</a-select-option>
+                    <a-select-option value="failed">failed</a-select-option>
+                    <a-select-option value="aborting">aborting</a-select-option>
+                </a-select>
+            </a-form-item>
+            <a-form-item>
+                <a-select
+                    ref="select"
+                    v-model:value="transType"
+                    style="width: 200px"
+                >
+                    <a-select-option value="">-- Trans Type --</a-select-option>
+                    <a-select-option value="workflow">workflow</a-select-option>
+                    <a-select-option value="saga">saga</a-select-option>     
+                    <a-select-option value="tcc">tcc</a-select-option>       
+                    <a-select-option value="msg">msg</a-select-option>   
+                    <a-select-option value="xa">xa</a-select-option>                    
+                </a-select>
+            </a-form-item>  
+            <a-form-item>
+                <a-range-picker
+                    v-model:value="createTimeRange"
+                    format="YYYY-MM-DD HH:mm:ss"
+                    :placeholder ="['CreateTime Start', 'CreateTime End']"                    
+                />
+            </a-form-item>
+            <a-form-item>
                 <a-button
                     type="primary"
                     html-type="submit"
@@ -66,11 +101,24 @@ import { usePagination } from 'vue-request'
 import DialogTransactionDetail from './_Components/DialogTransactionDetail.vue'
 
 const gid = ref('')
+const status = ref('')
+const transType = ref('')
+const createTimeRange = ref()
 
 const searchFinish = function() {
-    curPage.value = 1
+    curPage.value = 1    
+    innerSearch('')
+}
+
+
+const innerSearch = function(position: string) {
     const params = {
+        position: position,
         gid: gid.value,
+        status: status.value,
+        transType: transType.value,
+        createTimeStart: createTimeRange.value? createTimeRange.value[0].valueOf(): '',
+        createTimeEnd: createTimeRange.value? createTimeRange.value[1].valueOf(): '',
         limit: pageSize.value
     }
     run(params)
@@ -165,21 +213,16 @@ const dataSource = computed(() => data.value?.data.transactions || [])
 
 const handlePrevPage = () => {
     curPage.value -= 1
-    const params = {
-        limit: pageSize.value,
-        position: pages.value[curPage.value] as string
-    }
-    run(params)
+    let position = pages.value[curPage.value] as string;
+    innerSearch(position);
 }
 
 const handleNextPage = () => {
     curPage.value += 1
     pages.value[curPage.value] = data.value?.data.next_position as string
 
-    run({
-        position: data.value?.data.next_position,
-        limit: pageSize.value
-    })
+    let position = data.value?.data.next_position || '';
+    innerSearch(position);  
 }
 
 const transactionDetail = ref<null | { open: (gid: string) => null }>(null)
@@ -189,10 +232,8 @@ const handleTransactionDetail = (gid: string) => {
 
 const handleTransactionStop = async(gid: string) => {
     await forceStopTransaction(gid)
-    run({
-        position: data.value?.data.next_position,
-        limit: pageSize.value
-    })
+    let position = data.value?.data.next_position || '';
+    innerSearch(position);  
 }
 
 </script>
