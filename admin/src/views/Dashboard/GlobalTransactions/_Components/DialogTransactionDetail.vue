@@ -3,10 +3,11 @@
         <a-modal v-model:visible="visible" title="Transaction Detail" width="100%" wrap-class-name="full-modal">
             <template #footer>
                 <a-button type="primary" @click="close">Close</a-button>
-            </template> 
-            <h2>Transaction Info</h2>           
+            </template>            
+            <h2>Transaction Info</h2> 
+            <a-button type="primary" @click="refresh" :loading="loading" >Refresh</a-button>      
             <a-descriptions bordered size="small" :column="{ xxl: 4, xl: 3, lg: 3, md: 3, sm: 2, xs: 1 }">
-                <a-descriptions-item label="Status">                    
+                <a-descriptions-item label="Status">                          
                     <a-tag :color="transaction?.status === 'succeed' ? 'green' : 'volcano'">{{ transaction?.status }}</a-tag>
                 </a-descriptions-item>
                 <a-descriptions-item label="Id">{{ transaction?.id }}</a-descriptions-item>
@@ -39,21 +40,33 @@ import screenfull from '/@/components/Screenfull/index.vue'
 // import VueJsonPretty from 'vue-json-pretty';
 // import 'vue-json-pretty/lib/styles.css'
 
+const loading = ref(false)
 const dataSource = ref<Branches[]>([])
 const transaction = ref<Transaction>()
 const visible = ref(false)
 const textVal = ref('')
 
+
+
+let _gid = '';
+
 const open = async(gid: string) => {
+    _gid = gid;
+    loading.value = true;
     const d = await getTransaction<Data>({ gid: gid })
     dataSource.value = d.data.branches
     transaction.value = d.data.transaction
     textVal.value = JSON.stringify(d.data, null, 2)
     visible.value = true
+    loading.value = false;
 }
 
 const close = async() => {    
-    visible.value = false;
+    open(_gid);
+}
+
+const refresh =  async() => {    
+    open(_gid);
 }
 
 const columns = [
