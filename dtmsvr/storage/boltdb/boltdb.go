@@ -321,8 +321,13 @@ func (s *Store) ScanTransGlobalStores(position *string, limit int64, condition s
 			}
 			g := storage.TransGlobalStore{}
 			dtmimp.MustUnmarshal(v, &g)
+			if !((condition.Status == "" || g.Status == condition.Status) &&
+				(condition.TransType == "" || g.TransType == condition.TransType) &&
+				(condition.CreateTimeStart.IsZero() || g.CreateTime.After(condition.CreateTimeStart)) &&
+				(condition.CreateTimeEnd.IsZero() || g.CreateTime.Before(condition.CreateTimeEnd))) {
+				continue
+			}
 			globals = append(globals, g)
-			// todo condition
 			if len(globals) == int(limit) {
 				break
 			}
