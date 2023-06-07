@@ -3,7 +3,23 @@
         <a-modal v-model:visible="visible" title="Transaction Detail" width="100%" wrap-class-name="full-modal">
             <template #footer>
                 <a-button type="primary" @click="close">Close</a-button>
-            </template>            
+            </template> 
+            <h2>Transaction Info</h2>           
+            <a-descriptions bordered size="small" :column="{ xxl: 4, xl: 3, lg: 3, md: 3, sm: 2, xs: 1 }">
+                <a-descriptions-item label="Status">                    
+                    <a-tag :color="transaction?.status === 'succeed' ? 'green' : 'volcano'">{{ transaction?.status }}</a-tag>
+                </a-descriptions-item>
+                <a-descriptions-item label="Id">{{ transaction?.id }}</a-descriptions-item>
+                <a-descriptions-item label="GID">{{ transaction?.gid }}</a-descriptions-item>
+                <a-descriptions-item label="TransType">{{ transaction?.trans_type }}</a-descriptions-item> 
+                <a-descriptions-item label="Protocol">{{ transaction?.protocol }}</a-descriptions-item> 
+                <a-descriptions-item label="CreateTime">{{ transaction?.create_time }}</a-descriptions-item> 
+                <a-descriptions-item label="FinishTime">{{ transaction?.finish_time }}</a-descriptions-item> 
+                <a-descriptions-item label="UpdateTime">{{ transaction?.update_time }}</a-descriptions-item>                 
+                <a-descriptions-item label="NextCronInterval">{{ transaction?.next_cron_interval }}</a-descriptions-item> 
+                <a-descriptions-item label="NextCronTime">{{ transaction?.next_cron_time }}</a-descriptions-item> 
+            </a-descriptions>            
+            <h2>Branches</h2>
             <a-table :columns="columns" :data-source="dataSource" :pagination="false" :scroll="{ x: true}">
                 <!-- eslint-disable-next-line vue/no-unused-vars -->
                 <template #bodyCell="{column, record}" />
@@ -24,12 +40,14 @@ import screenfull from '/@/components/Screenfull/index.vue'
 // import 'vue-json-pretty/lib/styles.css'
 
 const dataSource = ref<Branches[]>([])
+const transaction = ref<Transaction>()
 const visible = ref(false)
 const textVal = ref('')
 
 const open = async(gid: string) => {
     const d = await getTransaction<Data>({ gid: gid })
     dataSource.value = d.data.branches
+    transaction.value = d.data.transaction
     textVal.value = JSON.stringify(d.data, null, 2)
     visible.value = true
 }
@@ -40,10 +58,6 @@ const close = async() => {
 
 const columns = [
     {
-        title: 'GID',
-        dataIndex: 'gid',
-        key: 'gid'
-    }, {
         title: 'BranchID',
         dataIndex: 'branch_id',
         key: 'branch_id'
@@ -63,7 +77,11 @@ const columns = [
         title: 'UpdateTime',
         dataIndex: 'update_time',
         key: 'update_time'
-    }  
+    }, {
+        title: 'Url',
+        dataIndex: 'url',
+        key: 'url'
+    }
 ]
 
 type Data = {
@@ -74,9 +92,10 @@ type Data = {
         status: string
         create_time: string
         update_time: string
+        url: string
     }[]
-    transactions: {
-        ID: number
+    transaction: {
+        id: number
         create_time: string
         update_time: string
         gid: string
@@ -91,6 +110,21 @@ type Data = {
     }
 }
 
+interface Transaction  {
+    id: number
+    create_time: string
+    update_time: string
+    gid: string
+    trans_type: string
+    status: string
+    protocol: string
+    finish_time: string
+    options: string
+    next_cron_interval: number
+    next_cron_time: string
+    concurrent: boolean
+}
+
 interface Branches {
     gid: string
     branch_id: string
@@ -98,6 +132,7 @@ interface Branches {
     status: string
     create_time: string
     update_time: string
+    url: string
 }
 
 defineExpose({
@@ -120,5 +155,9 @@ defineExpose({
   }
 .full-modal .ant-modal-body {
     flex: 1;
+  }
+
+  .ant-modal {
+    height: 100%;
   }
 </style>
