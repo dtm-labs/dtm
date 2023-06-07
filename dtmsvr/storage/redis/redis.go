@@ -60,7 +60,7 @@ func (s *Store) FindTransGlobalStore(gid string) *storage.TransGlobalStore {
 }
 
 // ScanTransGlobalStores lists GlobalTrans data
-func (s *Store) ScanTransGlobalStores(position *string, limit int64) []storage.TransGlobalStore {
+func (s *Store) ScanTransGlobalStores(position *string, limit int64, condition storage.TransGlobalScanCondition) []storage.TransGlobalStore {
 	logger.Debugf("calling ScanTransGlobalStores: %s %d", *position, limit)
 	lid := uint64(0)
 	if *position != "" {
@@ -80,6 +80,7 @@ func (s *Store) ScanTransGlobalStores(position *string, limit int64) []storage.T
 			for _, v := range values {
 				global := storage.TransGlobalStore{}
 				dtmimp.MustUnmarshalString(v.(string), &global)
+				// todo condition
 				globals = append(globals, global)
 				if len(globals) == int(limit) {
 					break

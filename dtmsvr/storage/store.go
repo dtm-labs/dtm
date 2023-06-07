@@ -22,7 +22,7 @@ type Store interface {
 	Ping() error
 	PopulateData(skipDrop bool)
 	FindTransGlobalStore(gid string) *TransGlobalStore
-	ScanTransGlobalStores(position *string, limit int64) []TransGlobalStore
+	ScanTransGlobalStores(position *string, limit int64, condition TransGlobalScanCondition) []TransGlobalStore
 	FindBranches(gid string) []TransBranchStore
 	UpdateBranches(branches []TransBranchStore, updates []string) (int, error)
 	LockGlobalSaveBranches(gid string, status string, branches []TransBranchStore, branchStart int)
@@ -36,4 +36,12 @@ type Store interface {
 	UpdateKV(kv *KVStore) error
 	DeleteKV(cat, key string) error
 	CreateKV(cat, key, value string) error
+}
+
+// TransGlobalScanCondition contains filter options to scan global trans.
+type TransGlobalScanCondition struct {
+	Status          string
+	TransType       string
+	CreateTimeStart time.Time
+	CreateTimeEnd   time.Time
 }
