@@ -62,7 +62,7 @@ const open = async(gid: string) => {
 }
 
 const close = async() => {    
-    open(_gid);
+    visible.value = false;
 }
 
 const refresh =  async() => {    
