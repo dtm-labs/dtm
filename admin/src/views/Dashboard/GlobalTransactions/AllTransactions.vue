@@ -66,23 +66,9 @@
                     </span>
                 </template>
                 <template v-else-if="column.key === 'action'">
-                    <span style="width: 190px; display: block;">
+                    <span style="width: 90px; display: block;">
                         <a class="mr-2 font-medium" @click="handleTransactionDetail(record.gid)">Dialog</a>
-                        <a class="mr-2 font-medium" target="_blank" :href="'./detail/'+record.gid">Page</a>
-                        <a-popconfirm
-                            title="Force stop it?"
-                            ok-text="Yes, stop it"
-                            ok-type="danger"
-                            cancel-text="No"
-                            @confirm="handleTransactionStop(record.gid)"                            
-                        >
-                            <a-button
-                                danger
-                                type="link"
-                                :disabled="record.status==='failed' || record.status==='succeed'"                                
-                            >ForceStop</a-button>
-                        </a-popconfirm>                        
-                        <!-- <a class="font-medium text-red-400"  @click="handleTransactionStop(record.gid)">ForceStop</a> -->
+                        <a class="mr-2 font-medium" target="_blank" :href="'./detail/'+record.gid">Page</a>                        
                     </span>
                 </template>
             </template>
@@ -96,7 +82,7 @@
     </div>
 </template>
 <script setup lang="ts">
-import { forceStopTransaction, IListAllTransactionsReq, listAllTransactions } from '/@/api/api_dtm'
+import { IListAllTransactionsReq, listAllTransactions } from '/@/api/api_dtm'
 import { computed, ref } from 'vue-demi'
 import { usePagination } from 'vue-request'
 import DialogTransactionDetail from './DialogTransactionDetail.vue'
@@ -229,12 +215,6 @@ const handleNextPage = () => {
 const transactionDetail = ref<null | { open: (gid: string) => null }>(null)
 const handleTransactionDetail = (gid: string) => {
     transactionDetail.value?.open(gid)
-}
-
-const handleTransactionStop = async(gid: string) => {
-    await forceStopTransaction(gid)
-    let position = data.value?.data.next_position || '';
-    innerSearch(position);  
 }
 
 </script>

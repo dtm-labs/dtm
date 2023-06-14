@@ -5,7 +5,19 @@
                 <a-button type="primary" @click="close" v-if="closeable">Close</a-button>
             </template>            
             <h2>Transaction Info</h2> 
-            <a-button type="primary" @click="refresh" :loading="loading" >Refresh</a-button>      
+            <a-button type="primary" @click="refresh" :loading="loading" class="action-button">Refresh</a-button>      
+            <a-popconfirm
+                title="Force stop it?"
+                ok-text="Yes, stop it"
+                ok-type="danger"
+                cancel-text="No"
+                class="action-button"
+                :disabled="transaction?.status==='failed' || transaction?.status==='succeed'"     
+                @confirm="handleTransactionStop(<string>transaction?.gid)"                            
+            >
+                <a-button danger type="default" :disabled="transaction?.status==='failed' || transaction?.status==='succeed'"                                          
+                >ForceStop</a-button>
+            </a-popconfirm>                        
             <a-descriptions bordered size="small" :column="{ xxl: 4, xl: 3, lg: 3, md: 3, sm: 2, xs: 1 }">
                 <a-descriptions-item label="Status">                          
                     <a-tag :color="transaction?.status === 'succeed' ? 'green' : 'volcano'">{{ transaction?.status }}</a-tag>
@@ -39,6 +51,7 @@ import { getTransaction } from '/@/api/api_dtm'
 import screenfull from '/@/components/Screenfull/index.vue'
 import { useRoute } from 'vue-router';
 import { string } from 'vue-types';
+import { forceStopTransaction} from '/@/api/api_dtm'
 // import VueJsonPretty from 'vue-json-pretty';
 // import 'vue-json-pretty/lib/styles.css'
 const route = useRoute();
@@ -102,6 +115,11 @@ const columns = [
         key: 'url'
     }
 ]
+
+const handleTransactionStop = async(gid: string) => {
+    await forceStopTransaction(gid);
+    refresh();
+}
 
 type Data = {
     branches: {
@@ -179,4 +197,7 @@ defineExpose({
   .ant-modal {
     height: 100%;
   }
+.action-button {
+    margin-right: 10px;
+}
 </style>
