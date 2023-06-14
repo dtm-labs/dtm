@@ -51,7 +51,13 @@ export const allowRouter: Array<IMenubarList> = [
                         //   path: '/admin/global-transactions/unfinished',
                         //   component: Components['UnfinishedTransactions'],
                         //   meta: { title: 'Unfinished Transactions' },
-                    }
+                    }, 
+                    {
+                        name: 'TransactionDetail',
+                        path: '/admin/global-transactions/detail/:gid',
+                        component: Components['DialogTransactionDetail'],
+                        meta: { title: 'Transaction Detail' }
+                    },
                 ]
             },
             {

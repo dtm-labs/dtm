@@ -55,7 +55,7 @@
     </div>
     <a-divider />
     <div>
-        <a-table :columns="columns" :data-source="dataSource" :loading="loading" :pagination="false" :scroll="{ x: true }">
+        <a-table :columns="columns" :data-source="dataSource" :loading="loading" :pagination="false" :scroll="{ x: true }" size="small" >
             <template #bodyCell="{column, record}">
                 <template v-if="column.key === 'status'">
                     <span>
@@ -66,22 +66,9 @@
                     </span>
                 </template>
                 <template v-else-if="column.key === 'action'">
-                    <span>
-                        <a class="mr-2 font-medium" @click="handleTransactionDetail(record.gid)">Detail</a>
-                        <a-popconfirm
-                            title="Force stop it?"
-                            ok-text="Yes, stop it"
-                            ok-type="danger"
-                            cancel-text="No"
-                            @confirm="handleTransactionStop(record.gid)"                            
-                        >
-                            <a-button
-                                danger
-                                type="link"
-                                :disabled="record.status==='failed' || record.status==='succeed'"                                
-                            >ForceStop</a-button>
-                        </a-popconfirm>                        
-                        <!-- <a class="font-medium text-red-400"  @click="handleTransactionStop(record.gid)">ForceStop</a> -->
+                    <span style="width: 90px; display: block;">
+                        <a class="mr-2 font-medium" @click="handleTransactionDetail(record.gid)">Dialog</a>
+                        <a class="mr-2 font-medium" target="_blank" :href="'./detail/'+record.gid">Page</a>                        
                     </span>
                 </template>
             </template>
@@ -95,10 +82,10 @@
     </div>
 </template>
 <script setup lang="ts">
-import { forceStopTransaction, IListAllTransactionsReq, listAllTransactions } from '/@/api/api_dtm'
+import { IListAllTransactionsReq, listAllTransactions } from '/@/api/api_dtm'
 import { computed, ref } from 'vue-demi'
 import { usePagination } from 'vue-request'
-import DialogTransactionDetail from './_Components/DialogTransactionDetail.vue'
+import DialogTransactionDetail from './DialogTransactionDetail.vue'
 
 const gid = ref('')
 const status = ref('')
@@ -228,12 +215,6 @@ const handleNextPage = () => {
 const transactionDetail = ref<null | { open: (gid: string) => null }>(null)
 const handleTransactionDetail = (gid: string) => {
     transactionDetail.value?.open(gid)
-}
-
-const handleTransactionStop = async(gid: string) => {
-    await forceStopTransaction(gid)
-    let position = data.value?.data.next_position || '';
-    innerSearch(position);  
 }
 
 </script>

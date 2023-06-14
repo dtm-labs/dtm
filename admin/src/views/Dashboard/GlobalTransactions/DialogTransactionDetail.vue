@@ -1,11 +1,23 @@
 <template>
     <div>
-        <a-modal v-model:visible="visible" title="Transaction Detail" width="100%" wrap-class-name="full-modal">
+        <a-modal v-model:visible="visible" :closable="closeable" title="Transaction Detail" width="100%" wrap-class-name="full-modal">
             <template #footer>
-                <a-button type="primary" @click="close">Close</a-button>
+                <a-button type="primary" @click="close" v-if="closeable">Close</a-button>
             </template>            
             <h2>Transaction Info</h2> 
-            <a-button type="primary" @click="refresh" :loading="loading" >Refresh</a-button>      
+            <a-button type="primary" @click="refresh" :loading="loading" class="action-button">Refresh</a-button>      
+            <a-popconfirm
+                title="Force stop it?"
+                ok-text="Yes, stop it"
+                ok-type="danger"
+                cancel-text="No"
+                class="action-button"
+                :disabled="transaction?.status==='failed' || transaction?.status==='succeed'"     
+                @confirm="handleTransactionStop(<string>transaction?.gid)"                            
+            >
+                <a-button danger type="default" :disabled="transaction?.status==='failed' || transaction?.status==='succeed'"                                          
+                >ForceStop</a-button>
+            </a-popconfirm>                        
             <a-descriptions bordered size="small" :column="{ xxl: 4, xl: 3, lg: 3, md: 3, sm: 2, xs: 1 }">
                 <a-descriptions-item label="Status">                          
                     <a-tag :color="transaction?.status === 'succeed' ? 'green' : 'volcano'">{{ transaction?.status }}</a-tag>
@@ -37,19 +49,22 @@
 import { ref } from 'vue'
 import { getTransaction } from '/@/api/api_dtm'
 import screenfull from '/@/components/Screenfull/index.vue'
+import { useRoute } from 'vue-router';
+import { string } from 'vue-types';
+import { forceStopTransaction} from '/@/api/api_dtm'
 // import VueJsonPretty from 'vue-json-pretty';
 // import 'vue-json-pretty/lib/styles.css'
+const route = useRoute();
 
 const loading = ref(false)
 const dataSource = ref<Branches[]>([])
 const transaction = ref<Transaction>()
 const visible = ref(false)
 const textVal = ref('')
+const closeable = ref(true)
 
 
-
-let _gid = '';
-
+let _gid = <string>route.params.gid;
 const open = async(gid: string) => {
     _gid = gid;
     loading.value = true;
@@ -59,6 +74,10 @@ const open = async(gid: string) => {
     textVal.value = JSON.stringify(d.data, null, 2)
     visible.value = true
     loading.value = false;
+}
+if(_gid) {
+    open(<string>route.params.gid);
+    closeable.value = false;
 }
 
 const close = async() => {    
@@ -96,6 +115,11 @@ const columns = [
         key: 'url'
     }
 ]
+
+const handleTransactionStop = async(gid: string) => {
+    await forceStopTransaction(gid);
+    refresh();
+}
 
 type Data = {
     branches: {
@@ -173,4 +197,7 @@ defineExpose({
   .ant-modal {
     height: 100%;
   }
+.action-button {
+    margin-right: 10px;
+}
 </style>
