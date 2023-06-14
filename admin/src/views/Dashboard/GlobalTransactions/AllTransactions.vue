@@ -55,7 +55,7 @@
     </div>
     <a-divider />
     <div>
-        <a-table :columns="columns" :data-source="dataSource" :loading="loading" :pagination="false" :scroll="{ x: true }">
+        <a-table :columns="columns" :data-source="dataSource" :loading="loading" :pagination="false" :scroll="{ x: true }" size="small" >
             <template #bodyCell="{column, record}">
                 <template v-if="column.key === 'status'">
                     <span>
@@ -66,8 +66,9 @@
                     </span>
                 </template>
                 <template v-else-if="column.key === 'action'">
-                    <span>
-                        <a class="mr-2 font-medium" @click="handleTransactionDetail(record.gid)">Detail</a>
+                    <span style="width: 190px; display: block;">
+                        <a class="mr-2 font-medium" @click="handleTransactionDetail(record.gid)">Dialog</a>
+                        <a class="mr-2 font-medium" target="_blank" :href="'./detail/'+record.gid">Page</a>
                         <a-popconfirm
                             title="Force stop it?"
                             ok-text="Yes, stop it"
@@ -98,7 +99,7 @@
 import { forceStopTransaction, IListAllTransactionsReq, listAllTransactions } from '/@/api/api_dtm'
 import { computed, ref } from 'vue-demi'
 import { usePagination } from 'vue-request'
-import DialogTransactionDetail from './_Components/DialogTransactionDetail.vue'
+import DialogTransactionDetail from './DialogTransactionDetail.vue'
 
 const gid = ref('')
 const status = ref('')

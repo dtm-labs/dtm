@@ -1,8 +1,8 @@
 <template>
     <div>
-        <a-modal v-model:visible="visible" title="Transaction Detail" width="100%" wrap-class-name="full-modal">
+        <a-modal v-model:visible="visible" :closable="closeable" title="Transaction Detail" width="100%" wrap-class-name="full-modal">
             <template #footer>
-                <a-button type="primary" @click="close">Close</a-button>
+                <a-button type="primary" @click="close" v-if="closeable">Close</a-button>
             </template>            
             <h2>Transaction Info</h2> 
             <a-button type="primary" @click="refresh" :loading="loading" >Refresh</a-button>      
@@ -37,19 +37,21 @@
 import { ref } from 'vue'
 import { getTransaction } from '/@/api/api_dtm'
 import screenfull from '/@/components/Screenfull/index.vue'
+import { useRoute } from 'vue-router';
+import { string } from 'vue-types';
 // import VueJsonPretty from 'vue-json-pretty';
 // import 'vue-json-pretty/lib/styles.css'
+const route = useRoute();
 
 const loading = ref(false)
 const dataSource = ref<Branches[]>([])
 const transaction = ref<Transaction>()
 const visible = ref(false)
 const textVal = ref('')
+const closeable = ref(true)
 
 
-
-let _gid = '';
-
+let _gid = <string>route.params.gid;
 const open = async(gid: string) => {
     _gid = gid;
     loading.value = true;
@@ -59,6 +61,10 @@ const open = async(gid: string) => {
     textVal.value = JSON.stringify(d.data, null, 2)
     visible.value = true
     loading.value = false;
+}
+if(_gid) {
+    open(<string>route.params.gid);
+    closeable.value = false;
 }
 
 const close = async() => {    
