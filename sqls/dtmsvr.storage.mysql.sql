@@ -6,7 +6,7 @@ CREATE TABLE if not EXISTS dtm.trans_global (
   `id` bigint(22) NOT NULL AUTO_INCREMENT,
   `gid` varchar(128) NOT NULL COMMENT 'global transaction id',
   `trans_type` varchar(45) not null COMMENT 'transaction type: saga | xa | tcc | msg',
-  `status` varchar(12) NOT NULL COMMENT 'transaction status: prepared | submitted | aborting | finished | rollbacked',
+  `status` varchar(12) NOT NULL COMMENT 'transaction status: prepared | submitted | aborting | succeed | failed',
   `query_prepared` varchar(1024) NOT NULL COMMENT 'url to check for msg|workflow',
   `protocol` varchar(45) not null comment 'protocol: http | grpc | json-rpc',
   `create_time` datetime DEFAULT NULL,
