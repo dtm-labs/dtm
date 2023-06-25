@@ -92,6 +92,14 @@ export function getTransaction<T>(payload: {
     })
 }
 
+export function resetNextCronTime(gid: string): Promise<AxiosResponse> {
+    return request({
+        url: '/api/dtmsvr/resetNextCronTime',
+        method: 'post',
+        data: { gid }
+    })
+}
+
 export function getDtmVersion(): Promise<AxiosResponse<any>> {
     return request({
         url: '/api/dtmsvr/version',
