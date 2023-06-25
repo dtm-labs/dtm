@@ -204,6 +204,21 @@ func (s *Store) ResetCronTime(after time.Duration, limit int64) (succeedCount in
 	return affected, affected == limit, err
 }
 
+// ResetTransGlobalCronTime reset nextCronTime of one global trans.
+func (s *Store) ResetTransGlobalCronTime(global *storage.TransGlobalStore) error {
+	now := getTimeStr(0)
+	where := map[string]string{
+		dtmimp.DBTypeMysql: fmt.Sprintf(`gid = '%s'`, global.Gid),
+	}[conf.Store.Driver]
+
+	sql := fmt.Sprintf(`UPDATE trans_global SET update_time='%s',next_cron_time='%s' WHERE %s`,
+		now,
+		now,
+		where)
+	_, err := dtmimp.DBExec(conf.Store.Driver, dbGet().ToSQLDB(), sql)
+	return err
+}
+
 // ScanKV lists KV pairs
 func (s *Store) ScanKV(cat string, position *string, limit int64) []storage.KVStore {
 	kvs := []storage.KVStore{}

@@ -31,6 +31,7 @@ type Store interface {
 	TouchCronTime(global *TransGlobalStore, nextCronInterval int64, nextCronTime *time.Time)
 	LockOneGlobalTrans(expireIn time.Duration) *TransGlobalStore
 	ResetCronTime(after time.Duration, limit int64) (succeedCount int64, hasRemaining bool, err error)
+	ResetTransGlobalCronTime(global *TransGlobalStore) error
 	ScanKV(cat string, position *string, limit int64) []KVStore
 	FindKV(cat, key string) []KVStore
 	UpdateKV(kv *KVStore) error
