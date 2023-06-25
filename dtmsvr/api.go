@@ -86,6 +86,11 @@ func svcForceStop(t *TransGlobal) interface{} {
 	return nil
 }
 
+func svcResetNextCronTime(t *TransGlobal) error {
+	dbt := GetTransGlobal(t.Gid)
+	return dbt.resetNextCronTime()
+}
+
 func svcRegisterBranch(transType string, branch *TransBranch, data map[string]string) error {
 	branches := []TransBranch{*branch, *branch}
 	if transType == "tcc" {
