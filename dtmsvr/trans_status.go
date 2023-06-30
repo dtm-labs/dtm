@@ -85,6 +85,15 @@ func (t *TransGlobal) changeStatus(status string, opts ...changeStatusOption) {
 	t.Status = status
 }
 
+func (t *TransGlobal) resetNextCronTime() error {
+	err := GetStore().ResetTransGlobalCronTime(&t.TransGlobalStore)
+	if err != nil {
+		return err
+	}
+	logger.Infof("ResetTransGlobalCronTime to now ok for %s", t.TransGlobalStore.String())
+	return nil
+}
+
 func (t *TransGlobal) changeBranchStatus(b *TransBranch, status string, branchPos int) {
 	now := time.Now()
 	b.Status = status

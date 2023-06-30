@@ -17,7 +17,16 @@
             >
                 <a-button danger type="default" :disabled="transaction?.status==='failed' || transaction?.status==='succeed'"                                          
                 >ForceStop</a-button>
-            </a-popconfirm>                        
+            </a-popconfirm>
+            <!-- todo enable condition -->
+            <a-popconfirm
+                title="Reset next cron time to current time?"
+                ok-text="Yes, reset"                
+                cancel-text="No"
+                class="action-button"                    
+                @confirm="handleSetNextCronTimeToNow(<string>transaction?.gid)"            >
+                <a-button type="default">Reset next cron time</a-button>
+            </a-popconfirm>
             <a-descriptions bordered size="small" :column="{ xxl: 4, xl: 3, lg: 3, md: 3, sm: 2, xs: 1 }">
                 <a-descriptions-item label="Status">                          
                     <a-tag :color="transaction?.status === 'succeed' ? 'green' : 'volcano'">{{ transaction?.status }}</a-tag>
@@ -31,6 +40,7 @@
                 <a-descriptions-item label="UpdateTime">{{ transaction?.update_time }}</a-descriptions-item>                 
                 <a-descriptions-item label="NextCronInterval">{{ transaction?.next_cron_interval }}</a-descriptions-item> 
                 <a-descriptions-item label="NextCronTime">{{ transaction?.next_cron_time }}</a-descriptions-item> 
+                <a-descriptions-item label="RollbackReason">{{ transaction?.rollback_reason }}</a-descriptions-item> 
             </a-descriptions>            
             <h2>Branches</h2>
             <a-table :columns="columns" :data-source="dataSource" :pagination="false" :scroll="{ x: true}">
@@ -51,7 +61,7 @@ import { getTransaction } from '/@/api/api_dtm'
 import screenfull from '/@/components/Screenfull/index.vue'
 import { useRoute } from 'vue-router';
 import { string } from 'vue-types';
-import { forceStopTransaction} from '/@/api/api_dtm'
+import { forceStopTransaction, resetNextCronTime } from '/@/api/api_dtm'
 // import VueJsonPretty from 'vue-json-pretty';
 // import 'vue-json-pretty/lib/styles.css'
 const route = useRoute();
@@ -121,6 +131,12 @@ const handleTransactionStop = async(gid: string) => {
     refresh();
 }
 
+
+const handleSetNextCronTimeToNow = async(gid: string) => {
+    await resetNextCronTime(gid);
+    refresh();
+}
+
 type Data = {
     branches: {
         gid: string
@@ -144,6 +160,7 @@ type Data = {
         next_cron_interval: number
         next_cron_time: string
         concurrent: boolean
+        rollback_reason: string
     }
 }
 
@@ -160,6 +177,7 @@ interface Transaction  {
     next_cron_interval: number
     next_cron_time: string
     concurrent: boolean
+    rollback_reason: string
 }
 
 interface Branches {

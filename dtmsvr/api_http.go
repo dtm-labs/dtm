@@ -40,6 +40,7 @@ func addRoute(engine *gin.Engine) {
 	engine.DELETE("/api/dtmsvr/topic/:topicName", dtmutil.WrapHandler2(deleteTopic))
 	engine.GET("/api/dtmsvr/scanKV", dtmutil.WrapHandler2(scanKV))
 	engine.GET("/api/dtmsvr/queryKV", dtmutil.WrapHandler2(queryKV))
+	engine.POST("/api/dtmsvr/resetNextCronTime", dtmutil.WrapHandler2(resetNextCronTime)) // one global trans only
 
 	// add prometheus exporter
 	h := promhttp.Handler()
@@ -67,6 +68,10 @@ func abort(c *gin.Context) interface{} {
 
 func forceStop(c *gin.Context) interface{} {
 	return svcForceStop(TransFromContext(c))
+}
+
+func resetNextCronTime(c *gin.Context) interface{} {
+	return svcResetNextCronTime(TransFromContext(c))
 }
 
 func registerBranch(c *gin.Context) interface{} {
