@@ -486,10 +486,9 @@ func (s *Store) ResetCronTime(after time.Duration, limit int64) (succeedCount in
 
 // ResetTransGlobalCronTime reset nextCronTime of one global trans.
 func (s *Store) ResetTransGlobalCronTime(g *storage.TransGlobalStore) error {
-	old := g.UpdateTime
 	err := s.boltDb.Update(func(t *bolt.Tx) error {
 		g := tGetGlobal(t, g.Gid)
-		if g == nil || g.UpdateTime == old {
+		if g == nil {
 			return storage.ErrNotFound
 		}
 		now := dtmutil.GetNextTime(0)
