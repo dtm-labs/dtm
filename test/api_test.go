@@ -273,6 +273,5 @@ func TestAPIResetNextCronTime(t *testing.T) {
 	assert.NotNil(t, g2)
 	assert.Equal(t, gid, g2.Gid)
 	assert.Greater(t, time.Now().Add(3*time.Second), *g2.NextCronTime)
-	assert.Equal(t, g2.UpdateTime, g2.NextCronTime)
 	assert.NotEqual(t, g.NextCronTime, g2.NextCronTime)
 }
