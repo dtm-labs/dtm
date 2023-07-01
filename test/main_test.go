@@ -37,6 +37,7 @@ func TestMain(m *testing.M) {
 	dtmdriver.Middlewares.Grpc = append(dtmdriver.Middlewares.Grpc, busi.SetGrpcHeaderForHeadersYes)
 
 	tenv := dtmimp.OrString(os.Getenv("TEST_STORE"), config.Redis)
+	conf.ConfigUpdateInterval = 1
 	conf.Store.Host = "localhost"
 	conf.Store.Driver = tenv
 	if tenv == "boltdb" {
@@ -74,7 +75,8 @@ func TestMain(m *testing.M) {
 
 	subscribeTopic()
 	subscribeGrpcTopic()
-
+	dtmsvr.CronUpdateTopicsMapOnce()
+	logger.Debugf("unit main test inited")
 	r := m.Run()
 	if r != 0 {
 		os.Exit(r)

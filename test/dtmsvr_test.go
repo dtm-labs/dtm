@@ -43,11 +43,11 @@ func getBranchesStatus(gid string) []string {
 	return status
 }
 
-func isSqlStore() bool {
+func isSQLStore() bool {
 	return conf.Store.Driver == config.Mysql || conf.Store.Driver == config.Postgres
 }
 func TestUpdateBranchAsync(t *testing.T) {
-	if !isSqlStore() {
+	if !isSQLStore() {
 		return
 	}
 	conf.UpdateBranchSync = 0

@@ -81,7 +81,7 @@ func (b *TransBranchStore) String() string {
 	return dtmimp.MustMarshalString(*b)
 }
 
-//KVStore  defines Key-Value storage info
+// KVStore  defines Key-Value storage info
 type KVStore struct {
 	dtmutil.ModelBase
 	Cat     string `json:"cat"`

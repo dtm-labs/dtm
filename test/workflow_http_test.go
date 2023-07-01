@@ -215,7 +215,7 @@ func TestWorkflowResumeSkip(t *testing.T) {
 	workflow.Register(gid, func(wf *workflow.Workflow, data []byte) error {
 		wf.NewBranch().Do(func(bb *dtmcli.BranchBarrier) ([]byte, error) {
 			logger.Infof("increase resume counter")
-			resumeCounter += 1
+			resumeCounter++
 			return nil, nil
 		})
 		var req busi.ReqHTTP

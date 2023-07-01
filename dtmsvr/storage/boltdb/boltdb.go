@@ -4,6 +4,7 @@
  * license that can be found in the LICENSE file.
  */
 
+// package boltdb implement the storage for boltdb
 package boltdb
 
 import (
@@ -68,7 +69,8 @@ func initializeBuckets(db *bolt.DB) error {
 }
 
 // cleanupExpiredData will clean the expired data in boltdb, the
-//    expired time is configurable.
+//
+//	expired time is configurable.
 func cleanupExpiredData(expire time.Duration, db *bolt.DB) error {
 	if expire <= 0 {
 		return nil
@@ -484,10 +486,9 @@ func (s *Store) ResetCronTime(after time.Duration, limit int64) (succeedCount in
 
 // ResetTransGlobalCronTime reset nextCronTime of one global trans.
 func (s *Store) ResetTransGlobalCronTime(g *storage.TransGlobalStore) error {
-	old := g.UpdateTime
 	err := s.boltDb.Update(func(t *bolt.Tx) error {
 		g := tGetGlobal(t, g.Gid)
-		if g == nil || g.UpdateTime == old {
+		if g == nil {
 			return storage.ErrNotFound
 		}
 		now := dtmutil.GetNextTime(0)

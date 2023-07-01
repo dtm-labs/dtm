@@ -117,10 +117,6 @@ If you want more quick start examples, please refer to [dtm-labs/quick-start-sam
 
 The above example mainly demonstrates the flow of a distributed transaction. More on this, including practical examples of how to interact with an actual database, how to do compensation, how to do rollback, etc. please refer to [dtm-examples](https://github.com/dtm-labs/dtm-examples) for more examples.
 
-## Chat Group
-
-Join the chat via [https://discord.gg/dV9jS5Rb33](https://discord.gg/dV9jS5Rb33).
-
 ## Give a star! ⭐
 
 If you think this project is interesting, or helpful to you, please give a star!

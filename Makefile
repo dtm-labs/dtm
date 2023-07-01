@@ -6,7 +6,7 @@ fmt:
 	@gofmt -s -w ./
 
 lint:
-	@golangci-lint run
+	revive -config revive.toml ./...
 
 .PHONY: test
 test:
