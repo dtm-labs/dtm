@@ -14,12 +14,12 @@ import (
 
 func TestGeneralDB(t *testing.T) {
 	if conf.Store.IsDB() {
-		testSql(t)
+		testSQL(t)
 		testDbAlone(t)
 	}
 }
 
-func testSql(t *testing.T) {
+func testSQL(t *testing.T) {
 	conf := conf.Store.GetDBConf()
 	conf.Host = "127.0.0.1" // use a new host to trigger SetDBConn called
 	db := dtmutil.DbGet(conf, sql.SetDBConn)
