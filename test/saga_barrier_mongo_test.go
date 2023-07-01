@@ -16,6 +16,7 @@ import (
 )
 
 func TestSagaBarrierMongoNormal(t *testing.T) {
+	MaySkipMongo(t)
 	before := getBeforeBalances("mongo")
 	saga := genSagaBarrierMongo(dtmimp.GetFuncName(), false)
 	err := saga.Submit()
@@ -27,6 +28,7 @@ func TestSagaBarrierMongoNormal(t *testing.T) {
 }
 
 func TestSagaBarrierMongoRollback(t *testing.T) {
+	MaySkipMongo(t)
 	before := getBeforeBalances("mongo")
 	saga := genSagaBarrierMongo(dtmimp.GetFuncName(), true)
 	err := saga.Submit()

@@ -204,7 +204,7 @@ func (s *Store) ResetCronTime(after time.Duration, limit int64) (succeedCount in
 	return affected, affected == limit, err
 }
 
-// ResetTransGlobalCronTime reset nextCronTime of one global trans.
+// reset nextCronTime of one global trans.
 func (s *Store) ResetTransGlobalCronTime(global *storage.TransGlobalStore) error {
 	now := getTimeStr(0)
 	where := map[string]string{

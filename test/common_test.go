@@ -1,6 +1,7 @@
 package test
 
 import (
+	"os"
 	"testing"
 
 	"github.com/dtm-labs/dtm/client/dtmcli"
@@ -45,4 +46,10 @@ func testDbAlone(t *testing.T) {
 func TestMustGenGid(t *testing.T) {
 	dtmgrpc.MustGenGid(dtmutil.DefaultGrpcServer)
 	dtmcli.MustGenGid(dtmutil.DefaultHTTPServer)
+}
+
+func MaySkipMongo(t *testing.T) {
+	if os.Getenv("SKIP_MONGO") != "" {
+		t.Skip("skipping test with mongo")
+	}
 }

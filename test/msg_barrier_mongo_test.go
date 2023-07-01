@@ -12,6 +12,7 @@ import (
 )
 
 func TestMsgMongoDoSucceed(t *testing.T) {
+	MaySkipMongo(t)
 	before := getBeforeBalances("mongo")
 	gid := dtmimp.GetFuncName()
 	req := busi.GenReqHTTP(30, false, false)
@@ -30,6 +31,7 @@ func TestMsgMongoDoSucceed(t *testing.T) {
 }
 
 func TestMsgMongoDoBusiFailed(t *testing.T) {
+	MaySkipMongo(t)
 	before := getBeforeBalances("mongo")
 	gid := dtmimp.GetFuncName()
 	req := busi.GenReqHTTP(30, false, false)
@@ -43,6 +45,7 @@ func TestMsgMongoDoBusiFailed(t *testing.T) {
 }
 
 func TestMsgMongoDoBusiLater(t *testing.T) {
+	MaySkipMongo(t)
 	before := getBeforeBalances("mongo")
 	gid := dtmimp.GetFuncName()
 	req := busi.GenReqHTTP(30, false, false)
@@ -68,6 +71,7 @@ func TestMsgMongoDoBusiLater(t *testing.T) {
 }
 
 func TestMsgMongoDoCommitFailed(t *testing.T) {
+	MaySkipMongo(t)
 	before := getBeforeBalances("mongo")
 	gid := dtmimp.GetFuncName()
 	req := busi.GenReqHTTP(30, false, false)
@@ -85,6 +89,7 @@ func TestMsgMongoDoCommitFailed(t *testing.T) {
 }
 
 func TestMsgMongoDoCommitAfterFailed(t *testing.T) {
+	MaySkipMongo(t)
 	before := getBeforeBalances("mongo")
 	gid := dtmimp.GetFuncName()
 	req := busi.GenReqHTTP(30, false, false)

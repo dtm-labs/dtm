@@ -9,7 +9,6 @@ package test
 import (
 	"fmt"
 	"testing"
-	"time"
 
 	"github.com/dtm-labs/dtm/client/dtmcli"
 	"github.com/dtm-labs/dtm/client/dtmcli/dtmimp"
@@ -70,7 +69,4 @@ func genGrpcMsg(gid string) *dtmgrpc.MsgGrpc {
 func subscribeGrpcTopic() {
 	e2p(grpcSubscribe("grpc_trans", busi.BusiGrpc+"/busi.Busi/TransOut"))
 	e2p(grpcSubscribe("grpc_trans", busi.BusiGrpc+"/busi.Busi/TransIn"))
-
-	// wait for the topic configuration to take effect
-	time.Sleep(time.Second * time.Duration(conf.ConfigUpdateInterval+1))
 }

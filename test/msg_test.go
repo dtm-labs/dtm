@@ -9,7 +9,6 @@ package test
 import (
 	"strings"
 	"testing"
-	"time"
 
 	"github.com/dtm-labs/dtm/client/dtmcli"
 	"github.com/dtm-labs/dtm/client/dtmcli/dtmimp"
@@ -89,7 +88,4 @@ func genMsg(gid string) *dtmcli.Msg {
 func subscribeTopic() {
 	e2p(httpSubscribe("http_trans", busi.Busi+"/TransOut"))
 	e2p(httpSubscribe("http_trans", busi.Busi+"/TransIn"))
-
-	// wait for the topic configuration to take effect
-	time.Sleep(time.Second * time.Duration(conf.ConfigUpdateInterval+1))
 }

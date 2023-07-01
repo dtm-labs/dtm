@@ -53,11 +53,11 @@ func CronExpiredTrans(num int) {
 func CronUpdateTopicsMap() {
 	for {
 		time.Sleep(time.Duration(conf.ConfigUpdateInterval) * time.Second)
-		cronUpdateTopicsMapOnce()
+		CronUpdateTopicsMapOnce()
 	}
 }
 
-func cronUpdateTopicsMapOnce() {
+func CronUpdateTopicsMapOnce() {
 	defer handlePanic(nil)
 	updateTopicsMap()
 }
