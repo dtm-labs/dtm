@@ -330,6 +330,7 @@ return tostring(i)
 	return
 }
 
+// ResetTransGlobalCronTime reset nextCronTime of one global trans.
 func (s *Store) ResetTransGlobalCronTime(global *storage.TransGlobalStore) error {
 	now := dtmutil.GetNextTime(0)
 	global.NextCronTime = now
