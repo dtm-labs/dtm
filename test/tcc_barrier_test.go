@@ -63,6 +63,9 @@ func TestTccBarrierDisorderRedis(t *testing.T) {
 }
 
 func runTestTccBarrierDisorder(t *testing.T, store string) {
+	if store == "mongo" {
+		MaySkipMongo(t)
+	}
 	before := getBeforeBalances(store)
 	cancelFinishedChan := make(chan string, 2)
 	cancelCanReturnChan := make(chan string, 2)
