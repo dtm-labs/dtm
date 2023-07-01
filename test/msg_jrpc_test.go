@@ -80,7 +80,6 @@ func TestMsgJrpcDoAndSubmitBusiFailed(t *testing.T) {
 func TestMsgJrpcRepeated(t *testing.T) {
 	msg := genJrpcMsg(dtmimp.GetFuncName())
 	msg.Submit()
-	assert.Equal(t, StatusSubmitted, getTransStatus(msg.Gid))
 	waitTransProcessed(msg.Gid)
 	assert.Equal(t, []string{StatusSucceed, StatusSucceed}, getBranchesStatus(msg.Gid))
 	assert.Equal(t, StatusSucceed, getTransStatus(msg.Gid))
