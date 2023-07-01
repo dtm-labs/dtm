@@ -266,7 +266,7 @@ func TestAPIResetNextCronTime(t *testing.T) {
 		"gid": saga.Gid,
 	}).Post(dtmutil.DefaultHTTPServer + "/resetNextCronTime")
 	assert.Nil(t, err)
-	assert.Equal(t, resp.StatusCode(), http.StatusOK)
+	assert.Equal(t, http.StatusOK, resp.StatusCode())
 
 	// after reset assert
 	g2 := s.FindTransGlobalStore(gid)

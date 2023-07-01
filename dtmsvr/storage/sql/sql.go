@@ -208,14 +208,10 @@ func (s *Store) ResetCronTime(after time.Duration, limit int64) (succeedCount in
 // ResetTransGlobalCronTime reset nextCronTime of one global trans.
 func (s *Store) ResetTransGlobalCronTime(global *storage.TransGlobalStore) error {
 	now := getTimeStr(0)
-	where := map[string]string{
-		dtmimp.DBTypeMysql: fmt.Sprintf(`gid = '%s'`, global.Gid),
-	}[conf.Store.Driver]
-
-	sql := fmt.Sprintf(`UPDATE trans_global SET update_time='%s',next_cron_time='%s' WHERE %s`,
+	sql := fmt.Sprintf(`UPDATE trans_global SET update_time='%s',next_cron_time='%s' WHERE gid = '%s'`,
 		now,
 		now,
-		where)
+		global.Gid)
 	_, err := dtmimp.DBExec(conf.Store.Driver, dbGet().ToSQLDB(), sql)
 	return err
 }
