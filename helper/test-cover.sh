@@ -9,6 +9,8 @@ for store in redis boltdb mysql postgres; do
         echo > profile.out
     fi
 done
+## for local unit test, you may use following command
+# SKIP_MONGO=1 TEST_STORE=redis GOARCH=amd64 go test -v -failfast -count=1  -gcflags=all=-l ./...
 
 # go tool cover -html=coverage.txt
 

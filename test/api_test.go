@@ -15,6 +15,7 @@ import (
 
 	"github.com/dtm-labs/dtm/client/dtmcli"
 	"github.com/dtm-labs/dtm/client/dtmcli/dtmimp"
+	"github.com/dtm-labs/dtm/dtmsvr/storage/registry"
 	"github.com/dtm-labs/dtm/dtmutil"
 	"github.com/dtm-labs/dtm/test/busi"
 	"github.com/stretchr/testify/assert"
@@ -249,30 +250,30 @@ func TestAPIForceStoppedAbnormal(t *testing.T) {
 	assert.Equal(t, resp.StatusCode(), http.StatusConflict)
 }
 
-// func TestAPIResetNextCronTime(t *testing.T) {
-// 	saga := genSaga(dtmimp.GetFuncName(), false, false)
-// 	saga.Submit()
-// 	waitTransProcessed(saga.Gid)
-// 	assert.Equal(t, []string{StatusPrepared, StatusSucceed, StatusPrepared, StatusSucceed}, getBranchesStatus(saga.Gid))
-// 	assert.Equal(t, StatusSucceed, getTransStatus(saga.Gid))
-// 	gid := saga.Gid
+func TestAPIResetNextCronTime(t *testing.T) {
+	saga := genSaga(dtmimp.GetFuncName(), false, false)
+	saga.Submit()
+	waitTransProcessed(saga.Gid)
+	assert.Equal(t, []string{StatusPrepared, StatusSucceed, StatusPrepared, StatusSucceed}, getBranchesStatus(saga.Gid))
+	assert.Equal(t, StatusSucceed, getTransStatus(saga.Gid))
+	gid := saga.Gid
 
-// 	s := registry.GetStore()
-// 	g := s.FindTransGlobalStore(saga.Gid)
+	s := registry.GetStore()
+	g := s.FindTransGlobalStore(saga.Gid)
 
-// 	// reset
-// 	resp, err := dtmcli.GetRestyClient().R().SetBody(map[string]string{
-// 		"gid": saga.Gid,
-// 	}).Post(dtmutil.DefaultHTTPServer + "/resetNextCronTime")
-// 	assert.Nil(t, err)
-// 	assert.Equal(t, resp.StatusCode(), http.StatusOK)
+	// reset
+	resp, err := dtmcli.GetRestyClient().R().SetBody(map[string]string{
+		"gid": saga.Gid,
+	}).Post(dtmutil.DefaultHTTPServer + "/resetNextCronTime")
+	assert.Nil(t, err)
+	assert.Equal(t, resp.StatusCode(), http.StatusOK)
 
-// 	// after reset assert
-// 	g2 := s.FindTransGlobalStore(gid)
-// 	assert.NotNil(t, g2)
-// 	assert.Equal(t, gid, g2.Gid)
-// 	assert.Greater(t, time.Now().Add(3*time.Second), *g2.NextCronTime)
-// 	assert.Equal(t, g2.UpdateTime, g2.NextCronTime)
-// 	assert.NotEqual(t, g.UpdateTime, g2.UpdateTime)
-// 	assert.NotEqual(t, g.NextCronTime, g2.NextCronTime)
-// }
+	// after reset assert
+	g2 := s.FindTransGlobalStore(gid)
+	assert.NotNil(t, g2)
+	assert.Equal(t, gid, g2.Gid)
+	assert.Greater(t, time.Now().Add(3*time.Second), *g2.NextCronTime)
+	assert.Equal(t, g2.UpdateTime, g2.NextCronTime)
+	assert.NotEqual(t, g.UpdateTime, g2.UpdateTime)
+	assert.NotEqual(t, g.NextCronTime, g2.NextCronTime)
+}
