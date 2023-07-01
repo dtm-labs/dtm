@@ -4,6 +4,7 @@
  * license that can be found in the LICENSE file.
  */
 
+// package boltdb implement the storage for sql database
 package sql
 
 import (

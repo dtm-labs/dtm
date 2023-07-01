@@ -4,6 +4,7 @@
  * license that can be found in the LICENSE file.
  */
 
+// package reds implement the storage for reds
 package redis
 
 import (
