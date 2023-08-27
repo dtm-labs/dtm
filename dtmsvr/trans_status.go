@@ -200,7 +200,7 @@ func (t *TransGlobal) getGrpcResult(uri string, branchID, op string, branchPaylo
 	}
 
 	conn := dtmgimp.MustGetGrpcConn(server, true)
-	ctx := dtmgimp.TransInfo2Ctx(t.Context, t.Gid, t.TransType, branchID, op, "")
+	ctx := dtmgimp.TransInfo2Ctx(CopyContext(t.Context), t.Gid, t.TransType, branchID, op, "")
 	kvs := dtmgimp.Map2Kvs(t.Ext.Headers)
 	kvs = append(kvs, dtmgimp.Map2Kvs(t.BranchHeaders)...)
 	ctx = metadata.AppendToOutgoingContext(ctx, kvs...)
