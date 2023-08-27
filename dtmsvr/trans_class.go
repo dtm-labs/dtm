@@ -103,6 +103,7 @@ func TransFromDtmRequest(ctx context.Context, c *dtmgpb.DtmRequest) *TransGlobal
 		},
 	}}
 	r.ReqExtra = c.ReqExtra
+	r.Context = CopyContext(ctx)
 	if c.Steps != "" {
 		dtmimp.MustUnmarshalString(c.Steps, &r.Steps)
 	}
