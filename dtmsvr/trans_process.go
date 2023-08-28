@@ -7,6 +7,7 @@
 package dtmsvr
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"time"
@@ -31,14 +32,14 @@ func (t *TransGlobal) process(branches []TransBranch) error {
 	if t.ExtData != "" {
 		dtmimp.MustUnmarshalString(t.ExtData, &t.Ext)
 	}
-
 	if !t.WaitResult {
-		go func() {
+		go func(ctx context.Context) {
+			t.Context = CopyContext(ctx)
 			err := t.processInner(branches)
 			if err != nil && !errors.Is(err, dtmimp.ErrOngoing) {
 				logger.Errorf("processInner err: %v", err)
 			}
-		}()
+		}(t.Context)
 		return nil
 	}
 	submitting := t.Status == dtmcli.StatusSubmitted
