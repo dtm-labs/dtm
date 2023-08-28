@@ -9,16 +9,13 @@ package dtmsvr
 import (
 	"context"
 	"fmt"
-	"reflect"
-	"time"
-	"unsafe"
-
 	"github.com/dtm-labs/dtm/client/dtmcli/dtmimp"
 	"github.com/dtm-labs/dtm/dtmsvr/config"
 	"github.com/dtm-labs/dtm/dtmsvr/storage"
 	"github.com/dtm-labs/dtm/dtmsvr/storage/registry"
 	"github.com/lithammer/shortuuid/v3"
 	"google.golang.org/grpc/metadata"
+	"time"
 )
 
 type branchStatus struct {
@@ -71,29 +68,9 @@ func CopyContext(ctx context.Context) context.Context {
 		return ctx
 	}
 	newCtx := context.Background()
-	kv := make(map[interface{}]interface{})
-	getKeyValues(ctx, kv)
-	for k, v := range kv {
-		newCtx = context.WithValue(newCtx, k, v)
-	}
+	// TODO: copy value in context
 	if md, ok := metadata.FromIncomingContext(ctx); ok {
 		newCtx = metadata.NewIncomingContext(newCtx, md)
 	}
 	return newCtx
-}
-
-func getKeyValues(ctx context.Context, kv map[interface{}]interface{}) {
-	rtType := reflect.TypeOf(ctx).String()
-	if rtType == "*context.emptyCtx" {
-		return
-	}
-	ictx := *(*iface)(unsafe.Pointer(&ctx))
-	if ictx.data == 0 {
-		return
-	}
-	valCtx := (*valueCtx)(unsafe.Pointer(ictx.data))
-	if valCtx != nil && valCtx.key != nil && valCtx.value != nil {
-		kv[valCtx.key] = valCtx.value
-	}
-	getKeyValues(valCtx.Context, kv)
 }
