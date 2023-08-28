@@ -61,7 +61,35 @@ type iface struct {
 
 type valueCtx struct {
 	context.Context
-	key, value interface{}
+	key, value any
+}
+
+type cancelCtx struct {
+	context.Context
+}
+
+type timerCtx struct {
+	cancelCtx *cancelCtx
+}
+
+func (*timerCtx) Deadline() (deadline time.Time, ok bool) {
+	return
+}
+
+func (*timerCtx) Done() <-chan struct{} {
+	return nil
+}
+
+func (*timerCtx) Err() error {
+	return nil
+}
+
+func (*timerCtx) Value(key any) any {
+	return nil
+}
+
+func (e *timerCtx) String() string {
+	return ""
 }
 
 // CopyContext copy context with value and grpc metadata
@@ -87,7 +115,7 @@ func CopyContext(ctx context.Context) context.Context {
 
 func getKeyValues(ctx context.Context, kv map[interface{}]interface{}) {
 	rtType := reflect.TypeOf(ctx).String()
-	if rtType == "*context.emptyCtx" || rtType == "*context.timerCtx" {
+	if rtType == "*context.emptyCtx" {
 		return
 	}
 	ictx := *(*iface)(unsafe.Pointer(&ctx))
@@ -95,8 +123,13 @@ func getKeyValues(ctx context.Context, kv map[interface{}]interface{}) {
 		return
 	}
 	valCtx := (*valueCtx)(unsafe.Pointer(ictx.data))
-	if valCtx != nil && valCtx.key != nil && valCtx.value != nil {
+	if valCtx.key != nil && valCtx.value != nil && rtType == "*context.valueCtx" {
 		kv[valCtx.key] = valCtx.value
+	}
+	if rtType == "*context.timerCtx" {
+		tCtx := (*timerCtx)(unsafe.Pointer(ictx.data))
+		getKeyValues(tCtx.cancelCtx, kv)
+		return
 	}
 	getKeyValues(valCtx.Context, kv)
 }

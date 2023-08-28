@@ -32,10 +32,14 @@ func TestSetNextCron(t *testing.T) {
 	assert.Equal(t, int64(3), tg.getNextCronInterval(cronReset))
 }
 
+type testContextType string
+
 func TestCopyContext(t *testing.T) {
-	ctxWithValue := context.WithValue(context.Background(), "key", "value")
+	var key testContextType = "key"
+	var value testContextType = "value"
+	ctxWithValue := context.WithValue(context.Background(), key, value)
 	newCtx := CopyContext(ctxWithValue)
-	assert.Equal(t, ctxWithValue.Value("key"), newCtx.Value("key"))
+	assert.Equal(t, ctxWithValue.Value(key), newCtx.Value(key))
 
 	var ctx context.Context
 	newCtx = CopyContext(ctx)
@@ -43,12 +47,16 @@ func TestCopyContext(t *testing.T) {
 }
 
 func TestCopyContextRecursive(t *testing.T) {
-	ctxWithValue := context.WithValue(context.Background(), "key", "value")
-	nestedCtx := context.WithValue(ctxWithValue, "nested_key", "nested_value")
+	var key testContextType = "key"
+	var value testContextType = "value"
+	var nestedKey testContextType = "nested_key"
+	var nestedValue testContextType = "nested_value"
+	ctxWithValue := context.WithValue(context.Background(), key, value)
+	nestedCtx := context.WithValue(ctxWithValue, nestedKey, nestedValue)
 	newCtx := CopyContext(nestedCtx)
 
-	assert.Equal(t, nestedCtx.Value("nested_key"), newCtx.Value("nested_key"))
-	assert.Equal(t, nestedCtx.Value("key"), newCtx.Value("key"))
+	assert.Equal(t, nestedCtx.Value(nestedKey), newCtx.Value(nestedKey))
+	assert.Equal(t, nestedCtx.Value(key), newCtx.Value(key))
 }
 
 func TestCopyContextWithMetadata(t *testing.T) {
@@ -68,7 +76,9 @@ func TestCopyContextWithMetadata(t *testing.T) {
 }
 
 func BenchmarkCopyContext(b *testing.B) {
-	ctx := context.WithValue(context.Background(), "key", "value")
+	var key testContextType = "key"
+	var value testContextType = "value"
+	ctx := context.WithValue(context.Background(), key, value)
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
 		CopyContext(ctx)
