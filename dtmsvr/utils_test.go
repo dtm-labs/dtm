@@ -54,9 +54,14 @@ func TestCopyContextRecursive(t *testing.T) {
 func TestCopyContextWithMetadata(t *testing.T) {
 	md := metadata.New(map[string]string{"key": "value"})
 	ctx := metadata.NewIncomingContext(context.Background(), md)
+	ctx = metadata.NewOutgoingContext(ctx, md)
 	newCtx := CopyContext(ctx)
 
 	copiedMD, ok := metadata.FromIncomingContext(newCtx)
+	assert.True(t, ok)
+	assert.Equal(t, 1, len(copiedMD["key"]))
+	assert.Equal(t, "value", copiedMD["key"][0])
+	copiedMD, ok = metadata.FromOutgoingContext(newCtx)
 	assert.True(t, ok)
 	assert.Equal(t, 1, len(copiedMD["key"]))
 	assert.Equal(t, "value", copiedMD["key"][0])

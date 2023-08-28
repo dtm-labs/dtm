@@ -9,7 +9,9 @@ package dtmsvr
 import (
 	"context"
 	"fmt"
+	"reflect"
 	"time"
+	"unsafe"
 
 	"github.com/dtm-labs/dtm/client/dtmcli/dtmimp"
 	"github.com/dtm-labs/dtm/dtmsvr/config"
@@ -69,9 +71,32 @@ func CopyContext(ctx context.Context) context.Context {
 		return ctx
 	}
 	newCtx := context.Background()
-	// TODO: copy value in context
+	kv := make(map[interface{}]interface{})
+	getKeyValues(ctx, kv)
+	for k, v := range kv {
+		newCtx = context.WithValue(newCtx, k, v)
+	}
 	if md, ok := metadata.FromIncomingContext(ctx); ok {
 		newCtx = metadata.NewIncomingContext(newCtx, md)
 	}
+	if md, ok := metadata.FromOutgoingContext(ctx); ok {
+		newCtx = metadata.NewOutgoingContext(newCtx, md)
+	}
 	return newCtx
+}
+
+func getKeyValues(ctx context.Context, kv map[interface{}]interface{}) {
+	rtType := reflect.TypeOf(ctx).String()
+	if rtType == "*context.emptyCtx" || rtType == "*context.timerCtx" {
+		return
+	}
+	ictx := *(*iface)(unsafe.Pointer(&ctx))
+	if ictx.data == 0 {
+		return
+	}
+	valCtx := (*valueCtx)(unsafe.Pointer(ictx.data))
+	if valCtx != nil && valCtx.key != nil && valCtx.value != nil {
+		kv[valCtx.key] = valCtx.value
+	}
+	getKeyValues(valCtx.Context, kv)
 }
