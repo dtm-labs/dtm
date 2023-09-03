@@ -33,17 +33,17 @@ func (t *TransGlobal) process(branches []TransBranch) error {
 		dtmimp.MustUnmarshalString(t.ExtData, &t.Ext)
 	}
 	if !t.WaitResult {
+		ctx := CopyContext(t.Context)
 		go func(ctx context.Context) {
-			t.Context = CopyContext(ctx)
-			err := t.processInner(branches)
+			err := t.processInner(ctx, branches)
 			if err != nil && !errors.Is(err, dtmimp.ErrOngoing) {
 				logger.Errorf("processInner err: %v", err)
 			}
-		}(t.Context)
+		}(ctx)
 		return nil
 	}
 	submitting := t.Status == dtmcli.StatusSubmitted
-	err := t.processInner(branches)
+	err := t.processInner(t.Context, branches)
 	if err != nil {
 		return err
 	}
@@ -57,7 +57,7 @@ func (t *TransGlobal) process(branches []TransBranch) error {
 	return nil
 }
 
-func (t *TransGlobal) processInner(branches []TransBranch) (rerr error) {
+func (t *TransGlobal) processInner(ctx context.Context, branches []TransBranch) (rerr error) {
 	defer handlePanic(&rerr)
 	defer func() {
 		if rerr != nil && !errors.Is(rerr, dtmcli.ErrOngoing) {
@@ -71,7 +71,7 @@ func (t *TransGlobal) processInner(branches []TransBranch) (rerr error) {
 	}()
 	logger.Debugf("processing: %s status: %s", t.Gid, t.Status)
 	t.lastTouched = time.Now()
-	rerr = t.getProcessor().ProcessOnce(branches)
+	rerr = t.getProcessor().ProcessOnce(ctx, branches)
 	return
 }
 

@@ -1,6 +1,7 @@
 package dtmsvr
 
 import (
+	"context"
 	"fmt"
 
 	"github.com/dtm-labs/dtm/client/dtmcli"
@@ -20,7 +21,7 @@ func (t *transTccProcessor) GenBranches() []TransBranch {
 	return []TransBranch{}
 }
 
-func (t *transTccProcessor) ProcessOnce(branches []TransBranch) error {
+func (t *transTccProcessor) ProcessOnce(ctx context.Context, branches []TransBranch) error {
 	if !t.needProcess() {
 		return nil
 	}
@@ -31,7 +32,7 @@ func (t *transTccProcessor) ProcessOnce(branches []TransBranch) error {
 	for current := len(branches) - 1; current >= 0; current-- {
 		if branches[current].Op == op && branches[current].Status == dtmcli.StatusPrepared {
 			logger.Debugf("branch info: current: %d ID: %d", current, branches[current].ID)
-			err := t.execBranch(&branches[current], current)
+			err := t.execBranch(ctx, &branches[current], current)
 			if err != nil {
 				return err
 			}

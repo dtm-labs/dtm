@@ -1,6 +1,7 @@
 package dtmsvr
 
 import (
+	"context"
 	"fmt"
 
 	"github.com/dtm-labs/dtm/client/dtmcli"
@@ -19,7 +20,7 @@ func (t *transXaProcessor) GenBranches() []TransBranch {
 	return []TransBranch{}
 }
 
-func (t *transXaProcessor) ProcessOnce(branches []TransBranch) error {
+func (t *transXaProcessor) ProcessOnce(ctx context.Context, branches []TransBranch) error {
 	if !t.needProcess() {
 		return nil
 	}
@@ -29,7 +30,7 @@ func (t *transXaProcessor) ProcessOnce(branches []TransBranch) error {
 	currentType := dtmimp.If(t.Status == dtmcli.StatusSubmitted, dtmimp.OpCommit, dtmimp.OpRollback).(string)
 	for i, branch := range branches {
 		if branch.Op == currentType && branch.Status != dtmcli.StatusSucceed {
-			err := t.execBranch(&branch, i)
+			err := t.execBranch(ctx, &branch, i)
 			if err != nil {
 				return err
 			}

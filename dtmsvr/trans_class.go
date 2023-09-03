@@ -42,7 +42,7 @@ type TransBranch = storage.TransBranchStore
 
 type transProcessor interface {
 	GenBranches() []TransBranch
-	ProcessOnce(branches []TransBranch) error
+	ProcessOnce(ctx context.Context, branches []TransBranch) error
 }
 
 type processorCreator func(*TransGlobal) transProcessor
