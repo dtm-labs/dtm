@@ -9,6 +9,7 @@ package dtmsvr
 import (
 	"context"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 	"google.golang.org/grpc/metadata"
@@ -32,8 +33,6 @@ func TestSetNextCron(t *testing.T) {
 	assert.Equal(t, int64(3), tg.getNextCronInterval(cronReset))
 }
 
-type testContextType string
-
 func TestCopyContext(t *testing.T) {
 	var key testContextType = "key"
 	var value testContextType = "value"
@@ -46,17 +45,31 @@ func TestCopyContext(t *testing.T) {
 	assert.Nil(t, newCtx)
 }
 
+type testContextType string
+
 func TestCopyContextRecursive(t *testing.T) {
 	var key testContextType = "key"
+	var key2 testContextType = "key2"
+	var key3 testContextType = "key3"
 	var value testContextType = "value"
+	var value2 testContextType = "value2"
+	var value3 testContextType = "value3"
 	var nestedKey testContextType = "nested_key"
 	var nestedValue testContextType = "nested_value"
 	ctxWithValue := context.WithValue(context.Background(), key, value)
 	nestedCtx := context.WithValue(ctxWithValue, nestedKey, nestedValue)
-	newCtx := CopyContext(nestedCtx)
+	cancelCtxx, cancel := context.WithCancel(nestedCtx)
+	defer cancel()
+	timerCtxx, cancel2 := context.WithTimeout(cancelCtxx, time.Duration(10)*time.Second)
+	defer cancel2()
+	timer2 := context.WithValue(timerCtxx, key2, value2)
+	timer3 := context.WithValue(timer2, key3, value3)
+	newCtx := CopyContext(timer3)
 
-	assert.Equal(t, nestedCtx.Value(nestedKey), newCtx.Value(nestedKey))
-	assert.Equal(t, nestedCtx.Value(key), newCtx.Value(key))
+	assert.Equal(t, timer3.Value(nestedKey), newCtx.Value(nestedKey))
+	assert.Equal(t, timer3.Value(key), newCtx.Value(key))
+	assert.Equal(t, timer3.Value(key2), newCtx.Value(key2))
+	assert.Equal(t, timer3.Value(key3), newCtx.Value(key3))
 }
 
 func TestCopyContextWithMetadata(t *testing.T) {

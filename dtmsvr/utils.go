@@ -18,7 +18,6 @@ import (
 	"github.com/dtm-labs/dtm/dtmsvr/storage"
 	"github.com/dtm-labs/dtm/dtmsvr/storage/registry"
 	"github.com/lithammer/shortuuid/v3"
-	"google.golang.org/grpc/metadata"
 )
 
 type branchStatus struct {
@@ -69,27 +68,7 @@ type cancelCtx struct {
 }
 
 type timerCtx struct {
-	cancelCtx *cancelCtx
-}
-
-func (*timerCtx) Deadline() (deadline time.Time, ok bool) {
-	return
-}
-
-func (*timerCtx) Done() <-chan struct{} {
-	return nil
-}
-
-func (*timerCtx) Err() error {
-	return nil
-}
-
-func (*timerCtx) Value(key any) any {
-	return nil
-}
-
-func (e *timerCtx) String() string {
-	return ""
+	cancelCtx
 }
 
 // CopyContext copy context with value and grpc metadata
@@ -103,12 +82,6 @@ func CopyContext(ctx context.Context) context.Context {
 	getKeyValues(ctx, kv)
 	for k, v := range kv {
 		newCtx = context.WithValue(newCtx, k, v)
-	}
-	if md, ok := metadata.FromIncomingContext(ctx); ok {
-		newCtx = metadata.NewIncomingContext(newCtx, md)
-	}
-	if md, ok := metadata.FromOutgoingContext(ctx); ok {
-		newCtx = metadata.NewOutgoingContext(newCtx, md)
 	}
 	return newCtx
 }
