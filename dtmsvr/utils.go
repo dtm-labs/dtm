@@ -53,7 +53,7 @@ func GetTransGlobal(gid string) *TransGlobal {
 }
 
 type asyncCtx struct {
-	parent context.Context
+	context.Context
 }
 
 func (a *asyncCtx) Deadline() (deadline time.Time, ok bool) {
@@ -64,19 +64,11 @@ func (a *asyncCtx) Done() <-chan struct{} {
 	return nil
 }
 
-func (a *asyncCtx) Err() error {
-	return a.parent.Err()
-}
-
-func (a *asyncCtx) Value(key any) any {
-	return a.parent.Value(key)
-}
-
 // NewAsyncContext create a new async context
 // the context will not be canceled when the parent context is canceled
 func NewAsyncContext(ctx context.Context) context.Context {
 	if ctx == nil {
 		return nil
 	}
-	return &asyncCtx{parent: ctx}
+	return &asyncCtx{Context: ctx}
 }
