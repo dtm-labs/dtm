@@ -33,21 +33,40 @@ func TestSetNextCron(t *testing.T) {
 	assert.Equal(t, int64(3), tg.getNextCronInterval(cronReset))
 }
 
-func TestCopyContext(t *testing.T) {
+func TestNewAsyncContext(t *testing.T) {
 	var key testContextType = "key"
 	var value testContextType = "value"
 	ctxWithValue := context.WithValue(context.Background(), key, value)
-	newCtx := CopyContext(ctxWithValue)
+	newCtx := NewAsyncContext(ctxWithValue)
 	assert.Equal(t, ctxWithValue.Value(key), newCtx.Value(key))
 
 	var ctx context.Context
-	newCtx = CopyContext(ctx)
+	newCtx = NewAsyncContext(ctx)
 	assert.Nil(t, newCtx)
+}
+
+func TestAsyncContext(t *testing.T) {
+	ctx := context.Background()
+	cancelCtx2, cancel := context.WithCancel(ctx)
+	async := NewAsyncContext(cancelCtx2)
+	cancelCtx3, cancel2 := context.WithCancel(async)
+	defer cancel2()
+	cancel()
+	select {
+	case <-cancelCtx2.Done():
+	default:
+		assert.Failf(t, "context should be canceled", "context should be canceled")
+	}
+	select {
+	case <-cancelCtx3.Done():
+		assert.Failf(t, "context should not be canceled", "context should not be canceled")
+	default:
+	}
 }
 
 type testContextType string
 
-func TestCopyContextRecursive(t *testing.T) {
+func TestAsyncContextRecursive(t *testing.T) {
 	var key testContextType = "key"
 	var key2 testContextType = "key2"
 	var key3 testContextType = "key3"
@@ -64,7 +83,7 @@ func TestCopyContextRecursive(t *testing.T) {
 	defer cancel2()
 	timer2 := context.WithValue(timerCtxx, key2, value2)
 	timer3 := context.WithValue(timer2, key3, value3)
-	newCtx := CopyContext(timer3)
+	newCtx := NewAsyncContext(timer3)
 
 	assert.Equal(t, timer3.Value(nestedKey), newCtx.Value(nestedKey))
 	assert.Equal(t, timer3.Value(key), newCtx.Value(key))
@@ -76,7 +95,7 @@ func TestCopyContextWithMetadata(t *testing.T) {
 	md := metadata.New(map[string]string{"key": "value"})
 	ctx := metadata.NewIncomingContext(context.Background(), md)
 	ctx = metadata.NewOutgoingContext(ctx, md)
-	newCtx := CopyContext(ctx)
+	newCtx := NewAsyncContext(ctx)
 
 	copiedMD, ok := metadata.FromIncomingContext(newCtx)
 	assert.True(t, ok)
@@ -94,6 +113,6 @@ func BenchmarkCopyContext(b *testing.B) {
 	ctx := context.WithValue(context.Background(), key, value)
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		CopyContext(ctx)
+		NewAsyncContext(ctx)
 	}
 }

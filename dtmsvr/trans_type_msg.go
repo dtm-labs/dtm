@@ -92,7 +92,7 @@ func (t *transMsgProcessor) ProcessOnce(ctx context.Context, branches []TransBra
 			continue
 		}
 		if t.Concurrent {
-			copyCtx := CopyContext(ctx)
+			copyCtx := NewAsyncContext(ctx)
 			started++
 			go func(ctx context.Context, pos int) {
 				resultsChan <- t.execBranch(ctx, b, pos)

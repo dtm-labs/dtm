@@ -33,7 +33,7 @@ func (t *TransGlobal) process(branches []TransBranch) error {
 		dtmimp.MustUnmarshalString(t.ExtData, &t.Ext)
 	}
 	if !t.WaitResult {
-		ctx := CopyContext(t.Context)
+		ctx := NewAsyncContext(t.Context)
 		go func(ctx context.Context) {
 			err := t.processInner(ctx, branches)
 			if err != nil && !errors.Is(err, dtmimp.ErrOngoing) {

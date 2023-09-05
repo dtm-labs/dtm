@@ -163,7 +163,7 @@ func (t *transSagaProcessor) ProcessOnce(ctx context.Context, branches []TransBr
 			if branchResults[b].op == dtmimp.OpAction {
 				rsAStarted++
 			}
-			copyCtx := CopyContext(ctx)
+			copyCtx := NewAsyncContext(ctx)
 			go asyncExecBranch(copyCtx, b)
 		}
 	}
@@ -180,7 +180,7 @@ func (t *transSagaProcessor) ProcessOnce(ctx context.Context, branches []TransBr
 						t.RetryCount++
 						logger.Infof("Retrying branch %s %s %s, t.RetryLimit: %d, t.RetryCount: %d",
 							branches[r.index].BranchID, branches[r.index].Op, branches[r.index].URL, t.RetryLimit, t.RetryCount)
-						copyCtx := CopyContext(ctx)
+						copyCtx := NewAsyncContext(ctx)
 						go asyncExecBranch(copyCtx, r.index)
 						break
 					}

@@ -9,9 +9,7 @@ package dtmsvr
 import (
 	"context"
 	"fmt"
-	"reflect"
 	"time"
-	"unsafe"
 
 	"github.com/dtm-labs/dtm/client/dtmcli/dtmimp"
 	"github.com/dtm-labs/dtm/dtmsvr/config"
@@ -54,55 +52,31 @@ func GetTransGlobal(gid string) *TransGlobal {
 	return &TransGlobal{TransGlobalStore: *trans}
 }
 
-type iface struct {
-	itab, data uintptr
+type asyncCtx struct {
+	parent context.Context
 }
 
-type valueCtx struct {
-	context.Context
-	key, value any
+func (a *asyncCtx) Deadline() (deadline time.Time, ok bool) {
+	return
 }
 
-type cancelCtx struct {
-	context.Context
+func (a *asyncCtx) Done() <-chan struct{} {
+	return nil
 }
 
-type timerCtx struct {
-	cancelCtx
+func (a *asyncCtx) Err() error {
+	return a.parent.Err()
 }
 
-// CopyContext copy context with value and grpc metadata
-// if raw context is nil, return nil
-func CopyContext(ctx context.Context) context.Context {
+func (a *asyncCtx) Value(key any) any {
+	return a.parent.Value(key)
+}
+
+// NewAsyncContext create a new async context
+// the context will not be canceled when the parent context is canceled
+func NewAsyncContext(ctx context.Context) context.Context {
 	if ctx == nil {
-		return ctx
+		return nil
 	}
-	newCtx := context.Background()
-	kv := make(map[interface{}]interface{})
-	getKeyValues(ctx, kv)
-	for k, v := range kv {
-		newCtx = context.WithValue(newCtx, k, v)
-	}
-	return newCtx
-}
-
-func getKeyValues(ctx context.Context, kv map[interface{}]interface{}) {
-	rtType := reflect.TypeOf(ctx).String()
-	if rtType == "*context.emptyCtx" {
-		return
-	}
-	ictx := *(*iface)(unsafe.Pointer(&ctx))
-	if ictx.data == 0 {
-		return
-	}
-	valCtx := (*valueCtx)(unsafe.Pointer(ictx.data))
-	if valCtx.key != nil && valCtx.value != nil && rtType == "*context.valueCtx" {
-		kv[valCtx.key] = valCtx.value
-	}
-	if rtType == "*context.timerCtx" {
-		tCtx := (*timerCtx)(unsafe.Pointer(ictx.data))
-		getKeyValues(tCtx.cancelCtx, kv)
-		return
-	}
-	getKeyValues(valCtx.Context, kv)
+	return &asyncCtx{parent: ctx}
 }
