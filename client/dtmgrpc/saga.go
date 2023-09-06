@@ -7,6 +7,8 @@
 package dtmgrpc
 
 import (
+	"context"
+
 	"github.com/dtm-labs/dtm/client/dtmcli"
 	"github.com/dtm-labs/dtm/client/dtmgrpc/dtmgimp"
 	"google.golang.org/protobuf/proto"
@@ -20,6 +22,17 @@ type SagaGrpc struct {
 // NewSagaGrpc create a saga
 func NewSagaGrpc(server string, gid string, opts ...TransBaseOption) *SagaGrpc {
 	sg := &SagaGrpc{Saga: *dtmcli.NewSaga(server, gid)}
+
+	for _, opt := range opts {
+		opt(&sg.TransBase)
+	}
+
+	return sg
+}
+
+// NewSagaGrpcWithContext create a saga with context
+func NewSagaGrpcWithContext(ctx context.Context, server string, gid string, opts ...TransBaseOption) *SagaGrpc {
+	sg := &SagaGrpc{Saga: *dtmcli.NewSagaWithContext(ctx, server, gid)}
 
 	for _, opt := range opts {
 		opt(&sg.TransBase)

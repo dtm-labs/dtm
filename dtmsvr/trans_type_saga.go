@@ -1,6 +1,7 @@
 package dtmsvr
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"time"
@@ -52,7 +53,7 @@ type branchResult struct {
 	err     error
 }
 
-func (t *transSagaProcessor) ProcessOnce(branches []TransBranch) error {
+func (t *transSagaProcessor) ProcessOnce(ctx context.Context, branches []TransBranch) error {
 	// when saga tasks is fetched, it always need to process
 	logger.Debugf("status: %s timeout: %t", t.Status, t.isTimeout())
 	if t.Status == dtmcli.StatusSubmitted && t.isTimeout() {
@@ -121,7 +122,7 @@ func (t *transSagaProcessor) ProcessOnce(branches []TransBranch) error {
 		return true
 	}
 	resultChan := make(chan branchResult, n)
-	asyncExecBranch := func(i int) {
+	asyncExecBranch := func(ctx context.Context, i int) {
 		var err error
 		defer func() {
 			if x := recover(); x != nil {
@@ -132,7 +133,7 @@ func (t *transSagaProcessor) ProcessOnce(branches []TransBranch) error {
 				logger.Errorf("exec branch %s %s %s error: %v", branches[i].BranchID, branches[i].Op, branches[i].URL, err)
 			}
 		}()
-		err = t.execBranch(&branches[i], i)
+		err = t.execBranch(ctx, &branches[i], i)
 	}
 	pickToRunActions := func() []int {
 		toRun := []int{}
@@ -162,7 +163,8 @@ func (t *transSagaProcessor) ProcessOnce(branches []TransBranch) error {
 			if branchResults[b].op == dtmimp.OpAction {
 				rsAStarted++
 			}
-			go asyncExecBranch(b)
+			copyCtx := NewAsyncContext(ctx)
+			go asyncExecBranch(copyCtx, b)
 		}
 	}
 	waitDoneOnce := func() {
@@ -178,7 +180,8 @@ func (t *transSagaProcessor) ProcessOnce(branches []TransBranch) error {
 						t.RetryCount++
 						logger.Infof("Retrying branch %s %s %s, t.RetryLimit: %d, t.RetryCount: %d",
 							branches[r.index].BranchID, branches[r.index].Op, branches[r.index].URL, t.RetryLimit, t.RetryCount)
-						go asyncExecBranch(r.index)
+						copyCtx := NewAsyncContext(ctx)
+						go asyncExecBranch(copyCtx, r.index)
 						break
 					}
 					// if t.RetryCount = t.RetryLimit, trans will be aborted

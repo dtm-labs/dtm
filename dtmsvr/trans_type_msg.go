@@ -7,6 +7,7 @@
 package dtmsvr
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"strings"
@@ -51,11 +52,11 @@ type cMsgCustom struct {
 	Delay uint64 //delay call branch, unit second
 }
 
-func (t *TransGlobal) mayQueryPrepared() {
+func (t *TransGlobal) mayQueryPrepared(ctx context.Context) {
 	if !t.needProcess() || t.Status == dtmcli.StatusSubmitted {
 		return
 	}
-	err := t.getURLResult(t.QueryPrepared, "00", "msg", nil)
+	err := t.getURLResult(ctx, t.QueryPrepared, "00", "msg", nil)
 	if err == nil {
 		t.changeStatus(dtmcli.StatusSubmitted)
 	} else if errors.Is(err, dtmcli.ErrFailure) {
@@ -68,8 +69,8 @@ func (t *TransGlobal) mayQueryPrepared() {
 	}
 }
 
-func (t *transMsgProcessor) ProcessOnce(branches []TransBranch) error {
-	t.mayQueryPrepared()
+func (t *transMsgProcessor) ProcessOnce(ctx context.Context, branches []TransBranch) error {
+	t.mayQueryPrepared(ctx)
 	if !t.needProcess() || t.Status == dtmcli.StatusPrepared {
 		return nil
 	}
@@ -91,12 +92,13 @@ func (t *transMsgProcessor) ProcessOnce(branches []TransBranch) error {
 			continue
 		}
 		if t.Concurrent {
+			copyCtx := NewAsyncContext(ctx)
 			started++
-			go func(pos int) {
-				resultsChan <- t.execBranch(b, pos)
-			}(i)
+			go func(ctx context.Context, pos int) {
+				resultsChan <- t.execBranch(ctx, b, pos)
+			}(copyCtx, i)
 		} else {
-			err = t.execBranch(b, i)
+			err = t.execBranch(ctx, b, i)
 			if err != nil {
 				break
 			}

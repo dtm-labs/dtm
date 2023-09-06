@@ -7,6 +7,7 @@
 package dtmsvr
 
 import (
+	"context"
 	"fmt"
 	"time"
 
@@ -49,4 +50,25 @@ func GetTransGlobal(gid string) *TransGlobal {
 	dtmimp.PanicIf(trans == nil, fmt.Errorf("no TransGlobal with gid: %s found", gid))
 	//nolint:staticcheck
 	return &TransGlobal{TransGlobalStore: *trans}
+}
+
+type asyncCtx struct {
+	context.Context
+}
+
+func (a *asyncCtx) Deadline() (deadline time.Time, ok bool) {
+	return
+}
+
+func (a *asyncCtx) Done() <-chan struct{} {
+	return nil
+}
+
+// NewAsyncContext create a new async context
+// the context will not be canceled when the parent context is canceled
+func NewAsyncContext(ctx context.Context) context.Context {
+	if ctx == nil {
+		return nil
+	}
+	return &asyncCtx{Context: ctx}
 }

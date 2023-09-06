@@ -1,6 +1,8 @@
 package dtmsvr
 
 import (
+	"context"
+
 	"github.com/dtm-labs/dtm/client/dtmcli"
 	"github.com/dtm-labs/dtm/client/dtmcli/dtmimp"
 	"github.com/dtm-labs/dtm/client/dtmgrpc/dtmgimp"
@@ -24,7 +26,7 @@ type cWorkflowCustom struct {
 	Data []byte `json:"data"`
 }
 
-func (t *transWorkflowProcessor) ProcessOnce(branches []TransBranch) error {
+func (t *transWorkflowProcessor) ProcessOnce(ctx context.Context, branches []TransBranch) error {
 	if t.Status == dtmcli.StatusFailed || t.Status == dtmcli.StatusSucceed {
 		return nil
 	}
@@ -36,5 +38,5 @@ func (t *transWorkflowProcessor) ProcessOnce(branches []TransBranch) error {
 		wd := wfpb.WorkflowData{Data: cmc.Data}
 		data = dtmgimp.MustProtoMarshal(&wd)
 	}
-	return t.getURLResult(t.QueryPrepared, "00", cmc.Name, data)
+	return t.getURLResult(ctx, t.QueryPrepared, "00", cmc.Name, data)
 }

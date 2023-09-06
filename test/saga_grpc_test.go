@@ -7,6 +7,7 @@
 package test
 
 import (
+	"context"
 	"testing"
 
 	"github.com/dtm-labs/dtm/client/dtmcli"
@@ -94,7 +95,7 @@ func TestSagaGrpcEmptyUrl(t *testing.T) {
 
 // nolint: unparam
 func genSagaGrpc(gid string, outFailed bool, inFailed bool) *dtmgrpc.SagaGrpc {
-	saga := dtmgrpc.NewSagaGrpc(dtmutil.DefaultGrpcServer, gid)
+	saga := dtmgrpc.NewSagaGrpcWithContext(context.Background(), dtmutil.DefaultGrpcServer, gid)
 	req := busi.GenReqGrpc(30, outFailed, inFailed)
 	saga.Add(busi.BusiGrpc+"/busi.Busi/TransOut", busi.BusiGrpc+"/busi.Busi/TransOutRevert", req)
 	saga.Add(busi.BusiGrpc+"/busi.Busi/TransIn", busi.BusiGrpc+"/busi.Busi/TransInRevert", req)
