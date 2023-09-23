@@ -20,7 +20,7 @@ ARG TARGETOS
 ARG RELEASE_VERSION
 WORKDIR /app/dtm
 COPY . .
-RUN cd admin && npm install -g yarn && yarn && VITE_ADMIN_VERSION=$RELEASE_VERSION yarn build
+RUN cd admin && yarn && VITE_ADMIN_VERSION=$RELEASE_VERSION yarn build
 
 FROM --platform=$TARGETPLATFORM alpine
 COPY --from=builder1 /app/dtm/dtm /app/dtm/
