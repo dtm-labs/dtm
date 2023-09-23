@@ -5,7 +5,7 @@
 # COPY . .
 # RUN cd admin && yarn && VITE_ADMIN_VERSION=$RELEASE_VERSION yarn build
 
-FROM --platform=$TARGETPLATFORM golang:1.18-alpine as builder2
+FROM --platform=$TARGETPLATFORM golang:1.18-alpine as builder1
 ARG TARGETARCH
 ARG TARGETOS
 ARG RELEASE_VERSION
@@ -14,7 +14,7 @@ WORKDIR /app/dtm
 COPY . .
 RUN CGO_ENABLED=0 GOOS=$TARGETOS GOARCH=$TARGETARCH go build -ldflags="-s -w -X main.Version=$RELEASE_VERSION"
 
-FROM --platform=amd64 node as builder1
+FROM --platform=amd64 node as builder2
 ARG TARGETARCH
 ARG TARGETOS
 ARG RELEASE_VERSION
@@ -23,7 +23,7 @@ COPY . .
 RUN cd admin && npm install -g yarn && yarn && VITE_ADMIN_VERSION=$RELEASE_VERSION yarn build
 
 FROM --platform=$TARGETPLATFORM alpine
-COPY --from=builder2 /app/dtm/dtm /app/dtm/
+COPY --from=builder1 /app/dtm/dtm /app/dtm/
 COPY --from=builder2 /app/dtm/admin/index.html /app/dtm/admin/
 COPY --from=builder2 /app/dtm/admin/dist /app/dtm/admin/
 WORKDIR /app/dtm
