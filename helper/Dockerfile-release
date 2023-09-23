@@ -15,8 +15,11 @@ EXPOSE 8080
 COPY . .
 # COPY --from=builder1 /app/dtm/admin/dist /app/dtm/admin
 RUN CGO_ENABLED=0 GOOS=$TARGETOS GOARCH=$TARGETARCH go build -ldflags="-s -w -X main.Version=$RELEASE_VERSION"
+RUN cd admin && npm install -g yarn && yarn && VITE_ADMIN_VERSION=$RELEASE_VERSION yarn build
 
 FROM --platform=$TARGETPLATFORM alpine
 COPY --from=builder2 /app/dtm/dtm /app/dtm/
+COPY --from=builder2 /app/dtm/admin/index.html /app/dtm/admin/
+COPY --from=builder2 /app/dtm/admin/dist /app/dtm/admin/
 WORKDIR /app/dtm
 ENTRYPOINT ["/app/dtm/dtm"]
