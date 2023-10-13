@@ -67,10 +67,10 @@ func (s *Store) ScanTransGlobalStores(position *string, limit int64, condition s
 		query = query.Where("trans_type = ?", condition.TransType)
 	}
 	if !condition.CreateTimeStart.IsZero() {
-		query = query.Where("create_time >= ?", condition.CreateTimeStart.Format("2006-01-02 15:04:05"))
+		query = query.Where("create_time >= ?", condition.CreateTimeStart)
 	}
 	if !condition.CreateTimeEnd.IsZero() {
-		query = query.Where("create_time <= ?", condition.CreateTimeEnd.Format("2006-01-02 15:04:05"))
+		query = query.Where("create_time <= ?", condition.CreateTimeEnd)
 	}
 
 	dbr := query.Order("id desc").Limit(int(limit)).Find(&globals)
@@ -158,26 +158,27 @@ func (s *Store) TouchCronTime(global *storage.TransGlobalStore, nextCronInterval
 func (s *Store) LockOneGlobalTrans(expireIn time.Duration) *storage.TransGlobalStore {
 	db := dbGet()
 	owner := shortuuid.New()
-	nextCronTime := getTimeStr(int64(expireIn / time.Second))
+	nextCronTime := getAfterTime(int64(expireIn / time.Second))
 	where := map[string]string{
-		dtmimp.DBTypeMysql:    fmt.Sprintf(`next_cron_time < '%s' and status in ('prepared', 'aborting', 'submitted') limit 1`, nextCronTime),
-		dtmimp.DBTypePostgres: fmt.Sprintf(`id in (select id from trans_global where next_cron_time < '%s' and status in ('prepared', 'aborting', 'submitted') limit 1 )`, nextCronTime),
+		dtmimp.DBTypeMysql:    `next_cron_time < ? and status in ('prepared', 'aborting', 'submitted') limit 1`,
+		dtmimp.DBTypePostgres: `id in (select id from trans_global where next_cron_time < ? and status in ('prepared', 'aborting', 'submitted') limit 1 )`,
 	}[conf.Store.Driver]
 
 	ssql := fmt.Sprintf(`select count(1) from trans_global where %s`, where)
+
 	var cnt int64
-	err := db.ToSQLDB().QueryRow(ssql).Scan(&cnt)
+	err := db.ToSQLDB().QueryRow(ssql, nextCronTime).Scan(&cnt)
 	dtmimp.PanicIf(err != nil, err)
 	if cnt == 0 {
 		return nil
 	}
 
-	sql := fmt.Sprintf(`UPDATE trans_global SET update_time='%s',next_cron_time='%s', owner='%s' WHERE %s`,
-		getTimeStr(0),
-		getTimeStr(conf.RetryInterval),
+	sqlTamplate := fmt.Sprintf(`UPDATE trans_global SET update_time=?,next_cron_time=?, owner=? WHERE %s`, where)
+	affected, err := dtmimp.DBExec(conf.Store.Driver, db.ToSQLDB(), sqlTamplate,
+		getAfterTime(0),
+		getAfterTime(conf.RetryInterval),
 		owner,
-		where)
-	affected, err := dtmimp.DBExec(conf.Store.Driver, db.ToSQLDB(), sql)
+		nextCronTime)
 
 	dtmimp.PanicIf(err != nil, err)
 	if affected == 0 {
@@ -191,28 +192,27 @@ func (s *Store) LockOneGlobalTrans(expireIn time.Duration) *storage.TransGlobalS
 // ResetCronTime reset nextCronTime
 // unfinished transactions need to be retried as soon as possible after business downtime is recovered
 func (s *Store) ResetCronTime(after time.Duration, limit int64) (succeedCount int64, hasRemaining bool, err error) {
-	nextCronTime := getTimeStr(int64(after / time.Second))
+	nextCronTime := getAfterTime(int64(after / time.Second))
 	where := map[string]string{
-		dtmimp.DBTypeMysql:    fmt.Sprintf(`next_cron_time > '%s' and status in ('prepared', 'aborting', 'submitted') limit %d`, nextCronTime, limit),
-		dtmimp.DBTypePostgres: fmt.Sprintf(`id in (select id from trans_global where next_cron_time > '%s' and status in ('prepared', 'aborting', 'submitted') limit %d )`, nextCronTime, limit),
+		dtmimp.DBTypeMysql:    fmt.Sprintf(`next_cron_time > ? and status in ('prepared', 'aborting', 'submitted') limit %d`, limit),
+		dtmimp.DBTypePostgres: fmt.Sprintf(`id in (select id from trans_global where next_cron_time > ? and status in ('prepared', 'aborting', 'submitted') limit %d )`, limit),
 	}[conf.Store.Driver]
 
-	sql := fmt.Sprintf(`UPDATE trans_global SET update_time='%s',next_cron_time='%s' WHERE %s`,
-		getTimeStr(0),
-		getTimeStr(0),
+	sqlTamplate := fmt.Sprintf(`UPDATE trans_global SET update_time=? ,next_cron_time=? WHERE %s`,
 		where)
-	affected, err := dtmimp.DBExec(conf.Store.Driver, dbGet().ToSQLDB(), sql)
+	now := time.Now()
+	affected, err := dtmimp.DBExec(conf.Store.Driver, dbGet().ToSQLDB(), sqlTamplate,
+		now,
+		now,
+		nextCronTime)
 	return affected, affected == limit, err
 }
 
 // ResetTransGlobalCronTime reset nextCronTime of one global trans.
 func (s *Store) ResetTransGlobalCronTime(global *storage.TransGlobalStore) error {
-	now := getTimeStr(0)
-	sql := fmt.Sprintf(`UPDATE trans_global SET update_time='%s',next_cron_time='%s' WHERE gid = '%s'`,
-		now,
-		now,
-		global.Gid)
-	_, err := dtmimp.DBExec(conf.Store.Driver, dbGet().ToSQLDB(), sql)
+	now := time.Now()
+	sqlTeamplate := `UPDATE trans_global SET update_time=?, next_cron_time=? WHERE gid=?`
+	_, err := dtmimp.DBExec(conf.Store.Driver, dbGet().ToSQLDB(), sqlTeamplate, now, now, global.Gid)
 	return err
 }
 
@@ -311,6 +311,6 @@ func wrapError(err error) error {
 	return err
 }
 
-func getTimeStr(afterSecond int64) string {
-	return dtmutil.GetNextTime(afterSecond).Format("2006-01-02 15:04:05")
+func getAfterTime(afterSecond int64) *time.Time {
+	return dtmutil.GetNextTime(afterSecond)
 }
