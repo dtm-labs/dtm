@@ -311,6 +311,7 @@ func wrapError(err error) error {
 	return err
 }
 
+// gorm driver to format sql time
 func getAfterTime(afterSecond int64) *time.Time {
 	return dtmutil.GetNextTime(afterSecond)
 }
