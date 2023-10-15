@@ -24,8 +24,7 @@ RUN cd admin && yarn && VITE_ADMIN_VERSION=$RELEASE_VERSION yarn build
 
 FROM --platform=$TARGETPLATFORM alpine
 COPY --from=builder1 /app/dtm/dtm /app/dtm/
-COPY --from=builder2 /app/dtm/admin/index.html /app/dtm/admin/
-COPY --from=builder2 /app/dtm/admin/dist /app/dtm/admin/
+COPY --from=builder2 /app/dtm/admin/dist /app/dtm/admin/dist
 WORKDIR /app/dtm
 EXPOSE 8080
 ENTRYPOINT ["/app/dtm/dtm"]
