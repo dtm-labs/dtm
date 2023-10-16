@@ -45,6 +45,16 @@ jobs:
           - /etc/timezone:/etc/timezone:ro
         ports:
           - 27017:27017
+      sqlserver:
+        image: mcr.microsoft.com/mssql/server:2019-latest
+        volumes:
+          - /etc/localtime:/etc/localtime:ro
+          - /etc/timezone:/etc/timezone:ro
+        env:
+          ACCEPT_EULA: Y
+          MSSQL_SA_PASSWORD: p@ssw0rd
+        ports:
+          - '1433:1433'
     steps:
       - name: Set up Go 1.19
         uses: actions/setup-go@v2
