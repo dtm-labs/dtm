@@ -11,8 +11,11 @@ import (
 	"github.com/dtm-labs/logger"
 	_ "github.com/go-sql-driver/mysql" // register mysql driver
 	_ "github.com/lib/pq"              // register postgres driver
+
+	// _ "github.com/microsoft/go-mssqldb" // Microsoft's package conflicts with gorm's package: panic: sql: Register called twice for driver mssql
 	"gorm.io/driver/mysql"
 	"gorm.io/driver/postgres"
+	"gorm.io/driver/sqlserver" // register sqlserver driver,
 	"gorm.io/gorm"
 )
 
@@ -26,6 +29,9 @@ type ModelBase struct {
 func getGormDialetor(driver string, dsn string) gorm.Dialector {
 	if driver == dtmcli.DBTypePostgres {
 		return postgres.Open(dsn)
+	}
+	if driver == dtmcli.DBTypeSqlServer {
+		return sqlserver.Open(dsn)
 	}
 	dtmimp.PanicIf(driver != dtmcli.DBTypeMysql, fmt.Errorf("unknown driver: %s", driver))
 	return mysql.Open(dsn)

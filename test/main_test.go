@@ -53,6 +53,10 @@ func TestMain(m *testing.M) {
 		conf.Store.User = ""
 		conf.Store.Password = ""
 		conf.Store.Port = 6379
+	} else if tenv == config.SqlServer {
+		conf.Store.User = "sa"
+		conf.Store.Password = "p@ssw0rd"
+		conf.Store.Port = 1433
 	}
 	conf.Store.Db = ""
 	registry.WaitStoreUp()

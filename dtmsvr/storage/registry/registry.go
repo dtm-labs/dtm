@@ -37,8 +37,9 @@ var storeFactorys = map[string]StorageFactory{
 			return &redis.Store{}
 		},
 	},
-	"mysql":    sqlFac,
-	"postgres": sqlFac,
+	"mysql":     sqlFac,
+	"postgres":  sqlFac,
+	"sqlserver": sqlFac,
 }
 
 // GetStore returns storage.Store

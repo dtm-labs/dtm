@@ -228,9 +228,24 @@ func GetDsn(conf DBConf) string {
 			conf.User, conf.Password, host, conf.Port, conf.Db),
 		"postgres": fmt.Sprintf("host=%s user=%s password=%s dbname='%s' search_path=%s port=%d sslmode=disable",
 			host, conf.User, conf.Password, conf.Db, conf.Schema, conf.Port),
+		// sqlserver://sa:mypass@localhost:1234?database=master&connection+timeout=30
+		"sqlserver": getSqlServerConnectionString(&conf, &host),
 	}[driver]
 	PanicIf(dsn == "", fmt.Errorf("unknow driver: %s", driver))
 	return dsn
+}
+
+func getSqlServerConnectionString(conf *DBConf, host *string) string {
+	query := url.Values{}
+	query.Add("database", conf.Db)
+	u := &url.URL{
+		Scheme: "sqlserver",
+		User:   url.UserPassword(conf.User, conf.Password),
+		Host:   fmt.Sprintf("%s:%d", *host, conf.Port),
+		// Path:  instance, // if connecting to an instance instead of a port
+		RawQuery: query.Encode(),
+	}
+	return u.String()
 }
 
 // RespAsErrorByJSONRPC  translate json rpc resty response to error

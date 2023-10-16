@@ -78,6 +78,27 @@ func init() {
 	dbSpecials[DBTypePostgres] = &postgresDBSpecial{}
 }
 
+// TODO sqlserver implement (for go client only, not for dtm server)
+type sqlserverDBSpecial struct{}
+
+func (*sqlserverDBSpecial) GetPlaceHoldSQL(sql string) string {
+	// TODO sqlserver implement
+	return sql
+}
+
+func (*sqlserverDBSpecial) GetInsertIgnoreTemplate(tableAndValues string, pgConstraint string) string {
+	// TODO sqlserver implement
+	return ""
+}
+
+func (*sqlserverDBSpecial) GetXaSQL(command string, xid string) string {
+	// TODO sqlserver implement
+	return ""
+}
+func init() {
+	dbSpecials[DBTypeSqlServer] = &sqlserverDBSpecial{}
+}
+
 // GetDBSpecial get DBSpecial for currentDBType
 func GetDBSpecial(dbType string) DBSpecial {
 	if dbType == "" {

@@ -20,6 +20,8 @@ const (
 	BoltDb = "boltdb"
 	// Postgres is postgres driver
 	Postgres = "postgres"
+	// SqlServer is SQL Server driver
+	SqlServer = "sqlserver"
 )
 
 // MicroService config type for microservice based grpc
@@ -65,7 +67,7 @@ type Store struct {
 
 // IsDB checks config driver is mysql or postgres
 func (s *Store) IsDB() bool {
-	return s.Driver == dtmcli.DBTypeMysql || s.Driver == dtmcli.DBTypePostgres
+	return s.Driver == dtmcli.DBTypeMysql || s.Driver == dtmcli.DBTypePostgres || s.Driver == dtmcli.DBTypeSqlServer
 }
 
 // GetDBConf returns db conf info
