@@ -262,13 +262,15 @@ func (t *TransGlobal) execBranch(ctx context.Context, branch *TransBranch, branc
 func (t *TransGlobal) getNextCronInterval(ctype cronType) int64 {
 	if ctype == cronBackoff {
 		return t.NextCronInterval * 2
-	} else if ctype == cronKeep {
-		return t.NextCronInterval
-	} else if t.RetryInterval != 0 {
-		return t.RetryInterval
-	} else if t.TimeoutToFail > 0 && t.TimeoutToFail < conf.RetryInterval {
-		return t.TimeoutToFail
-	} else {
-		return conf.RetryInterval
 	}
+	if ctype == cronKeep {
+		return t.NextCronInterval
+	}
+	if t.RetryInterval != 0 {
+		return t.RetryInterval
+	}
+	if t.TimeoutToFail > 0 && t.TimeoutToFail < conf.RetryInterval {
+		return t.TimeoutToFail
+	}
+	return conf.RetryInterval
 }
