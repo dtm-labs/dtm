@@ -28,7 +28,7 @@
     "fast-glob": "^3.2.11",
     "nprogress": "^0.2.0",
     "pinia": "^2.0.0-rc.10",
-    "postcss": "^8.4.12",
+    "postcss": "^8.4.31",
     "postcss-import": "^14.1.0",
     "postcss-nested": "^5.0.6",
     "postcss-simple-vars": "^6.0.3",
