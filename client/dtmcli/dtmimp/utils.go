@@ -229,13 +229,13 @@ func GetDsn(conf DBConf) string {
 		"postgres": fmt.Sprintf("host=%s user=%s password=%s dbname='%s' search_path=%s port=%d sslmode=disable",
 			host, conf.User, conf.Password, conf.Db, conf.Schema, conf.Port),
 		// sqlserver://sa:mypass@localhost:1234?database=master&connection+timeout=30
-		"sqlserver": getSqlServerConnectionString(&conf, &host),
+		"sqlserver": getSQLServerConnectionString(&conf, &host),
 	}[driver]
 	PanicIf(dsn == "", fmt.Errorf("unknow driver: %s", driver))
 	return dsn
 }
 
-func getSqlServerConnectionString(conf *DBConf, host *string) string {
+func getSQLServerConnectionString(conf *DBConf, host *string) string {
 	query := url.Values{}
 	query.Add("database", conf.Db)
 	u := &url.URL{

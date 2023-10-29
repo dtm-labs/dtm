@@ -30,7 +30,7 @@ func getGormDialetor(driver string, dsn string) gorm.Dialector {
 	if driver == dtmcli.DBTypePostgres {
 		return postgres.Open(dsn)
 	}
-	if driver == dtmcli.DBTypeSqlServer {
+	if driver == dtmcli.DBTypeSQLServer {
 		return sqlserver.Open(dsn)
 	}
 	dtmimp.PanicIf(driver != dtmcli.DBTypeMysql, fmt.Errorf("unknown driver: %s", driver))

@@ -107,7 +107,7 @@ func (s *Store) LockGlobalSaveBranches(gid string, status string, branches []sto
 		g := &storage.TransGlobalStore{}
 		var dbr *gorm.DB
 		// sqlserver sql should be: SELECT * FROM "trans_global" with(RowLock,UpdLock) ,but gorm generates "FOR UPDATE" at the back, raw sql instead.
-		if conf.Store.Driver == config.SqlServer {
+		if conf.Store.Driver == config.SQLServer {
 			dbr = tx.Raw("SELECT * FROM trans_global with(RowLock,UpdLock) WHERE gid=? and status=? ORDER BY id OFFSET 0 ROW FETCH NEXT 1 ROWS ONLY ", gid, status).First(g)
 		} else {
 			dbr = tx.Clauses(clause.Locking{Strength: "UPDATE"}).Model(g).Where("gid=? and status=?", gid, status).First(g)
@@ -169,16 +169,10 @@ func (s *Store) LockOneGlobalTrans(expireIn time.Duration) *storage.TransGlobalS
 	nextCronTime := getTimeStr(int64(expireIn / time.Second))
 	where := fmt.Sprintf(`next_cron_time < '%s' and status in ('prepared', 'aborting', 'submitted')`, nextCronTime)
 
-	order := map[string]string{
-		dtmimp.DBTypeMysql:     `order by rand()`,
-		dtmimp.DBTypePostgres:  `order by random()`,
-		dtmimp.DBTypeSqlServer: `order by rand()`,
-	}[conf.Store.Driver]
-
 	ssql := map[string]string{
-		dtmimp.DBTypeMysql:     fmt.Sprintf(`select id from trans_global where %s %s limit 1`, where, order),
-		dtmimp.DBTypePostgres:  fmt.Sprintf(`select id from trans_global where %s %s limit 1`, where, order),
-		dtmimp.DBTypeSqlServer: fmt.Sprintf(`select top 1 id from trans_global where %s %s`, where, order),
+		dtmimp.DBTypeMysql:     fmt.Sprintf(`select id from trans_global where %s order by rand() limit 1`, where),
+		dtmimp.DBTypePostgres:  fmt.Sprintf(`select id from trans_global where %s order by random() limit 1`, where),
+		dtmimp.DBTypeSQLServer: fmt.Sprintf(`select top 1 id from trans_global where %s order by rand()`, where),
 	}[conf.Store.Driver]
 	var id int64
 	err := db.ToSQLDB().QueryRow(ssql).Scan(&id)
@@ -211,7 +205,7 @@ func (s *Store) ResetCronTime(after time.Duration, limit int64) (succeedCount in
 	where := map[string]string{
 		dtmimp.DBTypeMysql:     fmt.Sprintf(`next_cron_time > '%s' and status in ('prepared', 'aborting', 'submitted') limit %d`, nextCronTime, limit),
 		dtmimp.DBTypePostgres:  fmt.Sprintf(`id in (select id from trans_global where next_cron_time > '%s' and status in ('prepared', 'aborting', 'submitted') limit %d )`, nextCronTime, limit),
-		dtmimp.DBTypeSqlServer: fmt.Sprintf(`id in (select top %d id from trans_global where next_cron_time > '%s' and status in ('prepared', 'aborting', 'submitted') )`, limit, nextCronTime),
+		dtmimp.DBTypeSQLServer: fmt.Sprintf(`id in (select top %d id from trans_global where next_cron_time > '%s' and status in ('prepared', 'aborting', 'submitted') )`, limit, nextCronTime),
 	}[conf.Store.Driver]
 
 	sql := fmt.Sprintf(`UPDATE trans_global SET update_time='%s',next_cron_time='%s' WHERE %s`,
@@ -329,7 +323,7 @@ func wrapError(err error) error {
 }
 
 func getTimeStr(afterSecond int64) string {
-	if conf.Store.Driver == config.SqlServer {
+	if conf.Store.Driver == config.SQLServer {
 		return dtmutil.GetNextTime(afterSecond).Format(time.RFC3339)
 	}
 	return dtmutil.GetNextTime(afterSecond).Format("2006-01-02 15:04:05")

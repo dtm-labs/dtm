@@ -35,8 +35,8 @@ const (
 	DBTypeMysql = dtmimp.DBTypeMysql
 	// DBTypePostgres const for driver postgres
 	DBTypePostgres = dtmimp.DBTypePostgres
-	// DBTypeSqlServer const for driver SqlServer
-	DBTypeSqlServer = dtmimp.DBTypeSqlServer
+	// DBTypeSQLServer const for driver SQLServer
+	DBTypeSQLServer = dtmimp.DBTypeSQLServer
 )
 
 // MapSuccess HTTP result of SUCCESS

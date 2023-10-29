@@ -53,7 +53,7 @@ func TestMain(m *testing.M) {
 		conf.Store.User = ""
 		conf.Store.Password = ""
 		conf.Store.Port = 6379
-	} else if tenv == config.SqlServer {
+	} else if tenv == config.SQLServer {
 		conf.Store.User = "sa"
 		conf.Store.Password = "p@ssw0rd"
 		conf.Store.Port = 1433

@@ -96,7 +96,7 @@ func (*sqlserverDBSpecial) GetXaSQL(command string, xid string) string {
 	return ""
 }
 func init() {
-	dbSpecials[DBTypeSqlServer] = &sqlserverDBSpecial{}
+	dbSpecials[DBTypeSQLServer] = &sqlserverDBSpecial{}
 }
 
 // GetDBSpecial get DBSpecial for currentDBType
