@@ -207,7 +207,9 @@ func DBExec(dbType string, db DB, sql string, values ...interface{}) (affected i
 		return 0, nil
 	}
 	began := time.Now()
-	sql = GetDBSpecial(dbType).GetPlaceHoldSQL(sql)
+	if len(values) > 0 {
+		sql = GetDBSpecial(dbType).GetPlaceHoldSQL(sql)
+	}
 	r, rerr := db.Exec(sql, values...)
 	used := time.Since(began) / time.Millisecond
 	if rerr == nil {
