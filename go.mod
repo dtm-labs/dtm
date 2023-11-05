@@ -8,7 +8,7 @@ require (
 	github.com/dtm-labs/dtmdriver-dapr v0.0.1
 	github.com/dtm-labs/dtmdriver-ego v0.1.8
 	github.com/dtm-labs/dtmdriver-gozero v0.0.7
-	github.com/dtm-labs/dtmdriver-kratos v0.0.9
+	github.com/dtm-labs/dtmdriver-kratos v0.0.10
 	github.com/dtm-labs/dtmdriver-polaris v0.0.5
 	github.com/dtm-labs/dtmdriver-springcloud v1.2.3
 	github.com/dtm-labs/logger v0.0.2

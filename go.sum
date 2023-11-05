@@ -958,8 +958,8 @@ github.com/dtm-labs/dtmdriver-ego v0.1.8 h1:nS8euCVSg5BSl3QHDIb89uDoRJqjtvcGvWyi
 github.com/dtm-labs/dtmdriver-ego v0.1.8/go.mod h1:vvYMNetDVNUtiCAVRy3OutRCiQRT0fEwdWzouCPL9JY=
 github.com/dtm-labs/dtmdriver-gozero v0.0.7 h1:EmbP0tFjczBfk+FJaPbK2Ikzyb3V5f0rn2JH1eHCVRo=
 github.com/dtm-labs/dtmdriver-gozero v0.0.7/go.mod h1:OLz0vfGkWTWK24V1Ed69lWRqu5ROXNhQM7p/oRxgdgs=
-github.com/dtm-labs/dtmdriver-kratos v0.0.9 h1:X9gF0yGrPefq7PH1Yy+RJwUvXY+kyZeiZPofD46Y8dw=
-github.com/dtm-labs/dtmdriver-kratos v0.0.9/go.mod h1:aLy3llapyW89JXAkFT2QLK8SHLnLctsPEBpNVz73rV4=
+github.com/dtm-labs/dtmdriver-kratos v0.0.10 h1:M46un8T47BIiSmuQSBhAEbqQx6wgYSyY0x7IaAVvJi4=
+github.com/dtm-labs/dtmdriver-kratos v0.0.10/go.mod h1:aLy3llapyW89JXAkFT2QLK8SHLnLctsPEBpNVz73rV4=
 github.com/dtm-labs/dtmdriver-polaris v0.0.5 h1:vlM3mvkgYv6GkgK49Jx1ESvYTi2Os5OdsLsvfMtrNJw=
 github.com/dtm-labs/dtmdriver-polaris v0.0.5/go.mod h1:FYF5ot7LCri5oA0qyvGzDRBZiMw08WlxjmFgzFQhIvo=
 github.com/dtm-labs/dtmdriver-springcloud v1.2.3 h1:AutSnngy+inr0PYoAT6pY/4Cw4aUZNq1pX7VN4j7tD8=
