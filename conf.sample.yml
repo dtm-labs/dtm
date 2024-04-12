@@ -12,6 +12,8 @@
 #   Password: ''
 #   Port: 3306
 #   Db: 'dtm'
+#   Ca: '' # path to ca file
+#   Tsl: 'false' # default false, set true if use ssl
 
 #   Driver: 'boltdb' # default store engine
 
