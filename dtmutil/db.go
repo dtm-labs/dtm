@@ -1,6 +1,8 @@
 package dtmutil
 
 import (
+	"crypto/tls"
+	"crypto/x509"
 	"database/sql"
 	"fmt"
 	"sync"
@@ -9,7 +11,7 @@ import (
 	"github.com/dtm-labs/dtm/client/dtmcli"
 	"github.com/dtm-labs/dtm/client/dtmcli/dtmimp"
 	"github.com/dtm-labs/logger"
-	_ "github.com/go-sql-driver/mysql" // register mysql driver
+	mysql_driver "github.com/go-sql-driver/mysql" // register mysql driver
 	_ "github.com/lib/pq"              // register postgres driver
 
 	// _ "github.com/microsoft/go-mssqldb" // Microsoft's package conflicts with gorm's package: panic: sql: Register called twice for driver mssql
@@ -26,7 +28,16 @@ type ModelBase struct {
 	UpdateTime *time.Time `json:"update_time" gorm:"autoUpdateTime"`
 }
 
-func getGormDialetor(driver string, dsn string) gorm.Dialector {
+func registerMysqlCA(caPath string) {
+	rootCertPool := x509.NewCertPool()
+	pem, _ := os.ReadFile(caPath)
+	if ok := rootCertPool.AppendCertsFromPEM(pem); !ok {
+		logger.Errorf("Failed to append PEM.")
+	}
+	mysql_driver.RegisterTLSConfig("custom", &tls.Config{RootCAs: rootCertPool})
+}
+
+func getGormDialetor(driver string, dsn string, ca string) gorm.Dialector {
 	if driver == dtmcli.DBTypePostgres {
 		return postgres.Open(dsn)
 	}
@@ -34,6 +45,9 @@ func getGormDialetor(driver string, dsn string) gorm.Dialector {
 		return sqlserver.Open(dsn)
 	}
 	dtmimp.PanicIf(driver != dtmcli.DBTypeMysql, fmt.Errorf("unknown driver: %s", driver))
+	if ca != "" {
+		registerMysqlCA(ca)
+	}
 	return mysql.Open(dsn)
 }
 
@@ -106,8 +120,8 @@ func DbGet(conf dtmcli.DBConf, ops ...func(*gorm.DB)) *DB {
 	dsn := dtmimp.GetDsn(conf)
 	db, ok := dbs.Load(dsn)
 	if !ok {
-		logger.Infof("connecting '%s' '%s' '%s' '%d' '%s'", conf.Driver, conf.Host, conf.User, conf.Port, conf.Db)
-		db1, err := gorm.Open(getGormDialetor(conf.Driver, dsn), &gorm.Config{
+		logger.Infof("connecting '%s' '%s' '%s' '%d' '%s', '%s', '%s'", conf.Driver, conf.Host, conf.User, conf.Port, conf.Db, conf.Ca, conf.Tls)
+		db1, err := gorm.Open(getGormDialetor(conf.Driver, dsn, conf.Ca), &gorm.Config{
 			SkipDefaultTransaction: true,
 		})
 		dtmimp.E2P(err)

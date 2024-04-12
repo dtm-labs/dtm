@@ -226,8 +226,8 @@ func GetDsn(conf DBConf) string {
 	host := MayReplaceLocalhost(conf.Host)
 	driver := conf.Driver
 	dsn := map[string]string{
-		"mysql": fmt.Sprintf("%s:%s@tcp(%s:%d)/%s?charset=utf8mb4&parseTime=true&loc=Local&interpolateParams=true",
-			conf.User, conf.Password, host, conf.Port, conf.Db),
+		"mysql": fmt.Sprintf("%s:%s@tcp(%s:%d)/%s?charset=utf8mb4&parseTime=true&loc=Local&interpolateParams=true&tls=%s",
+			conf.User, conf.Password, host, conf.Port, conf.Db, conf.Tls),
 		"postgres": fmt.Sprintf("host=%s user=%s password=%s dbname='%s' search_path=%s port=%d sslmode=disable",
 			host, conf.User, conf.Password, conf.Db, conf.Schema, conf.Port),
 		// sqlserver://sa:mypass@localhost:1234?database=master&connection+timeout=30

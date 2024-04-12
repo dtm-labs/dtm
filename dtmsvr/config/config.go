@@ -56,6 +56,8 @@ type Store struct {
 	User               string `yaml:"User"`
 	Password           string `yaml:"Password"`
 	Db                 string `yaml:"Db" default:"dtm"`
+	Ca                 string `yaml:"Ca" default:""`
+	Tls                string `yaml:"Tls" default:"false"`
 	Schema             string `yaml:"Schema" default:"public"`
 	MaxOpenConns       int64  `yaml:"MaxOpenConns" default:"500"`
 	MaxIdleConns       int64  `yaml:"MaxIdleConns" default:"500"`
@@ -80,6 +82,8 @@ func (s *Store) GetDBConf() dtmcli.DBConf {
 		Password: s.Password,
 		Db:       s.Db,
 		Schema:   s.Schema,
+		Ca:       s.Ca,
+		Tls:      s.Tls,
 	}
 }
 
