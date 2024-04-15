@@ -8,7 +8,7 @@ package dtmimp
 
 import "database/sql"
 
-// DB inteface of dtmcli db
+// DB interface of dtmcli db
 type DB interface {
 	Exec(query string, args ...interface{}) (sql.Result, error)
 	QueryRow(query string, args ...interface{}) *sql.Row

@@ -61,20 +61,20 @@ func ExecuteCtx(ctx context.Context, name string, gid string, data []byte) ([]by
 }
 
 // Execute is the same as ExecuteCtx, but with context.Background
-// Deprecated: use ExecuteCtx instaead
+// Deprecated: use ExecuteCtx instead
 func Execute(name string, gid string, data []byte) error {
 	_, err := ExecuteCtx(context.Background(), name, gid, data)
 	return err
 }
 
 // Execute2 is the same as Execute, but workflow func can return result
-// Deprecated: use ExecuteCtx instaead
+// Deprecated: use ExecuteCtx instead
 func Execute2(name string, gid string, data []byte) ([]byte, error) {
 	return ExecuteCtx(context.Background(), name, gid, data)
 }
 
 // ExecuteByQS is like Execute, but name and gid will be obtained from qs
-// Deprecated: use ExecuteCtx instaead
+// Deprecated: use ExecuteCtx instead
 func ExecuteByQS(qs url.Values, body []byte) error {
 	name := qs.Get("op")
 	gid := qs.Get("gid")

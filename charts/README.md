@@ -42,12 +42,12 @@ helm delete -n dtm-system dtm
 
 ### Ingress parameters
 
-| Key                            | Description                                                                      | Value               |
-|--------------------------------|----------------------------------------------------------------------------------|---------------------|
-| `ingress.enabled`              | Enable ingress record generation for DTM                                         | `false`             |
-| `ingress.className`            | IngressClass that will be be used to implement the Ingress (Kubernetes 1.18+)    | `"nginx"`           |
+| Key                            | Description                                                                   | Value               |
+|--------------------------------|-------------------------------------------------------------------------------|---------------------|
+| `ingress.enabled`              | Enable ingress record generation for DTM                                      | `false`             |
+| `ingress.className`            | IngressClass that will be used to implement the Ingress (Kubernetes 1.18+)    | `"nginx"`           |
 | `ingress.annotations`          | To enable certificate auto generation, place here your cert-manager annotations. | `{}`                |
-| `ingress.hosts.host`           | Default host for the ingress record.                                             | `"your-domain.com"` |
-| `ingress.hosts.paths.path`     | Default path for the ingress record                                              | `"/"`               |
-| `ingress.hosts.paths.pathType` | Ingress path type                                                                | `"Prefix"`          |
-| `ingress.tls`                  | Enable TLS configuration for the host defined at ingress.hostname parameter      | `[]`                |
+| `ingress.hosts.host`           | Default host for the ingress record.                                          | `"your-domain.com"` |
+| `ingress.hosts.paths.path`     | Default path for the ingress record                                           | `"/"`               |
+| `ingress.hosts.paths.pathType` | Ingress path type                                                             | `"Prefix"`          |
+| `ingress.tls`                  | Enable TLS configuration for the host defined at ingress.hostname parameter   | `[]`                |
