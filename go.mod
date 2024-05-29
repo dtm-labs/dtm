@@ -27,7 +27,7 @@ require (
 	go.mongodb.org/mongo-driver v1.11.6
 	go.uber.org/automaxprocs v1.5.1
 	google.golang.org/grpc v1.56.3
-	google.golang.org/protobuf v1.31.0
+	google.golang.org/protobuf v1.33.0
 	gopkg.in/yaml.v3 v3.0.1
 	gorm.io/driver/mysql v1.0.3
 	gorm.io/driver/postgres v1.2.1
