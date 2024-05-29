@@ -44,7 +44,7 @@ func (*UserAccount) TableName() string {
 func GetBalanceByUID(uid int, store string) int {
 	if store == "redis" {
 		rd := RedisGet()
-		accA, err := rd.Get(rd.Context(), GetRedisAccountKey(uid)).Result()
+		accA, err := rd.Get(context.Background(), GetRedisAccountKey(uid)).Result()
 		dtmimp.E2P(err)
 		return dtmimp.MustAtoi(accA)
 	} else if store == "mongo" {
