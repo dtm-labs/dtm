@@ -16,8 +16,8 @@ import (
 	"github.com/dtm-labs/dtm/dtmutil"
 	"github.com/dtm-labs/logger"
 	"github.com/gin-gonic/gin"
-	"github.com/go-redis/redis/v8"
 	"github.com/go-resty/resty/v2"
+	"github.com/redis/go-redis/v9"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
@@ -131,12 +131,12 @@ func oldWrapHandler(fn func(*gin.Context) (interface{}, error)) gin.HandlerFunc 
 }
 
 var (
-	rdb  *redis.Client
+	rdb  redis.Cmdable
 	once sync.Once
 )
 
 // RedisGet 1
-func RedisGet() *redis.Client {
+func RedisGet() redis.Cmdable {
 	once.Do(func() {
 		logger.Debugf("connecting to client redis")
 		rdb = redis.NewClient(&redis.Options{
@@ -170,9 +170,9 @@ func MongoGet() *mongo.Client {
 // SetRedisBothAccount 1
 func SetRedisBothAccount(amountA int, ammountB int) {
 	rd := RedisGet()
-	_, err := rd.Set(rd.Context(), GetRedisAccountKey(TransOutUID), amountA, 0).Result()
+	_, err := rd.Set(context.Background(), GetRedisAccountKey(TransOutUID), amountA, 0).Result()
 	dtmimp.E2P(err)
-	_, err = rd.Set(rd.Context(), GetRedisAccountKey(TransInUID), ammountB, 0).Result()
+	_, err = rd.Set(context.Background(), GetRedisAccountKey(TransInUID), ammountB, 0).Result()
 	dtmimp.E2P(err)
 }
 

@@ -11,6 +11,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"strings"
 	"sync"
 	"time"
 
@@ -19,7 +20,7 @@ import (
 	"github.com/dtm-labs/dtm/dtmsvr/storage"
 	"github.com/dtm-labs/dtm/dtmutil"
 	"github.com/dtm-labs/logger"
-	"github.com/go-redis/redis/v8"
+	"github.com/redis/go-redis/v9"
 )
 
 // TODO: optimize this, it's very strange to use pointer to dtmutil.Config
@@ -506,18 +507,27 @@ redis.call('SET', KEYS[1], ARGV[1])
 }
 
 var (
-	rdb  *redis.Client
+	rdb  redis.Cmdable
 	once sync.Once
 )
 
-func redisGet() *redis.Client {
+func redisGet() redis.Cmdable {
 	once.Do(func() {
 		logger.Debugf("connecting to redis: %v", conf.Store)
-		rdb = redis.NewClient(&redis.Options{
-			Addr:     fmt.Sprintf("%s:%d", conf.Store.Host, conf.Store.Port),
-			Username: conf.Store.User,
-			Password: conf.Store.Password,
-		})
+		endpoints := strings.Split(conf.Store.Host, ",")
+		if len(endpoints) == 1 {
+			rdb = redis.NewClient(&redis.Options{
+				Addr:     fmt.Sprintf("%s:%d", conf.Store.Host, conf.Store.Port),
+				Username: conf.Store.User,
+				Password: conf.Store.Password,
+			})
+		} else {
+			rdb = redis.NewClusterClient(&redis.ClusterOptions{
+				Addrs:    endpoints,
+				Username: conf.Store.User,
+				Password: conf.Store.Password,
+			})
+		}
 	})
 	return rdb
 }

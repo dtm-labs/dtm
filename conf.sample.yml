@@ -16,10 +16,10 @@
 #   Driver: 'boltdb' # default store engine
 
 #   Driver: 'redis'
-#   Host: 'localhost'
+#   Host: 'localhost' # host1:port1,host2:port2 for cluster connection
 #   User: ''
 #   Password: ''
-#   Port: 6379
+#   Port: 6379 # required but won't be used for cluster connection
 
 #   Driver: 'postgres'
 #   Host: 'localhost'
