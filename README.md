@@ -29,8 +29,8 @@ DTM is a distributed transaction framework which provides cross-service eventual
 * Support for multiple transaction modes: SAGA, TCC, XA, Workflow, Outbox
 * Multiple languages support: SDK for Go, Java, PHP, C#, Python, Nodejs
 * Better Outbox: 2-phase messages, a more elegant solution than Outbox, support multi-databases
-* Multiple database transaction support: Mysql, Redis, MongoDB, Postgres, TDSQL, etc.
-* Support for multiple storage engines: Mysql (common), Redis (high performance), BoltDB (dev&test), MongoDB (under planning)
+* Multiple database transaction support: MySQL/MariaDB, Redis, MongoDB, Postgres, TDSQL, etc.
+* Support for multiple storage engines: MySQL/MariaDB (common), Redis (high performance), BoltDB (dev&test), MongoDB (under planning)
 * Support for multiple microservices architectures: [go-zero](https://github.com/zeromicro/go-zero), go-kratos/kratos, polarismesh/polaris
 * Support for high availability and easy horizontal scaling
 
