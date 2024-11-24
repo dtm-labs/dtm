@@ -7,14 +7,14 @@
 package dtmgimp
 
 import (
-	context "context"
+	"context"
 
 	"github.com/dtm-labs/dtm/client/dtmcli/dtmimp"
 	"github.com/dtm-labs/dtm/client/dtmgrpc/dtmgpb"
 	"github.com/dtm-labs/logger"
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/protobuf/proto"
-	emptypb "google.golang.org/protobuf/types/known/emptypb"
+	"google.golang.org/protobuf/types/known/emptypb"
 )
 
 // MustProtoMarshal must version of proto.Marshal
@@ -77,7 +77,7 @@ func TransInfo2Ctx(ctx context.Context, gid, transType, branchID, op, dtm string
 
 // Map2Kvs map to metadata kv
 func Map2Kvs(m map[string]string) []string {
-	kvs := []string{}
+	kvs := make([]string, 0, len(m)*2)
 	for k, v := range m {
 		kvs = append(kvs, k, v)
 	}
