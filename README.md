@@ -100,7 +100,7 @@ logger.Infof("result of workflow.Execute is: %v", err)
 When the above code runs, we can see in the console that services `TransOut`, `TransIn` has been called.
 
 #### Rollback upon failure
-If any forward operation fails, DTM invokes the corresponding compensating operation of each sub-transaction to roll back, after which the transaction is successfully rolled back.
+If any forward operation fails, DTM invokes the corresponding compensating operation of each sub-transaction to roll back, after which the  transaction is successfully rolled back.
 
 Let's purposely trigger the failure of the second sub-transaction and watch what happens
 
