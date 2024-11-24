@@ -1,6 +1,6 @@
 module github.com/dtm-labs/dtm
 
-go 1.18
+go 1.21
 
 require (
 	github.com/agiledragon/gomonkey/v2 v2.2.0
