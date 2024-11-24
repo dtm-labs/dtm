@@ -22,7 +22,7 @@
     "@typescript-eslint/parser": "^5.18.0",
     "@vitejs/plugin-vue": "^4.0.0",
     "autoprefixer": "^10.4.4",
-    "axios": "^1.6.0",
+    "axios": "^1.7.4",
     "eslint": "^8.33.0",
     "eslint-plugin-vue": "^8.6.0",
     "fast-glob": "^3.2.11",
