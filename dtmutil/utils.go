@@ -10,7 +10,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -37,7 +37,7 @@ func GetGinApp() *gin.Engine {
 			dtmimp.E2P(err)
 			if len(rb) > 0 {
 				body = string(rb)
-				c.Request.Body = ioutil.NopCloser(bytes.NewBuffer(rb))
+				c.Request.Body = io.NopCloser(bytes.NewBuffer(rb))
 			}
 		}
 		logger.Debugf("begin %s %s body: %s", c.Request.Method, c.Request.URL, body)
@@ -160,7 +160,7 @@ func RunSQLScript(conf dtmcli.DBConf, script string, skipDrop bool) {
 	con, err := dtmimp.StandaloneDB(conf)
 	logger.FatalIfError(err)
 	defer func() { _ = con.Close() }()
-	content, err := ioutil.ReadFile(script)
+	content, err := os.ReadFile(script)
 	logger.FatalIfError(err)
 	sqls := strings.Split(string(content), ";")
 	for _, sql := range sqls {

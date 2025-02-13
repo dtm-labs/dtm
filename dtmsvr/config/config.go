@@ -2,7 +2,7 @@ package config
 
 import (
 	"encoding/json"
-	"io/ioutil"
+	"os"
 
 	"github.com/dtm-labs/dtm/client/dtmcli"
 	"github.com/dtm-labs/logger"
@@ -113,7 +113,7 @@ var Config = Type{}
 func MustLoadConfig(confFile string) {
 	loadFromEnv("", &Config)
 	if confFile != "" {
-		cont, err := ioutil.ReadFile(confFile)
+		cont, err := os.ReadFile(confFile)
 		logger.FatalIfError(err)
 		err = yaml.Unmarshal(cont, &Config)
 		logger.FatalIfError(err)

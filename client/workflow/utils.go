@@ -3,7 +3,7 @@ package workflow
 import (
 	"bytes"
 	"errors"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"strconv"
 
@@ -71,8 +71,8 @@ func newRoundTripper(old http.RoundTripper, wf *Workflow) http.RoundTripper {
 // HTTPResp2DtmError check for dtm error and return it
 func HTTPResp2DtmError(resp *http.Response) ([]byte, error) {
 	code := resp.StatusCode
-	data, err := ioutil.ReadAll(resp.Body)
-	resp.Body = ioutil.NopCloser(bytes.NewBuffer(data))
+	data, err := io.ReadAll(resp.Body)
+	resp.Body = io.NopCloser(bytes.NewBuffer(data))
 	if code == http.StatusTooEarly {
 		return data, dtmcli.ErrorMessage2Error(string(data), dtmcli.ErrOngoing)
 	} else if code == http.StatusConflict {
