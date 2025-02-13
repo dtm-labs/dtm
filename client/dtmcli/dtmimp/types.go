@@ -23,4 +23,5 @@ type DBConf struct {
 	Password string `yaml:"Password"`
 	Db       string `yaml:"Db"`
 	Schema   string `yaml:"Schema"`
+	SSLMode  string `yaml:"SSLMode"`
 }
