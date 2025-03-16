@@ -19,6 +19,9 @@ func TestLoadFromEnv(t *testing.T) {
 
 func TestLoadConfig(t *testing.T) {
 	MustLoadConfig("../../conf.sample.yml")
+
+	//assert default value
+	assert.Equal(t, int64(1), Config.UpdateBranchSync)
 }
 func TestCheckConfig(t *testing.T) {
 	conf := Config
