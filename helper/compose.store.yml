@@ -1,7 +1,7 @@
 version: '3.3'
 services:
   mysql:
-    image: 'mysql:5.7'
+    image: 'mysql:8'
     volumes:
       - /etc/localtime:/etc/localtime:ro
     environment:

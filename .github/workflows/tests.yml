@@ -13,7 +13,7 @@ jobs:
     runs-on: ubuntu-latest
     services:
       mysql:
-        image: 'mysql:5.7'
+        image: 'mysql:8'
         env:
           MYSQL_ALLOW_EMPTY_PASSWORD: 1
         volumes:
