@@ -36,6 +36,8 @@ func svcSubmit(t *TransGlobal) interface{} {
 		} else if dbt.Status != dtmcli.StatusSubmitted {
 			return fmt.Errorf("current status '%s', cannot sumbmit. %w", dbt.Status, dtmcli.ErrFailure)
 		}
+	} else if err != nil {
+		return err
 	}
 	return t.Process(branches)
 }
