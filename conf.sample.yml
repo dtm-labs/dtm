@@ -28,6 +28,7 @@
 #   Port: '5432'
 #   Db: 'postgres'
 #   Schema: 'public' # default value is 'public'
+#   SSLMode: 'disable' # default value is 'disable'
 
 ### following config is for only Driver postgres/mysql
 #   MaxOpenConns: 500
