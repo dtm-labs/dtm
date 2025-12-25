@@ -96,7 +96,7 @@ type Type struct {
 	JSONRPCPort                   int64            `yaml:"JsonRpcPort" default:"36791"`
 	MicroService                  MicroService     `yaml:"MicroService"`
 	HTTPMicroService              HTTPMicroService `yaml:"HttpMicroService"`
-	UpdateBranchSync              int64            `yaml:"UpdateBranchSync"`
+	UpdateBranchSync              int64            `yaml:"UpdateBranchSync" default:"1"`
 	UpdateBranchAsyncGoroutineNum int64            `yaml:"UpdateBranchAsyncGoroutineNum" default:"1"`
 	LogLevel                      string           `yaml:"LogLevel" default:"info"`
 	Log                           Log              `yaml:"Log"`
