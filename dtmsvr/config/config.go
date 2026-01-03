@@ -64,6 +64,7 @@ type Store struct {
 	DataExpire         int64  `yaml:"DataExpire" default:"604800"`        // Trans data will expire in 7 days. only for redis/boltdb.
 	FinishedDataExpire int64  `yaml:"FinishedDataExpire" default:"86400"` // finished Trans data will expire in 1 days. only for redis.
 	RedisPrefix        string `yaml:"RedisPrefix" default:"{a}"`          // Redis storage prefix. store data to only one slot in cluster
+	SSLMode            string `yaml:"SSLMode" default:"disable"`
 }
 
 // IsDB checks config driver is mysql or postgres
@@ -81,6 +82,7 @@ func (s *Store) GetDBConf() dtmcli.DBConf {
 		Password: s.Password,
 		Db:       s.Db,
 		Schema:   s.Schema,
+		SSLMode:  s.SSLMode,
 	}
 }
 
