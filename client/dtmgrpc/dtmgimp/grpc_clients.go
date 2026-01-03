@@ -8,6 +8,7 @@ package dtmgimp
 
 import (
 	"fmt"
+	"os"
 	"sync"
 
 	"github.com/dtm-labs/dtm/client/dtmcli/dtmimp"
@@ -39,6 +40,9 @@ var normalClients, rawClients sync.Map
 // ClientInterceptors declares grpc.UnaryClientInterceptors slice
 var ClientInterceptors = []grpc.UnaryClientInterceptor{}
 
+// GrpcServiceConfigGetter is a function to get gRPC service config, can be set by server config
+var GrpcServiceConfigGetter func() string
+
 // MustGetDtmClient 1
 func MustGetDtmClient(grpcServer string) dtmgpb.DtmClient {
 	return dtmgpb.NewDtmClient(MustGetGrpcConn(grpcServer, false))
@@ -61,7 +65,12 @@ func GetGrpcConn(grpcServer string, isRaw bool) (conn *grpc.ClientConn, rerr err
 		interceptors := append(ClientInterceptors, GrpcClientLog)
 		interceptors = append(interceptors, dtmdriver.Middlewares.Grpc...)
 		inOpt := grpc.WithChainUnaryInterceptor(interceptors...)
-		conn, rerr := grpc.Dial(grpcServer, inOpt, grpc.WithTransportCredentials(insecure.NewCredentials()), opts)
+		grpcServiceConfig, hasConfig := getGrpcServiceConfig()
+		dialOpts := []grpc.DialOption{inOpt, grpc.WithTransportCredentials(insecure.NewCredentials()), opts}
+		if hasConfig {
+			dialOpts = append(dialOpts, grpc.WithDefaultServiceConfig(grpcServiceConfig))
+		}
+		conn, rerr := grpc.Dial(grpcServer, dialOpts...)
 		if rerr == nil {
 			clients.Store(grpcServer, conn)
 			v = conn
@@ -76,4 +85,21 @@ func MustGetGrpcConn(grpcServer string, isRaw bool) *grpc.ClientConn {
 	conn, err := GetGrpcConn(grpcServer, isRaw)
 	dtmimp.E2P(err)
 	return conn
+}
+
+// getGrpcServiceConfig returns the gRPC service config from config getter or environment variable, and a bool indicating if config is set
+func getGrpcServiceConfig() (string, bool) {
+	// First try to get from config getter (set by server)
+	if GrpcServiceConfigGetter != nil {
+		if config := GrpcServiceConfigGetter(); config != "" {
+			return config, true
+		}
+	}
+	// Fallback to environment variable
+	config := os.Getenv("GRPC_SERVICE_CONFIG")
+	if config != "" {
+		return config, true
+	}
+	// No config set
+	return "", false
 }

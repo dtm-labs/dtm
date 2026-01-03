@@ -5,6 +5,7 @@ import (
 	"io/ioutil"
 
 	"github.com/dtm-labs/dtm/client/dtmcli"
+	"github.com/dtm-labs/dtm/client/dtmgrpc/dtmgimp"
 	"github.com/dtm-labs/logger"
 	"gopkg.in/yaml.v3"
 )
@@ -104,6 +105,7 @@ type Type struct {
 	AlertRetryLimit               int64            `yaml:"AlertRetryLimit" default:"3"`
 	AlertWebHook                  string           `yaml:"AlertWebHook"`
 	AdminBasePath                 string           `yaml:"AdminBasePath"`
+	GrpcServiceConfig             string           `yaml:"GrpcServiceConfig" default:"{\"loadBalancingConfig\": [{\"round_robin\":{}}]}"`
 }
 
 // Config config
@@ -124,4 +126,12 @@ func MustLoadConfig(confFile string) {
 	err = checkConfig(&Config)
 	logger.FatalfIf(err != nil, `config error: '%v'.
 	please visit http://d.dtm.pub to see the config document.`, err)
+	// Set gRPC service config for client library
+	if Config.GrpcServiceConfig == "" {
+		Config.GrpcServiceConfig = `{"loadBalancingConfig": [{"round_robin":{}}]}`
+	}
+	// Set config getter function for client library to read config directly
+	dtmgimp.GrpcServiceConfigGetter = func() string {
+		return Config.GrpcServiceConfig
+	}
 }
