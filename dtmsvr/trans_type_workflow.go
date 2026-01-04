@@ -42,7 +42,6 @@ func (t *transWorkflowProcessor) ProcessOnce(ctx context.Context, branches []Tra
 		data = dtmgimp.MustProtoMarshal(&wd)
 	}
 	err := t.getURLResult(ctx, t.QueryPrepared, "00", cmc.Name, data)
-	// if time pass 1500ms and NextCronInterval is not default, then reset NextCronInterval
 	if err == dtmimp.ErrOngoing {
 		t.touchCronTime(cronKeep, 0)
 	} else if err != nil {

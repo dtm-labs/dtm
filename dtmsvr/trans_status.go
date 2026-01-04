@@ -232,7 +232,7 @@ func (t *TransGlobal) execBranch(ctx context.Context, branch *TransBranch, branc
 		t.changeBranchStatus(branch, status, branchPos)
 	}
 	branchMetrics(t, branch, status == dtmcli.StatusSucceed)
-
+	// if time pass 1500ms and NextCronInterval is not default, then reset NextCronInterval
 	if err == nil && (time.Since(t.lastTouched)+NowForwardDuration >= 1500*time.Millisecond ||
 		t.NextCronInterval > conf.RetryInterval && t.NextCronInterval > t.RetryInterval) {
 		t.touchCronTime(cronReset, 0)
