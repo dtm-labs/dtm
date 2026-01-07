@@ -93,6 +93,12 @@ func svcResetNextCronTime(t *TransGlobal) error {
 	return dbt.resetNextCronTime()
 }
 
+func svcSetNextCronTime(t *TransGlobal, dt *time.Time) error {
+	dbt := GetTransGlobal(t.Gid)
+	dbt.NextCronTime = dt
+	return dbt.setNextCronTime()
+}
+
 func svcRegisterBranch(transType string, branch *TransBranch, data map[string]string) error {
 	branches := []TransBranch{*branch, *branch}
 	if transType == "tcc" {

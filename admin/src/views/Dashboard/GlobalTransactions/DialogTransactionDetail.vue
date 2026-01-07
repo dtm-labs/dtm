@@ -26,6 +26,21 @@
                 class="action-button"                    
                 @confirm="handleSetNextCronTimeToNow(<string>transaction?.gid)"            >
                 <a-button type="default">Reset next cron time</a-button>
+            </a-popconfirm>           
+            <a-date-picker
+                v-model:value="nextCronTimeInput"
+                format="YYYY-MM-DD HH:mm:ss"
+                placeholder="Set NextCronTime"
+                show-time
+            />            
+            <a-popconfirm
+                title="Set next cron time?"
+                ok-text="Yes, reset"                
+                cancel-text="No"
+                class="action-button"
+                :disabled="!nextCronTimeInput"
+                @confirm="handleSetNextCronTime(<string>transaction?.gid)"            >
+                <a-button type="default" :disabled="!nextCronTimeInput">Set next cron time</a-button>
             </a-popconfirm>
             <a-descriptions bordered size="small" :column="{ xxl: 4, xl: 3, lg: 3, md: 3, sm: 2, xs: 1 }">
                 <a-descriptions-item label="Status">                          
@@ -61,7 +76,7 @@ import { getTransaction } from '/@/api/api_dtm'
 import screenfull from '/@/components/Screenfull/index.vue'
 import { useRoute } from 'vue-router';
 import { string } from 'vue-types';
-import { forceStopTransaction, resetNextCronTime } from '/@/api/api_dtm'
+import { forceStopTransaction, resetNextCronTime, setNextCronTime } from '/@/api/api_dtm'
 // import VueJsonPretty from 'vue-json-pretty';
 // import 'vue-json-pretty/lib/styles.css'
 const route = useRoute();
@@ -72,6 +87,7 @@ const transaction = ref<Transaction>()
 const visible = ref(false)
 const textVal = ref('')
 const closeable = ref(true)
+const nextCronTimeInput = ref()
 
 
 let _gid = <string>route.params.gid;
@@ -134,6 +150,11 @@ const handleTransactionStop = async(gid: string) => {
 
 const handleSetNextCronTimeToNow = async(gid: string) => {
     await resetNextCronTime(gid);
+    refresh();
+}
+
+const handleSetNextCronTime = async(gid: string) => {
+    await setNextCronTime(gid, nextCronTimeInput.value);
     refresh();
 }
 

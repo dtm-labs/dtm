@@ -100,6 +100,14 @@ export function resetNextCronTime(gid: string): Promise<AxiosResponse> {
     })
 }
 
+export function setNextCronTime(gid: string, time: Date): Promise<AxiosResponse> {
+    return request({
+        url: '/api/dtmsvr/setNextCronTime',
+        method: 'post',
+        data: { gid,  next_cron_time: time}    
+    })
+}
+
 export function getDtmVersion(): Promise<AxiosResponse<any>> {
     return request({
         url: '/api/dtmsvr/version',
