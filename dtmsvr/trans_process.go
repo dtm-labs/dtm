@@ -77,7 +77,9 @@ func (t *TransGlobal) processInner(ctx context.Context, branches []TransBranch) 
 
 func (t *TransGlobal) saveNew() ([]TransBranch, error) {
 	t.NextCronInterval = t.getNextCronInterval(cronReset)
-	t.NextCronTime = dtmutil.GetNextTime(t.NextCronInterval)
+	if t.NextCronTime == nil || t.NextCronTime.IsZero() {
+		t.NextCronTime = dtmutil.GetNextTime(t.NextCronInterval)
+	}
 	t.ExtData = dtmimp.MustMarshalString(t.Ext)
 	if t.ExtData == "{}" {
 		t.ExtData = ""
