@@ -85,6 +85,7 @@ func TransFromDtmRequest(ctx context.Context, c *dtmgpb.DtmRequest) *TransGlobal
 	if c.TransOptions != nil {
 		o = c.TransOptions
 	}
+	nextCronTime := c.NextCronTime.AsTime()
 	r := TransGlobal{TransGlobalStore: storage.TransGlobalStore{
 		Gid:            c.Gid,
 		TransType:      c.TransType,
@@ -93,6 +94,7 @@ func TransFromDtmRequest(ctx context.Context, c *dtmgpb.DtmRequest) *TransGlobal
 		BinPayloads:    c.BinPayloads,
 		CustomData:     c.CustomedData,
 		RollbackReason: c.RollbackReason,
+		NextCronTime:   &nextCronTime,
 		TransOptions: dtmcli.TransOptions{
 			WaitResult:     o.WaitResult,
 			TimeoutToFail:  o.TimeoutToFail,
