@@ -344,6 +344,15 @@ func (s *Store) ResetTransGlobalCronTime(global *storage.TransGlobalStore) error
 	return err
 }
 
+// SetTransGlobalCronTime set nextCronTime of one global trans.
+func (s *Store) SetTransGlobalCronTime(global *storage.TransGlobalStore) error {
+	now := dtmutil.GetNextTime(0)
+	global.UpdateTime = now
+	key := conf.Store.RedisPrefix + "_g_" + global.Gid
+	_, err := redisGet().Set(ctx, key, dtmimp.MustMarshalString(global), time.Duration(conf.Store.DataExpire)*time.Second).Result()
+	return err
+}
+
 // TouchCronTime updates cronTime
 func (s *Store) TouchCronTime(global *storage.TransGlobalStore, nextCronInterval int64, nextCronTime *time.Time) {
 	global.UpdateTime = dtmutil.GetNextTime(0)

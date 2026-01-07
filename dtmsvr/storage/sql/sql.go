@@ -227,6 +227,18 @@ func (s *Store) ResetTransGlobalCronTime(global *storage.TransGlobalStore) error
 	return err
 }
 
+// ResetTransGlobalCronTime set nextCronTime of one global trans.
+func (s *Store) SetTransGlobalCronTime(global *storage.TransGlobalStore) error {
+	timeStr := getTimeSqlStr(global.NextCronTime)
+	now := getTimeStr(0)
+	sql := fmt.Sprintf(`UPDATE trans_global SET update_time='%s',next_cron_time='%s' WHERE gid = '%s'`,
+		now,
+		timeStr,
+		global.Gid)
+	_, err := dtmimp.DBExec(conf.Store.Driver, dbGet().ToSQLDB(), sql)
+	return err
+}
+
 // ScanKV lists KV pairs
 func (s *Store) ScanKV(cat string, position *string, limit int64) []storage.KVStore {
 	kvs := []storage.KVStore{}
@@ -327,4 +339,11 @@ func getTimeStr(afterSecond int64) string {
 		return dtmutil.GetNextTime(afterSecond).Format(time.RFC3339)
 	}
 	return dtmutil.GetNextTime(afterSecond).Format("2006-01-02 15:04:05")
+}
+
+func getTimeSqlStr(dt *time.Time) string {
+	if conf.Store.Driver == config.SQLServer {
+		return dt.Format(time.RFC3339)
+	}
+	return dt.Format("2006-01-02 15:04:05")
 }
