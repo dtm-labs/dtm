@@ -39,6 +39,12 @@ func svcSubmit(t *TransGlobal) interface{} {
 	} else if err != nil {
 		return err
 	}
+
+	// In msg mode, allow delaying consumption by using a custom NextCronTime
+	if !t.WaitResult && t.TransType == "msg" && !t.NextCronTime.IsZero() && t.NextCronTime.After(time.Now().Add(3*time.Second)) {
+		return nil
+	}
+
 	return t.Process(branches)
 }
 
