@@ -41,6 +41,7 @@ func svcSubmit(t *TransGlobal) interface{} {
 	}
 
 	// In msg mode, allow delaying consumption by using a custom NextCronTime
+	// WaitResult=true and NextCronTime are mutually exclusive, WaitResult takes priority
 	if !t.WaitResult && t.TransType == "msg" && !t.NextCronTime.IsZero() && t.NextCronTime.After(time.Now().Add(3*time.Second)) {
 		return nil
 	}
