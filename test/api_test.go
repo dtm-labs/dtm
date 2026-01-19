@@ -275,3 +275,31 @@ func TestAPIResetNextCronTime(t *testing.T) {
 	assert.Greater(t, time.Now().Add(3*time.Second), *g2.NextCronTime)
 	assert.NotEqual(t, g.NextCronTime, g2.NextCronTime)
 }
+
+func TestAPISetNextCronTime(t *testing.T) {
+	saga := genSaga(dtmimp.GetFuncName(), false, false)
+	saga.Submit()
+	waitTransProcessed(saga.Gid)
+	assert.Equal(t, []string{StatusPrepared, StatusSucceed, StatusPrepared, StatusSucceed}, getBranchesStatus(saga.Gid))
+	assert.Equal(t, StatusSucceed, getTransStatus(saga.Gid))
+	gid := saga.Gid
+
+	s := registry.GetStore()
+	g := s.FindTransGlobalStore(saga.Gid)
+
+	nextCronTime := time.Now().Add(30 * time.Second).UTC()
+	// set
+	resp, err := dtmcli.GetRestyClient().R().SetBody(map[string]string{
+		"gid":            saga.Gid,
+		"next_cron_time": nextCronTime.Format(time.RFC3339),
+	}).Post(dtmutil.DefaultHTTPServer + "/setNextCronTime")
+	assert.Nil(t, err)
+	assert.Equal(t, http.StatusOK, resp.StatusCode())
+
+	// after set assert
+	g2 := s.FindTransGlobalStore(gid)
+	assert.NotNil(t, g2)
+	assert.Equal(t, gid, g2.Gid)
+	assert.Equal(t, nextCronTime.Truncate(time.Second).UTC(), g2.NextCronTime.Truncate(time.Second).UTC())
+	assert.NotEqual(t, g.NextCronTime, g2.NextCronTime)
+}

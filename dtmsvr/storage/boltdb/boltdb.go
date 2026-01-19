@@ -501,6 +501,24 @@ func (s *Store) ResetTransGlobalCronTime(g *storage.TransGlobalStore) error {
 	return err
 }
 
+// SetTransGlobalCronTime set nextCronTime of one global trans.
+func (s *Store) SetTransGlobalCronTime(g *storage.TransGlobalStore) error {
+	err := s.boltDb.Update(func(t *bolt.Tx) error {
+		dt := g.NextCronTime
+		g := tGetGlobal(t, g.Gid)
+		if g == nil {
+			return storage.ErrNotFound
+		}
+		now := dtmutil.GetNextTime(0)
+		g.NextCronTime = dt
+		g.UpdateTime = now
+		tPutGlobal(t, g)
+		return nil
+	})
+	dtmimp.E2P(err)
+	return err
+}
+
 // ScanKV lists KV pairs
 func (s *Store) ScanKV(cat string, position *string, limit int64) []storage.KVStore {
 	kvs := []storage.KVStore{}
