@@ -2,6 +2,7 @@ package dtmsvr
 
 import (
 	"context"
+	"errors"
 	"math"
 
 	"github.com/dtm-labs/dtm/client/dtmcli"
@@ -44,7 +45,7 @@ func (t *transWorkflowProcessor) ProcessOnce(ctx context.Context, branches []Tra
 	err := t.getURLResult(ctx, t.QueryPrepared, "00", cmc.Name, data)
 	if err == dtmimp.ErrOngoing {
 		t.touchCronTime(cronKeep, 0)
-	} else if err != nil {
+	} else if err != nil && !errors.Is(err, dtmimp.ErrFailure) {
 		t.touchCronTime(cronBackoff, 0)
 		v := t.NextCronInterval / t.getNextCronInterval(cronReset)
 		retryCount := int64(math.Log2(float64(v)))
